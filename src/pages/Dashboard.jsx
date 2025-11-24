@@ -326,7 +326,17 @@ export default function Dashboard() {
   }, [properties.length, opportunities.length, onboardingProgress]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 relative">
+      {/* Background Logo */}
+      <div 
+        className="fixed inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] z-0"
+        style={{
+          backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg)',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          backgroundSize: '60%'
+        }}
+      />
       {showTour && (
         <OnboardingTour
           currentStep={tourStep}
