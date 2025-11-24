@@ -16,10 +16,10 @@ export default function FacebookCampaignDashboard() {
   const [syncing, setSyncing] = React.useState(false);
 
   const { data: fbSettings } = useQuery({
-    queryKey: ['facebookSettings'],
+    queryKey: ['fb_settings'],
     queryFn: async () => {
-      const settings = await base44.entities.FacebookLeadSettings.list();
-      return settings[0];
+      const userData = await base44.auth.me();
+      return userData.fb_lead_settings || { configured: false, campaigns: [] };
     },
   });
 
