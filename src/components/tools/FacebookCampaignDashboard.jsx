@@ -120,7 +120,7 @@ export default function FacebookCampaignDashboard() {
     });
   }, [period]);
 
-  if (!fbSettings?.access_token) {
+  if (!fbSettings?.configured || !fbSettings?.access_token) {
     return (
       <Card className="border-amber-500">
         <CardContent className="p-8 text-center">
@@ -129,7 +129,7 @@ export default function FacebookCampaignDashboard() {
             Configuração Necessária
           </h3>
           <p className="text-slate-600 mb-4">
-            Configure o Access Token do Facebook na integração de Facebook Leads para visualizar o dashboard de campanhas.
+            Configure o Access Token do Facebook na aba "Integração Facebook Leads" para visualizar o dashboard de campanhas.
           </p>
         </CardContent>
       </Card>
