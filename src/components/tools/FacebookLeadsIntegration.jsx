@@ -270,7 +270,10 @@ export default function FacebookLeadsIntegration() {
     
     try {
       await updateSettingsMutation.mutateAsync({
-        ...fbSettings,
+        configured: fbSettings?.configured || true,
+        access_token: fbSettings?.access_token,
+        page_id: fbSettings?.page_id,
+        last_sync: fbSettings?.last_sync || {},
         campaigns
       });
 
@@ -290,12 +293,22 @@ export default function FacebookLeadsIntegration() {
     }
   };
 
-  const handleRemoveCampaign = (formId) => {
+  const handleRemoveCampaign = async (formId) => {
+    if (!window.confirm("Tem certeza que deseja eliminar esta campanha?")) return;
+    
     const campaigns = fbSettings.campaigns.filter(c => c.form_id !== formId);
-    updateSettingsMutation.mutate({
-      ...fbSettings,
-      campaigns
-    });
+    try {
+      await updateSettingsMutation.mutateAsync({
+        configured: fbSettings?.configured || true,
+        access_token: fbSettings?.access_token,
+        page_id: fbSettings?.page_id,
+        last_sync: fbSettings?.last_sync || {},
+        campaigns
+      });
+      toast.success("Campanha eliminada");
+    } catch (error) {
+      toast.error("Erro ao eliminar campanha");
+    }
   };
 
   const handleResetIntegration = async () => {
