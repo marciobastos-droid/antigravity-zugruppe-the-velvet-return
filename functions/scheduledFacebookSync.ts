@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
             campaign_name: campaign.campaign_name || '',
             form_name: campaign.form_name || '',
             assigned_to: campaign.assigned_to || '',
-            last_sync: lastSync
+            last_sync: lastSync,
+            sync_type: 'automatic'
           };
 
           // Call the sync function
