@@ -26,7 +26,7 @@ export default function FacebookCampaignDashboard() {
   const { data: campaigns = [], isLoading: loadingCampaigns, refetch: refetchCampaigns } = useQuery({
     queryKey: ['facebookCampaigns', fbSettings?.access_token, period],
     queryFn: async () => {
-      if (!fbSettings?.access_token) return [];
+      if (!fbSettings?.configured || !fbSettings?.access_token) return [];
       
       // Agregar dados dos leads reais por campanha
       const campaignMap = new Map();
