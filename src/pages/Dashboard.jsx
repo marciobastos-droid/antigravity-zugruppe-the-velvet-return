@@ -39,6 +39,29 @@ export default function Dashboard() {
     enabled: !!user
   });
 
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list('-created_date'),
+  });
+
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['opportunities'],
+    queryFn: () => base44.entities.Opportunity.list('-created_date'),
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const { data: fbSettings } = useQuery({
+    queryKey: ['facebookSettings'],
+    queryFn: async () => {
+      const settings = await base44.entities.FacebookLeadSettings.list();
+      return settings[0];
+    },
+  });
+
   const updateProgressMutation = useMutation({
     mutationFn: async (data) => {
       if (onboardingProgress) {
@@ -119,28 +142,7 @@ export default function Dashboard() {
     });
   };
 
-  const { data: properties = [] } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date'),
-  });
 
-  const { data: opportunities = [] } = useQuery({
-    queryKey: ['opportunities'],
-    queryFn: () => base44.entities.Opportunity.list('-created_date'),
-  });
-
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list(),
-  });
-
-  const { data: fbSettings } = useQuery({
-    queryKey: ['facebookSettings'],
-    queryFn: async () => {
-      const settings = await base44.entities.FacebookLeadSettings.list();
-      return settings[0];
-    },
-  });
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
