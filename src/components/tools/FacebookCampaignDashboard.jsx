@@ -1,6 +1,6 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,53 +23,70 @@ export default function FacebookCampaignDashboard() {
     },
   });
 
-  const { data: campaigns = [], isLoading: loadingCampaigns, refetch: refetchCampaigns } = useQuery({
-    queryKey: ['facebookCampaigns', fbSettings?.access_token, period],
-    queryFn: async () => {
-      if (!fbSettings?.configured || !fbSettings?.access_token) return [];
-      
-      // Agregar dados dos leads reais por campanha
-      const campaignMap = new Map();
-      
-      leads.forEach(lead => {
-        if (!lead.campaign_id) return;
-        
-        if (!campaignMap.has(lead.campaign_id)) {
-          campaignMap.set(lead.campaign_id, {
-            id: lead.campaign_id,
-            name: lead.campaign_name || lead.campaign_id,
-            status: lead.campaign_status || 'ACTIVE',
-            budget: lead.campaign_budget || 0,
-            start_date: lead.campaign_start_date,
-            end_date: lead.campaign_end_date,
-            leads: 0,
-            spend: 0,
-            impressions: 0,
-            clicks: 0
-          });
-        }
-        
-        const campaign = campaignMap.get(lead.campaign_id);
-        campaign.leads += 1;
-      });
-      
-      // Converter para array e calcular métricas
-      const campaignsArray = Array.from(campaignMap.values()).map(campaign => ({
-        ...campaign,
-        costPerLead: campaign.leads > 0 ? (campaign.spend / campaign.leads).toFixed(2) : 0,
-        conversionRate: campaign.clicks > 0 ? ((campaign.leads / campaign.clicks) * 100).toFixed(2) : 0,
-        trend: 0 // Pode ser calculado comparando com período anterior
-      }));
-      
-      return campaignsArray;
-    },
-    enabled: !!fbSettings?.configured && !!fbSettings?.access_token
-  });
-
   const { data: leads = [] } = useQuery({
     queryKey: ['facebookLeads'],
     queryFn: () => base44.entities.FacebookLead.list('-created_date'),
   });
+
+  const campaigns = React.useMemo(() => {
+    if (!fbSettings?.configured || !fbSettings?.access_token) return [];
+    
+    // Agregar dados dos leads reais por campanha
+    const campaignMap = new Map();
+    
+    // Também usar campanhas configuradas
+    if (fbSettings?.campaigns) {
+      fbSettings.campaigns.forEach(campaign => {
+        campaignMap.set(campaign.form_id, {
+          id: campaign.campaign_id || campaign.form_id,
+          name: campaign.campaign_name || campaign.form_name || campaign.form_id,
+          form_id: campaign.form_id,
+          status: 'ACTIVE',
+          budget: 0,
+          leads: 0,
+          spend: 0,
+          impressions: 0,
+          clicks: 0
+        });
+      });
+    }
+    
+    leads.forEach(lead => {
+      const key = lead.form_id || lead.campaign_id;
+      if (!key) return;
+      
+      if (!campaignMap.has(key)) {
+        campaignMap.set(key, {
+          id: lead.campaign_id || key,
+          name: lead.campaign_name || lead.form_name || key,
+          form_id: lead.form_id,
+          status: lead.campaign_status || 'ACTIVE',
+          budget: lead.campaign_budget || 0,
+          start_date: lead.campaign_start_date,
+          end_date: lead.campaign_end_date,
+          leads: 0,
+          spend: 0,
+          impressions: 0,
+          clicks: 0
+        });
+      }
+      
+      const campaign = campaignMap.get(key);
+      campaign.leads += 1;
+    });
+    
+    // Converter para array e calcular métricas
+    return Array.from(campaignMap.values()).map(campaign => ({
+      ...campaign,
+      costPerLead: campaign.leads > 0 ? (campaign.spend / campaign.leads).toFixed(2) : 0,
+      conversionRate: campaign.clicks > 0 ? ((campaign.leads / campaign.clicks) * 100).toFixed(2) : 0,
+      trend: 0
+    }));
+  }, [fbSettings, leads]);
+
+  const loadingCampaigns = false;
+
+  const queryClient = require("@tanstack/react-query").useQueryClient();
 
   const syncCampaigns = async () => {
     if (!fbSettings?.configured || !fbSettings?.access_token) {
@@ -79,10 +96,9 @@ export default function FacebookCampaignDashboard() {
 
     setSyncing(true);
     try {
-      // In production, this would fetch real data from Facebook API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      await refetchCampaigns();
-      toast.success("Campanhas sincronizadas");
+      queryClient.invalidateQueries({ queryKey: ['facebookLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['fb_settings'] });
+      toast.success("Dados atualizados");
     } catch (error) {
       toast.error("Erro ao sincronizar campanhas");
     }
