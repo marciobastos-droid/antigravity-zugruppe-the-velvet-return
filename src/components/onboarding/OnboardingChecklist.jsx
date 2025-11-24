@@ -66,8 +66,15 @@ export default function OnboardingChecklist({ progress, onDismiss }) {
             <Sparkles className="w-5 h-5 text-blue-600" />
             <CardTitle className="text-lg">Primeiros Passos</CardTitle>
           </div>
-          <button onClick={onDismiss} className="text-slate-400 hover:text-slate-600">
-            <X className="w-4 h-4" />
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (onDismiss) onDismiss();
+            }} 
+            className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
         <div className="mt-4">
