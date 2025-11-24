@@ -456,13 +456,20 @@ export default function Dashboard() {
 
         {/* Onboarding Checklist */}
         {shouldShowChecklist && (
-          <div className="mb-6">
-            <OnboardingChecklist 
-              progress={onboardingProgress} 
-              onDismiss={handleChecklistDismiss}
-            />
-          </div>
-        )}
+                        <div className="mb-6">
+                          <OnboardingChecklist 
+                            progress={onboardingProgress} 
+                            onDismiss={() => {
+                              updateProgressMutation.mutate({ 
+                                steps_completed: {
+                                  ...onboardingProgress?.steps_completed,
+                                  checklist_dismissed: true
+                                }
+                              });
+                            }}
+                          />
+                        </div>
+                      )}
 
         {/* Notifications and AI Matching */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
