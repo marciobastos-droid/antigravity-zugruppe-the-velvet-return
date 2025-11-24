@@ -1021,29 +1021,30 @@ export default function FacebookLeadsIntegration() {
                           onCheckedChange={() => toggleSelectLead(lead.id)}
                           className="mt-1"
                         />
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
-                          <Badge className={
-                            lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                            lead.status === 'converted' ? 'bg-green-100 text-green-800' :
-                            lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-slate-100 text-slate-800'
-                          }>
-                            {lead.status === 'new' ? 'Novo' :
-                             lead.status === 'converted' ? 'Convertido' :
-                             lead.status === 'contacted' ? 'Contactado' : 'Arquivado'}
-                          </Badge>
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-2 text-sm text-slate-700">
-                          <div>📧 {lead.email}</div>
-                          {lead.phone && <div>📱 {lead.phone}</div>}
-                          {lead.location && <div>📍 {lead.location}</div>}
-                          {lead.property_type && <div>🏠 {lead.property_type}</div>}
-                          {lead.budget && <div>💰 €{Number(lead.budget).toLocaleString()}</div>}
-                        </div>
-                        <p className="text-xs text-slate-600 mt-2">
-                          Campanha: {lead.campaign_name || lead.campaign_id} • Formulário: {lead.form_name || lead.form_id}
-                        </p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
+                            <Badge className={
+                              lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                              lead.status === 'converted' ? 'bg-green-100 text-green-800' :
+                              lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-slate-100 text-slate-800'
+                            }>
+                              {lead.status === 'new' ? 'Novo' :
+                               lead.status === 'converted' ? 'Convertido' :
+                               lead.status === 'contacted' ? 'Contactado' : 'Arquivado'}
+                            </Badge>
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-2 text-sm text-slate-700">
+                            <div>📧 {lead.email}</div>
+                            {lead.phone && <div>📱 {lead.phone}</div>}
+                            {lead.location && <div>📍 {lead.location}</div>}
+                            {lead.property_type && <div>🏠 {lead.property_type}</div>}
+                            {lead.budget && <div>💰 €{Number(lead.budget).toLocaleString()}</div>}
+                          </div>
+                          <p className="text-xs text-slate-600 mt-2">
+                            Campanha: {lead.campaign_name || lead.campaign_id} • Formulário: {lead.form_name || lead.form_id}
+                          </p>
                           {lead.message && (
                             <p className="text-sm text-slate-600 mt-2 line-clamp-2">{lead.message}</p>
                           )}
