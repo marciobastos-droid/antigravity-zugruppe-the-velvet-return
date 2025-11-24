@@ -86,7 +86,7 @@ export default function FacebookCampaignDashboard() {
 
   const loadingCampaigns = false;
 
-  const queryClient = require("@tanstack/react-query").useQueryClient();
+  const queryClient = useQueryClient();
 
   const syncCampaigns = async () => {
     if (!fbSettings?.configured || !fbSettings?.access_token) {
