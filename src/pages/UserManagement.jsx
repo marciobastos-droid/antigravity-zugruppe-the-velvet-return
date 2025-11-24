@@ -448,17 +448,29 @@ Equipa Zugruppe`
                           )}
 
                           {isFullAdmin && !isCurrentUser && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(user);
-                                setPermissionsDialogOpen(true);
-                              }}
-                            >
-                              <Lock className="w-4 h-4 mr-2" />
-                              Permissões
-                            </Button>
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setPermissionsDialogOpen(true);
+                                }}
+                              >
+                                <Lock className="w-4 h-4 mr-2" />
+                                Permissões
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteUser(user)}
+                                disabled={deleteUserMutation.isPending}
+                                className="text-red-600 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
