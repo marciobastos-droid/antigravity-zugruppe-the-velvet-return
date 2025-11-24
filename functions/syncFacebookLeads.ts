@@ -1,10 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
+  const syncStartTime = Date.now();
   try {
     // Ler o body do request primeiro
     const body = await req.json();
-    let { access_token, page_id, form_id, campaign_id, campaign_name, form_name, last_sync, start_date, end_date, assigned_to, campaign_budget, campaign_start_date, campaign_end_date, campaign_status } = body;
+    let { access_token, page_id, form_id, campaign_id, campaign_name, form_name, last_sync, start_date, end_date, assigned_to, campaign_budget, campaign_start_date, campaign_end_date, campaign_status, sync_type = 'manual' } = body;
 
     // Limpar espaços em branco dos parâmetros recebidos
     access_token = access_token ? access_token.trim() : access_token;
@@ -177,6 +178,24 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Calcular duração
+    const durationSeconds = Math.floor((Date.now() - syncStartTime) / 1000);
+
+    // Criar log de sincronização
+    await base44.entities.FacebookSyncLog.create({
+      campaign_id: campaign_id || '',
+      form_id: form_id,
+      sync_type: start_date && end_date ? 'historical' : sync_type,
+      status: 'success',
+      leads_fetched: fbLeads.length,
+      leads_created: newLeads.length,
+      leads_duplicated: duplicatedCount,
+      start_date: start_date || undefined,
+      end_date: end_date || undefined,
+      duration_seconds: durationSeconds,
+      triggered_by: user.email
+    });
+
     return Response.json({
       success: true,
       created_count: newLeads.length,
@@ -187,6 +206,31 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Sync error:', error);
+    
+    // Criar log de erro
+    try {
+      const base44 = createClientFromRequest(req);
+      const user = await base44.auth.me();
+      const body = await req.json();
+      
+      if (user && body.form_id) {
+        await base44.entities.FacebookSyncLog.create({
+          campaign_id: body.campaign_id || '',
+          form_id: body.form_id,
+          sync_type: body.start_date && body.end_date ? 'historical' : (body.sync_type || 'manual'),
+          status: 'error',
+          leads_fetched: 0,
+          leads_created: 0,
+          leads_duplicated: 0,
+          error_message: error.message || error.toString(),
+          duration_seconds: Math.floor((Date.now() - syncStartTime) / 1000),
+          triggered_by: user.email
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to create error log:', logError);
+    }
+    
     return Response.json({ 
       error: error.message || 'Internal server error',
       details: error.toString()

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil } from "lucide-react";
+import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { qualifyLead } from "../opportunities/LeadQualification";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +31,8 @@ export default function FacebookLeadsIntegration() {
   const [convertDialogOpen, setConvertDialogOpen] = React.useState(false);
   const [leadToConvert, setLeadToConvert] = React.useState(null);
   const [selectedPropertyId, setSelectedPropertyId] = React.useState("");
+  const [logsDialogOpen, setLogsDialogOpen] = React.useState(false);
+  const [selectedFormForLogs, setSelectedFormForLogs] = React.useState(null);
 
   const [fbConfig, setFbConfig] = React.useState({
     access_token: "",
@@ -72,6 +74,11 @@ export default function FacebookLeadsIntegration() {
   const { data: properties = [] } = useQuery({
     queryKey: ['all_properties'],
     queryFn: () => base44.entities.Property.list('-created_date'),
+  });
+
+  const { data: syncLogs = [] } = useQuery({
+    queryKey: ['facebook_sync_logs'],
+    queryFn: () => base44.entities.FacebookSyncLog.list('-created_date'),
   });
 
   // Validate token on mount if configured
@@ -371,7 +378,8 @@ export default function FacebookLeadsIntegration() {
         assigned_to: campaign?.assigned_to || '',
         last_sync: customDateRange ? null : lastSync,
         start_date: customDateRange?.start_date || null,
-        end_date: customDateRange?.end_date || null
+        end_date: customDateRange?.end_date || null,
+        sync_type: customDateRange ? 'historical' : 'manual'
       };
 
       console.log('Enviando payload para syncFacebookLeads:', {
@@ -424,6 +432,7 @@ export default function FacebookLeadsIntegration() {
       
       queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['facebook_sync_logs'] });
       setDateRangeDialogOpen(false);
     } catch (error) {
       toast.error(`Erro ao sincronizar: ${error.message}`);
@@ -834,6 +843,17 @@ export default function FacebookLeadsIntegration() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => {
+                              setSelectedFormForLogs(campaign.form_id);
+                              setLogsDialogOpen(true);
+                            }}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Logs
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleRemoveCampaign(campaign.form_id)}
                             className="text-red-600 hover:bg-red-50"
                           >
@@ -983,6 +1003,100 @@ export default function FacebookLeadsIntegration() {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog de Logs */}
+      <Dialog open={logsDialogOpen} onOpenChange={setLogsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-600" />
+              Histórico de Sincronizações
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 space-y-3">
+            {syncLogs
+              .filter(log => log.form_id === selectedFormForLogs)
+              .map((log) => (
+                <Card key={log.id} className={`border-2 ${
+                  log.status === 'success' ? 'border-green-200 bg-green-50' :
+                  log.status === 'partial' ? 'border-yellow-200 bg-yellow-50' :
+                  'border-red-200 bg-red-50'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {log.status === 'success' ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          ) : log.status === 'error' ? (
+                            <XCircle className="w-5 h-5 text-red-600" />
+                          ) : (
+                            <Clock className="w-5 h-5 text-yellow-600" />
+                          )}
+                          <span className="font-semibold text-slate-900">
+                            {log.sync_type === 'historical' ? 'Sincronização Histórica' :
+                             log.sync_type === 'automatic' ? 'Sincronização Automática' :
+                             'Sincronização Manual'}
+                          </span>
+                          <Badge className={
+                            log.status === 'success' ? 'bg-green-100 text-green-800' :
+                            log.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }>
+                            {log.status === 'success' ? 'Sucesso' :
+                             log.status === 'partial' ? 'Parcial' : 'Erro'}
+                          </Badge>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-2 text-sm mb-2">
+                          <div>
+                            <span className="font-medium text-slate-700">Leads Obtidas:</span>
+                            <span className="ml-2 text-slate-900">{log.leads_fetched || 0}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-slate-700">Novas Criadas:</span>
+                            <span className="ml-2 text-green-600 font-semibold">{log.leads_created || 0}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-slate-700">Duplicadas:</span>
+                            <span className="ml-2 text-slate-600">{log.leads_duplicated || 0}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-slate-700">Duração:</span>
+                            <span className="ml-2 text-slate-900">{log.duration_seconds || 0}s</span>
+                          </div>
+                        </div>
+
+                        {(log.start_date || log.end_date) && (
+                          <div className="text-xs text-slate-600 mb-1">
+                            <Calendar className="w-3 h-3 inline mr-1" />
+                            Período: {log.start_date ? new Date(log.start_date).toLocaleDateString('pt-PT') : '?'} - {log.end_date ? new Date(log.end_date).toLocaleDateString('pt-PT') : '?'}
+                          </div>
+                        )}
+
+                        {log.error_message && (
+                          <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded text-xs text-red-800">
+                            <strong>Erro:</strong> {log.error_message}
+                          </div>
+                        )}
+
+                        <div className="text-xs text-slate-500 mt-2">
+                          {new Date(log.created_date).toLocaleString('pt-PT')} • Por {log.triggered_by}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            {syncLogs.filter(log => log.form_id === selectedFormForLogs).length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                Nenhuma sincronização realizada ainda
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de Conversão com Seleção de Imóvel */}
       <Dialog open={convertDialogOpen} onOpenChange={setConvertDialogOpen}>
