@@ -86,6 +86,8 @@ export default function FacebookCampaignDashboard() {
 
   const loadingCampaigns = false;
 
+  const queryClient = require("@tanstack/react-query").useQueryClient();
+
   const syncCampaigns = async () => {
     if (!fbSettings?.configured || !fbSettings?.access_token) {
       toast.error("Configure o Access Token primeiro");
@@ -94,10 +96,9 @@ export default function FacebookCampaignDashboard() {
 
     setSyncing(true);
     try {
-      // In production, this would fetch real data from Facebook API
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      await refetchCampaigns();
-      toast.success("Campanhas sincronizadas");
+      queryClient.invalidateQueries({ queryKey: ['facebookLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['fb_settings'] });
+      toast.success("Dados atualizados");
     } catch (error) {
       toast.error("Erro ao sincronizar campanhas");
     }
