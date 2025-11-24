@@ -1,0 +1,574 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { Loader2, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
+import PropertyTagger from "../property/PropertyTagger";
+
+export default function EditPropertyDialog({ property, open, onOpenChange }) {
+  const queryClient = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const [improvingDescription, setImprovingDescription] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    property_type: "apartment",
+    listing_type: "sale",
+    price: "",
+    bedrooms: "",
+    bathrooms: "",
+    square_feet: "",
+    gross_area: "",
+    useful_area: "",
+    front_count: "",
+    finishes: "",
+    energy_certificate: "",
+    address: "",
+    city: "",
+    state: "",
+    zip_code: "",
+    year_built: "",
+    year_renovated: "",
+    images: [],
+    amenities: [],
+    status: "active",
+    internal_notes: "",
+    tags: []
+  });
+
+  useEffect(() => {
+    if (property) {
+      setFormData({
+        title: property.title || "",
+        description: property.description || "",
+        property_type: property.property_type || "apartment",
+        listing_type: property.listing_type || "sale",
+        price: property.price || "",
+        bedrooms: property.bedrooms || "",
+        bathrooms: property.bathrooms || "",
+        square_feet: property.square_feet || "",
+        gross_area: property.gross_area || "",
+        useful_area: property.useful_area || "",
+        front_count: property.front_count || "",
+        finishes: property.finishes || "",
+        energy_certificate: property.energy_certificate || "",
+        address: property.address || "",
+        city: property.city || "",
+        state: property.state || "",
+        zip_code: property.zip_code || "",
+        year_built: property.year_built || "",
+        year_renovated: property.year_renovated || "",
+        images: property.images || [],
+        amenities: property.amenities || [],
+        status: property.status || "active",
+        internal_notes: property.internal_notes || "",
+        tags: property.tags || []
+      });
+    }
+  }, [property]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data) => base44.entities.Property.update(property.id, data),
+    onSuccess: () => {
+      toast.success("Imóvel atualizado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['property', property.id] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      onOpenChange(false);
+    },
+    onError: () => {
+      toast.error("Erro ao atualizar imóvel");
+    }
+  });
+
+  const handleImproveDescription = async () => {
+    if (!formData.title || !formData.price) {
+      toast.error("Preencha o título e preço primeiro");
+      return;
+    }
+
+    setImprovingDescription(true);
+
+    try {
+      const propertyDetails = `
+Título: ${formData.title}
+Tipo: ${formData.property_type}
+Negócio: ${formData.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+Preço: €${Number(formData.price).toLocaleString()}
+${formData.bedrooms ? `Quartos: ${formData.bedrooms}` : ''}
+${formData.bathrooms ? `WCs: ${formData.bathrooms}` : ''}
+${formData.square_feet ? `Área: ${formData.square_feet}m²` : ''}
+${formData.useful_area ? `Área Útil: ${formData.useful_area}m²` : ''}
+Localização: ${formData.city}, ${formData.state}
+${formData.amenities?.length > 0 ? `Comodidades: ${formData.amenities.join(', ')}` : ''}
+${formData.finishes ? `Acabamentos: ${formData.finishes}` : ''}
+${formData.energy_certificate ? `Certificado Energético: ${formData.energy_certificate}` : ''}
+${formData.year_built ? `Ano de Construção: ${formData.year_built}` : ''}
+`;
+
+      const improvedDescription = await base44.integrations.Core.InvokeLLM({
+        prompt: `És um copywriter especialista em imobiliário português.
+
+MISSÃO: Melhorar a descrição de um imóvel para ser profissional, atrativa e otimizada.
+
+DETALHES DO IMÓVEL:
+${propertyDetails}
+
+${formData.description ? `DESCRIÇÃO ATUAL:\n${formData.description}\n\n` : ''}
+
+INSTRUÇÕES:
+1. Cria uma descrição COMPLETA e PROFISSIONAL (200-300 palavras)
+2. Estrutura clara com parágrafos curtos
+3. Destaca pontos fortes e diferenciais
+4. Linguagem persuasiva mas honesta
+5. Tom profissional e elegante
+6. Foca em benefícios para o comprador/inquilino
+7. Menciona localização e acessos se relevante
+8. Inclui call-to-action no final
+
+${formData.description ? 'IMPORTANTE: Mantém os factos da descrição atual mas melhora a escrita e estrutura.' : 'Cria uma descrição completa baseada nos dados fornecidos.'}
+
+Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
+      });
+
+      setFormData(prev => ({ ...prev, description: improvedDescription }));
+      toast.success("Descrição melhorada com IA!");
+    } catch (error) {
+      toast.error("Erro ao melhorar descrição");
+      console.error(error);
+    }
+
+    setImprovingDescription(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedUrls = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedUrls]
+      }));
+      
+      toast.success(`${files.length} imagem${files.length > 1 ? 'ns' : ''} carregada${files.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      toast.error("Erro ao carregar imagens");
+    }
+    setUploading(false);
+  };
+
+  const removeImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleTagsUpdate = (tags) => {
+    setFormData(prev => ({ ...prev, tags }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const data = {
+      ...formData,
+      price: formData.price ? Number(formData.price) : 0,
+      bedrooms: formData.bedrooms ? Number(formData.bedrooms) : 0,
+      bathrooms: formData.bathrooms ? Number(formData.bathrooms) : 0,
+      square_feet: formData.square_feet ? Number(formData.square_feet) : 0,
+      gross_area: formData.gross_area ? Number(formData.gross_area) : 0,
+      useful_area: formData.useful_area ? Number(formData.useful_area) : 0,
+      front_count: formData.front_count ? Number(formData.front_count) : 0,
+      year_built: formData.year_built ? Number(formData.year_built) : undefined,
+      year_renovated: formData.year_renovated ? Number(formData.year_renovated) : undefined
+    };
+
+    updateMutation.mutate(data);
+  };
+
+  if (!property) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Editar Imóvel</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          {/* Images Section */}
+          <div className="space-y-3">
+            <Label>Imagens do Imóvel</Label>
+            
+            {formData.images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {formData.images.map((img, idx) => (
+                  <div key={idx} className="relative group">
+                    <img 
+                      src={img} 
+                      alt={`Imagem ${idx + 1}`}
+                      className="w-full h-32 object-cover rounded-lg border border-slate-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    {idx === 0 && (
+                      <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">
+                        Principal
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload-edit"
+                disabled={uploading}
+              />
+              <label htmlFor="image-upload-edit" className="cursor-pointer">
+                {uploading ? (
+                  <Loader2 className="w-10 h-10 text-slate-400 mx-auto mb-3 animate-spin" />
+                ) : (
+                  <ImageIcon className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                )}
+                <p className="text-slate-700 font-medium mb-1">
+                  {uploading ? "A carregar..." : "Clique para adicionar imagens"}
+                </p>
+                <p className="text-sm text-slate-500">
+                  {formData.images.length > 0 ? `${formData.images.length} imagem${formData.images.length > 1 ? 'ns' : ''} atual${formData.images.length > 1 ? 'mente' : ''}` : "PNG, JPG até 10MB cada"}
+                </p>
+              </label>
+            </div>
+          </div>
+
+          {/* Basic Information */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <Label>Título *</Label>
+              <Input
+                required
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="Ex: Apartamento T2 no Centro"
+              />
+            </div>
+
+            <div>
+              <Label>Tipo de Imóvel *</Label>
+              <Select value={formData.property_type} onValueChange={(v) => setFormData({...formData, property_type: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="house">Moradia</SelectItem>
+                  <SelectItem value="apartment">Apartamento</SelectItem>
+                  <SelectItem value="condo">Condomínio</SelectItem>
+                  <SelectItem value="townhouse">Casa Geminada</SelectItem>
+                  <SelectItem value="building">Prédio</SelectItem>
+                  <SelectItem value="land">Terreno</SelectItem>
+                  <SelectItem value="commercial">Comercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Tipo de Anúncio *</Label>
+              <Select value={formData.listing_type} onValueChange={(v) => setFormData({...formData, listing_type: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sale">Venda</SelectItem>
+                  <SelectItem value="rent">Arrendamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Preço (€) *</Label>
+              <Input
+                type="number"
+                required
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                placeholder="250000"
+              />
+            </div>
+
+            <div>
+              <Label>Estado</Label>
+              <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="sold">Vendido</SelectItem>
+                  <SelectItem value="rented">Arrendado</SelectItem>
+                  <SelectItem value="off_market">Desativado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Property Details */}
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <Label>Quartos</Label>
+              <Input
+                type="number"
+                value={formData.bedrooms}
+                onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
+                placeholder="3"
+              />
+            </div>
+            <div>
+              <Label>Casas de Banho</Label>
+              <Input
+                type="number"
+                value={formData.bathrooms}
+                onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
+                placeholder="2"
+              />
+            </div>
+            <div>
+              <Label>Área (m²)</Label>
+              <Input
+                type="number"
+                value={formData.square_feet}
+                onChange={(e) => setFormData({...formData, square_feet: e.target.value})}
+                placeholder="120"
+              />
+            </div>
+            <div>
+              <Label>Área Bruta (m²)</Label>
+              <Input
+                type="number"
+                value={formData.gross_area}
+                onChange={(e) => setFormData({...formData, gross_area: e.target.value})}
+                placeholder="150"
+              />
+            </div>
+            <div>
+              <Label>Área Útil (m²)</Label>
+              <Input
+                type="number"
+                value={formData.useful_area}
+                onChange={(e) => setFormData({...formData, useful_area: e.target.value})}
+                placeholder="120"
+              />
+            </div>
+            <div>
+              <Label>Nº de Frentes</Label>
+              <Input
+                type="number"
+                value={formData.front_count}
+                onChange={(e) => setFormData({...formData, front_count: e.target.value})}
+                placeholder="2"
+              />
+            </div>
+          </div>
+
+          {/* Energy Certificate */}
+          <div>
+            <Label>Certificado Energético</Label>
+            <Select 
+              value={formData.energy_certificate} 
+              onValueChange={(v) => setFormData({...formData, energy_certificate: v})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a classe energética" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="A+">A+</SelectItem>
+                <SelectItem value="A">A</SelectItem>
+                <SelectItem value="B">B</SelectItem>
+                <SelectItem value="B-">B-</SelectItem>
+                <SelectItem value="C">C</SelectItem>
+                <SelectItem value="D">D</SelectItem>
+                <SelectItem value="E">E</SelectItem>
+                <SelectItem value="F">F</SelectItem>
+                <SelectItem value="isento">Isento</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Description with AI Improvement */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Descrição</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleImproveDescription}
+                disabled={improvingDescription}
+                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+              >
+                {improvingDescription ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                    A melhorar...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3 mr-2" />
+                    Melhorar com IA
+                  </>
+                )}
+              </Button>
+            </div>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Descreva o imóvel..."
+              rows={6}
+            />
+          </div>
+
+          {/* AI Property Tagger */}
+          <PropertyTagger 
+            property={formData}
+            onTagsUpdate={handleTagsUpdate}
+          />
+
+          {/* Location */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Morada *</Label>
+              <Input
+                required
+                value={formData.address}
+                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                placeholder="Rua Principal, 123"
+              />
+            </div>
+            <div>
+              <Label>Cidade *</Label>
+              <Input
+                required
+                value={formData.city}
+                onChange={(e) => setFormData({...formData, city: e.target.value})}
+                placeholder="Lisboa"
+              />
+            </div>
+            <div>
+              <Label>Distrito/Região *</Label>
+              <Input
+                required
+                value={formData.state}
+                onChange={(e) => setFormData({...formData, state: e.target.value})}
+                placeholder="Lisboa"
+              />
+            </div>
+            <div>
+              <Label>Código Postal</Label>
+              <Input
+                value={formData.zip_code}
+                onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
+                placeholder="1000-001"
+              />
+            </div>
+          </div>
+
+          {/* Years */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Ano de Construção</Label>
+              <Input
+                type="number"
+                value={formData.year_built}
+                onChange={(e) => setFormData({...formData, year_built: e.target.value})}
+                placeholder="2020"
+              />
+            </div>
+            <div>
+              <Label>Ano de Renovação</Label>
+              <Input
+                type="number"
+                value={formData.year_renovated}
+                onChange={(e) => setFormData({...formData, year_renovated: e.target.value})}
+                placeholder="2023"
+              />
+            </div>
+          </div>
+
+          {/* Amenities */}
+          <div>
+            <Label>Comodidades (separadas por vírgula)</Label>
+            <Input
+              value={formData.amenities.join(", ")}
+              onChange={(e) => setFormData({...formData, amenities: e.target.value.split(",").map(a => a.trim()).filter(Boolean)})}
+              placeholder="Piscina, Garagem, Jardim"
+            />
+          </div>
+
+          {/* Finishes */}
+          <div>
+            <Label>Acabamentos</Label>
+            <Input
+              value={formData.finishes}
+              onChange={(e) => setFormData({...formData, finishes: e.target.value})}
+              placeholder="Descrição dos acabamentos"
+            />
+          </div>
+
+          {/* Internal Notes */}
+          <div>
+            <Label>Notas Internas (privadas)</Label>
+            <Textarea
+              value={formData.internal_notes}
+              onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
+              placeholder="Notas privadas sobre o imóvel..."
+              rows={3}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={updateMutation.isPending} className="flex-1 bg-slate-900 hover:bg-slate-800">
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A guardar...
+                </>
+              ) : (
+                "Guardar Alterações"
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
