@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock } from "lucide-react";
+import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock, CheckSquare, Square } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { qualifyLead } from "../opportunities/LeadQualification";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,6 +34,8 @@ export default function FacebookLeadsIntegration() {
   const [selectedPropertyId, setSelectedPropertyId] = React.useState("");
   const [logsDialogOpen, setLogsDialogOpen] = React.useState(false);
   const [selectedFormForLogs, setSelectedFormForLogs] = React.useState(null);
+  const [selectedLeads, setSelectedLeads] = React.useState([]);
+  const [deletingBulk, setDeletingBulk] = React.useState(false);
 
   const [fbConfig, setFbConfig] = React.useState({
     access_token: "",
@@ -124,6 +127,36 @@ export default function FacebookLeadsIntegration() {
       queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
     },
   });
+
+  const handleBulkDelete = async () => {
+    if (selectedLeads.length === 0) return;
+    if (!window.confirm(`Tem certeza que deseja eliminar ${selectedLeads.length} lead(s)?`)) return;
+    
+    setDeletingBulk(true);
+    try {
+      await Promise.all(selectedLeads.map(id => base44.entities.FacebookLead.delete(id)));
+      toast.success(`${selectedLeads.length} lead(s) eliminado(s)`);
+      setSelectedLeads([]);
+      queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
+    } catch (error) {
+      toast.error("Erro ao eliminar leads");
+    }
+    setDeletingBulk(false);
+  };
+
+  const toggleSelectLead = (id) => {
+    setSelectedLeads(prev => 
+      prev.includes(id) ? prev.filter(lid => lid !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllLeads = () => {
+    if (selectedLeads.length === fbLeads.length) {
+      setSelectedLeads([]);
+    } else {
+      setSelectedLeads(fbLeads.map(l => l.id));
+    }
+  };
 
   const convertToOpportunityMutation = useMutation({
     mutationFn: async ({ lead, propertyId }) => {
@@ -935,18 +968,59 @@ export default function FacebookLeadsIntegration() {
       {fbLeads.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Leads do Facebook ({fbLeads.length})
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Leads do Facebook ({fbLeads.length})
+              </span>
+              <div className="flex items-center gap-2">
+                {selectedLeads.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    disabled={deletingBulk}
+                  >
+                    {deletingBulk ? (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    )}
+                    Eliminar {selectedLeads.length}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleSelectAllLeads}
+                >
+                  {selectedLeads.length === fbLeads.length ? (
+                    <>
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Desselecionar
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      Selecionar Todos
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {fbLeads.map((lead) => (
-                <Card key={lead.id} className={`border-2 ${lead.status === 'new' ? 'border-blue-300 bg-blue-50' : lead.status === 'converted' ? 'border-green-300 bg-green-50' : ''}`}>
+                <Card key={lead.id} className={`border-2 ${selectedLeads.includes(lead.id) ? 'border-blue-500 bg-blue-100' : lead.status === 'new' ? 'border-blue-300 bg-blue-50' : lead.status === 'converted' ? 'border-green-300 bg-green-50' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex-1">
+                      <div className="flex items-start gap-3 flex-1">
+                        <Checkbox
+                          checked={selectedLeads.includes(lead.id)}
+                          onCheckedChange={() => toggleSelectLead(lead.id)}
+                          className="mt-1"
+                        />
                         <div className="flex items-center gap-2 mb-2">
                           <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
                           <Badge className={
@@ -970,9 +1044,10 @@ export default function FacebookLeadsIntegration() {
                         <p className="text-xs text-slate-600 mt-2">
                           Campanha: {lead.campaign_name || lead.campaign_id} • Formulário: {lead.form_name || lead.form_id}
                         </p>
-                        {lead.message && (
-                          <p className="text-sm text-slate-600 mt-2 line-clamp-2">{lead.message}</p>
-                        )}
+                          {lead.message && (
+                            <p className="text-sm text-slate-600 mt-2 line-clamp-2">{lead.message}</p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-2 ml-4">
                         {lead.status === 'new' && (
