@@ -349,7 +349,7 @@ export default function Dashboard() {
 
       {contextualTip && <ContextualTip tip={contextualTip} onDismiss={() => setContextualTip(null)} />}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 id="dashboard-stats" className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
