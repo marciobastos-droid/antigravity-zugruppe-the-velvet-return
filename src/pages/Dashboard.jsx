@@ -83,9 +83,15 @@ export default function Dashboard() {
   const [contextualTip, setContextualTip] = React.useState(null);
 
   React.useEffect(() => {
-    if (user && !onboardingProgress?.tour_completed && !onboardingProgress?.tour_dismissed) {
+    if (user && onboardingProgress === null) {
+      // Ainda não carregou o progresso, não mostrar nada
+      return;
+    }
+    if (user && !onboardingProgress?.tour_completed && !onboardingProgress?.tour_dismissed && onboardingProgress !== undefined) {
       setShowTour(true);
       setTourStep(onboardingProgress?.current_tour_step || 0);
+    } else {
+      setShowTour(false);
     }
   }, [user, onboardingProgress]);
 
