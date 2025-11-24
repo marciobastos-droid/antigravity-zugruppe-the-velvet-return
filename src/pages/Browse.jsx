@@ -138,16 +138,7 @@ export default function Browse() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Hero Section */}
-      <div className="bg-[#4cb5f5] text-white py-12 from-slate-900 via-slate-800 to-slate-900 md:py-20 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-10"
-          style={{
-            backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg)',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundSize: '40%'
-          }}
-        />
+      <div className="bg-[#4cb5f5] text-white py-12 from-slate-900 via-slate-800 to-slate-900 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">Plataforma ZuConnect</h1>
