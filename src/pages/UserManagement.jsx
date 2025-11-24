@@ -97,6 +97,24 @@ Equipa Zugruppe`
     },
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId) => base44.entities.User.delete(userId),
+    onSuccess: () => {
+      toast.success("Utilizador eliminado com sucesso");
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: () => {
+      toast.error("Erro ao eliminar utilizador");
+    }
+  });
+
+  const handleDeleteUser = (user) => {
+    if (!window.confirm(`Tem certeza que deseja eliminar o utilizador "${user.full_name}"? Esta ação não pode ser revertida.`)) {
+      return;
+    }
+    deleteUserMutation.mutate(user.id);
+  };
+
   const handleCreateUser = (e) => {
     e.preventDefault();
     createUserMutation.mutate(formData);
