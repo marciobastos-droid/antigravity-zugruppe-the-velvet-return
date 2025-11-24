@@ -63,7 +63,7 @@ export default function FacebookCampaignDashboard() {
       
       return campaignsArray;
     },
-    enabled: !!fbSettings?.access_token
+    enabled: !!fbSettings?.configured && !!fbSettings?.access_token
   });
 
   const { data: leads = [] } = useQuery({
@@ -72,7 +72,7 @@ export default function FacebookCampaignDashboard() {
   });
 
   const syncCampaigns = async () => {
-    if (!fbSettings?.access_token) {
+    if (!fbSettings?.configured || !fbSettings?.access_token) {
       toast.error("Configure o Access Token primeiro");
       return;
     }
