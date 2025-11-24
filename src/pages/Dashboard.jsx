@@ -130,12 +130,12 @@ export default function Dashboard() {
   };
 
   const handleTourComplete = () => {
-    updateProgressMutation.mutate({ tour_completed: true, current_tour_step: 0 });
+    updateProgressMutation.mutate({ tour_completed: true, tour_dismissed: true, current_tour_step: 0 });
     setShowTour(false);
   };
 
   const handleTourDismiss = () => {
-    updateProgressMutation.mutate({ tour_dismissed: true });
+    updateProgressMutation.mutate({ tour_completed: true, tour_dismissed: true });
     setShowTour(false);
   };
 
