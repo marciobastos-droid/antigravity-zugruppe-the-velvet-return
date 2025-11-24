@@ -341,12 +341,19 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 id="dashboard-stats" className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-              <BarChart3 className="w-10 h-10 text-blue-600" />
-              Dashboard
-            </h1>
-            <p className="text-slate-600">Visão geral do desempenho da plataforma</p>
+          <div className="flex items-center gap-6">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+              alt="Zugruppe Logo"
+              className="h-20 w-auto object-contain"
+            />
+            <div>
+              <h1 id="dashboard-stats" className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+                <BarChart3 className="w-10 h-10 text-blue-600" />
+                Dashboard
+              </h1>
+              <p className="text-slate-600">Visão geral do desempenho da plataforma</p>
+            </div>
           </div>
 
           <div className="flex gap-3">
