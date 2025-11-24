@@ -42,9 +42,9 @@ export default function FacebookCampaignDashboard() {
           name: campaign.campaign_name || campaign.form_name || campaign.form_id,
           form_id: campaign.form_id,
           status: 'ACTIVE',
-          budget: 0,
+          budget: campaign.budget || 0,
           leads: 0,
-          spend: 0,
+          spend: campaign.spend || 0,
           impressions: 0,
           clicks: 0
         });
@@ -73,13 +73,17 @@ export default function FacebookCampaignDashboard() {
       
       const campaign = campaignMap.get(key);
       campaign.leads += 1;
+      // Usar budget da campanha como spend estimado se não tiver spend real
+      if (campaign.spend === 0 && campaign.budget > 0) {
+        campaign.spend = campaign.budget;
+      }
     });
     
     // Converter para array e calcular métricas
     return Array.from(campaignMap.values()).map(campaign => ({
       ...campaign,
-      costPerLead: campaign.leads > 0 ? (campaign.spend / campaign.leads).toFixed(2) : 0,
-      conversionRate: campaign.clicks > 0 ? ((campaign.leads / campaign.clicks) * 100).toFixed(2) : 0,
+      costPerLead: campaign.leads > 0 && campaign.spend > 0 ? (campaign.spend / campaign.leads).toFixed(2) : '-',
+      conversionRate: campaign.clicks > 0 ? ((campaign.leads / campaign.clicks) * 100).toFixed(2) : '-',
       trend: 0
     }));
   }, [fbSettings, leads]);
