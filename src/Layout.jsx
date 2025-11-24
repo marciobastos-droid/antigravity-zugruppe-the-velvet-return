@@ -21,7 +21,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
     { name: "Oportunidades", path: createPageUrl("Opportunities"), icon: MessageSquare, id: "nav-opportunities" },
-    { name: "Clientes", path: createPageUrl("ClientPreferences"), icon: Users, id: "nav-clients" },
+    { name: "Contatos", path: createPageUrl("ClientPreferences"), icon: Users, id: "nav-clients" },
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
   ];
 
