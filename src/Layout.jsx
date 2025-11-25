@@ -181,18 +181,18 @@ export default function Layout({ children, currentPageName }) {
                 alt="Zugruppe Logo"
                 className="h-8 md:h-10 w-auto object-contain mb-3 md:mb-4 brightness-0 invert" />
 
-              <p className="bg-transparent text-slate-500 text-sm">
-
+              <p className="text-slate-400 text-sm">
+                Privileged Approach Unipessoal Lda
               </p>
             </div>
-            <div className="text-black">
-              <h3 className="text-slate-700 mb-3 text-base font-semibold md:mb-4"></h3>
+            <div>
+              <h3 className="font-semibold mb-3 md:mb-4 text-amber-400 text-base">Links Rápidos</h3>
               <div className="space-y-2">
                 {navItems.slice(0, 5).map((item) =>
                 <Link
                   key={item.name}
-                  to={item.path} className="text-slate-500 text-sm block hover:text-white transition-colors duration-200">
-
+                  to={item.path}
+                  className="block text-slate-400 hover:text-white text-sm transition-colors duration-200">
 
                     {item.name}
                   </Link>
@@ -200,15 +200,12 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div>
-              <h3 className="text-slate-600 mb-3 text-base font-semibold md:mb-4"></h3>
-              <p className="text-slate-500 text-sm">Privileged Approach Unipessoal Lda
-Praça Marques de Pombal 2
-3810-133 Aveiro
+              <h3 className="font-semibold mb-3 md:mb-4 text-amber-400 text-base">Contacto</h3>
+              <p className="text-slate-500 text-sm">Privileged Approach Unipessoal Lda  - Praça Marques de Pombal 2 - 3810-133 Aveiro - NIPC 513444823 - IMPIC 11355 - info@zugruppe.com
 
-NIPC 513444823
-IMPIC 11355
 
-info@zugruppe.com</p>
+
+              </p>
             </div>
           </div>
           <div className="border-t border-slate-800 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-slate-500 text-xs md:text-sm">
@@ -216,4 +213,6 @@ info@zugruppe.com</p>
           </div>
         </div>
       </footer>
-    </div>);}
+    </div>);
+
+}
