@@ -173,26 +173,26 @@ export default function Layout({ children, currentPageName }) {
       <main className="pb-8">{children}</main>
 
       <footer className="bg-slate-900 text-white mt-12 md:mt-20">
-        <div className="bg-[#4cb5f5] mx-auto px-4 py-8 max-w-7xl sm:px-6 lg:px-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div>
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-                alt="Zugruppe Logo" className="bg-transparent text-black mb-3 opacity-0 h-8 md:h-10 w-auto object-contain md:mb-4 brightness-0 invert" />
+                alt="Zugruppe Logo"
+                className="h-8 md:h-10 w-auto object-contain mb-3 md:mb-4 brightness-0 invert" />
 
-
-              <p className="bg-transparent text-slate-500 text-sm">Privileged Approach Unipessoal Lda
+              <p className="bg-transparent text-slate-500 text-sm">
 
               </p>
             </div>
-            <div>
-              <h3 className="text-slate-600 mb-3 text-base font-semibold md:mb-4">Links Rápidos</h3>
-              <div className="text-slate-600 space-y-2">
+            <div className="text-black">
+              <h3 className="text-slate-700 mb-3 text-base font-semibold md:mb-4"></h3>
+              <div className="space-y-2">
                 {navItems.slice(0, 5).map((item) =>
                 <Link
                   key={item.name}
-                  to={item.path}
-                  className="block text-slate-400 hover:text-white text-sm transition-colors duration-200">
+                  to={item.path} className="text-slate-500 text-sm block hover:text-white transition-colors duration-200">
+
 
                     {item.name}
                   </Link>
@@ -200,12 +200,15 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div>
-              <h3 className="text-slate-600 mb-3 text-base font-semibold md:mb-4">Contacto</h3>
-              <p className="text-slate-500 text-sm">info@zugruppe.com
+              <h3 className="text-slate-600 mb-3 text-base font-semibold md:mb-4"></h3>
+              <p className="text-slate-500 text-sm">Privileged Approach Unipessoal Lda
+Praça Marques de Pombal 2
+3810-133 Aveiro
 
+NIPC 513444823
+IMPIC 11355
 
-
-              </p>
+info@zugruppe.com</p>
             </div>
           </div>
           <div className="border-t border-slate-800 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-slate-500 text-xs md:text-sm">
@@ -213,6 +216,4 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
       </footer>
-    </div>);
-
-}
+    </div>);}
