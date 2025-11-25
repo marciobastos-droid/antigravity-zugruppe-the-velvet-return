@@ -5,6 +5,9 @@ import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, 
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
 
+// Pages where layout should be minimal (no header/footer)
+const MINIMAL_LAYOUT_PAGES = ["Home"];
+
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
@@ -13,6 +16,11 @@ export default function Layout({ children, currentPageName }) {
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Render minimal layout for Home page
+  if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
+    return <>{children}</>;
+  }
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
