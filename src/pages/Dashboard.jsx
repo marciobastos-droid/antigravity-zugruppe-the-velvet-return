@@ -49,6 +49,11 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Opportunity.list('-created_date'),
   });
 
+  const { data: buyerProfiles = [] } = useQuery({
+    queryKey: ['buyerProfiles'],
+    queryFn: () => base44.entities.BuyerProfile.list(),
+  });
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list(),
@@ -313,23 +318,30 @@ export default function Dashboard() {
     Object.values(onboardingProgress.steps_completed || {}).filter(Boolean).length < 5;
 
   React.useEffect(() => {
-    if (properties.length > 0 && !onboardingProgress?.steps_completed?.first_property_added) {
+    if (!onboardingProgress || !user) return;
+    
+    const currentSteps = onboardingProgress.steps_completed || {};
+    const updates = {};
+
+    if (properties.length > 0 && !currentSteps.first_property_added) {
+      updates.first_property_added = true;
+    }
+    if (opportunities.length > 0 && !currentSteps.first_lead_added) {
+      updates.first_lead_added = true;
+    }
+    if (buyerProfiles.length > 0 && !currentSteps.first_client_profile_created) {
+      updates.first_client_profile_created = true;
+    }
+
+    if (Object.keys(updates).length > 0) {
       updateProgressMutation.mutate({
         steps_completed: {
-          ...onboardingProgress?.steps_completed,
-          first_property_added: true
+          ...currentSteps,
+          ...updates
         }
       });
     }
-    if (opportunities.length > 0 && !onboardingProgress?.steps_completed?.first_lead_added) {
-      updateProgressMutation.mutate({
-        steps_completed: {
-          ...onboardingProgress?.steps_completed,
-          first_lead_added: true
-        }
-      });
-    }
-  }, [properties.length, opportunities.length, onboardingProgress]);
+  }, [properties.length, opportunities.length, buyerProfiles.length, onboardingProgress, user]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 relative">
