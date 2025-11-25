@@ -178,11 +178,11 @@ export default function Layout({ children, currentPageName }) {
             <div>
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-                alt="Zugruppe Logo"
-                className="h-8 md:h-10 w-auto object-contain mb-3 md:mb-4 brightness-0 invert" />
+                alt="Zugruppe Logo" className="mb-3 opacity-0 h-8 md:h-10 w-auto object-contain md:mb-4 brightness-0 invert" />
 
-              <p className="text-slate-400 text-sm">
-                Privileged Approach Unipessoal Lda
+
+              <p className="text-slate-400 text-sm">ZuGruppe - The Velvet Return
+
               </p>
             </div>
             <div>
@@ -201,10 +201,10 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div>
               <h3 className="font-semibold mb-3 md:mb-4 text-amber-400 text-base">Contacto</h3>
-              <p className="text-slate-500 text-sm">Privileged Approach Unipessoal Lda  - Praça Marques de Pombal 2 - 3810-133 Aveiro - NIPC 513444823 - IMPIC 11355 - info@zugruppe.com
-
-
-
+              <p className="text-slate-400 text-sm">
+                Marketplace imobiliário premium
+                <br />
+                para uma vida moderna
               </p>
             </div>
           </div>
