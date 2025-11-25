@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import AgentManagement from './pages/AgentManagement';
 import Contracts from './pages/Contracts';
 import DocumentsHub from './pages/DocumentsHub';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "AgentManagement": AgentManagement,
     "Contracts": Contracts,
     "DocumentsHub": DocumentsHub,
+    "Home": Home,
 }
 
 export const pagesConfig = {
