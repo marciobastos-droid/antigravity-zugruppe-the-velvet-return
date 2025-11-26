@@ -1063,7 +1063,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       )}
 
       {activeTab === "contacts" && (
-        <>
+        <React.Fragment>
           {/* Contacts Analysis Card */}
           <Card>
             <CardContent className="p-4">
