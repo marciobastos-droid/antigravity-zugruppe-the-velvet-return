@@ -183,20 +183,67 @@ export default function ClientDatabase() {
     return communications.filter(c => c.contact_id === clientId);
   };
 
-  const getClientOpportunities = (clientEmail) => {
-    return opportunities.filter(o => o.buyer_email === clientEmail);
+  const getClientOpportunities = (clientId, clientEmail) => {
+    // Match by linked_opportunity_ids OR by email for backwards compatibility
+    return opportunities.filter(o => 
+      o.profile_id === clientId || o.buyer_email === clientEmail
+    );
   };
+
+  // Calculate matching score for a client
+  const calculateMatchingScore = (client) => {
+    const req = client.property_requirements;
+    if (!req || Object.keys(req).length === 0) return 0;
+    
+    const activeProperties = properties.filter(p => p.status === 'active');
+    if (activeProperties.length === 0) return 0;
+
+    let matchCount = 0;
+    activeProperties.forEach(property => {
+      let matches = true;
+      
+      if (req.locations?.length > 0) {
+        matches = matches && req.locations.some(loc => 
+          property.city?.toLowerCase().includes(loc.toLowerCase())
+        );
+      }
+      if (req.budget_max && property.price > req.budget_max * 1.15) matches = false;
+      if (req.budget_min && property.price < req.budget_min * 0.85) matches = false;
+      if (req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
+      
+      if (matches) matchCount++;
+    });
+
+    return Math.min(100, Math.round((matchCount / Math.min(activeProperties.length, 10)) * 100));
+  };
+
+  // Get all unique cities and tags
+  const allCities = [...new Set(clients.map(c => c.city).filter(Boolean))].sort();
+  const allTags = [...new Set(clients.flatMap(c => c.tags || []))].sort();
 
   const filteredClients = clients.filter(c => {
     const matchesSearch = searchTerm === "" ||
       c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.phone?.includes(searchTerm);
+      c.phone?.includes(searchTerm) ||
+      c.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = typeFilter === "all" || c.contact_type === typeFilter;
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+    const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
+    const matchesCity = cityFilter === "all" || c.city === cityFilter;
+    const matchesTag = tagFilter === "all" || c.tags?.includes(tagFilter);
     
-    return matchesSearch && matchesType && matchesStatus;
+    const hasReqs = c.property_requirements && (
+      c.property_requirements.budget_min || c.property_requirements.budget_max ||
+      c.property_requirements.locations?.length || c.property_requirements.property_types?.length
+    );
+    const matchesHasRequirements = hasRequirementsFilter === "all" || 
+      (hasRequirementsFilter === "yes" && hasReqs) ||
+      (hasRequirementsFilter === "no" && !hasReqs);
+    
+    return matchesSearch && matchesType && matchesStatus && matchesSource && 
+           matchesCity && matchesTag && matchesHasRequirements;
   });
 
   const typeLabels = {
