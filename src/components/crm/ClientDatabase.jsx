@@ -26,6 +26,7 @@ import AddCommunicationDialog from "./AddCommunicationDialog";
 import ContactMatching from "./ContactMatching";
 import MatchingReport from "../matching/MatchingReport";
 import ClientsTable from "./ClientsTable";
+import SendEmailDialog from "../email/SendEmailDialog";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
@@ -44,6 +45,8 @@ export default function ClientDatabase() {
   const [activeTab, setActiveTab] = React.useState("details");
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
   const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
+  const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
+  const [emailRecipient, setEmailRecipient] = React.useState(null);
 
   const [formData, setFormData] = React.useState({
     full_name: "",
@@ -1105,6 +1108,29 @@ export default function ClientDatabase() {
 
                 <div className="flex flex-wrap gap-2 mt-6">
                   <Button 
+                    onClick={() => { 
+                      setEmailRecipient({
+                        type: 'client',
+                        id: selectedClient.id,
+                        name: selectedClient.full_name,
+                        email: selectedClient.email,
+                        data: {
+                          name: selectedClient.full_name,
+                          email: selectedClient.email,
+                          phone: selectedClient.phone,
+                          city: selectedClient.city,
+                          company_name: selectedClient.company_name
+                        }
+                      });
+                      setEmailDialogOpen(true);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={!selectedClient.email}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Enviar Email
+                  </Button>
+                  <Button 
                     onClick={() => { setCommDialogOpen(true); }}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
@@ -1226,6 +1252,13 @@ export default function ClientDatabase() {
           onOpenChange={setMatchingReportOpen}
         />
       )}
+
+      {/* Send Email Dialog */}
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        recipient={emailRecipient}
+      />
     </div>
   );
 }
