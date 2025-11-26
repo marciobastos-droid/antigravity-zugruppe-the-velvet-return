@@ -447,7 +447,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       }
       toast.success(`${selectedForDeletion.length} imóveis eliminados!`);
       setSelectedForDeletion([]);
-      refetch();
+      refetchProperties();
       analyzeDuplicates();
     } catch (error) {
       toast.error("Erro ao eliminar imóveis");
