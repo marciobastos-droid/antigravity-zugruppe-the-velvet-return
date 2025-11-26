@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,15 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     amenities: [],
     status: "active",
     internal_notes: "",
-    tags: []
+    tags: [],
+    development_id: "",
+    development_name: "",
+    unit_number: ""
+  });
+
+  const { data: developments = [] } = useQuery({
+    queryKey: ['developments'],
+    queryFn: () => base44.entities.Development.list('name')
   });
 
   useEffect(() => {
@@ -68,7 +76,10 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         amenities: property.amenities || [],
         status: property.status || "active",
         internal_notes: property.internal_notes || "",
-        tags: property.tags || []
+        tags: property.tags || [],
+        development_id: property.development_id || "",
+        development_name: property.development_name || "",
+        unit_number: property.unit_number || ""
       });
     }
   }, [property]);
@@ -195,7 +206,10 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
       useful_area: formData.useful_area ? Number(formData.useful_area) : 0,
       front_count: formData.front_count ? Number(formData.front_count) : 0,
       year_built: formData.year_built ? Number(formData.year_built) : undefined,
-      year_renovated: formData.year_renovated ? Number(formData.year_renovated) : undefined
+      year_renovated: formData.year_renovated ? Number(formData.year_renovated) : undefined,
+      development_id: formData.development_id || undefined,
+      development_name: formData.development_name || undefined,
+      unit_number: formData.unit_number || undefined
     };
 
     updateMutation.mutate(data);
@@ -293,6 +307,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value="building">Prédio</SelectItem>
                   <SelectItem value="land">Terreno</SelectItem>
                   <SelectItem value="commercial">Comercial</SelectItem>
+                  <SelectItem value="development">Empreendimento</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -335,6 +350,45 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value="off_market">Desativado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Development Selection */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Empreendimento</Label>
+              <Select 
+                value={formData.development_id} 
+                onValueChange={(v) => {
+                  const dev = developments.find(d => d.id === v);
+                  setFormData({
+                    ...formData, 
+                    development_id: v,
+                    development_name: dev?.name || ""
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um empreendimento (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Nenhum</SelectItem>
+                  {developments.map((dev) => (
+                    <SelectItem key={dev.id} value={dev.id}>
+                      {dev.name} - {dev.city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Nº da Fração/Unidade</Label>
+              <Input
+                value={formData.unit_number}
+                onChange={(e) => setFormData({...formData, unit_number: e.target.value})}
+                placeholder="Ex: A1, 1º Dto, Lote 5"
+                disabled={!formData.development_id}
+              />
             </div>
           </div>
 
