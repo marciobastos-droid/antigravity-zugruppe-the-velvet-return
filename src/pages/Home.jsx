@@ -11,6 +11,7 @@ export default function Home() {
     queryFn: () => base44.auth.me(),
   });
 
+  // Menu CRM
   const menuItems = [
     {
       image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
@@ -39,6 +40,35 @@ export default function Home() {
     }
   ];
 
+  // Marcas da empresa
+  const brandItems = [
+    {
+      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop",
+      title: "Marca 1",
+      url: "#"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop",
+      title: "Marca 2",
+      url: "#"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop",
+      title: "Marca 3",
+      url: "#"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop",
+      title: "Marca 4",
+      url: "#"
+    },
+    {
+      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop",
+      title: "Marca 5",
+      url: "#"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
@@ -51,7 +81,7 @@ export default function Home() {
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
           alt="Zugruppe"
-          className="h-28 md:h-36 w-auto mx-auto"
+          className="h-40 md:h-56 w-auto mx-auto"
         />
       </motion.div>
 
@@ -68,7 +98,7 @@ export default function Home() {
         <p className="text-[#27251f]/60">Escolha uma opção para continuar</p>
       </motion.div>
 
-      {/* Menu Grid with Images */}
+      {/* Menu CRM Grid */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,10 +128,56 @@ export default function Home() {
               <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
                 <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
               </div>
-              {/* Hover accent */}
               <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
             </motion.div>
           </Link>
+        ))}
+      </motion.div>
+
+      {/* Marcas da Empresa */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="mt-12 text-center"
+      >
+        <h2 className="text-lg font-medium text-[#27251f]/60 mb-6">As Nossas Marcas</h2>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full"
+      >
+        {brandItems.map((item, index) => (
+          <a 
+            key={item.title} 
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
+              className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
+              <div className="aspect-[4/3] overflow-hidden">
+                <img 
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
+              </div>
+              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
+            </motion.div>
+          </a>
         ))}
       </motion.div>
 
