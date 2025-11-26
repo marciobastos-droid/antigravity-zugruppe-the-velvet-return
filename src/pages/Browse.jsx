@@ -29,6 +29,9 @@ export default function Browse() {
   const [showFilters, setShowFilters] = React.useState(false);
   const [viewMode, setViewMode] = React.useState("grid");
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [country, setCountry] = React.useState("all");
+  const [district, setDistrict] = React.useState("all");
+  const [availability, setAvailability] = React.useState("all");
   
   const ITEMS_PER_PAGE = 12;
 
@@ -59,6 +62,9 @@ export default function Browse() {
     const matchesListingType = listingType === "all" || property.listing_type === listingType;
     const matchesPropertyType = propertyType === "all" || property.property_type === propertyType;
     const matchesCity = city === "all" || property.city === city;
+    const matchesCountry = country === "all" || property.country === country;
+    const matchesDistrict = district === "all" || property.state === district;
+    const matchesAvailability = availability === "all" || property.availability_status === availability;
     
     const matchesBedrooms = bedrooms === "all" ||
       (bedrooms === "0" && property.bedrooms === 0) ||
@@ -70,7 +76,7 @@ export default function Browse() {
     
     const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
 
-    return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && matchesBedrooms && matchesPrice;
+    return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && matchesBedrooms && matchesPrice && matchesCountry && matchesDistrict && matchesAvailability;
   });
 
   const sortedProperties = [...filteredProperties].sort((a, b) => {
@@ -91,25 +97,44 @@ export default function Browse() {
     setBedrooms("all");
     setPriceRange([0, 2000000]);
     setCity("all");
+    setCountry("all");
+    setDistrict("all");
+    setAvailability("all");
     setCurrentPage(1);
   };
 
   const hasActiveFilters = listingType !== "all" || propertyType !== "all" || 
-    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || priceRange[1] < 2000000;
+    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || priceRange[1] < 2000000 ||
+    country !== "all" || district !== "all" || availability !== "all";
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy]);
+  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability]);
 
   const propertyTypeLabels = {
-    house: "Moradia",
     apartment: "Apartamento",
-    condo: "Condomínio",
-    townhouse: "Casa Geminada",
-    building: "Prédio",
+    house: "Moradia",
     land: "Terreno",
-    commercial: "Comercial"
+    building: "Prédio",
+    farm: "Quinta/Herdade",
+    store: "Loja",
+    warehouse: "Armazém",
+    office: "Escritório"
   };
+
+  const availabilityLabels = {
+    available: "Disponível",
+    sold: "Vendido",
+    reserved: "Reservado",
+    rented: "Arrendado",
+    prospecting: "Em Prospecção",
+    withdrawn: "Retirado",
+    pending_validation: "Por validar"
+  };
+
+  const countries = ["Portugal", "United Arab Emirates", "United Kingdom", "Angola"];
+  const districts = ["Porto", "Lisboa", "Aveiro"];
+  const municipalities = ["Ílhavo", "Aveiro", "Porto", "Vila Nova de Gaia", "Maia", "Matosinhos", "Lisboa", "Alcochete", "Seixal"];
 
   if (isLoading) {
     return (
@@ -207,15 +232,16 @@ export default function Browse() {
                 {/* Extended Filters */}
                 {showFilters && (
                   <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
+                    {/* Row 1: Natureza, Quartos, Negócio, Disponibilidade */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipo de Imóvel</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Natureza</label>
                         <Select value={propertyType} onValueChange={setPropertyType}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Todos" />
+                            <SelectValue placeholder="Todas" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">Todos</SelectItem>
+                            <SelectItem value="all">Todas</SelectItem>
                             {Object.entries(propertyTypeLabels).map(([key, label]) => (
                               <SelectItem key={key} value={key}>{label}</SelectItem>
                             ))}
@@ -223,23 +249,38 @@ export default function Browse() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipologia</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Quartos</label>
                         <Select value={bedrooms} onValueChange={setBedrooms}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Todas" />
+                            <SelectValue placeholder="Todos" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">Todas</SelectItem>
+                            <SelectItem value="all">Todos</SelectItem>
                             <SelectItem value="0">T0</SelectItem>
                             <SelectItem value="1">T1</SelectItem>
                             <SelectItem value="2">T2</SelectItem>
                             <SelectItem value="3">T3</SelectItem>
                             <SelectItem value="4">T4</SelectItem>
-                            <SelectItem value="5+">T5+</SelectItem>
+                            <SelectItem value="5">T5</SelectItem>
+                            <SelectItem value="5+">T6+</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="col-span-2">
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Disponibilidade</label>
+                        <Select value={availability} onValueChange={setAvailability}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas</SelectItem>
+                            {Object.entries(availabilityLabels).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">
                           Preço: €{priceRange[0].toLocaleString()} - €{priceRange[1].toLocaleString()}
                         </label>
@@ -251,6 +292,52 @@ export default function Browse() {
                           step={25000}
                           className="mt-2"
                         />
+                      </div>
+                    </div>
+
+                    {/* Row 2: País, Distrito, Concelho */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">País</label>
+                        <Select value={country} onValueChange={setCountry}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {countries.map(c => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Distrito</label>
+                        <Select value={district} onValueChange={setDistrict}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {districts.map(d => (
+                              <SelectItem key={d} value={d}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Concelho</label>
+                        <Select value={city} onValueChange={setCity}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {municipalities.map(m => (
+                              <SelectItem key={m} value={m}>{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
@@ -279,6 +366,24 @@ export default function Browse() {
                             <Badge variant="secondary" className="gap-1">
                               {city}
                               <X className="w-3 h-3 cursor-pointer" onClick={() => setCity("all")} />
+                            </Badge>
+                          )}
+                          {country !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {country}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setCountry("all")} />
+                            </Badge>
+                          )}
+                          {district !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {district}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setDistrict("all")} />
+                            </Badge>
+                          )}
+                          {availability !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {availabilityLabels[availability]}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setAvailability("all")} />
                             </Badge>
                           )}
                         </div>
@@ -469,8 +574,8 @@ function PropertyCardCompact({ property, featured }) {
   const images = property.images?.length > 0 ? property.images : [];
 
   const propertyTypeLabels = {
-    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
-    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
+    apartment: "Apartamento", house: "Moradia", land: "Terreno",
+    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
   };
 
   return (
@@ -575,8 +680,8 @@ function PropertyCardList({ property }) {
   const image = property.images?.[0];
 
   const propertyTypeLabels = {
-    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
-    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
+    apartment: "Apartamento", house: "Moradia", land: "Terreno",
+    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
   };
 
   return (
