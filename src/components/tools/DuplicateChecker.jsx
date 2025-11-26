@@ -54,6 +54,11 @@ export default function DuplicateChecker() {
   const [contactProgressText, setContactProgressText] = React.useState("");
   const [expandedContactGroups, setExpandedContactGroups] = React.useState({});
 
+  // Data Enrichment State
+  const [enrichmentOpen, setEnrichmentOpen] = React.useState(false);
+  const [enrichmentRecord, setEnrichmentRecord] = React.useState(null);
+  const [enrichmentType, setEnrichmentType] = React.useState("property");
+
   // Ignore lists and scheduled reviews
   const [ignoredPropertyIds, setIgnoredPropertyIds] = React.useState(() => {
     const saved = localStorage.getItem('duplicateChecker_ignoredProperties');
