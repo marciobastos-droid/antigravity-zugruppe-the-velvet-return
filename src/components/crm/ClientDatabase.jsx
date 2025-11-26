@@ -632,94 +632,183 @@ export default function ClientDatabase() {
         ) : (
           filteredClients.map((client) => {
             const clientComms = getClientCommunications(client.id);
-            const clientOpps = getClientOpportunities(client.email);
+            const clientOpps = getClientOpportunities(client.id, client.email);
+            const matchScore = calculateMatchingScore(client);
+            const req = client.property_requirements;
+            const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
             
             return (
               <Card key={client.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-4">
+                    {/* Left: Main Info */}
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <h3 className="text-lg font-semibold text-slate-900">{client.full_name}</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 truncate">{client.full_name}</h3>
                         <Badge className={typeColors[client.contact_type]}>
                           {typeLabels[client.contact_type]}
                         </Badge>
                         <Badge className={statusColors[client.status]}>
                           {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Prospect'}
                         </Badge>
+                        {client.tags?.map(tag => (
+                          <Badge key={tag} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
                       </div>
 
-                      <div className="grid md:grid-cols-3 gap-2 text-sm text-slate-600 mb-3">
+                      <div className="grid md:grid-cols-4 gap-2 text-sm text-slate-600 mb-3">
                         {client.email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="w-4 h-4" />
-                            {client.email}
+                          <div className="flex items-center gap-1 truncate">
+                            <Mail className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{client.email}</span>
                           </div>
                         )}
                         {client.phone && (
                           <div className="flex items-center gap-1">
-                            <Phone className="w-4 h-4" />
+                            <Phone className="w-4 h-4 flex-shrink-0" />
                             {client.phone}
                           </div>
                         )}
                         {client.city && (
                           <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
+                            <MapPin className="w-4 h-4 flex-shrink-0" />
                             {client.city}
                           </div>
                         )}
                         {client.company_name && (
-                          <div className="flex items-center gap-1">
-                            <Building2 className="w-4 h-4" />
-                            {client.company_name}
+                          <div className="flex items-center gap-1 truncate">
+                            <Building2 className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">{client.company_name}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
+                      {/* Requirements Summary */}
+                      {hasRequirements && (
+                        <div className="flex flex-wrap items-center gap-2 mb-3 p-2 bg-blue-50 rounded-lg text-xs">
+                          <Target className="w-3 h-3 text-blue-600" />
+                          {req.budget_max > 0 && (
+                            <span className="flex items-center gap-1 text-blue-700">
+                              <Euro className="w-3 h-3" />
+                              {req.budget_min > 0 ? `${(req.budget_min/1000).toFixed(0)}k-` : ''}
+                              {(req.budget_max/1000).toFixed(0)}k
+                            </span>
+                          )}
+                          {req.bedrooms_min > 0 && (
+                            <span className="flex items-center gap-1 text-blue-700">
+                              <Bed className="w-3 h-3" />
+                              T{req.bedrooms_min}{req.bedrooms_max && req.bedrooms_max !== req.bedrooms_min ? `-${req.bedrooms_max}` : '+'}
+                            </span>
+                          )}
+                          {req.area_min > 0 && (
+                            <span className="flex items-center gap-1 text-blue-700">
+                              <Square className="w-3 h-3" />
+                              {req.area_min}m²+
+                            </span>
+                          )}
+                          {req.locations?.length > 0 && (
+                            <span className="flex items-center gap-1 text-blue-700">
+                              <MapPin className="w-3 h-3" />
+                              {req.locations.slice(0, 2).join(", ")}
+                              {req.locations.length > 2 && `+${req.locations.length - 2}`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Stats Row */}
+                      <div className="flex items-center gap-4 text-xs">
+                        <div className="flex items-center gap-1 text-slate-500">
                           <MessageSquare className="w-3 h-3" />
                           {clientComms.length} comunicações
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <DollarSign className="w-3 h-3" />
-                          {clientOpps.length} oportunidades
-                        </span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${clientOpps.length > 0 ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
+                          <TrendingUp className="w-3 h-3" />
+                          {clientOpps.length} oportunidade{clientOpps.length !== 1 ? 's' : ''}
+                        </div>
                         {client.last_contact_date && (
-                          <span className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 text-slate-500">
                             <Clock className="w-3 h-3" />
-                            Último contacto: {format(new Date(client.last_contact_date), "dd/MM/yyyy")}
-                          </span>
+                            {format(new Date(client.last_contact_date), "dd/MM")}
+                          </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-2 ml-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
-                        className="text-purple-600 hover:bg-purple-50"
-                        title="Matching de Imóveis"
-                      >
-                        <Home className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleDelete(client.id, client.full_name)}
-                        className="text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    {/* Right: Matching Score & Actions */}
+                    <div className="flex flex-col items-end gap-2">
+                      {hasRequirements && (
+                        <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100 min-w-[80px]">
+                          <div className="flex items-center justify-center gap-1 mb-1">
+                            <Sparkles className="w-3 h-3 text-purple-500" />
+                            <span className="text-xs text-purple-600">Match</span>
+                          </div>
+                          <div className={`text-lg font-bold ${
+                            matchScore >= 70 ? 'text-green-600' : 
+                            matchScore >= 40 ? 'text-amber-600' : 'text-slate-500'
+                          }`}>
+                            {matchScore}%
+                          </div>
+                          <Progress value={matchScore} className="h-1 mt-1" />
+                        </div>
+                      )}
+
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
+                          className="text-purple-600 hover:bg-purple-50 h-8 w-8 p-0"
+                          title="Matching de Imóveis"
+                        >
+                          <Home className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }} className="h-8 w-8 p-0">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(client)} className="h-8 w-8 p-0">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDelete(client.id, client.full_name)}
+                          className="text-red-600 hover:bg-red-50 h-8 w-8 p-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Opportunities Preview */}
+                  {clientOpps.length > 0 && (
+                    <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
+                      {clientOpps.slice(0, 3).map(opp => (
+                        <Badge 
+                          key={opp.id} 
+                          variant="outline"
+                          className={`text-xs ${
+                            opp.status === 'new' ? 'border-blue-300 text-blue-700 bg-blue-50' :
+                            opp.status === 'contacted' ? 'border-amber-300 text-amber-700 bg-amber-50' :
+                            opp.status === 'scheduled' ? 'border-purple-300 text-purple-700 bg-purple-50' :
+                            'border-green-300 text-green-700 bg-green-50'
+                          }`}
+                        >
+                          {opp.lead_type === 'comprador' ? '🏠' : opp.lead_type === 'vendedor' ? '🏷️' : '🤝'}
+                          {opp.property_title?.substring(0, 20) || opp.lead_type}
+                          {opp.property_title?.length > 20 && '...'}
+                        </Badge>
+                      ))}
+                      {clientOpps.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{clientOpps.length - 3} mais
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
