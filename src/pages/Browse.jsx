@@ -3,42 +3,40 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Search, Filter, X, Home, ArrowRight, Building2 } from "lucide-react";
+import { 
+  Search, Filter, X, Home, Building2, MapPin, 
+  Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
+  Grid3X3, List, Heart, Phone, Mail, Euro, Calendar,
+  ChevronLeft, ChevronRight, Sparkles
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import PropertyCard from "../components/browse/PropertyCard";
-import FeaturedProperties from "../components/browse/FeaturedProperties";
+import { Slider } from "@/components/ui/slider";
 import { debounce } from "lodash";
 
 export default function Browse() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [categoryTab, setCategoryTab] = React.useState("residential");
-  const [propertyType, setPropertyType] = React.useState("all");
   const [listingType, setListingType] = React.useState("all");
+  const [propertyType, setPropertyType] = React.useState("all");
   const [bedrooms, setBedrooms] = React.useState("all");
-  const [priceMin, setPriceMin] = React.useState("");
-  const [priceMax, setPriceMax] = React.useState("");
-  const [yearMin, setYearMin] = React.useState("");
-  const [yearMax, setYearMax] = React.useState("");
-  const [areaMin, setAreaMin] = React.useState("");
-  const [areaMax, setAreaMax] = React.useState("");
+  const [priceRange, setPriceRange] = React.useState([0, 2000000]);
+  const [city, setCity] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState("recent");
   const [showFilters, setShowFilters] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState("grid");
+  const [currentPage, setCurrentPage] = React.useState(1);
   
   const ITEMS_PER_PAGE = 12;
 
-  // Debounced search
   React.useEffect(() => {
     const debouncedUpdate = debounce(() => {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1);
-    }, 500);
-    
+    }, 400);
     debouncedUpdate();
     return () => debouncedUpdate.cancel();
   }, [searchTerm]);
@@ -48,540 +46,619 @@ export default function Browse() {
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
-  const filteredProperties = properties.filter((property) => {
-    if (property.status !== 'active') return false;
+  const activeProperties = properties.filter(p => p.status === 'active');
+  const allCities = [...new Set(activeProperties.map(p => p.city).filter(Boolean))].sort();
+  const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
 
-    // Category filter (residential vs commercial)
-    const isCommercial = property.property_type === 'commercial';
-    if (categoryTab === 'residential' && isCommercial) return false;
-    if (categoryTab === 'commercial' && !isCommercial) return false;
-
-    // Search term (using debounced value)
+  const filteredProperties = activeProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||
       property.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       property.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      property.state?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       property.address?.toLowerCase().includes(debouncedSearch.toLowerCase());
-
-    // Property type
-    const matchesType = propertyType === "all" || property.property_type === propertyType;
-
-    // Listing type
+    
     const matchesListingType = listingType === "all" || property.listing_type === listingType;
-
-    // Bedrooms (Tipologia)
+    const matchesPropertyType = propertyType === "all" || property.property_type === propertyType;
+    const matchesCity = city === "all" || property.city === city;
+    
     const matchesBedrooms = bedrooms === "all" ||
-      bedrooms === "0" && property.bedrooms === 0 ||
-      bedrooms === "1" && property.bedrooms === 1 ||
-      bedrooms === "2" && property.bedrooms === 2 ||
-      bedrooms === "3" && property.bedrooms === 3 ||
-      bedrooms === "4" && property.bedrooms === 4 ||
-      bedrooms === "5+" && property.bedrooms >= 5;
+      (bedrooms === "0" && property.bedrooms === 0) ||
+      (bedrooms === "1" && property.bedrooms === 1) ||
+      (bedrooms === "2" && property.bedrooms === 2) ||
+      (bedrooms === "3" && property.bedrooms === 3) ||
+      (bedrooms === "4" && property.bedrooms === 4) ||
+      (bedrooms === "5+" && property.bedrooms >= 5);
+    
+    const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
 
-    // Price range
-    const matchesPriceMin = priceMin === "" || property.price >= parseFloat(priceMin);
-    const matchesPriceMax = priceMax === "" || property.price <= parseFloat(priceMax);
-
-    // Year range
-    const matchesYearMin = yearMin === "" || property.year_built && property.year_built >= parseInt(yearMin);
-    const matchesYearMax = yearMax === "" || property.year_built && property.year_built <= parseInt(yearMax);
-
-    // Area range (useful_area or square_feet)
-    const propertyArea = property.useful_area || property.square_feet || 0;
-    const matchesAreaMin = areaMin === "" || propertyArea >= parseFloat(areaMin);
-    const matchesAreaMax = areaMax === "" || propertyArea <= parseFloat(areaMax);
-
-    return matchesSearch && matchesType && matchesListingType && matchesBedrooms &&
-      matchesPriceMin && matchesPriceMax && matchesYearMin && matchesYearMax &&
-      matchesAreaMin && matchesAreaMax;
+    return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && matchesBedrooms && matchesPrice;
   });
+
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
+    if (sortBy === "recent") return new Date(b.created_date) - new Date(a.created_date);
+    if (sortBy === "price_asc") return (a.price || 0) - (b.price || 0);
+    if (sortBy === "price_desc") return (b.price || 0) - (a.price || 0);
+    if (sortBy === "area") return (b.useful_area || b.square_feet || 0) - (a.useful_area || a.square_feet || 0);
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedProperties.length / ITEMS_PER_PAGE);
+  const paginatedProperties = sortedProperties.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const clearFilters = () => {
     setSearchTerm("");
-    setPropertyType("all");
     setListingType("all");
+    setPropertyType("all");
     setBedrooms("all");
-    setPriceMin("");
-    setPriceMax("");
-    setYearMin("");
-    setYearMax("");
-    setAreaMin("");
-    setAreaMax("");
+    setPriceRange([0, 2000000]);
+    setCity("all");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = searchTerm || propertyType !== "all" || listingType !== "all" ||
-    bedrooms !== "all" || priceMin || priceMax || yearMin || yearMax ||
-    areaMin || areaMax;
-  
-  // Pagination
-  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedProperties = filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  
-  // Reset to page 1 when filters change
+  const hasActiveFilters = listingType !== "all" || propertyType !== "all" || 
+    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || priceRange[1] < 2000000;
+
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [categoryTab, propertyType, listingType, bedrooms, priceMin, priceMax, yearMin, yearMax, areaMin, areaMax]);
+  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy]);
 
-  const residentialCount = properties.filter(p => p.status === 'active' && p.property_type !== 'commercial').length;
-  const commercialCount = properties.filter(p => p.status === 'active' && p.property_type === 'commercial').length;
+  const propertyTypeLabels = {
+    house: "Moradia",
+    apartment: "Apartamento",
+    condo: "Condomínio",
+    townhouse: "Casa Geminada",
+    building: "Prédio",
+    land: "Terreno",
+    commercial: "Comercial"
+  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900" />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+          <p className="text-slate-600">A carregar imóveis...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="bg-[#4cb5f5] text-white py-12 from-slate-900 via-slate-800 to-slate-900 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4">Plataforma ZuConnect</h1>
-            <p className="text-lg md:text-xl text-slate-300">
-              {properties.length} imóveis disponíveis
+      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')] bg-cover bg-center opacity-20" />
+        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+              Encontre o Imóvel Perfeito
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
+              {activeProperties.length} imóveis disponíveis para si
             </p>
           </div>
 
-          {/* Main Search Bar */}
-          <div className="max-w-3xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Pesquisar por localização, título..."
-                className="pl-12 pr-4 h-14 text-lg bg-white"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Image Panels */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Link to={createPageUrl("Opportunities")}>
-            <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
-              <div className="relative h-64">
-                <img
-                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop"
-                  alt="Oportunidades"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                  <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">Oportunidades</h3>
-                    <p className="text-slate-200 mb-3">Gerir leads e oportunidades de negócio</p>
-                    <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                      Ver Oportunidades
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Link>
-
-          <Link to={createPageUrl("Tools")}>
-            <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
-              <div className="relative h-64">
-                <img
-                  src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=400&fit=crop"
-                  alt="Ferramentas"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-6">
-                  <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">Ferramentas</h3>
-                    <p className="text-slate-200 mb-3">Aceder a todas as ferramentas de gestão</p>
-                    <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                      Explorar Ferramentas
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        </div>
-
-        {/* Featured Properties */}
-        <FeaturedProperties properties={properties.filter((p) => p.featured && p.status === 'active')} />
-
-        {/* Category Tabs */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-6 border-b border-slate-200">
-            <button
-              onClick={() => {
-                setCategoryTab("residential");
-                setPropertyType("all");
-              }}
-              className={`pb-4 px-4 font-semibold transition-all relative ${
-                categoryTab === "residential"
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Home className="w-5 h-5" />
-                <span>Residenciais</span>
-                <Badge variant="secondary" className="ml-2">
-                  {residentialCount}
-                </Badge>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setCategoryTab("commercial");
-                setPropertyType("commercial");
-              }}
-              className={`pb-4 px-4 font-semibold transition-all relative ${
-                categoryTab === "commercial"
-                  ? "text-blue-600 border-b-2 border-blue-600"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                <span>Comerciais</span>
-                <Badge variant="secondary" className="ml-2">
-                  {commercialCount}
-                </Badge>
-              </div>
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-slate-900">
-                {categoryTab === "residential" ? "Imóveis Residenciais" : "Imóveis Comerciais"}
-              </h2>
-              {hasActiveFilters && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  {filteredProperties.length} resultado{filteredProperties.length !== 1 ? 's' : ''}
-                </Badge>
-              )}
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="gap-2"
-            >
-              <Filter className="w-4 h-4" />
-              Filtros
-            </Button>
-          </div>
-
-          {/* Advanced Filters */}
-          {showFilters && (
-            <Card className="mb-6 border-2 border-slate-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-lg text-slate-900">Filtros Avançados</h3>
-                  {hasActiveFilters && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters} className="text-red-600">
-                      <X className="w-4 h-4 mr-1" />
-                      Limpar Tudo
-                    </Button>
-                  )}
+          {/* Search Card */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="shadow-2xl border-0">
+              <CardContent className="p-4 md:p-6">
+                {/* Quick Filter Tabs */}
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                  <Button 
+                    variant={listingType === "all" ? "default" : "outline"}
+                    onClick={() => setListingType("all")}
+                    className="whitespace-nowrap"
+                  >
+                    Todos
+                  </Button>
+                  <Button 
+                    variant={listingType === "sale" ? "default" : "outline"}
+                    onClick={() => setListingType("sale")}
+                    className="whitespace-nowrap"
+                  >
+                    🏷️ Comprar
+                  </Button>
+                  <Button 
+                    variant={listingType === "rent" ? "default" : "outline"}
+                    onClick={() => setListingType("rent")}
+                    className="whitespace-nowrap"
+                  >
+                    🔑 Arrendar
+                  </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {/* Listing Type */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Negócio</label>
-                    <Select value={listingType} onValueChange={setListingType}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="sale">Venda</SelectItem>
-                        <SelectItem value="rent">Arrendamento</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {/* Main Search */}
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Pesquisar por localização, título..."
+                      className="pl-12 h-12 text-lg border-slate-200"
+                    />
                   </div>
+                  <Select value={city} onValueChange={setCity}>
+                    <SelectTrigger className="w-full md:w-48 h-12">
+                      <MapPin className="w-4 h-4 mr-2 text-slate-400" />
+                      <SelectValue placeholder="Cidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Cidades</SelectItem>
+                      {allCities.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button 
+                    onClick={() => setShowFilters(!showFilters)}
+                    variant="outline"
+                    className="h-12 gap-2"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    <span className="hidden md:inline">Filtros</span>
+                    {hasActiveFilters && (
+                      <Badge className="bg-blue-600 text-white ml-1">
+                        {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 2000000].filter(Boolean).length}
+                      </Badge>
+                    )}
+                  </Button>
+                </div>
 
-                  {/* Property Type - Only for residential */}
-                  {categoryTab === "residential" && (
-                    <div>
-                      <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Imóvel</label>
-                      <Select value={propertyType} onValueChange={setPropertyType}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os Tipos</SelectItem>
-                          <SelectItem value="house">Moradia</SelectItem>
-                          <SelectItem value="apartment">Apartamento</SelectItem>
-                          <SelectItem value="condo">Condomínio</SelectItem>
-                          <SelectItem value="townhouse">Casa Geminada</SelectItem>
-                          <SelectItem value="building">Prédio</SelectItem>
-                          <SelectItem value="land">Terreno</SelectItem>
-                        </SelectContent>
-                      </Select>
+                {/* Extended Filters */}
+                {showFilters && (
+                  <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipo de Imóvel</label>
+                        <Select value={propertyType} onValueChange={setPropertyType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todos" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos</SelectItem>
+                            {Object.entries(propertyTypeLabels).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipologia</label>
+                        <Select value={bedrooms} onValueChange={setBedrooms}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Todas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas</SelectItem>
+                            <SelectItem value="0">T0</SelectItem>
+                            <SelectItem value="1">T1</SelectItem>
+                            <SelectItem value="2">T2</SelectItem>
+                            <SelectItem value="3">T3</SelectItem>
+                            <SelectItem value="4">T4</SelectItem>
+                            <SelectItem value="5+">T5+</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">
+                          Preço: €{priceRange[0].toLocaleString()} - €{priceRange[1].toLocaleString()}
+                        </label>
+                        <Slider
+                          value={priceRange}
+                          onValueChange={setPriceRange}
+                          min={0}
+                          max={2000000}
+                          step={25000}
+                          className="mt-2"
+                        />
+                      </div>
                     </div>
-                  )}
 
-                  {/* Tipologia (Bedrooms) - Only for residential */}
-                  {categoryTab === "residential" && (
-                    <div>
-                      <label className="text-sm font-medium text-slate-700 mb-2 block">Tipologia</label>
-                      <Select value={bedrooms} onValueChange={setBedrooms}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todas</SelectItem>
-                          <SelectItem value="0">T0</SelectItem>
-                          <SelectItem value="1">T1</SelectItem>
-                          <SelectItem value="2">T2</SelectItem>
-                          <SelectItem value="3">T3</SelectItem>
-                          <SelectItem value="4">T4</SelectItem>
-                          <SelectItem value="5+">T5+</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Price Min */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Preço Mínimo (€)</label>
-                    <Input
-                      type="number"
-                      value={priceMin}
-                      onChange={(e) => setPriceMin(e.target.value)}
-                      placeholder="50000"
-                    />
-                  </div>
-
-                  {/* Price Max */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Preço Máximo (€)</label>
-                    <Input
-                      type="number"
-                      value={priceMax}
-                      onChange={(e) => setPriceMax(e.target.value)}
-                      placeholder="500000"
-                    />
-                  </div>
-
-                  {/* Area Min */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Área Mínima (m²)</label>
-                    <Input
-                      type="number"
-                      value={areaMin}
-                      onChange={(e) => setAreaMin(e.target.value)}
-                      placeholder="50"
-                    />
-                  </div>
-
-                  {/* Area Max */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Área Máxima (m²)</label>
-                    <Input
-                      type="number"
-                      value={areaMax}
-                      onChange={(e) => setAreaMax(e.target.value)}
-                      placeholder="300"
-                    />
-                  </div>
-
-                  {/* Year Min */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Ano de Construção (Min)</label>
-                    <Input
-                      type="number"
-                      value={yearMin}
-                      onChange={(e) => setYearMin(e.target.value)}
-                      placeholder="2000"
-                    />
-                  </div>
-
-                  {/* Year Max */}
-                  <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Ano de Construção (Max)</label>
-                    <Input
-                      type="number"
-                      value={yearMax}
-                      onChange={(e) => setYearMax(e.target.value)}
-                      placeholder="2024"
-                    />
-                  </div>
-                </div>
-
-                {/* Active Filters Display */}
-                {hasActiveFilters && (
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <p className="text-sm font-medium text-slate-700 mb-2">Filtros Ativos:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {listingType !== "all" && (
-                        <Badge variant="secondary" className="gap-1">
-                          {listingType === 'sale' ? 'Venda' : 'Arrendamento'}
-                          <button onClick={() => setListingType("all")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {propertyType !== "all" && categoryTab === "residential" && (
-                        <Badge variant="secondary" className="gap-1">
-                          {propertyType === 'house' ? 'Moradia' : propertyType === 'apartment' ? 'Apartamento' : propertyType === 'condo' ? 'Condomínio' : propertyType === 'townhouse' ? 'Casa Geminada' : propertyType === 'land' ? 'Terreno' : propertyType}
-                          <button onClick={() => setPropertyType("all")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {bedrooms !== "all" && (
-                        <Badge variant="secondary" className="gap-1">
-                          T{bedrooms}
-                          <button onClick={() => setBedrooms("all")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {priceMin && (
-                        <Badge variant="secondary" className="gap-1">
-                          Min: €{parseFloat(priceMin).toLocaleString()}
-                          <button onClick={() => setPriceMin("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {priceMax && (
-                        <Badge variant="secondary" className="gap-1">
-                          Max: €{parseFloat(priceMax).toLocaleString()}
-                          <button onClick={() => setPriceMax("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {areaMin && (
-                        <Badge variant="secondary" className="gap-1">
-                          Área Min: {areaMin}m²
-                          <button onClick={() => setAreaMin("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {areaMax && (
-                        <Badge variant="secondary" className="gap-1">
-                          Área Max: {areaMax}m²
-                          <button onClick={() => setAreaMax("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {yearMin && (
-                        <Badge variant="secondary" className="gap-1">
-                          Ano Min: {yearMin}
-                          <button onClick={() => setYearMin("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                      {yearMax && (
-                        <Badge variant="secondary" className="gap-1">
-                          Ano Max: {yearMax}
-                          <button onClick={() => setYearMax("")} className="ml-1 hover:text-red-600">
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      )}
-                    </div>
+                    {hasActiveFilters && (
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap gap-2">
+                          {listingType !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {listingType === "sale" ? "Venda" : "Arrendamento"}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setListingType("all")} />
+                            </Badge>
+                          )}
+                          {propertyType !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {propertyTypeLabels[propertyType]}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setPropertyType("all")} />
+                            </Badge>
+                          )}
+                          {bedrooms !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              T{bedrooms}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setBedrooms("all")} />
+                            </Badge>
+                          )}
+                          {city !== "all" && (
+                            <Badge variant="secondary" className="gap-1">
+                              {city}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setCity("all")} />
+                            </Badge>
+                          )}
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-red-600">
+                          Limpar Tudo
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
-          )}
+          </div>
+        </div>
+      </div>
+
+      {/* Featured Properties */}
+      {featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Star className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">Imóveis em Destaque</h2>
+              <p className="text-slate-600">As melhores oportunidades selecionadas para si</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {featuredProperties.map(property => (
+              <PropertyCardCompact key={property.id} property={property} featured />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Results Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Results Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">
+              {filteredProperties.length} imóveis encontrados
+            </h2>
+            {hasActiveFilters && (
+              <p className="text-sm text-slate-600">Com os filtros aplicados</p>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Mais Recentes</SelectItem>
+                <SelectItem value="price_asc">Preço: Menor → Maior</SelectItem>
+                <SelectItem value="price_desc">Preço: Maior → Menor</SelectItem>
+                <SelectItem value="area">Maior Área</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="hidden md:flex border rounded-lg overflow-hidden">
+              <Button 
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="rounded-none"
+              >
+                <Grid3X3 className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {/* Properties Grid */}
-        {filteredProperties.length > 0 ? (
+        {/* Properties Grid/List */}
+        {paginatedProperties.length > 0 ? (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-sm text-slate-600">
-                A mostrar {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredProperties.length)} de {filteredProperties.length} imóveis
-              </p>
-              {totalPages > 1 && (
-                <p className="text-sm text-slate-600">
-                  Página {currentPage} de {totalPages}
-                </p>
-              )}
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+            <div className={viewMode === "grid" 
+              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+              : "space-y-4"
+            }>
+              {paginatedProperties.map(property => (
+                viewMode === "grid" 
+                  ? <PropertyCardCompact key={property.id} property={property} />
+                  : <PropertyCardList key={property.id} property={property} />
               ))}
             </div>
+
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    {[...Array(totalPages)].map((_, i) => {
-                      const page = i + 1;
-                      if (
-                        page === 1 ||
-                        page === totalPages ||
-                        (page >= currentPage - 1 && page <= currentPage + 1)
-                      ) {
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      } else if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <PaginationItem key={page}>...</PaginationItem>;
-                      }
-                      return null;
-                    })}
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+              <div className="flex items-center justify-center gap-2 mt-10">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                    let page;
+                    if (totalPages <= 5) {
+                      page = i + 1;
+                    } else if (currentPage <= 3) {
+                      page = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      page = totalPages - 4 + i;
+                    } else {
+                      page = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-10"
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             )}
           </>
         ) : (
-          <Card className="text-center py-20">
-            <CardContent>
-              <Home className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-slate-900 mb-2">
-                Nenhum imóvel encontrado
-              </h3>
-              <p className="text-slate-600 mb-6">
-                Tente ajustar os seus filtros de pesquisa
-              </p>
-              {hasActiveFilters && (
-                <Button onClick={clearFilters} variant="outline">
-                  Limpar Filtros
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="text-center py-20">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Home className="w-10 h-10 text-slate-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              Nenhum imóvel encontrado
+            </h3>
+            <p className="text-slate-600 mb-6 max-w-md mx-auto">
+              Tente ajustar os filtros de pesquisa para ver mais resultados
+            </p>
+            <Button onClick={clearFilters}>
+              Limpar Filtros
+            </Button>
+          </div>
         )}
       </div>
+
+      {/* Contact CTA */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-12 mt-12">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            Não encontrou o que procura?
+          </h2>
+          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+            A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto connosco!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+              <Phone className="w-5 h-5 mr-2" />
+              Contactar
+            </Button>
+            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+              <Mail className="w-5 h-5 mr-2" />
+              Enviar Email
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
+  );
+}
+
+// Compact Card for Grid View
+function PropertyCardCompact({ property, featured }) {
+  const [imgError, setImgError] = React.useState(false);
+  const [imgIndex, setImgIndex] = React.useState(0);
+  const images = property.images?.length > 0 ? property.images : [];
+
+  const propertyTypeLabels = {
+    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
+    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
+  };
+
+  return (
+    <Link 
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
+    >
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+        {!imgError && images[imgIndex] ? (
+          <img
+            src={images[imgIndex]}
+            alt={property.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <Home className="w-12 h-12 text-slate-300" />
+          </div>
+        )}
+
+        {/* Image Navigation */}
+        {images.length > 1 && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.slice(0, 5).map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          {featured && (
+            <Badge className="bg-amber-400 text-slate-900 border-0">
+              <Star className="w-3 h-3 mr-1" />
+              Destaque
+            </Badge>
+          )}
+          <Badge className="bg-white/95 text-slate-800 border-0">
+            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+          </Badge>
+        </div>
+
+        {/* Price */}
+        <div className="absolute bottom-3 right-3">
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg font-bold">
+            €{property.price?.toLocaleString()}
+            {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
+          {property.title}
+        </h3>
+        <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
+          <MapPin className="w-3.5 h-3.5" />
+          {property.city}
+        </p>
+        
+        <div className="flex items-center gap-4 text-sm text-slate-600">
+          {property.bedrooms > 0 && (
+            <span className="flex items-center gap-1">
+              <Bed className="w-4 h-4" />
+              T{property.bedrooms}
+            </span>
+          )}
+          {property.bathrooms > 0 && (
+            <span className="flex items-center gap-1">
+              <Bath className="w-4 h-4" />
+              {property.bathrooms}
+            </span>
+          )}
+          {(property.useful_area || property.square_feet) > 0 && (
+            <span className="flex items-center gap-1">
+              <Maximize className="w-4 h-4" />
+              {property.useful_area || property.square_feet}m²
+            </span>
+          )}
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <Badge variant="outline" className="text-xs">
+            {propertyTypeLabels[property.property_type] || property.property_type}
+          </Badge>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// List Card for List View
+function PropertyCardList({ property }) {
+  const [imgError, setImgError] = React.useState(false);
+  const image = property.images?.[0];
+
+  const propertyTypeLabels = {
+    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
+    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
+  };
+
+  return (
+    <Link 
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
+    >
+      {/* Image */}
+      <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
+        {!imgError && image ? (
+          <img
+            src={image}
+            alt={property.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Home className="w-12 h-12 text-slate-300" />
+          </div>
+        )}
+        <Badge className="absolute top-3 left-3 bg-white/95 text-slate-800 border-0">
+          {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+        </Badge>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 p-5 flex flex-col justify-between">
+        <div>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                {property.title}
+              </h3>
+              <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                <MapPin className="w-4 h-4" />
+                {property.city}{property.address && `, ${property.address}`}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-slate-900">
+                €{property.price?.toLocaleString()}
+              </div>
+              {property.listing_type === 'rent' && (
+                <span className="text-sm text-slate-500">/mês</span>
+              )}
+            </div>
+          </div>
+          
+          {property.description && (
+            <p className="text-sm text-slate-600 mt-3 line-clamp-2">
+              {property.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-5 text-sm text-slate-600">
+            {property.bedrooms > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Bed className="w-4 h-4" />
+                T{property.bedrooms}
+              </span>
+            )}
+            {property.bathrooms > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Bath className="w-4 h-4" />
+                {property.bathrooms} WC
+              </span>
+            )}
+            {(property.useful_area || property.square_feet) > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Maximize className="w-4 h-4" />
+                {property.useful_area || property.square_feet}m²
+              </span>
+            )}
+          </div>
+          <Badge variant="outline">
+            {propertyTypeLabels[property.property_type] || property.property_type}
+          </Badge>
+        </div>
+      </div>
+    </Link>
   );
 }
