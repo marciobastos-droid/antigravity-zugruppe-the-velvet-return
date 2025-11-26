@@ -578,15 +578,22 @@ export default function ImportProperties() {
       });
 
       if (result.status === "success" && result.output?.properties) {
+        setProgress(`A classificar ${result.output.properties.length} imóveis com IA...`);
         const processedProperties = await Promise.all(
           result.output.properties.map(async (p) => {
-            if (!p.property_type || !p.listing_type) {
-              const detected = await detectPropertyTypes(p.title, p.description);
-              if (detected) {
-                return { ...p, property_type: p.property_type || detected.property_type, listing_type: p.listing_type || detected.listing_type };
-              }
+            const detected = await detectPropertyTypes(p.title, p.description, p.price);
+            if (detected) {
+              return { 
+                ...p, 
+                property_type: detected.property_type || p.property_type || 'apartment', 
+                listing_type: detected.listing_type || p.listing_type || 'sale' 
+              };
             }
-            return p;
+            return {
+              ...p,
+              property_type: p.property_type || 'apartment',
+              listing_type: p.listing_type || 'sale'
+            };
           })
         );
         
