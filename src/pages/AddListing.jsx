@@ -49,7 +49,9 @@ export default function AddListing() {
 
   const createListingMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.Property.create(data);
+      // Generate sequential ref_id
+      const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
+      return await base44.entities.Property.create({ ...data, ref_id: refData.ref_id });
     },
     onSuccess: () => {
       toast.success("Imóvel adicionado com sucesso!");
