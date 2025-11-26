@@ -497,6 +497,62 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     }
   };
 
+  // Bulk actions for properties
+  const markPropertiesAsNotDuplicate = () => {
+    if (selectedForDeletion.length === 0) {
+      toast.error("Nenhum imóvel selecionado");
+      return;
+    }
+    setIgnoredPropertyIds(prev => [...new Set([...prev, ...selectedForDeletion])]);
+    // Remove from duplicate groups
+    setDuplicateGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        properties: group.properties.filter(p => !selectedForDeletion.includes(p.id))
+      })).filter(group => group.properties.length > 1)
+    );
+    toast.success(`${selectedForDeletion.length} imóveis marcados como não duplicados`);
+    setSelectedForDeletion([]);
+  };
+
+  const addPropertiesToIgnoreList = () => {
+    if (selectedForDeletion.length === 0) {
+      toast.error("Nenhum imóvel selecionado");
+      return;
+    }
+    setIgnoredPropertyIds(prev => [...new Set([...prev, ...selectedForDeletion])]);
+    setDuplicateGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        properties: group.properties.filter(p => !selectedForDeletion.includes(p.id))
+      })).filter(group => group.properties.length > 1)
+    );
+    toast.success(`${selectedForDeletion.length} imóveis adicionados à lista de ignorados`);
+    setSelectedForDeletion([]);
+  };
+
+  const schedulePropertiesForReview = () => {
+    if (selectedForDeletion.length === 0) {
+      toast.error("Nenhum imóvel selecionado");
+      return;
+    }
+    const reviewDate = new Date();
+    reviewDate.setDate(reviewDate.getDate() + 7); // Review in 7 days
+    const newReviews = selectedForDeletion.map(id => ({
+      id,
+      scheduledDate: reviewDate.toISOString()
+    }));
+    setScheduledPropertyReviews(prev => [...prev.filter(r => !selectedForDeletion.includes(r.id)), ...newReviews]);
+    toast.success(`${selectedForDeletion.length} imóveis agendados para revisão em 7 dias`);
+    setSelectedForDeletion([]);
+  };
+
+  const clearPropertyIgnoreList = () => {
+    setIgnoredPropertyIds([]);
+    setScheduledPropertyReviews([]);
+    toast.success("Lista de ignorados limpa");
+  };
+
   const propertyTypeLabels = {
     apartment: "Apartamento",
     house: "Moradia",
