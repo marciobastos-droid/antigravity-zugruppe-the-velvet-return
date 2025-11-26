@@ -265,17 +265,52 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         }
       }
 
-      // Create ClientContact
-      const createdContact = await base44.entities.ClientContact.create(contactData);
+      // Check if contact already exists (by email or phone)
+      let existingContact = null;
+      if (extracted.buyer_email) {
+        const contactsByEmail = await base44.entities.ClientContact.filter({ email: extracted.buyer_email });
+        if (contactsByEmail.length > 0) {
+          existingContact = contactsByEmail[0];
+        }
+      }
+      if (!existingContact && extracted.buyer_phone) {
+        const contactsByPhone = await base44.entities.ClientContact.filter({ phone: extracted.buyer_phone });
+        if (contactsByPhone.length > 0) {
+          existingContact = contactsByPhone[0];
+        }
+      }
+
+      let contactId;
+      if (existingContact) {
+        // Update existing contact with new requirements if provided
+        const updateData = {};
+        if (contactData.property_requirements && Object.keys(contactData.property_requirements).length > 0) {
+          updateData.property_requirements = contactData.property_requirements;
+        }
+        if (contactData.notes && !existingContact.notes?.includes(contactData.notes)) {
+          updateData.notes = existingContact.notes 
+            ? `${existingContact.notes}\n\n--- Nova entrada ---\n${contactData.notes}`
+            : contactData.notes;
+        }
+        if (Object.keys(updateData).length > 0) {
+          await base44.entities.ClientContact.update(existingContact.id, updateData);
+        }
+        contactId = existingContact.id;
+      } else {
+        // Create new ClientContact
+        const createdContact = await base44.entities.ClientContact.create(contactData);
+        contactId = createdContact?.id;
+      }
 
       // Link opportunity to contact
-      opportunityData.profile_id = createdContact?.id;
+      opportunityData.profile_id = contactId;
       const createdOpportunity = await base44.entities.Opportunity.create(opportunityData);
 
-      // Update contact with opportunity link
-      if (createdContact?.id) {
-        await base44.entities.ClientContact.update(createdContact.id, {
-          linked_opportunity_ids: [createdOpportunity.id]
+      // Update contact with opportunity link (append to existing array)
+      if (contactId) {
+        const existingOpportunityIds = existingContact?.linked_opportunity_ids || [];
+        await base44.entities.ClientContact.update(contactId, {
+          linked_opportunity_ids: [...existingOpportunityIds, createdOpportunity.id]
         });
       }
 
