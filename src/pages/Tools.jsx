@@ -23,6 +23,7 @@ import EmailSender from "../components/tools/EmailSender";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
 import DuplicateChecker from "../components/tools/DuplicateChecker";
 import AIMatchingEngine from "../components/matching/AIMatchingEngine";
+import AutomaticMatching from "../components/matching/AutomaticMatching";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -208,7 +209,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Brain className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
-                <span className="text-sm text-indigo-600">(1 ferramenta)</span>
+                <span className="text-sm text-indigo-600">(2 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -219,6 +220,14 @@ export default function Tools() {
                 >
                   <Target className="w-4 h-4" />
                   Motor de Matching IA
+                </Button>
+                <Button
+                  variant={activeTab === "autoMatching" ? "default" : "outline"}
+                  onClick={() => setActiveTab("autoMatching")}
+                  className="flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4" />
+                  Matching Automático
                 </Button>
               </div>
             </CardContent>
@@ -295,6 +304,7 @@ export default function Tools() {
 
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "aiMatching" && <AIMatchingEngine />}
+        {activeTab === "autoMatching" && <AutomaticMatching />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
         {activeTab === "marketIntelligence" && <MarketIntelligence />}
         {activeTab === "emailSender" && <EmailSender />}
