@@ -93,9 +93,9 @@ export default function Home() {
         className="text-center mb-10"
       >
         <h1 className="text-2xl md:text-3xl font-semibold text-[#27251f] mb-2">
-          {user ? `Olá, ${user.full_name?.split(' ')[0] || 'Bem-vindo'}!` : 'Bem-vindo'}
+          Plataforma de Gestão Imobiliária
         </h1>
-        <p className="text-[#27251f]/60">Escolha uma opção para continuar</p>
+        <p className="text-[#27251f]/60">Selecione uma área para começar</p>
       </motion.div>
 
       {/* Menu CRM Grid */}
