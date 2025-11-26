@@ -11,8 +11,16 @@ import {
   Search, Loader2, AlertTriangle, CheckCircle2, 
   Copy, Trash2, Eye, MapPin, Euro, Bed, 
   Sparkles, RefreshCw, ChevronDown, ChevronUp,
-  Building2, ExternalLink, Merge, Users, Mail, Phone
+  Building2, ExternalLink, Merge, Users, Mail, Phone,
+  XCircle, Clock, ListX, MoreHorizontal
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
