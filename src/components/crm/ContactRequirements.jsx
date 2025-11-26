@@ -81,6 +81,80 @@ export default function ContactRequirements({ contact, onUpdate }) {
     }));
   };
 
+  const handleAiExtract = async () => {
+    if (!aiText.trim()) {
+      toast.error("Cole o texto do cliente para extrair requisitos");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analisa o seguinte texto de um cliente interessado em imóveis e extrai os requisitos de pesquisa.
+
+TEXTO DO CLIENTE:
+${aiText}
+
+INSTRUÇÕES:
+- Extrai todos os requisitos de imóvel mencionados
+- Identifica orçamento mínimo e máximo
+- Identifica localizações/cidades de interesse
+- Identifica tipos de imóvel (apartment, house, townhouse, condo, land, commercial, building)
+- Identifica número de quartos mínimo e máximo
+- Identifica área mínima e máxima em m²
+- Identifica se é compra (sale), arrendamento (rent) ou ambos (both)
+- Identifica casas de banho mínimas
+- Extrai notas adicionais relevantes`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            listing_type: { type: "string", enum: ["sale", "rent", "both"] },
+            budget_min: { type: "number" },
+            budget_max: { type: "number" },
+            locations: { type: "array", items: { type: "string" } },
+            property_types: { type: "array", items: { type: "string" } },
+            bedrooms_min: { type: "number" },
+            bedrooms_max: { type: "number" },
+            bathrooms_min: { type: "number" },
+            area_min: { type: "number" },
+            area_max: { type: "number" },
+            additional_notes: { type: "string" }
+          }
+        }
+      });
+
+      // Merge with existing requirements, preferring AI values if they exist
+      const newReqs = { ...requirements };
+      if (result.listing_type) newReqs.listing_type = result.listing_type;
+      if (result.budget_min > 0) newReqs.budget_min = result.budget_min;
+      if (result.budget_max > 0) newReqs.budget_max = result.budget_max;
+      if (result.locations?.length > 0) {
+        newReqs.locations = [...new Set([...(requirements.locations || []), ...result.locations])];
+      }
+      if (result.property_types?.length > 0) {
+        newReqs.property_types = [...new Set([...(requirements.property_types || []), ...result.property_types])];
+      }
+      if (result.bedrooms_min > 0) newReqs.bedrooms_min = result.bedrooms_min;
+      if (result.bedrooms_max > 0) newReqs.bedrooms_max = result.bedrooms_max;
+      if (result.bathrooms_min > 0) newReqs.bathrooms_min = result.bathrooms_min;
+      if (result.area_min > 0) newReqs.area_min = result.area_min;
+      if (result.area_max > 0) newReqs.area_max = result.area_max;
+      if (result.additional_notes) {
+        newReqs.additional_notes = requirements.additional_notes 
+          ? `${requirements.additional_notes}\n${result.additional_notes}`
+          : result.additional_notes;
+      }
+
+      setRequirements(newReqs);
+      setShowAiInput(false);
+      setAiText("");
+      toast.success("Requisitos extraídos com IA!");
+    } catch (error) {
+      toast.error("Erro ao extrair requisitos");
+    }
+    setAiLoading(false);
+  };
+
   const req = contact?.property_requirements || {};
   const hasRequirements = req.listing_type || req.locations?.length || req.budget_min || req.budget_max || req.property_types?.length;
 
