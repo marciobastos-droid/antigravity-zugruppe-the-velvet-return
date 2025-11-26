@@ -582,8 +582,9 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs defaultValue="details" className="mt-4">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="matching">Matching</TabsTrigger>
                 <TabsTrigger value="communications">Comunicações</TabsTrigger>
                 <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
               </TabsList>
