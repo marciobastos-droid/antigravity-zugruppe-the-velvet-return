@@ -708,6 +708,8 @@ export default function MyListings() {
           open={!!editingProperty}
           onOpenChange={(open) => !open && setEditingProperty(null)}
         />
+        </>
+        )}
       </div>
     </div>
   );
