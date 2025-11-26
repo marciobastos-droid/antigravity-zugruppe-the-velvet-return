@@ -1015,54 +1015,7 @@ Retorna array de imóveis em JSON estruturado.`,
         </CardContent>
       </Card>
 
-      {/* Text Import - NEW */}
-      <Card className="border-purple-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileInput className="w-5 h-5 text-purple-600" />
-            Importar de Texto
-          </CardTitle>
-          <p className="text-sm text-slate-500">Cole descrições de imóveis em texto livre - a IA extrai os dados</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            value={textInput}
-            onChange={(e) => setTextInput(e.target.value)}
-            placeholder="Cole aqui descrições de imóveis em texto livre...&#10;&#10;Exemplo:&#10;Apartamento T3 em Lisboa, Avenidas Novas. 150m², 3 quartos, 2 WC. Preço: 450.000€. Perto do metro, varanda, ar condicionado, lugar de garagem.&#10;&#10;Ou cole múltiplos anúncios de uma vez!"
-            rows={8}
-            className="font-mono text-sm"
-          />
 
-          <Button
-            onClick={importFromText}
-            disabled={importing || textInput.trim().length < 50}
-            className="w-full bg-purple-600 hover:bg-purple-700"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {progress}
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 mr-2" />
-                Extrair e Importar com IA
-              </>
-            )}
-          </Button>
-
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-            <p className="text-xs text-purple-900 font-medium mb-1">✨ Modo Inteligente</p>
-            <p className="text-xs text-purple-700">
-              ✓ A IA extrai automaticamente título, preço, área, localização, características
-              <br />
-              ✓ Suporta texto livre ou anúncios copiados de sites
-              <br />
-              ✓ Pode processar vários imóveis de uma vez
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
