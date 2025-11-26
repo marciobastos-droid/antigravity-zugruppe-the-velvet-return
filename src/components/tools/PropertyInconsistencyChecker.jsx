@@ -14,7 +14,7 @@ import {
   Info, Zap, FileWarning
 } from "lucide-react";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+
 import { createPageUrl } from "@/utils";
 
 export default function PropertyInconsistencyChecker() {
@@ -535,14 +535,15 @@ Sê rigoroso na análise. Reporta APENAS problemas reais, não suposições.`,
 
                           {/* Actions */}
                           <div className="flex gap-2 pt-2">
-                            <Link
-                              to={`${createPageUrl("PropertyDetails")}?id=${result.property.id}`}
+                            <a
+                              href={`${createPageUrl("PropertyDetails")}?id=${result.property.id}`}
                               target="_blank"
+                              rel="noopener noreferrer"
                             >
                               <Button variant="outline" size="sm">
                                 Ver Imóvel
                               </Button>
-                            </Link>
+                            </a>
                           </div>
                         </div>
                       </div>
