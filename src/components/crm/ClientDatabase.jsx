@@ -646,19 +646,98 @@ export default function ClientDatabase() {
                     {/* Left: Main Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <h3 className="text-lg font-semibold text-slate-900 truncate">{client.full_name}</h3>
-                        <Badge className={typeColors[client.contact_type]}>
-                          {typeLabels[client.contact_type]}
-                        </Badge>
-                        <Badge className={statusColors[client.status]}>
-                          {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Prospect'}
-                        </Badge>
-                        {client.tags?.map(tag => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
+                                    <h3 className="text-lg font-semibold text-slate-900 truncate">{client.full_name}</h3>
+                                    <Badge className={typeColors[client.contact_type]}>
+                                      {typeLabels[client.contact_type]}
+                                    </Badge>
+                                    <Badge className={statusColors[client.status]}>
+                                      {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Prospect'}
+                                    </Badge>
+
+                                    {/* Priority/VIP Badges */}
+                                    {clientOpps.some(o => o.priority === 'high') && (
+                                      <Badge className="bg-red-100 text-red-700 border-red-200">
+                                        <Flame className="w-3 h-3 mr-1" />
+                                        Prioritário
+                                      </Badge>
+                                    )}
+                                    {clientOpps.some(o => o.qualification_status === 'hot') && (
+                                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                                        <ThermometerSun className="w-3 h-3 mr-1" />
+                                        Quente
+                                      </Badge>
+                                    )}
+                                    {clientOpps.some(o => o.qualification_status === 'warm') && !clientOpps.some(o => o.qualification_status === 'hot') && (
+                                      <Badge className="bg-amber-100 text-amber-700 border-amber-200">
+                                        <Zap className="w-3 h-3 mr-1" />
+                                        Morno
+                                      </Badge>
+                                    )}
+                                    {clientOpps.some(o => o.qualification_status === 'cold') && (
+                                      <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                        <Snowflake className="w-3 h-3 mr-1" />
+                                        Frio
+                                      </Badge>
+                                    )}
+
+                                    {/* Engagement Badges */}
+                                    {clientComms.length >= 5 && (
+                                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                                        <MessageSquare className="w-3 h-3 mr-1" />
+                                        Engajado
+                                      </Badge>
+                                    )}
+                                    {clientOpps.some(o => o.status === 'scheduled') && (
+                                      <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">
+                                        <Calendar className="w-3 h-3 mr-1" />
+                                        Visita Agendada
+                                      </Badge>
+                                    )}
+                                    {clientOpps.some(o => o.status === 'closed') && (
+                                      <Badge className="bg-green-100 text-green-700 border-green-200">
+                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                        Negócio Fechado
+                                      </Badge>
+                                    )}
+
+                                    {/* Special Badges */}
+                                    {client.contact_type === 'investor' && (
+                                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                                        <Award className="w-3 h-3 mr-1" />
+                                        Investidor
+                                      </Badge>
+                                    )}
+                                    {client.company_name && client.contact_type === 'partner' && (
+                                      <Badge className="bg-violet-100 text-violet-700 border-violet-200">
+                                        <Briefcase className="w-3 h-3 mr-1" />
+                                        Empresa
+                                      </Badge>
+                                    )}
+
+                                    {/* New Contact Badge */}
+                                    {new Date(client.created_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                                      <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200">
+                                        <Star className="w-3 h-3 mr-1" />
+                                        Novo
+                                      </Badge>
+                                    )}
+
+                                    {/* No Recent Contact Warning */}
+                                    {client.last_contact_date && new Date(client.last_contact_date) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && (
+                                      <Badge className="bg-rose-100 text-rose-700 border-rose-200">
+                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                        Sem Contacto 30d+
+                                      </Badge>
+                                    )}
+
+                                    {/* Custom Tags */}
+                                    {client.tags?.map(tag => (
+                                      <Badge key={tag} variant="outline" className="text-xs">
+                                        <Tag className="w-3 h-3 mr-1" />
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
 
                       <div className="grid md:grid-cols-4 gap-2 text-sm text-slate-600 mb-3">
                         {client.email && (
