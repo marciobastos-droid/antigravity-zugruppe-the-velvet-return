@@ -127,28 +127,74 @@ Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition
         follow_ups: []
       };
 
+      // Also create a ClientContact with requirements
+      const contactTypeMap = {
+        'comprador': 'client',
+        'vendedor': 'client',
+        'parceiro': 'partner'
+      };
+
+      const contactData = {
+        full_name: extracted.buyer_name,
+        email: extracted.buyer_email || "",
+        phone: extracted.buyer_phone || "",
+        city: location || extracted.location || (extracted.locations?.[0]) || "",
+        contact_type: contactTypeMap[leadType] || 'client',
+        source: "other",
+        notes: extracted.message || "",
+        linked_opportunity_ids: []
+      };
+
       if (leadType === "comprador") {
-        opportunityData.budget = extracted.budget || 0;
-        opportunityData.property_type_interest = extracted.property_type_interest || "";
+        opportunityData.budget = extracted.budget_max || extracted.budget_min || 0;
+        opportunityData.property_type_interest = extracted.property_types?.[0] || "";
         
+        // Add property requirements to contact
+        contactData.property_requirements = {
+          listing_type: extracted.listing_type || "sale",
+          property_types: extracted.property_types || [],
+          locations: extracted.locations?.length > 0 ? extracted.locations : (extracted.location ? [extracted.location] : []),
+          budget_min: extracted.budget_min || 0,
+          budget_max: extracted.budget_max || 0,
+          bedrooms_min: extracted.bedrooms_min || null,
+          bedrooms_max: extracted.bedrooms_max || null,
+          bathrooms_min: extracted.bathrooms_min || null,
+          area_min: extracted.area_min || null,
+          area_max: extracted.area_max || null,
+          amenities: extracted.amenities || [],
+          additional_notes: extracted.additional_notes || ""
+        };
+        
+        // Also create buyer profile for legacy compatibility
         await base44.entities.BuyerProfile.create({
           buyer_name: extracted.buyer_name,
           buyer_email: extracted.buyer_email || "",
           buyer_phone: extracted.buyer_phone || "",
-          listing_type: "sale",
-          property_types: extracted.property_type_interest ? [extracted.property_type_interest] : [],
-          locations: extracted.locations && extracted.locations.length > 0 ? extracted.locations : (extracted.location ? [extracted.location] : []),
-          budget_min: 0,
-          budget_max: extracted.budget || 0,
+          listing_type: extracted.listing_type || "sale",
+          property_types: extracted.property_types || [],
+          locations: extracted.locations?.length > 0 ? extracted.locations : (extracted.location ? [extracted.location] : []),
+          budget_min: extracted.budget_min || 0,
+          budget_max: extracted.budget_max || 0,
           bedrooms_min: extracted.bedrooms_min || 0,
+          square_feet_min: extracted.area_min || 0,
+          desired_amenities: extracted.amenities || [],
+          additional_notes: extracted.additional_notes || "",
           status: "active"
         });
       } else if (leadType === "vendedor") {
         opportunityData.property_to_sell = extracted.property_to_sell || "";
+        contactData.notes = `Imóvel a vender: ${extracted.property_to_sell || ""}\n\n${extracted.message || ""}`;
       } else {
+        // Parceiro
         opportunityData.company_name = extracted.company_name || "";
         opportunityData.partnership_type = extracted.partnership_type || "";
+        contactData.company_name = extracted.company_name || "";
+        contactData.job_title = extracted.partnership_type || "";
+        contactData.notes = `Tipo de Parceria: ${extracted.partnership_type || ""}\nEspecialização: ${extracted.specialization || ""}\nLocalizações: ${extracted.locations?.join(", ") || ""}\n\n${extracted.message || ""}`;
       }
+
+      // Create ClientContact
+      const createdContact = await base44.entities.ClientContact.create(contactData);
 
       const createdOpportunity = await base44.entities.Opportunity.create(opportunityData);
 
