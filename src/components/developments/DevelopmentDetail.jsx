@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { pt } from "date-fns/locale";
 
 export default function DevelopmentDetail({ development, open, onOpenChange, properties }) {
   const queryClient = useQueryClient();
@@ -213,7 +212,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                   {development.completion_date && (
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-slate-500" />
-                      <span>Conclusão: {format(new Date(development.completion_date), "MMMM yyyy", { locale: pt })}</span>
+                      <span>Conclusão: {format(new Date(development.completion_date), "dd/MM/yyyy")}</span>
                     </div>
                   )}
 
