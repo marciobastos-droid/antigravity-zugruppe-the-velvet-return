@@ -213,7 +213,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                   {development.completion_date && (
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-slate-500" />
-                      <span>Conclusão: {format(new Date(development.completion_date), "MMMM yyyy", { locale: ptBR })}</span>
+                      <span>Conclusão: {format(new Date(development.completion_date), "MMMM yyyy", { locale: pt })}</span>
                     </div>
                   )}
 
