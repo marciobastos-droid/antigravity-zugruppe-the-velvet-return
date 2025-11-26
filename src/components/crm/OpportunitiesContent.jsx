@@ -26,6 +26,7 @@ export default function OpportunitiesContent() {
   const [qualificationFilter, setQualificationFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
   const [agentFilter, setAgentFilter] = React.useState("all");
+  const [campaignFilter, setCampaignFilter] = React.useState("all");
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
   const [formDialogOpen, setFormDialogOpen] = React.useState(false);
@@ -72,6 +73,27 @@ export default function OpportunitiesContent() {
     queryKey: ['buyerProfiles'],
     queryFn: () => base44.entities.BuyerProfile.list(),
   });
+
+  const { data: facebookLeads = [] } = useQuery({
+    queryKey: ['facebookLeads'],
+    queryFn: () => base44.entities.FacebookLead.list(),
+  });
+
+  // Extract unique campaign names
+  const allCampaigns = React.useMemo(() => {
+    const campaignsSet = new Set();
+    facebookLeads.forEach(lead => {
+      if (lead.campaign_name) campaignsSet.add(lead.campaign_name);
+    });
+    opportunities.forEach(opp => {
+      if (opp.source_url?.includes('facebook') && opp.message) {
+        // Try to extract campaign from message if stored there
+        const campaignMatch = opp.message.match(/Campanha:\s*(.+?)(?:\n|$)/i);
+        if (campaignMatch) campaignsSet.add(campaignMatch[1].trim());
+      }
+    });
+    return Array.from(campaignsSet).sort();
+  }, [facebookLeads, opportunities]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Opportunity.update(id, data),
@@ -232,8 +254,20 @@ export default function OpportunitiesContent() {
         matchesSource = opp.source_url === 'manual' || !opp.source_url;
       }
     }
+
+    let matchesCampaign = true;
+    if (campaignFilter !== "all") {
+      // Check if opportunity came from this campaign
+      const fbLead = facebookLeads.find(fl => fl.converted_to_opportunity_id === opp.id);
+      if (fbLead) {
+        matchesCampaign = fbLead.campaign_name === campaignFilter;
+      } else {
+        // Check message for campaign reference
+        matchesCampaign = opp.message?.includes(campaignFilter);
+      }
+    }
     
-    return matchesSearch && matchesStatus && matchesLeadType && matchesQualification && matchesSource && matchesAgent;
+    return matchesSearch && matchesStatus && matchesLeadType && matchesQualification && matchesSource && matchesAgent && matchesCampaign;
   });
 
   const stats = React.useMemo(() => {
@@ -515,6 +549,25 @@ export default function OpportunitiesContent() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {allCampaigns.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">Campanha</label>
+                  <Select value={campaignFilter} onValueChange={setCampaignFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Campanha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {allCampaigns.map((campaign) => (
+                        <SelectItem key={campaign} value={campaign}>
+                          {campaign}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
