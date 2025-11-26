@@ -592,11 +592,14 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="opportunities">
+                  Oportunidades ({getClientOpportunities(selectedClient.email).length})
+                </TabsTrigger>
                 <TabsTrigger value="matching">Matching</TabsTrigger>
                 <TabsTrigger value="communications">Comunicações</TabsTrigger>
-                <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
+                <TabsTrigger value="notes">Notas</TabsTrigger>
               </TabsList>
 
               <TabsContent value="details" className="mt-4">
@@ -719,15 +722,6 @@ export default function ClientDatabase() {
                   </div>
                 </div>
 
-                {selectedClient.notes && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-slate-900 mb-2">Notas</h4>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg">
-                      {selectedClient.notes}
-                    </p>
-                  </div>
-                )}
-
                 <div className="flex gap-2 mt-6">
                   <Button 
                     onClick={() => { setCommDialogOpen(true); }}
@@ -759,19 +753,97 @@ export default function ClientDatabase() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {getClientOpportunities(selectedClient.email).map((opp) => (
-                      <Card key={opp.id}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium text-slate-900">{opp.property_title || "Oportunidade"}</h4>
-                              <p className="text-sm text-slate-600">{opp.message?.substring(0, 100)}...</p>
+                    {getClientOpportunities(selectedClient.email).map((opp) => {
+                      const statusLabels = {
+                        new: "Novo",
+                        contacted: "Contactado", 
+                        scheduled: "Agendado",
+                        closed: "Fechado"
+                      };
+                      const statusColors = {
+                        new: "bg-blue-100 text-blue-800",
+                        contacted: "bg-amber-100 text-amber-800",
+                        scheduled: "bg-purple-100 text-purple-800",
+                        closed: "bg-green-100 text-green-800"
+                      };
+                      const qualColors = {
+                        hot: "bg-red-100 text-red-800",
+                        warm: "bg-orange-100 text-orange-800",
+                        cold: "bg-cyan-100 text-cyan-800"
+                      };
+                      
+                      return (
+                        <Card key={opp.id} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-slate-900">{opp.property_title || opp.buyer_name}</h4>
+                                <p className="text-xs text-slate-500">
+                                  {opp.lead_type === 'comprador' ? '🛒 Comprador' : 
+                                   opp.lead_type === 'vendedor' ? '🏷️ Vendedor' : 
+                                   opp.lead_type === 'parceiro_comprador' ? '🤝 Parceiro Comprador' : '🤝 Parceiro Vendedor'}
+                                </p>
+                              </div>
+                              <div className="flex gap-1">
+                                <Badge className={statusColors[opp.status]}>
+                                  {statusLabels[opp.status]}
+                                </Badge>
+                                {opp.qualification_status && (
+                                  <Badge className={qualColors[opp.qualification_status]}>
+                                    {opp.qualification_status === 'hot' ? '🔥' : opp.qualification_status === 'warm' ? '🌡️' : '❄️'}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
-                            <Badge>{opp.status}</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            
+                            <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 mb-2">
+                              {opp.budget && (
+                                <span>💰 €{opp.budget.toLocaleString()}</span>
+                              )}
+                              {opp.location && (
+                                <span>📍 {opp.location}</span>
+                              )}
+                              {opp.property_type_interest && (
+                                <span>🏠 {opp.property_type_interest}</span>
+                              )}
+                              {opp.lead_source && (
+                                <span>📥 {opp.lead_source}</span>
+                              )}
+                            </div>
+                            
+                            {opp.message && (
+                              <p className="text-sm text-slate-600 line-clamp-2 bg-slate-50 p-2 rounded">
+                                {opp.message}
+                              </p>
+                            )}
+                            
+                            <div className="flex items-center justify-between mt-3 pt-2 border-t">
+                              <span className="text-xs text-slate-500">
+                                {format(new Date(opp.created_date), "dd/MM/yyyy")}
+                              </span>
+                              {opp.follow_ups?.length > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  {opp.follow_ups.filter(f => !f.completed).length} follow-ups pendentes
+                                </Badge>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="notes" className="mt-4">
+                {selectedClient.notes ? (
+                  <div className="bg-slate-50 p-4 rounded-lg">
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedClient.notes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Sem notas</p>
                   </div>
                 )}
               </TabsContent>
