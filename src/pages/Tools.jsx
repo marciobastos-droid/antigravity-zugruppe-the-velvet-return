@@ -21,6 +21,7 @@ import MarketIntelligence from "../components/tools/MarketIntelligence";
 import ListingOptimizer from "../components/tools/ListingOptimizer";
 import EmailSender from "../components/tools/EmailSender";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
+import AutoMatchingPanel from "../components/tools/AutoMatchingPanel";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
