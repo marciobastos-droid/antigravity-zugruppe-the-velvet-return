@@ -22,6 +22,7 @@ import ListingOptimizer from "../components/tools/ListingOptimizer";
 import EmailSender from "../components/tools/EmailSender";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
 import DuplicateChecker from "../components/tools/DuplicateChecker";
+import PropertyInconsistencyChecker from "../components/tools/PropertyInconsistencyChecker";
 import AIMatchingEngine from "../components/matching/AIMatchingEngine";
 import AutomaticMatching from "../components/matching/AutomaticMatching";
 
@@ -158,6 +159,14 @@ export default function Tools() {
                 >
                   <Copy className="w-4 h-4" />
                   Verificar Duplicados
+                </Button>
+                <Button
+                  variant={activeTab === "inconsistencyChecker" ? "default" : "outline"}
+                  onClick={() => setActiveTab("inconsistencyChecker")}
+                  className="flex items-center gap-2"
+                >
+                  <Brain className="w-4 h-4" />
+                  Verificar Inconsistências
                 </Button>
                 <Button
                   variant={activeTab === "emailSender" ? "default" : "outline"}
@@ -303,6 +312,7 @@ export default function Tools() {
         </div>
 
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
+        {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
         {activeTab === "aiMatching" && <AIMatchingEngine />}
         {activeTab === "autoMatching" && <AutomaticMatching />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
