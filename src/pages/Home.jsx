@@ -206,7 +206,7 @@ export default function Home() {
             <Link to={createPageUrl("Browse")}>
               <Button size="lg" className="bg-[#27251f] hover:bg-[#1a1915] text-white px-10 py-6 text-lg rounded-full shadow-xl transition-all hover:scale-105">
                 Começar Agora
-                <Artml:parameter className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
           </motion.div>
