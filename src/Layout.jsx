@@ -28,8 +28,7 @@ export default function Layout({ children, currentPageName }) {
         { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard" },
         { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
         { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
-        { name: "Oportunidades", path: createPageUrl("Opportunities"), icon: MessageSquare, id: "nav-opportunities" },
-        { name: "Contatos/CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
+        { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
         { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
       ];
 
