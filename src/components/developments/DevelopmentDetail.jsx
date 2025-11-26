@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { pt } from "date-fns/locale";
 
 export default function DevelopmentDetail({ development, open, onOpenChange, properties }) {
   const queryClient = useQueryClient();
