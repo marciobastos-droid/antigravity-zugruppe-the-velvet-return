@@ -8,19 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { 
   Search, Home, MapPin, Euro, Bed, Bath, 
   Square, Sparkles, Send, Check, ExternalLink,
-  Heart, Star, Filter, RefreshCw, ChevronDown,
-  ChevronUp, Building2, Calendar, Zap, Mail,
-  Phone, MessageSquare, TrendingUp, Eye
+  Heart, Star, Filter, ChevronDown, ChevronUp, 
+  Bell, BellOff, Save, Trash2, X, ThumbsDown,
+  Eye, Clock, Bookmark, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
 
 export default function ContactMatching({ contact }) {
   const queryClient = useQueryClient();
@@ -45,41 +44,85 @@ export default function ContactMatching({ contact }) {
   const [expandedFilters, setExpandedFilters] = React.useState(false);
   const [sortBy, setSortBy] = React.useState("score");
   const [sendingEmail, setSendingEmail] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState("list");
+  const [saveSearchDialogOpen, setSaveSearchDialogOpen] = React.useState(false);
+  const [searchName, setSearchName] = React.useState("");
+  const [alertsEnabled, setAlertsEnabled] = React.useState(false);
+  const [alertFrequency, setAlertFrequency] = React.useState("daily");
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
-  const { data: savedMatches = [] } = useQuery({
-    queryKey: ['savedMatches', contact?.id],
+  const { data: savedSearches = [], refetch: refetchSearches } = useQuery({
+    queryKey: ['savedSearches', contact?.id],
     queryFn: async () => {
       if (!contact?.id) return [];
-      const feedbacks = await base44.entities.MatchFeedback.filter({ profile_id: contact.id });
-      return feedbacks;
+      return await base44.entities.SavedSearchCriteria.filter({ contact_id: contact.id });
     },
     enabled: !!contact?.id
   });
 
-  const saveFeedbackMutation = useMutation({
-    mutationFn: (data) => base44.entities.MatchFeedback.create(data),
+  const { data: propertyFeedback = [], refetch: refetchFeedback } = useQuery({
+    queryKey: ['propertyFeedback', contact?.id],
+    queryFn: async () => {
+      if (!contact?.id) return [];
+      return await base44.entities.PropertyFeedback.filter({ contact_id: contact.id });
+    },
+    enabled: !!contact?.id
+  });
+
+  const saveSearchMutation = useMutation({
+    mutationFn: (data) => base44.entities.SavedSearchCriteria.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['savedMatches', contact?.id] });
-      toast.success("Feedback guardado");
+      toast.success("Pesquisa guardada!");
+      refetchSearches();
+      setSaveSearchDialogOpen(false);
+      setSearchName("");
+    }
+  });
+
+  const deleteSearchMutation = useMutation({
+    mutationFn: (id) => base44.entities.SavedSearchCriteria.delete(id),
+    onSuccess: () => {
+      toast.success("Pesquisa eliminada");
+      refetchSearches();
+    }
+  });
+
+  const toggleAlertMutation = useMutation({
+    mutationFn: ({ id, enabled }) => base44.entities.SavedSearchCriteria.update(id, { alerts_enabled: enabled }),
+    onSuccess: (_, { enabled }) => {
+      toast.success(enabled ? "Alertas ativados!" : "Alertas desativados");
+      refetchSearches();
+    }
+  });
+
+  const saveFeedbackMutation = useMutation({
+    mutationFn: async (data) => {
+      // Check if feedback already exists
+      const existing = propertyFeedback.find(f => f.property_id === data.property_id);
+      if (existing) {
+        return await base44.entities.PropertyFeedback.update(existing.id, data);
+      }
+      return await base44.entities.PropertyFeedback.create(data);
+    },
+    onSuccess: () => {
+      refetchFeedback();
     }
   });
 
   const activeProperties = properties.filter(p => p.status === 'active');
-
-  // Get unique cities and amenities for filter options
   const allCities = [...new Set(activeProperties.map(p => p.city).filter(Boolean))].sort();
   const allAmenities = [...new Set(activeProperties.flatMap(p => p.amenities || []))].sort();
+
+  // Get favorite and rejected property IDs
+  const favoriteIds = propertyFeedback.filter(f => f.feedback_type === 'favorite').map(f => f.property_id);
+  const rejectedIds = propertyFeedback.filter(f => f.feedback_type === 'rejected').map(f => f.property_id);
 
   const calculateMatchScore = (property) => {
     let score = 0;
     let maxScore = 0;
-    const details = {};
 
     // Location match (30 points)
     if (filters.cities.length > 0) {
@@ -89,9 +132,6 @@ export default function ContactMatching({ contact }) {
         city.toLowerCase().includes(property.city?.toLowerCase() || '')
       )) {
         score += 30;
-        details.location = { matched: true, weight: 30 };
-      } else {
-        details.location = { matched: false, weight: 30 };
       }
     }
 
@@ -104,12 +144,8 @@ export default function ContactMatching({ contact }) {
       
       if (price >= min && price <= max) {
         score += 25;
-        details.price = { matched: true, weight: 25, value: price };
       } else if (price >= min * 0.85 && price <= max * 1.15) {
         score += 15;
-        details.price = { matched: 'partial', weight: 25, value: price };
-      } else {
-        details.price = { matched: false, weight: 25, value: price };
       }
     }
 
@@ -122,10 +158,8 @@ export default function ContactMatching({ contact }) {
       
       if (beds >= minBeds && beds <= maxBeds) {
         score += 15;
-        details.bedrooms = { matched: true, weight: 15 };
       } else if (beds >= minBeds - 1) {
         score += 8;
-        details.bedrooms = { matched: 'partial', weight: 15 };
       }
     }
 
@@ -134,7 +168,6 @@ export default function ContactMatching({ contact }) {
       maxScore += 10;
       if (property.bathrooms >= parseInt(filters.bathroomsMin)) {
         score += 10;
-        details.bathrooms = { matched: true, weight: 10 };
       }
     }
 
@@ -147,10 +180,8 @@ export default function ContactMatching({ contact }) {
       
       if (area >= minArea && area <= maxArea) {
         score += 15;
-        details.area = { matched: true, weight: 15 };
       } else if (area >= minArea * 0.9) {
         score += 8;
-        details.area = { matched: 'partial', weight: 15 };
       }
     }
 
@@ -159,7 +190,6 @@ export default function ContactMatching({ contact }) {
       maxScore += 10;
       if (filters.property_types.includes(property.property_type)) {
         score += 10;
-        details.type = { matched: true, weight: 10 };
       }
     }
 
@@ -167,7 +197,6 @@ export default function ContactMatching({ contact }) {
     maxScore += 10;
     if (property.listing_type === filters.listing_type) {
       score += 10;
-      details.listingType = { matched: true, weight: 10 };
     }
 
     // Year built match (5 points)
@@ -175,7 +204,6 @@ export default function ContactMatching({ contact }) {
       maxScore += 5;
       if (property.year_built >= parseInt(filters.yearBuiltMin)) {
         score += 5;
-        details.yearBuilt = { matched: true, weight: 5 };
       }
     }
 
@@ -187,7 +215,6 @@ export default function ContactMatching({ contact }) {
       const amenityScore = Math.round((matchedAmenities.length / filters.amenities.length) * 10);
       maxScore += 10;
       score += amenityScore;
-      details.amenities = { matched: matchedAmenities.length, total: filters.amenities.length };
     }
 
     // Featured bonus
@@ -195,9 +222,12 @@ export default function ContactMatching({ contact }) {
       score += 5;
     }
 
-    const finalScore = maxScore > 0 ? Math.round((score / maxScore) * 100) : 50;
-    
-    return { score: finalScore, details, maxScore, rawScore: score };
+    // Favorite bonus
+    if (favoriteIds.includes(property.id)) {
+      score += 10;
+    }
+
+    return maxScore > 0 ? Math.round((score / maxScore) * 100) : 50;
   };
 
   const handleSearch = () => {
@@ -206,17 +236,20 @@ export default function ContactMatching({ contact }) {
     setTimeout(() => {
       let filtered = activeProperties;
 
-      // Apply featured filter
+      // Exclude rejected properties
+      filtered = filtered.filter(p => !rejectedIds.includes(p.id));
+
       if (filters.onlyFeatured) {
         filtered = filtered.filter(p => p.featured);
       }
 
-      const scored = filtered.map(property => {
-        const { score, details } = calculateMatchScore(property);
-        return { ...property, matchScore: score, matchDetails: details };
-      });
+      const scored = filtered.map(property => ({
+        ...property,
+        matchScore: calculateMatchScore(property),
+        isFavorite: favoriteIds.includes(property.id),
+        isRejected: rejectedIds.includes(property.id)
+      }));
 
-      // Sort results
       let sorted = scored.filter(p => p.matchScore > 0);
       
       if (sortBy === "score") {
@@ -238,34 +271,26 @@ export default function ContactMatching({ contact }) {
     setAnalyzing(true);
     try {
       const prompt = `
-        És um consultor imobiliário experiente. Analisa os seguintes imóveis e encontra os melhores matches para um cliente.
+        És um consultor imobiliário experiente. Analisa os seguintes imóveis e encontra os melhores matches.
 
         PERFIL DO CLIENTE:
         - Nome: ${contact?.full_name || "Cliente"}
-        - Cidade de interesse: ${filters.cities.join(", ") || "Qualquer"}
-        - Tipo de negócio: ${filters.listing_type === 'sale' ? 'Compra' : 'Arrendamento'}
-        - Tipos de imóvel preferidos: ${filters.property_types.join(", ") || "Qualquer"}
+        - Cidade: ${filters.cities.join(", ") || "Qualquer"}
+        - Tipo: ${filters.listing_type === 'sale' ? 'Compra' : 'Arrendamento'}
+        - Tipos de imóvel: ${filters.property_types.join(", ") || "Qualquer"}
         - Orçamento: ${filters.priceMin || 0}€ - ${filters.priceMax || "sem limite"}€
         - Quartos: ${filters.bedroomsMin || "0"} a ${filters.bedroomsMax || "sem limite"}
         - Área mínima: ${filters.areaMin || "Qualquer"}m²
-        - Comodidades desejadas: ${filters.amenities.join(", ") || "Nenhuma específica"}
+
+        IMÓVEIS FAVORITOS DO CLIENTE: ${favoriteIds.join(", ") || "Nenhum"}
+        IMÓVEIS REJEITADOS (excluir): ${rejectedIds.join(", ") || "Nenhum"}
 
         IMÓVEIS DISPONÍVEIS:
-        ${activeProperties.slice(0, 40).map(p => `
-          ID: ${p.id}
-          Título: ${p.title}
-          Cidade: ${p.city}
-          Preço: €${p.price?.toLocaleString()}
-          Quartos: ${p.bedrooms || 'N/A'}
-          WCs: ${p.bathrooms || 'N/A'}
-          Área: ${p.useful_area || p.square_feet || 'N/A'}m²
-          Tipo: ${p.property_type}
-          Negócio: ${p.listing_type}
-          Comodidades: ${p.amenities?.join(", ") || 'N/A'}
-          Destaque: ${p.featured ? 'Sim' : 'Não'}
+        ${activeProperties.filter(p => !rejectedIds.includes(p.id)).slice(0, 40).map(p => `
+          ID: ${p.id}, Título: ${p.title}, Cidade: ${p.city}, Preço: €${p.price?.toLocaleString()}, Quartos: ${p.bedrooms || 'N/A'}, Área: ${p.useful_area || p.square_feet || 'N/A'}m²
         `).join('\n')}
 
-        Avalia cada imóvel e retorna os melhores matches com justificação.
+        Retorna os melhores matches com justificação.
       `;
 
       const result = await base44.integrations.Core.InvokeLLM({
@@ -280,12 +305,10 @@ export default function ContactMatching({ contact }) {
                 properties: {
                   id: { type: "string" },
                   score: { type: "number" },
-                  reason: { type: "string" },
-                  highlights: { type: "array", items: { type: "string" } }
+                  reason: { type: "string" }
                 }
               }
-            },
-            summary: { type: "string" }
+            }
           }
         }
       });
@@ -298,19 +321,16 @@ export default function ContactMatching({ contact }) {
               ...property, 
               matchScore: m.score, 
               aiReason: m.reason,
-              aiHighlights: m.highlights || []
+              isFavorite: favoriteIds.includes(property.id)
             };
           }
           return null;
         }).filter(Boolean);
         
         setMatchResults(aiMatches);
-        if (result.summary) {
-          toast.success(result.summary);
-        }
       }
     } catch (error) {
-      toast.error("Erro na análise AI - usando pesquisa normal");
+      toast.error("Erro na análise AI");
       handleSearch();
     }
     setAnalyzing(false);
@@ -324,14 +344,46 @@ export default function ContactMatching({ contact }) {
     );
   };
 
-  const handleSaveFeedback = (property, feedbackType) => {
+  const handleFeedback = (propertyId, type) => {
     saveFeedbackMutation.mutate({
-      profile_id: contact.id,
-      property_id: property.id,
-      match_score: property.matchScore,
-      feedback_type: feedbackType,
-      match_details: property.matchDetails
+      contact_id: contact.id,
+      property_id: propertyId,
+      feedback_type: type
+    }, {
+      onSuccess: () => {
+        toast.success(type === 'favorite' ? '💖 Adicionado aos favoritos' : '👎 Marcado como rejeitado');
+        if (type === 'rejected') {
+          setMatchResults(prev => prev.filter(p => p.id !== propertyId));
+        } else {
+          setMatchResults(prev => prev.map(p => 
+            p.id === propertyId ? { ...p, isFavorite: true } : p
+          ));
+        }
+      }
     });
+  };
+
+  const handleSaveSearch = () => {
+    if (!searchName.trim()) {
+      toast.error("Introduza um nome para a pesquisa");
+      return;
+    }
+
+    saveSearchMutation.mutate({
+      contact_id: contact.id,
+      contact_name: contact.full_name,
+      contact_email: contact.email,
+      name: searchName,
+      criteria: filters,
+      alerts_enabled: alertsEnabled,
+      alert_frequency: alertFrequency,
+      matched_properties_sent: []
+    });
+  };
+
+  const handleLoadSearch = (search) => {
+    setFilters(search.criteria);
+    toast.success(`Pesquisa "${search.name}" carregada`);
   };
 
   const handleSendMatches = async () => {
@@ -358,7 +410,6 @@ export default function ContactMatching({ contact }) {
 • Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
 • Área: ${p.useful_area || p.square_feet || 'N/A'}m²
 ${p.amenities?.length ? `• Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
-${p.matchScore ? `\n⭐ Compatibilidade: ${p.matchScore}%` : ''}
       `).join('\n');
 
       await base44.integrations.Core.SendEmail({
@@ -367,30 +418,27 @@ ${p.matchScore ? `\n⭐ Compatibilidade: ${p.matchScore}%` : ''}
         body: `
 Olá ${contact.full_name},
 
-Temos o prazer de lhe apresentar ${selectedProps.length} imóvel(is) cuidadosamente selecionados de acordo com as suas preferências:
+Temos ${selectedProps.length} imóvel(is) cuidadosamente selecionados:
 
 ${propertyList}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Entre em contacto connosco para mais informações.
 
-📞 Entre em contacto connosco para mais informações ou para agendar uma visita.
-
-Com os melhores cumprimentos,
-Zugruppe - Privileged Approach
+Cumprimentos,
+Zugruppe
         `
       });
 
       toast.success(`Email enviado para ${contact.email}`);
       setSelectedProperties([]);
 
-      // Log communication
       await base44.entities.CommunicationLog.create({
         contact_id: contact.id,
         contact_name: contact.full_name,
         communication_type: 'email',
         direction: 'outbound',
         subject: `Envio de ${selectedProps.length} imóveis`,
-        summary: `Enviados ${selectedProps.length} imóveis por email: ${selectedProps.map(p => p.title).join(', ')}`,
+        summary: `Enviados ${selectedProps.length} imóveis por email`,
         outcome: 'sent',
         communication_date: new Date().toISOString()
       });
@@ -401,13 +449,6 @@ Zugruppe - Privileged Approach
       toast.error("Erro ao enviar email");
     }
     setSendingEmail(false);
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return "bg-green-500";
-    if (score >= 60) return "bg-blue-500";
-    if (score >= 40) return "bg-amber-500";
-    return "bg-slate-400";
   };
 
   const getScoreBadgeColor = (score) => {
@@ -476,59 +517,118 @@ Zugruppe - Privileged Approach
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2">
         <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-blue-700">{activeProperties.length}</div>
-            <div className="text-xs text-blue-600">Imóveis Disponíveis</div>
+          <CardContent className="p-2 text-center">
+            <div className="text-xl font-bold text-blue-700">{activeProperties.length}</div>
+            <div className="text-xs text-blue-600">Disponíveis</div>
           </CardContent>
         </Card>
         <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-green-700">{matchResults.length}</div>
-            <div className="text-xs text-green-600">Matches Encontrados</div>
+          <CardContent className="p-2 text-center">
+            <div className="text-xl font-bold text-green-700">{matchResults.length}</div>
+            <div className="text-xs text-green-600">Matches</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-pink-50 border-pink-200">
+          <CardContent className="p-2 text-center">
+            <div className="text-xl font-bold text-pink-700">{favoriteIds.length}</div>
+            <div className="text-xs text-pink-600">Favoritos</div>
           </CardContent>
         </Card>
         <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-purple-700">{selectedProperties.length}</div>
-            <div className="text-xs text-purple-600">Selecionados</div>
+          <CardContent className="p-2 text-center">
+            <div className="text-xl font-bold text-purple-700">{savedSearches.length}</div>
+            <div className="text-xs text-purple-600">Pesquisas</div>
           </CardContent>
         </Card>
       </div>
 
+      {/* Saved Searches */}
+      {savedSearches.length > 0 && (
+        <Card className="border-purple-200 bg-purple-50/50">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-purple-900 flex items-center gap-2">
+                <Bookmark className="w-4 h-4" />
+                Pesquisas Guardadas
+              </h4>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {savedSearches.map(search => (
+                <div key={search.id} className="flex items-center gap-1 bg-white rounded-lg border border-purple-200 p-1 pl-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => handleLoadSearch(search)}
+                  >
+                    {search.name}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`h-6 w-6 p-0 ${search.alerts_enabled ? 'text-amber-500' : 'text-slate-400'}`}
+                    onClick={() => toggleAlertMutation.mutate({ id: search.id, enabled: !search.alerts_enabled })}
+                  >
+                    {search.alerts_enabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+                    onClick={() => deleteSearchMutation.mutate(search.id)}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold text-slate-900 flex items-center gap-2">
               <Filter className="w-4 h-4" />
               Critérios de Pesquisa
             </h4>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <div className="flex gap-1">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-7 text-xs"
+                onClick={() => setSaveSearchDialogOpen(true)}
+              >
+                <Save className="w-3 h-3 mr-1" />
+                Guardar
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
                 Limpar
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
+                className="h-7"
                 onClick={() => setExpandedFilters(!expandedFilters)}
               >
                 {expandedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                {expandedFilters ? "Menos" : "Mais"}
               </Button>
             </div>
           </div>
           
           {/* Basic Filters */}
-          <div className="grid md:grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-4 gap-2 mb-3">
             <div>
-              <Label className="text-xs">Tipo de Negócio</Label>
+              <Label className="text-xs">Negócio</Label>
               <Select 
                 value={filters.listing_type} 
                 onValueChange={(v) => setFilters({...filters, listing_type: v})}
               >
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-8">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -537,50 +637,44 @@ Zugruppe - Privileged Approach
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label className="text-xs">Preço Mín (€)</Label>
               <Input
                 type="number"
-                className="h-9"
+                className="h-8"
                 value={filters.priceMin}
                 onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
-                placeholder="0"
               />
             </div>
-
             <div>
               <Label className="text-xs">Preço Máx (€)</Label>
               <Input
                 type="number"
-                className="h-9"
+                className="h-8"
                 value={filters.priceMax}
                 onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
-                placeholder="1000000"
               />
             </div>
-
             <div>
               <Label className="text-xs">Quartos Mín</Label>
               <Input
                 type="number"
-                className="h-9"
+                className="h-8"
                 value={filters.bedroomsMin}
                 onChange={(e) => setFilters({...filters, bedroomsMin: e.target.value})}
-                placeholder="0"
               />
             </div>
           </div>
 
           {/* Property Types */}
-          <div className="mb-4">
-            <Label className="text-xs mb-2 block">Tipo de Imóvel</Label>
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-3">
+            <Label className="text-xs mb-1 block">Tipo de Imóvel</Label>
+            <div className="flex flex-wrap gap-1">
               {Object.entries(propertyTypeLabels).map(([key, label]) => (
                 <Badge
                   key={key}
                   variant={filters.property_types.includes(key) ? "default" : "outline"}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer text-xs ${
                     filters.property_types.includes(key) ? "bg-slate-900" : "hover:bg-slate-100"
                   }`}
                   onClick={() => togglePropertyType(key)}
@@ -592,19 +686,18 @@ Zugruppe - Privileged Approach
           </div>
 
           {/* Cities */}
-          <div className="mb-4">
-            <Label className="text-xs mb-2 block">Cidades</Label>
-            <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
-              {allCities.slice(0, 15).map(city => (
+          <div className="mb-3">
+            <Label className="text-xs mb-1 block">Cidades</Label>
+            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+              {allCities.slice(0, 12).map(city => (
                 <Badge
                   key={city}
                   variant={filters.cities.includes(city) ? "default" : "outline"}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer text-xs ${
                     filters.cities.includes(city) ? "bg-blue-600" : "hover:bg-blue-50"
                   }`}
                   onClick={() => toggleCity(city)}
                 >
-                  <MapPin className="w-3 h-3 mr-1" />
                   {city}
                 </Badge>
               ))}
@@ -613,13 +706,13 @@ Zugruppe - Privileged Approach
 
           {/* Expanded Filters */}
           {expandedFilters && (
-            <div className="space-y-4 pt-4 border-t">
-              <div className="grid md:grid-cols-4 gap-3">
+            <div className="space-y-3 pt-3 border-t">
+              <div className="grid grid-cols-4 gap-2">
                 <div>
                   <Label className="text-xs">Quartos Máx</Label>
                   <Input
                     type="number"
-                    className="h-9"
+                    className="h-8"
                     value={filters.bedroomsMax}
                     onChange={(e) => setFilters({...filters, bedroomsMax: e.target.value})}
                   />
@@ -628,7 +721,7 @@ Zugruppe - Privileged Approach
                   <Label className="text-xs">WCs Mín</Label>
                   <Input
                     type="number"
-                    className="h-9"
+                    className="h-8"
                     value={filters.bathroomsMin}
                     onChange={(e) => setFilters({...filters, bathroomsMin: e.target.value})}
                   />
@@ -637,28 +730,27 @@ Zugruppe - Privileged Approach
                   <Label className="text-xs">Área Mín (m²)</Label>
                   <Input
                     type="number"
-                    className="h-9"
+                    className="h-8"
                     value={filters.areaMin}
                     onChange={(e) => setFilters({...filters, areaMin: e.target.value})}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Ano Construção Mín</Label>
+                  <Label className="text-xs">Ano Mín</Label>
                   <Input
                     type="number"
-                    className="h-9"
+                    className="h-8"
                     value={filters.yearBuiltMin}
                     onChange={(e) => setFilters({...filters, yearBuiltMin: e.target.value})}
-                    placeholder="2000"
                   />
                 </div>
               </div>
 
               {allAmenities.length > 0 && (
                 <div>
-                  <Label className="text-xs mb-2 block">Comodidades</Label>
-                  <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-                    {allAmenities.slice(0, 12).map(amenity => (
+                  <Label className="text-xs mb-1 block">Comodidades</Label>
+                  <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                    {allAmenities.slice(0, 10).map(amenity => (
                       <Badge
                         key={amenity}
                         variant={filters.amenities.includes(amenity) ? "default" : "outline"}
@@ -680,58 +772,51 @@ Zugruppe - Privileged Approach
                   checked={filters.onlyFeatured}
                   onCheckedChange={(checked) => setFilters({...filters, onlyFeatured: checked})}
                 />
-                <Label htmlFor="featured" className="text-sm cursor-pointer">
-                  Apenas imóveis em destaque
+                <Label htmlFor="featured" className="text-xs cursor-pointer">
+                  Apenas destaques
                 </Label>
               </div>
             </div>
           )}
 
           {/* Search Buttons */}
-          <div className="flex gap-2 mt-4 pt-4 border-t">
-            <Button onClick={handleSearch} disabled={analyzing} className="flex-1">
-              <Search className="w-4 h-4 mr-2" />
-              {analyzing ? "A pesquisar..." : "Pesquisar Matches"}
+          <div className="flex gap-2 mt-3 pt-3 border-t">
+            <Button onClick={handleSearch} disabled={analyzing} className="flex-1 h-9">
+              <Search className="w-4 h-4 mr-1" />
+              {analyzing ? "..." : "Pesquisar"}
             </Button>
             <Button 
               onClick={handleAIMatch} 
               disabled={analyzing} 
               variant="outline" 
-              className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+              className="flex-1 h-9 border-purple-300 text-purple-700"
             >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Match Inteligente (IA)
+              <Sparkles className="w-4 h-4 mr-1" />
+              Match IA
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Selected Properties Actions */}
+      {/* Selected Actions */}
       {selectedProperties.length > 0 && (
-        <Card className="border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardContent className="p-4">
+        <Card className="border-green-300 bg-green-50">
+          <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <Check className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <span className="font-semibold text-green-800">
-                    {selectedProperties.length} imóvel(is) selecionado(s)
-                  </span>
-                  <p className="text-xs text-green-600">Pronto para enviar ao cliente</p>
-                </div>
-              </div>
+              <span className="font-medium text-green-800 text-sm">
+                {selectedProperties.length} selecionado(s)
+              </span>
               <div className="flex gap-2">
                 <Button 
                   onClick={handleSendMatches}
                   disabled={sendingEmail}
-                  className="bg-green-600 hover:bg-green-700"
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 h-8"
                 >
-                  <Send className="w-4 h-4 mr-2" />
-                  {sendingEmail ? "A enviar..." : "Enviar por Email"}
+                  <Send className="w-3 h-3 mr-1" />
+                  {sendingEmail ? "..." : "Enviar Email"}
                 </Button>
-                <Button variant="outline" onClick={() => setSelectedProperties([])}>
+                <Button variant="outline" size="sm" className="h-8" onClick={() => setSelectedProperties([])}>
                   Limpar
                 </Button>
               </div>
@@ -743,53 +828,41 @@ Zugruppe - Privileged Approach
       {/* Results Header */}
       {matchResults.length > 0 && (
         <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-slate-900">
-            {matchResults.length} imóveis encontrados
+          <h4 className="font-semibold text-slate-900 text-sm">
+            {matchResults.length} imóveis
           </h4>
-          <div className="flex items-center gap-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="score">Melhor Match</SelectItem>
-                <SelectItem value="price_asc">Preço ↑</SelectItem>
-                <SelectItem value="price_desc">Preço ↓</SelectItem>
-                <SelectItem value="date">Mais Recentes</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setSelectedProperties(matchResults.map(p => p.id))}
-            >
-              Selecionar Todos
-            </Button>
-          </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-32 h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="score">Melhor Match</SelectItem>
+              <SelectItem value="price_asc">Preço ↑</SelectItem>
+              <SelectItem value="price_desc">Preço ↓</SelectItem>
+              <SelectItem value="date">Recentes</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
 
       {/* Results */}
       {matchResults.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {matchResults.map((property) => {
             const isSelected = selectedProperties.includes(property.id);
-            const hasFeedback = savedMatches.some(m => m.property_id === property.id);
             
             return (
               <Card 
                 key={property.id} 
                 className={`overflow-hidden transition-all ${
-                  isSelected 
-                    ? 'ring-2 ring-green-500 shadow-lg' 
-                    : 'hover:shadow-md'
-                }`}
+                  isSelected ? 'ring-2 ring-green-500' : 'hover:shadow-md'
+                } ${property.isFavorite ? 'border-pink-300 bg-pink-50/30' : ''}`}
               >
                 <CardContent className="p-0">
                   <div className="flex">
                     {/* Image */}
                     <div 
-                      className="w-40 h-32 relative cursor-pointer flex-shrink-0"
+                      className="w-28 h-24 relative cursor-pointer flex-shrink-0"
                       onClick={() => togglePropertySelection(property.id)}
                     >
                       {property.images?.[0] ? (
@@ -800,145 +873,115 @@ Zugruppe - Privileged Approach
                         />
                       ) : (
                         <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                          <Home className="w-10 h-10 text-slate-300" />
+                          <Home className="w-8 h-8 text-slate-300" />
                         </div>
                       )}
                       
-                      {/* Selection Overlay */}
-                      <div className={`absolute inset-0 flex items-center justify-center transition-all ${
-                        isSelected ? 'bg-green-500/30' : 'bg-black/0 hover:bg-black/10'
-                      }`}>
-                        {isSelected && (
-                          <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                            <Check className="w-5 h-5 text-white" />
-                          </div>
-                        )}
-                      </div>
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
+                          <Check className="w-6 h-6 text-white" />
+                        </div>
+                      )}
 
-                      {/* Score Badge */}
-                      <div className="absolute top-2 right-2">
-                        <Badge className={`${getScoreBadgeColor(property.matchScore)} border font-bold`}>
+                      <div className="absolute top-1 right-1">
+                        <Badge className={`${getScoreBadgeColor(property.matchScore)} border text-xs font-bold`}>
                           {property.matchScore}%
                         </Badge>
                       </div>
 
-                      {property.featured && (
-                        <div className="absolute top-2 left-2">
-                          <Badge className="bg-amber-400 text-amber-900 border-0">
-                            <Star className="w-3 h-3 mr-1 fill-current" />
-                            Destaque
-                          </Badge>
+                      {property.isFavorite && (
+                        <div className="absolute top-1 left-1">
+                          <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
                         </div>
                       )}
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 p-3">
+                    <div className="flex-1 p-2">
                       <div className="flex items-start justify-between mb-1">
-                        <div>
-                          <h4 className="font-semibold text-slate-900 line-clamp-1">{property.title}</h4>
-                          <div className="flex items-center gap-1 text-sm text-slate-600">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-slate-900 text-sm line-clamp-1">{property.title}</h4>
+                          <div className="flex items-center gap-1 text-xs text-slate-600">
                             <MapPin className="w-3 h-3" />
                             {property.city}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-slate-900">
+                        <div className="text-right flex-shrink-0">
+                          <div className="font-bold text-slate-900 text-sm">
                             €{property.price?.toLocaleString()}
-                            {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
                           </div>
                         </div>
                       </div>
 
-                      {/* Property Details */}
-                      <div className="flex items-center gap-3 text-xs text-slate-600 mb-2">
+                      {/* Details */}
+                      <div className="flex items-center gap-2 text-xs text-slate-600 mb-1">
                         {property.bedrooms && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-0.5">
                             <Bed className="w-3 h-3" />
                             T{property.bedrooms}
                           </span>
                         )}
                         {property.bathrooms && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-0.5">
                             <Bath className="w-3 h-3" />
-                            {property.bathrooms} WC
+                            {property.bathrooms}
                           </span>
                         )}
                         {(property.useful_area || property.square_feet) && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-0.5">
                             <Square className="w-3 h-3" />
                             {property.useful_area || property.square_feet}m²
                           </span>
                         )}
-                        <Badge variant="outline" className="text-xs">
-                          {propertyTypeLabels[property.property_type] || property.property_type}
-                        </Badge>
                       </div>
 
-                      {/* Match Score Bar */}
-                      <div className="mb-2">
-                        <Progress value={property.matchScore} className="h-1.5" />
-                      </div>
-
-                      {/* AI Reason */}
                       {property.aiReason && (
-                        <p className="text-xs text-purple-600 mb-2 line-clamp-2">
-                          <Sparkles className="w-3 h-3 inline mr-1" />
-                          {property.aiReason}
+                        <p className="text-xs text-purple-600 line-clamp-1 mb-1">
+                          ✨ {property.aiReason}
                         </p>
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-7 text-xs"
+                          className="h-6 px-2 text-xs"
                           onClick={() => togglePropertySelection(property.id)}
                         >
-                          {isSelected ? (
-                            <>
-                              <Check className="w-3 h-3 mr-1 text-green-600" />
-                              Selecionado
-                            </>
-                          ) : (
-                            <>
-                              <Check className="w-3 h-3 mr-1" />
-                              Selecionar
-                            </>
-                          )}
+                          <Check className={`w-3 h-3 mr-1 ${isSelected ? 'text-green-600' : ''}`} />
+                          {isSelected ? "✓" : "Selecionar"}
                         </Button>
                         
                         <Link 
                           to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
                           target="_blank"
                         >
-                          <Button variant="ghost" size="sm" className="h-7 text-xs">
-                            <Eye className="w-3 h-3 mr-1" />
-                            Ver
+                          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                            <Eye className="w-3 h-3" />
                           </Button>
                         </Link>
 
-                        {!hasFeedback && (
-                          <div className="flex items-center gap-1 ml-auto">
+                        <div className="flex items-center gap-0.5 ml-auto">
+                          {!property.isFavorite && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="h-7 w-7 p-0 text-green-600 hover:bg-green-50"
-                              onClick={() => handleSaveFeedback(property, 'good')}
+                              className="h-6 w-6 p-0 text-pink-500 hover:bg-pink-50"
+                              onClick={() => handleFeedback(property.id, 'favorite')}
                             >
-                              <TrendingUp className="w-3 h-3" />
+                              <Heart className="w-3 h-3" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-7 w-7 p-0 text-amber-600 hover:bg-amber-50"
-                              onClick={() => handleSaveFeedback(property, 'excellent')}
-                            >
-                              <Star className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                            onClick={() => handleFeedback(property.id, 'rejected')}
+                          >
+                            <ThumbsDown className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -948,16 +991,76 @@ Zugruppe - Privileged Approach
           })}
         </div>
       ) : (
-        <Card className="text-center py-8">
+        <Card className="text-center py-6">
           <CardContent>
-            <Home className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">Pesquise imóveis compatíveis</h3>
-            <p className="text-sm text-slate-600">
-              Configure os critérios acima e clique em "Pesquisar Matches" ou use a IA
-            </p>
+            <Home className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-slate-900 text-sm mb-1">Pesquise imóveis</h3>
+            <p className="text-xs text-slate-600">Configure os critérios e clique em Pesquisar</p>
           </CardContent>
         </Card>
       )}
+
+      {/* Save Search Dialog */}
+      <Dialog open={saveSearchDialogOpen} onOpenChange={setSaveSearchDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Guardar Pesquisa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>Nome da Pesquisa</Label>
+              <Input
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                placeholder="Ex: T3 Lisboa até 300k"
+              />
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-2">
+                <Checkbox 
+                  id="enableAlerts"
+                  checked={alertsEnabled}
+                  onCheckedChange={setAlertsEnabled}
+                />
+                <Label htmlFor="enableAlerts" className="cursor-pointer">
+                  <Bell className="w-4 h-4 inline mr-1 text-amber-600" />
+                  Ativar alertas
+                </Label>
+              </div>
+              {alertsEnabled && (
+                <Select value={alertFrequency} onValueChange={setAlertFrequency}>
+                  <SelectTrigger className="w-28 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="instant">Imediato</SelectItem>
+                    <SelectItem value="daily">Diário</SelectItem>
+                    <SelectItem value="weekly">Semanal</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {alertsEnabled && contact?.email && (
+              <p className="text-xs text-slate-600">
+                <AlertCircle className="w-3 h-3 inline mr-1" />
+                Alertas serão enviados para: {contact.email}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setSaveSearchDialogOpen(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveSearch} className="flex-1" disabled={saveSearchMutation.isPending}>
+                <Save className="w-4 h-4 mr-1" />
+                {saveSearchMutation.isPending ? "..." : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
