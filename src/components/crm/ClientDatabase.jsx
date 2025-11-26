@@ -646,12 +646,12 @@ export default function ClientDatabase() {
             
             return (
               <Card key={client.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+                                    <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     {/* Left: Main Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                    <h3 className="text-lg font-semibold text-slate-900 truncate">{client.full_name}</h3>
+                                    <h3 className="text-xl font-bold text-slate-900 truncate">{client.full_name}</h3>
                                     <Badge className={typeColors[client.contact_type]}>
                                       {typeLabels[client.contact_type]}
                                     </Badge>
@@ -744,7 +744,7 @@ export default function ClientDatabase() {
                                     ))}
                                   </div>
 
-                      <div className="grid md:grid-cols-4 gap-2 text-sm text-slate-600 mb-3">
+                      <div className="grid md:grid-cols-4 gap-3 text-sm text-slate-600 mb-4 mt-3">
                         {client.email && (
                           <div className="flex items-center gap-1 truncate">
                             <Mail className="w-4 h-4 flex-shrink-0" />
@@ -772,8 +772,8 @@ export default function ClientDatabase() {
                       </div>
 
                       {/* Requirements Summary */}
-                      {hasRequirements && (
-                        <div className="flex flex-wrap items-center gap-2 mb-3 p-2 bg-blue-50 rounded-lg text-xs">
+                                                  {hasRequirements && (
+                                                    <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg text-sm">
                           <Target className="w-3 h-3 text-blue-600" />
                           {req.budget_max > 0 && (
                             <span className="flex items-center gap-1 text-blue-700">
@@ -805,7 +805,7 @@ export default function ClientDatabase() {
                       )}
 
                       {/* Stats Row */}
-                      <div className="flex items-center gap-4 text-xs">
+                                                  <div className="flex items-center gap-5 text-sm">
                         {client.source && (
                           <div className="flex items-center gap-1 text-slate-600">
                             {client.source === 'facebook_ads' ? <Facebook className="w-3 h-3 text-blue-600" /> :
@@ -838,9 +838,9 @@ export default function ClientDatabase() {
                     </div>
 
                     {/* Right: Matching Score & Actions */}
-                    <div className="flex flex-col items-end gap-2">
-                      {hasRequirements && (
-                        <div className="text-center p-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100 min-w-[80px]">
+                                              <div className="flex flex-col items-end gap-3">
+                                                {hasRequirements && (
+                                                  <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-100 min-w-[100px]">
                           <div className="flex items-center justify-center gap-1 mb-1">
                             <Sparkles className="w-3 h-3 text-purple-500" />
                             <span className="text-xs text-purple-600">Match</span>
@@ -855,37 +855,37 @@ export default function ClientDatabase() {
                         </div>
                       )}
 
-                      <div className="flex gap-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
-                          className="text-purple-600 hover:bg-purple-50 h-8 w-8 p-0"
-                          title="Matching de Imóveis"
-                        >
-                          <Home className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }} className="h-8 w-8 p-0">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(client)} className="h-8 w-8 p-0">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDelete(client.id, client.full_name)}
-                          className="text-red-600 hover:bg-red-50 h-8 w-8 p-0"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      <div className="flex gap-2">
+                                                    <Button 
+                                                      variant="outline" 
+                                                      size="sm" 
+                                                      onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
+                                                      className="text-purple-600 hover:bg-purple-50 h-9 w-9 p-0"
+                                                      title="Matching de Imóveis"
+                                                    >
+                                                      <Home className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }} className="h-9 w-9 p-0">
+                                                      <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(client)} className="h-9 w-9 p-0">
+                                                      <Edit className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button 
+                                                      variant="outline" 
+                                                      size="sm" 
+                                                      onClick={() => handleDelete(client.id, client.full_name)}
+                                                      className="text-red-600 hover:bg-red-50 h-9 w-9 p-0"
+                                                    >
+                                                      <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                  </div>
                     </div>
                   </div>
 
                   {/* Opportunities Preview */}
-                  {clientOpps.length > 0 && (
-                    <div className="mt-3 pt-3 border-t flex flex-wrap gap-2">
+                                          {clientOpps.length > 0 && (
+                                            <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
                       {clientOpps.slice(0, 3).map(opp => (
                         <Badge 
                           key={opp.id} 
