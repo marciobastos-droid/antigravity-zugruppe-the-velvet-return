@@ -678,6 +678,10 @@ export default function ClientDatabase() {
                 </div>
               </TabsContent>
 
+              <TabsContent value="matching" className="mt-4">
+                <ContactMatching contact={selectedClient} />
+              </TabsContent>
+
               <TabsContent value="communications" className="mt-4">
                 <CommunicationHistory contactId={selectedClient.id} />
               </TabsContent>
