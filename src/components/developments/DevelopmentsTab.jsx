@@ -57,6 +57,29 @@ export default function DevelopmentsTab() {
     queryFn: () => base44.entities.Property.list()
   });
 
+  // Imóveis com tipo "development" que não estão vinculados a um empreendimento existente
+  const propertyDevelopments = properties.filter(p => 
+    p.property_type === 'development' && !p.development_id
+  );
+
+  // Combinar empreendimentos da entidade Development com imóveis do tipo "development"
+  const allDevelopments = [
+    ...developments.map(d => ({ ...d, source: 'entity' })),
+    ...propertyDevelopments.map(p => ({
+      id: p.id,
+      name: p.title,
+      description: p.description,
+      address: p.address,
+      city: p.city,
+      postal_code: p.zip_code,
+      status: p.status === 'active' ? 'selling' : 'planning',
+      price_from: p.price,
+      images: p.images,
+      source: 'property',
+      property_data: p
+    }))
+  ];
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Development.create(data),
     onSuccess: () => {
@@ -182,7 +205,7 @@ export default function DevelopmentsTab() {
     return properties.filter(p => p.development_id === devId);
   };
 
-  const filteredDevelopments = developments.filter(d => {
+  const filteredDevelopments = allDevelopments.filter(d => {
     const matchesSearch = searchTerm === "" ||
       d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.city?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -216,7 +239,7 @@ export default function DevelopmentsTab() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <p className="text-slate-600">{developments.length} empreendimentos registados</p>
+        <p className="text-slate-600">{allDevelopments.length} empreendimentos registados</p>
         <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
           <DialogTrigger asChild>
             <Button className="bg-slate-900 hover:bg-slate-800">
@@ -543,17 +566,26 @@ export default function DevelopmentsTab() {
                       <Eye className="w-4 h-4 mr-1" />
                       Ver
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleEdit(dev)}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDelete(dev.id, dev.name)}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {dev.source === 'entity' && (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(dev)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDelete(dev.id, dev.name)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </>
+                    )}
+                    {dev.source === 'property' && (
+                      <Badge variant="outline" className="text-xs">
+                        Via Imóvel
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
