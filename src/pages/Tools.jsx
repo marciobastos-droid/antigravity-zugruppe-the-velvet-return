@@ -202,6 +202,28 @@ export default function Tools() {
             </CardContent>
           </Card>
 
+          {/* Matching IA Group */}
+          <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
+                <span className="text-sm text-indigo-600">(1 ferramenta)</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === "aiMatching" ? "default" : "outline"}
+                  onClick={() => setActiveTab("aiMatching")}
+                  className="flex items-center gap-2"
+                >
+                  <Target className="w-4 h-4" />
+                  Motor de Matching IA
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Mercado Group */}
           <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="p-4">
