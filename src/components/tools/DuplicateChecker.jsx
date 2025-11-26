@@ -6,17 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, Loader2, AlertTriangle, CheckCircle2, 
   Copy, Trash2, Eye, MapPin, Euro, Bed, 
   Sparkles, RefreshCw, ChevronDown, ChevronUp,
-  Building2, ExternalLink, Merge
+  Building2, ExternalLink, Merge, Users, Mail, Phone
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
 export default function DuplicateChecker() {
+  const [activeTab, setActiveTab] = React.useState("properties");
   const [analyzing, setAnalyzing] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [progressText, setProgressText] = React.useState("");
