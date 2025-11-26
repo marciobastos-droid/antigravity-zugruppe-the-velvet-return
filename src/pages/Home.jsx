@@ -27,7 +27,7 @@ export default function Home() {
   // Menu CRM
   const menuItems = [
   {
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
     title: "Dashboard",
     path: "Dashboard"
   },
@@ -37,7 +37,7 @@ export default function Home() {
     path: "MyListings"
   },
   {
-    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
     title: "Explorar",
     path: "Browse"
   },
