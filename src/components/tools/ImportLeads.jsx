@@ -240,10 +240,29 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         
         contactData.notes = partnerNotes.join("\n");
         
-        // Store partner requirements in property_requirements for reference
+        // Store partner requirements in property_requirements (including property search criteria if available)
+        const hasPropertyRequirements = extracted.budget_min || extracted.budget_max || 
+          extracted.property_types?.length || extracted.bedrooms_min || extracted.area_min;
+        
         contactData.property_requirements = {
-          additional_notes: `Tipo: ${extracted.partnership_type || "Parceiro"}\nEspecialização: ${extracted.specialization || ""}\nÁreas: ${extracted.locations?.join(", ") || ""}`
+          listing_type: extracted.listing_type || "sale",
+          property_types: extracted.property_types || [],
+          locations: extracted.locations || [],
+          budget_min: extracted.budget_min || 0,
+          budget_max: extracted.budget_max || 0,
+          bedrooms_min: extracted.bedrooms_min || null,
+          bedrooms_max: extracted.bedrooms_max || null,
+          bathrooms_min: extracted.bathrooms_min || null,
+          area_min: extracted.area_min || null,
+          area_max: extracted.area_max || null,
+          amenities: extracted.amenities || [],
+          additional_notes: `Tipo: ${extracted.partnership_type || "Parceiro"}\nEspecialização: ${extracted.specialization || ""}\n${extracted.additional_notes || ""}`
         };
+
+        // Also set budget on opportunity for partner
+        if (extracted.budget_max || extracted.budget_min) {
+          opportunityData.budget = extracted.budget_max || extracted.budget_min || 0;
+        }
       }
 
       // Create ClientContact
