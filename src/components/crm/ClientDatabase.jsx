@@ -721,6 +721,20 @@ export default function ClientDatabase() {
 
                       {/* Stats Row */}
                       <div className="flex items-center gap-4 text-xs">
+                        {client.source && (
+                          <div className="flex items-center gap-1 text-slate-600">
+                            {client.source === 'facebook_ads' ? <Facebook className="w-3 h-3 text-blue-600" /> :
+                             client.source === 'website' ? <Globe className="w-3 h-3 text-green-600" /> :
+                             client.source === 'referral' ? <Users2 className="w-3 h-3 text-purple-600" /> :
+                             client.source === 'networking' ? <Megaphone className="w-3 h-3 text-orange-600" /> :
+                             <Tag className="w-3 h-3" />}
+                            {client.source === 'facebook_ads' ? 'Facebook' : 
+                             client.source === 'website' ? 'Website' :
+                             client.source === 'referral' ? 'Indicação' :
+                             client.source === 'direct_contact' ? 'Direto' :
+                             client.source === 'networking' ? 'Networking' : 'Outro'}
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 text-slate-500">
                           <MessageSquare className="w-3 h-3" />
                           {clientComms.length} comunicações
