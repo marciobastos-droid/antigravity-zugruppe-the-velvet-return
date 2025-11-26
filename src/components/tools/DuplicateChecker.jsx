@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import DataEnrichment from "./DataEnrichment";
 
 export default function DuplicateChecker() {
   const [activeTab, setActiveTab] = React.useState("properties");
