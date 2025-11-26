@@ -826,6 +826,61 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     }
   };
 
+  // Bulk actions for contacts
+  const markContactsAsNotDuplicate = () => {
+    if (selectedContactsForDeletion.length === 0) {
+      toast.error("Nenhum contacto selecionado");
+      return;
+    }
+    setIgnoredContactIds(prev => [...new Set([...prev, ...selectedContactsForDeletion])]);
+    setContactDuplicateGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        contacts: group.contacts.filter(c => !selectedContactsForDeletion.includes(c.id))
+      })).filter(group => group.contacts.length > 1)
+    );
+    toast.success(`${selectedContactsForDeletion.length} contactos marcados como não duplicados`);
+    setSelectedContactsForDeletion([]);
+  };
+
+  const addContactsToIgnoreList = () => {
+    if (selectedContactsForDeletion.length === 0) {
+      toast.error("Nenhum contacto selecionado");
+      return;
+    }
+    setIgnoredContactIds(prev => [...new Set([...prev, ...selectedContactsForDeletion])]);
+    setContactDuplicateGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        contacts: group.contacts.filter(c => !selectedContactsForDeletion.includes(c.id))
+      })).filter(group => group.contacts.length > 1)
+    );
+    toast.success(`${selectedContactsForDeletion.length} contactos adicionados à lista de ignorados`);
+    setSelectedContactsForDeletion([]);
+  };
+
+  const scheduleContactsForReview = () => {
+    if (selectedContactsForDeletion.length === 0) {
+      toast.error("Nenhum contacto selecionado");
+      return;
+    }
+    const reviewDate = new Date();
+    reviewDate.setDate(reviewDate.getDate() + 7);
+    const newReviews = selectedContactsForDeletion.map(id => ({
+      id,
+      scheduledDate: reviewDate.toISOString()
+    }));
+    setScheduledContactReviews(prev => [...prev.filter(r => !selectedContactsForDeletion.includes(r.id)), ...newReviews]);
+    toast.success(`${selectedContactsForDeletion.length} contactos agendados para revisão em 7 dias`);
+    setSelectedContactsForDeletion([]);
+  };
+
+  const clearContactIgnoreList = () => {
+    setIgnoredContactIds([]);
+    setScheduledContactReviews([]);
+    toast.success("Lista de ignorados limpa");
+  };
+
   const getConfidenceColor = (confidence) => {
     if (confidence >= 90) return "bg-red-100 text-red-800 border-red-200";
     if (confidence >= 80) return "bg-orange-100 text-orange-800 border-orange-200";
