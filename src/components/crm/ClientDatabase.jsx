@@ -600,6 +600,47 @@ export default function ClientDatabase() {
               </TabsList>
 
               <TabsContent value="details" className="mt-4">
+                {/* Quick Info Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-blue-600 mb-1">Tipo</p>
+                      <Badge className={typeColors[selectedClient.contact_type]}>
+                        {typeLabels[selectedClient.contact_type]}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-green-600 mb-1">Estado</p>
+                      <Badge className={statusColors[selectedClient.status]}>
+                        {selectedClient.status === 'active' ? 'Ativo' : selectedClient.status === 'inactive' ? 'Inativo' : 'Prospect'}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-purple-50 border-purple-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-purple-600 mb-1">Origem</p>
+                      <span className="text-sm font-medium text-purple-900">
+                        {selectedClient.source === 'facebook_ads' ? 'Facebook' : 
+                         selectedClient.source === 'website' ? 'Website' :
+                         selectedClient.source === 'referral' ? 'Indicação' :
+                         selectedClient.source === 'direct_contact' ? 'Direto' :
+                         selectedClient.source === 'networking' ? 'Networking' :
+                         selectedClient.source || 'N/A'}
+                      </span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-amber-50 border-amber-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-amber-600 mb-1">Agente</p>
+                      <span className="text-sm font-medium text-amber-900 truncate block">
+                        {selectedClient.assigned_agent?.split('@')[0] || 'N/A'}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h4 className="font-semibold text-slate-900">Informação de Contacto</h4>
@@ -636,6 +677,14 @@ export default function ClientDatabase() {
                           </span>
                         </div>
                       )}
+                      {selectedClient.preferred_contact_method && (
+                        <div className="flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4 text-slate-500" />
+                          Preferência: {selectedClient.preferred_contact_method === 'phone' ? 'Telefone' : 
+                                       selectedClient.preferred_contact_method === 'email' ? 'Email' :
+                                       selectedClient.preferred_contact_method === 'whatsapp' ? 'WhatsApp' : 'SMS'}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -658,6 +707,12 @@ export default function ClientDatabase() {
                         <div className="flex items-center gap-2">
                           <Tag className="w-4 h-4 text-slate-500" />
                           NIF: {selectedClient.nif}
+                        </div>
+                      )}
+                      {selectedClient.birthday && (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-500" />
+                          Aniversário: {format(new Date(selectedClient.birthday), "dd/MM/yyyy")}
                         </div>
                       )}
                     </div>
