@@ -30,6 +30,196 @@ export default function DuplicateChecker() {
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
+  // Normalize text for comparison
+  const normalizeText = (text) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remove accents
+      .replace(/[^a-z0-9\s]/g, "") // Remove special chars
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  // Calculate similarity between two strings (0-100)
+  const calculateSimilarity = (str1, str2) => {
+    const s1 = normalizeText(str1);
+    const s2 = normalizeText(str2);
+    if (!s1 || !s2) return 0;
+    if (s1 === s2) return 100;
+    
+    const words1 = s1.split(" ");
+    const words2 = s2.split(" ");
+    const commonWords = words1.filter(w => words2.includes(w));
+    return Math.round((commonWords.length * 2 / (words1.length + words2.length)) * 100);
+  };
+
+  // Check if two prices are similar (within percentage)
+  const pricesAreSimilar = (p1, p2, threshold = 0.05) => {
+    if (!p1 || !p2) return false;
+    const diff = Math.abs(p1 - p2) / Math.max(p1, p2);
+    return diff <= threshold;
+  };
+
+  // Check if two areas are similar
+  const areasAreSimilar = (a1, a2, threshold = 0.1) => {
+    if (!a1 || !a2) return false;
+    const diff = Math.abs(a1 - a2) / Math.max(a1, a2);
+    return diff <= threshold;
+  };
+
+  // Pre-filter to find potential duplicates based on multiple criteria
+  const findPotentialDuplicatePairs = (properties) => {
+    const pairs = [];
+    const checked = new Set();
+
+    for (let i = 0; i < properties.length; i++) {
+      for (let j = i + 1; j < properties.length; j++) {
+        const p1 = properties[i];
+        const p2 = properties[j];
+        const pairKey = `${p1.id}-${p2.id}`;
+        if (checked.has(pairKey)) continue;
+        checked.add(pairKey);
+
+        let matchScore = 0;
+        const matchReasons = [];
+
+        // Check external_id (strongest indicator)
+        if (p1.external_id && p2.external_id && p1.external_id === p2.external_id) {
+          matchScore += 50;
+          matchReasons.push("mesmo ID externo");
+        }
+
+        // Check source_url similarity
+        if (p1.source_url && p2.source_url) {
+          const url1 = p1.source_url.replace(/https?:\/\//, "").split("?")[0];
+          const url2 = p2.source_url.replace(/https?:\/\//, "").split("?")[0];
+          if (url1 === url2) {
+            matchScore += 40;
+            matchReasons.push("mesmo URL de origem");
+          }
+        }
+
+        // Check exact price match
+        if (p1.price && p2.price && p1.price === p2.price) {
+          matchScore += 20;
+          matchReasons.push("preço idêntico");
+        } else if (pricesAreSimilar(p1.price, p2.price, 0.03)) {
+          matchScore += 10;
+          matchReasons.push("preço similar (±3%)");
+        }
+
+        // Check bedrooms and bathrooms
+        if (p1.bedrooms === p2.bedrooms && p1.bedrooms > 0) {
+          matchScore += 10;
+          matchReasons.push("mesma tipologia");
+        }
+        if (p1.bathrooms === p2.bathrooms && p1.bathrooms > 0) {
+          matchScore += 5;
+        }
+
+        // Check areas
+        const area1 = p1.useful_area || p1.square_feet;
+        const area2 = p2.useful_area || p2.square_feet;
+        if (area1 && area2 && area1 === area2) {
+          matchScore += 15;
+          matchReasons.push("área idêntica");
+        } else if (areasAreSimilar(area1, area2, 0.05)) {
+          matchScore += 8;
+          matchReasons.push("área similar (±5%)");
+        }
+
+        // Check city
+        if (normalizeText(p1.city) === normalizeText(p2.city)) {
+          matchScore += 10;
+        }
+
+        // Check address similarity
+        const addressSim = calculateSimilarity(p1.address, p2.address);
+        if (addressSim >= 80) {
+          matchScore += 25;
+          matchReasons.push("endereço muito similar");
+        } else if (addressSim >= 50) {
+          matchScore += 10;
+          matchReasons.push("endereço parcialmente similar");
+        }
+
+        // Check title similarity
+        const titleSim = calculateSimilarity(p1.title, p2.title);
+        if (titleSim >= 70) {
+          matchScore += 15;
+          matchReasons.push("título similar");
+        }
+
+        // Check property type
+        if (p1.property_type === p2.property_type) {
+          matchScore += 5;
+        }
+
+        // Only consider pairs with score >= 40
+        if (matchScore >= 40) {
+          pairs.push({
+            properties: [p1, p2],
+            score: matchScore,
+            reasons: matchReasons
+          });
+        }
+      }
+    }
+
+    return pairs;
+  };
+
+  // Group overlapping pairs into clusters
+  const clusterPairs = (pairs) => {
+    const clusters = [];
+    const propertyToCluster = new Map();
+
+    pairs.sort((a, b) => b.score - a.score);
+
+    for (const pair of pairs) {
+      const [p1, p2] = pair.properties;
+      const cluster1 = propertyToCluster.get(p1.id);
+      const cluster2 = propertyToCluster.get(p2.id);
+
+      if (cluster1 && cluster2 && cluster1 !== cluster2) {
+        // Merge clusters
+        cluster1.properties = [...new Set([...cluster1.properties, ...cluster2.properties])];
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        cluster2.properties.forEach(p => propertyToCluster.set(p.id, cluster1));
+        const idx = clusters.indexOf(cluster2);
+        if (idx > -1) clusters.splice(idx, 1);
+      } else if (cluster1) {
+        if (!cluster1.properties.find(p => p.id === p2.id)) {
+          cluster1.properties.push(p2);
+        }
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        propertyToCluster.set(p2.id, cluster1);
+      } else if (cluster2) {
+        if (!cluster2.properties.find(p => p.id === p1.id)) {
+          cluster2.properties.push(p1);
+        }
+        cluster2.reasons = [...new Set([...cluster2.reasons, ...pair.reasons])];
+        cluster2.minScore = Math.min(cluster2.minScore, pair.score);
+        propertyToCluster.set(p1.id, cluster2);
+      } else {
+        const newCluster = {
+          properties: [p1, p2],
+          reasons: pair.reasons,
+          minScore: pair.score
+        };
+        clusters.push(newCluster);
+        propertyToCluster.set(p1.id, newCluster);
+        propertyToCluster.set(p2.id, newCluster);
+      }
+    }
+
+    return clusters;
+  };
+
   const analyzeDuplicates = async () => {
     setAnalyzing(true);
     setProgress(0);
@@ -38,26 +228,16 @@ export default function DuplicateChecker() {
     setSelectedForDeletion([]);
 
     try {
-      // Step 1: Group by basic criteria first (fast pre-filter)
-      setProgressText("A agrupar imóveis por características...");
-      setProgress(10);
+      setProgressText("A analisar características dos imóveis...");
+      setProgress(20);
 
-      const propertyGroups = {};
-      properties.forEach(p => {
-        // Create a key based on city, price range, bedrooms, and property type
-        const priceRange = Math.floor((p.price || 0) / 50000) * 50000;
-        const key = `${p.city?.toLowerCase() || 'unknown'}_${priceRange}_${p.bedrooms || 0}_${p.property_type || 'unknown'}`;
-        
-        if (!propertyGroups[key]) {
-          propertyGroups[key] = [];
-        }
-        propertyGroups[key].push(p);
-      });
-
-      // Filter groups with potential duplicates (more than 1 property)
-      const potentialDuplicates = Object.values(propertyGroups).filter(group => group.length > 1);
+      // Step 1: Find potential duplicate pairs using multiple criteria
+      const pairs = findPotentialDuplicatePairs(properties);
       
-      if (potentialDuplicates.length === 0) {
+      setProgress(40);
+      setProgressText(`Encontrados ${pairs.length} pares potenciais...`);
+
+      if (pairs.length === 0) {
         setDuplicateGroups([]);
         setLastAnalysis(new Date());
         toast.success("Nenhum duplicado potencial encontrado!");
@@ -65,112 +245,127 @@ export default function DuplicateChecker() {
         return;
       }
 
-      setProgress(30);
-      setProgressText(`A analisar ${potentialDuplicates.length} grupos com IA...`);
+      // Step 2: Cluster overlapping pairs
+      setProgress(50);
+      setProgressText("A agrupar duplicados...");
+      const clusters = clusterPairs(pairs);
 
-      // Step 2: Use AI to analyze each group for true duplicates
+      // Step 3: Use AI to verify high-confidence clusters
+      setProgress(60);
+      setProgressText(`A verificar ${clusters.length} grupos com IA...`);
+
       const confirmedDuplicates = [];
-      const totalGroups = potentialDuplicates.length;
       
-      for (let i = 0; i < totalGroups; i++) {
-        const group = potentialDuplicates[i];
-        setProgress(30 + Math.round((i / totalGroups) * 60));
-        setProgressText(`A analisar grupo ${i + 1} de ${totalGroups}...`);
+      for (let i = 0; i < clusters.length; i++) {
+        const cluster = clusters[i];
+        setProgress(60 + Math.round((i / clusters.length) * 30));
 
-        // Skip groups that are too large (likely false positives)
-        if (group.length > 10) continue;
+        // For very high score matches, skip AI verification
+        if (cluster.minScore >= 80) {
+          confirmedDuplicates.push({
+            properties: cluster.properties.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+            confidence: Math.min(99, cluster.minScore),
+            reason: cluster.reasons.join(", ")
+          });
+          continue;
+        }
 
-        // Prepare data for AI analysis
-        const propertiesData = group.map(p => ({
+        // Use AI to verify medium confidence matches
+        const propertiesData = cluster.properties.map(p => ({
           id: p.id,
           ref_id: p.ref_id,
           title: p.title,
           address: p.address,
           city: p.city,
+          state: p.state,
           price: p.price,
           bedrooms: p.bedrooms,
           bathrooms: p.bathrooms,
           square_feet: p.square_feet,
           useful_area: p.useful_area,
+          gross_area: p.gross_area,
           external_id: p.external_id,
           source_url: p.source_url,
-          description: p.description?.substring(0, 200)
+          description: p.description?.substring(0, 300)
         }));
 
         try {
           const result = await base44.integrations.Core.InvokeLLM({
-            prompt: `Analisa estes imóveis e identifica se são duplicados (o mesmo imóvel listado várias vezes).
+            prompt: `Analisa RIGOROSAMENTE se estes imóveis são DUPLICADOS (o mesmo imóvel físico listado múltiplas vezes).
 
-IMÓVEIS:
+IMÓVEIS A ANALISAR:
 ${JSON.stringify(propertiesData, null, 2)}
 
-CRITÉRIOS DE DUPLICAÇÃO:
-- Mesmo endereço ou endereços muito similares
-- Preços iguais ou muito próximos (diferença < 5%)
-- Mesma tipologia (quartos, WCs)
-- Áreas iguais ou muito próximas
-- Títulos ou descrições muito semelhantes
-- Mesmo external_id ou source_url similar
+INDICADORES PRÉ-DETETADOS: ${cluster.reasons.join(", ")}
 
-Retorna APENAS grupos de IDs que são verdadeiros duplicados.
-Se não houver duplicados, retorna array vazio.`,
+CRITÉRIOS RIGOROSOS PARA CONFIRMAR DUPLICADO:
+1. ENDEREÇO: Deve ser o mesmo local físico (mesmo que escrito diferente)
+2. CARACTERÍSTICAS: Área, quartos e WCs devem coincidir ou ser muito próximos
+3. PREÇO: Preços iguais ou muito próximos (< 5% diferença)
+4. TIPO: Mesmo tipo de imóvel
+5. DESCRIÇÃO: Descrições referindo o mesmo imóvel
+
+NÃO SÃO DUPLICADOS se:
+- Estão em andares/frações diferentes do mesmo prédio
+- São imóveis similares mas em localizações diferentes
+- Têm áreas significativamente diferentes (> 10%)
+- São unidades diferentes de um empreendimento
+
+Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel físico.`,
             response_json_schema: {
               type: "object",
               properties: {
-                duplicate_groups: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      ids: { type: "array", items: { type: "string" } },
-                      confidence: { type: "number" },
-                      reason: { type: "string" }
-                    }
-                  }
-                }
+                is_duplicate: { type: "boolean" },
+                confidence: { type: "number" },
+                reason: { type: "string" },
+                duplicate_ids: { type: "array", items: { type: "string" } }
               }
             }
           });
 
-          if (result.duplicate_groups?.length > 0) {
-            result.duplicate_groups.forEach(dupGroup => {
-              if (dupGroup.ids?.length > 1 && dupGroup.confidence >= 70) {
-                const fullProperties = dupGroup.ids
-                  .map(id => group.find(p => p.id === id))
-                  .filter(Boolean);
-                
-                if (fullProperties.length > 1) {
-                  confirmedDuplicates.push({
-                    properties: fullProperties,
-                    confidence: dupGroup.confidence,
-                    reason: dupGroup.reason
-                  });
-                }
-              }
-            });
+          if (result.is_duplicate && result.confidence >= 80) {
+            const duplicateProperties = result.duplicate_ids?.length > 0
+              ? cluster.properties.filter(p => result.duplicate_ids.includes(p.id))
+              : cluster.properties;
+
+            if (duplicateProperties.length > 1) {
+              confirmedDuplicates.push({
+                properties: duplicateProperties.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+                confidence: result.confidence,
+                reason: result.reason || cluster.reasons.join(", ")
+              });
+            }
           }
         } catch (error) {
-          console.error("Error analyzing group:", error);
+          console.error("Error verifying cluster:", error);
+          // On error, only include very high score matches
+          if (cluster.minScore >= 70) {
+            confirmedDuplicates.push({
+              properties: cluster.properties.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+              confidence: cluster.minScore,
+              reason: cluster.reasons.join(", ") + " (não verificado por IA)"
+            });
+          }
         }
       }
 
       setProgress(95);
       setProgressText("A finalizar análise...");
 
-      // Remove overlapping groups (keep the one with highest confidence)
+      // Remove any remaining overlaps
       const uniqueGroups = [];
       const usedIds = new Set();
 
       confirmedDuplicates
         .sort((a, b) => b.confidence - a.confidence)
         .forEach(group => {
-          const newIds = group.properties.filter(p => !usedIds.has(p.id));
-          if (newIds.length > 1) {
+          const newProperties = group.properties.filter(p => !usedIds.has(p.id));
+          if (newProperties.length > 1) {
             uniqueGroups.push({
               ...group,
-              properties: newIds
+              properties: newProperties
             });
-            newIds.forEach(p => usedIds.add(p.id));
+            newProperties.forEach(p => usedIds.add(p.id));
           }
         });
 
@@ -182,7 +377,7 @@ Se não houver duplicados, retorna array vazio.`,
         const totalDuplicates = uniqueGroups.reduce((sum, g) => sum + g.properties.length - 1, 0);
         toast.warning(`Encontrados ${uniqueGroups.length} grupos com ${totalDuplicates} duplicados!`);
       } else {
-        toast.success("Nenhum duplicado encontrado!");
+        toast.success("Nenhum duplicado confirmado!");
       }
 
     } catch (error) {
