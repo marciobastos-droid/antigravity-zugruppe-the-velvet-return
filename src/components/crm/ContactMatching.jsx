@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,38 +10,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, Home, MapPin, Euro, Bed, Bath, 
   Square, Sparkles, Send, Check, ExternalLink,
   Heart, Star, Filter, ChevronDown, ChevronUp, 
   Bell, BellOff, Save, Trash2, X, ThumbsDown,
-  Eye, Clock, Bookmark, AlertCircle
+  Eye, Clock, Bookmark, AlertCircle, Target, Zap,
+  TrendingUp, RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import ContactRequirements from "./ContactRequirements";
+
+const propertyTypeLabels = {
+  apartment: "Apartamento",
+  house: "Moradia",
+  townhouse: "Casa Geminada",
+  condo: "Condomínio",
+  land: "Terreno",
+  commercial: "Comercial",
+  building: "Prédio"
+};
 
 export default function ContactMatching({ contact }) {
   const queryClient = useQueryClient();
-  const [filters, setFilters] = React.useState({
-    listing_type: "sale",
-    property_types: [],
-    cities: contact?.city ? [contact.city] : [],
-    priceMin: "",
-    priceMax: "",
-    bedroomsMin: "",
-    bedroomsMax: "",
-    bathroomsMin: "",
-    areaMin: "",
-    areaMax: "",
-    yearBuiltMin: "",
-    amenities: [],
-    onlyFeatured: false
-  });
+  const [activeTab, setActiveTab] = React.useState("requirements");
   const [matchResults, setMatchResults] = React.useState([]);
   const [analyzing, setAnalyzing] = React.useState(false);
   const [selectedProperties, setSelectedProperties] = React.useState([]);
-  const [expandedFilters, setExpandedFilters] = React.useState(false);
   const [sortBy, setSortBy] = React.useState("score");
   const [sendingEmail, setSendingEmail] = React.useState(false);
   const [saveSearchDialogOpen, setSaveSearchDialogOpen] = React.useState(false);
@@ -100,7 +98,6 @@ export default function ContactMatching({ contact }) {
 
   const saveFeedbackMutation = useMutation({
     mutationFn: async (data) => {
-      // Check if feedback already exists
       const existing = propertyFeedback.find(f => f.property_id === data.property_id);
       if (existing) {
         return await base44.entities.PropertyFeedback.update(existing.id, data);
@@ -113,108 +110,99 @@ export default function ContactMatching({ contact }) {
   });
 
   const activeProperties = properties.filter(p => p.status === 'active');
-  const allCities = [...new Set(activeProperties.map(p => p.city).filter(Boolean))].sort();
-  const allAmenities = [...new Set(activeProperties.flatMap(p => p.amenities || []))].sort();
-
-  // Get favorite and rejected property IDs
   const favoriteIds = propertyFeedback.filter(f => f.feedback_type === 'favorite').map(f => f.property_id);
   const rejectedIds = propertyFeedback.filter(f => f.feedback_type === 'rejected').map(f => f.property_id);
 
+  // Get requirements from contact
+  const req = contact?.property_requirements || {};
+
   const calculateMatchScore = (property) => {
+    if (!req || Object.keys(req).length === 0) {
+      return favoriteIds.includes(property.id) ? 80 : 50;
+    }
+
     let score = 0;
     let maxScore = 0;
 
     // Location match (30 points)
-    if (filters.cities.length > 0) {
+    if (req.locations?.length > 0) {
       maxScore += 30;
-      if (filters.cities.some(city => 
-        property.city?.toLowerCase().includes(city.toLowerCase()) ||
-        city.toLowerCase().includes(property.city?.toLowerCase() || '')
+      if (req.locations.some(loc => 
+        property.city?.toLowerCase().includes(loc.toLowerCase()) ||
+        loc.toLowerCase().includes(property.city?.toLowerCase() || '')
       )) {
         score += 30;
       }
     }
 
+    // Listing type match (15 points)
+    if (req.listing_type) {
+      maxScore += 15;
+      if (req.listing_type === 'both' || property.listing_type === req.listing_type) {
+        score += 15;
+      }
+    }
+
     // Price match (25 points)
-    if (filters.priceMin || filters.priceMax) {
+    if (req.budget_min || req.budget_max) {
       maxScore += 25;
       const price = property.price || 0;
-      const min = filters.priceMin ? parseFloat(filters.priceMin) : 0;
-      const max = filters.priceMax ? parseFloat(filters.priceMax) : Infinity;
+      const min = req.budget_min || 0;
+      const max = req.budget_max || Infinity;
       
       if (price >= min && price <= max) {
         score += 25;
       } else if (price >= min * 0.85 && price <= max * 1.15) {
         score += 15;
+      } else if (price >= min * 0.7 && price <= max * 1.3) {
+        score += 8;
       }
     }
 
     // Bedrooms match (15 points)
-    if (filters.bedroomsMin || filters.bedroomsMax) {
+    if (req.bedrooms_min || req.bedrooms_max) {
       maxScore += 15;
       const beds = property.bedrooms || 0;
-      const minBeds = filters.bedroomsMin ? parseInt(filters.bedroomsMin) : 0;
-      const maxBeds = filters.bedroomsMax ? parseInt(filters.bedroomsMax) : Infinity;
+      const minBeds = req.bedrooms_min || 0;
+      const maxBeds = req.bedrooms_max || Infinity;
       
       if (beds >= minBeds && beds <= maxBeds) {
         score += 15;
-      } else if (beds >= minBeds - 1) {
+      } else if (beds >= minBeds - 1 && beds <= maxBeds + 1) {
         score += 8;
       }
     }
 
     // Bathrooms match (10 points)
-    if (filters.bathroomsMin) {
+    if (req.bathrooms_min) {
       maxScore += 10;
-      if (property.bathrooms >= parseInt(filters.bathroomsMin)) {
+      if (property.bathrooms >= req.bathrooms_min) {
         score += 10;
+      } else if (property.bathrooms >= req.bathrooms_min - 1) {
+        score += 5;
       }
     }
 
     // Area match (15 points)
-    if (filters.areaMin || filters.areaMax) {
+    if (req.area_min || req.area_max) {
       maxScore += 15;
       const area = property.useful_area || property.square_feet || 0;
-      const minArea = filters.areaMin ? parseInt(filters.areaMin) : 0;
-      const maxArea = filters.areaMax ? parseInt(filters.areaMax) : Infinity;
+      const minArea = req.area_min || 0;
+      const maxArea = req.area_max || Infinity;
       
       if (area >= minArea && area <= maxArea) {
         score += 15;
-      } else if (area >= minArea * 0.9) {
+      } else if (area >= minArea * 0.85) {
         score += 8;
       }
     }
 
     // Property type match (10 points)
-    if (filters.property_types.length > 0) {
+    if (req.property_types?.length > 0) {
       maxScore += 10;
-      if (filters.property_types.includes(property.property_type)) {
+      if (req.property_types.includes(property.property_type)) {
         score += 10;
       }
-    }
-
-    // Listing type match (10 points)
-    maxScore += 10;
-    if (property.listing_type === filters.listing_type) {
-      score += 10;
-    }
-
-    // Year built match (5 points)
-    if (filters.yearBuiltMin) {
-      maxScore += 5;
-      if (property.year_built >= parseInt(filters.yearBuiltMin)) {
-        score += 5;
-      }
-    }
-
-    // Amenities match (bonus points)
-    if (filters.amenities.length > 0 && property.amenities?.length > 0) {
-      const matchedAmenities = filters.amenities.filter(a => 
-        property.amenities.some(pa => pa.toLowerCase().includes(a.toLowerCase()))
-      );
-      const amenityScore = Math.round((matchedAmenities.length / filters.amenities.length) * 10);
-      maxScore += 10;
-      score += amenityScore;
     }
 
     // Featured bonus
@@ -227,47 +215,46 @@ export default function ContactMatching({ contact }) {
       score += 10;
     }
 
-    return maxScore > 0 ? Math.round((score / maxScore) * 100) : 50;
+    return maxScore > 0 ? Math.min(100, Math.round((score / maxScore) * 100)) : 50;
   };
 
-  const handleSearch = () => {
+  const handleAutoMatch = () => {
+    if (!req || Object.keys(req).length === 0) {
+      toast.error("Defina primeiro os requisitos do cliente");
+      setActiveTab("requirements");
+      return;
+    }
+
     setAnalyzing(true);
     
     setTimeout(() => {
-      let filtered = activeProperties;
-
-      // Exclude rejected properties
-      filtered = filtered.filter(p => !rejectedIds.includes(p.id));
-
-      if (filters.onlyFeatured) {
-        filtered = filtered.filter(p => p.featured);
-      }
+      let filtered = activeProperties.filter(p => !rejectedIds.includes(p.id));
 
       const scored = filtered.map(property => ({
         ...property,
         matchScore: calculateMatchScore(property),
-        isFavorite: favoriteIds.includes(property.id),
-        isRejected: rejectedIds.includes(property.id)
+        isFavorite: favoriteIds.includes(property.id)
       }));
 
-      let sorted = scored.filter(p => p.matchScore > 0);
+      // Only include properties with score > 30
+      let sorted = scored.filter(p => p.matchScore > 30);
       
-      if (sortBy === "score") {
-        sorted = sorted.sort((a, b) => b.matchScore - a.matchScore);
-      } else if (sortBy === "price_asc") {
-        sorted = sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
-      } else if (sortBy === "price_desc") {
-        sorted = sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
-      } else if (sortBy === "date") {
-        sorted = sorted.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-      }
+      sorted = sorted.sort((a, b) => b.matchScore - a.matchScore);
 
       setMatchResults(sorted.slice(0, 30));
+      setActiveTab("results");
       setAnalyzing(false);
+      toast.success(`Encontrados ${sorted.length} imóveis compatíveis`);
     }, 300);
   };
 
   const handleAIMatch = async () => {
+    if (!req || Object.keys(req).length === 0) {
+      toast.error("Defina primeiro os requisitos do cliente");
+      setActiveTab("requirements");
+      return;
+    }
+
     setAnalyzing(true);
     try {
       const prompt = `
@@ -275,22 +262,23 @@ export default function ContactMatching({ contact }) {
 
         PERFIL DO CLIENTE:
         - Nome: ${contact?.full_name || "Cliente"}
-        - Cidade: ${filters.cities.join(", ") || "Qualquer"}
-        - Tipo: ${filters.listing_type === 'sale' ? 'Compra' : 'Arrendamento'}
-        - Tipos de imóvel: ${filters.property_types.join(", ") || "Qualquer"}
-        - Orçamento: ${filters.priceMin || 0}€ - ${filters.priceMax || "sem limite"}€
-        - Quartos: ${filters.bedroomsMin || "0"} a ${filters.bedroomsMax || "sem limite"}
-        - Área mínima: ${filters.areaMin || "Qualquer"}m²
+        - Tipo de Negócio: ${req.listing_type === 'sale' ? 'Compra' : req.listing_type === 'rent' ? 'Arrendamento' : 'Ambos'}
+        - Localizações: ${req.locations?.join(", ") || "Qualquer"}
+        - Tipos de imóvel: ${req.property_types?.map(t => propertyTypeLabels[t]).join(", ") || "Qualquer"}
+        - Orçamento: €${req.budget_min?.toLocaleString() || 0} - €${req.budget_max?.toLocaleString() || "sem limite"}
+        - Quartos: ${req.bedrooms_min || "0"} a ${req.bedrooms_max || "sem limite"}
+        - Área mínima: ${req.area_min || "Qualquer"}m²
+        - Notas: ${req.additional_notes || "Nenhuma"}
 
-        IMÓVEIS FAVORITOS DO CLIENTE: ${favoriteIds.join(", ") || "Nenhum"}
-        IMÓVEIS REJEITADOS (excluir): ${rejectedIds.join(", ") || "Nenhum"}
+        IMÓVEIS FAVORITOS DO CLIENTE: ${favoriteIds.length} imóveis
+        IMÓVEIS REJEITADOS (excluir): ${rejectedIds.length} imóveis
 
         IMÓVEIS DISPONÍVEIS:
         ${activeProperties.filter(p => !rejectedIds.includes(p.id)).slice(0, 40).map(p => `
-          ID: ${p.id}, Título: ${p.title}, Cidade: ${p.city}, Preço: €${p.price?.toLocaleString()}, Quartos: ${p.bedrooms || 'N/A'}, Área: ${p.useful_area || p.square_feet || 'N/A'}m²
+          ID: ${p.id}, Título: ${p.title}, Cidade: ${p.city}, Tipo: ${p.property_type}, Preço: €${p.price?.toLocaleString()}, Quartos: ${p.bedrooms || 'N/A'}, Área: ${p.useful_area || p.square_feet || 'N/A'}m², Favorito: ${favoriteIds.includes(p.id) ? 'Sim' : 'Não'}
         `).join('\n')}
 
-        Retorna os melhores matches com justificação.
+        Retorna os melhores matches ordenados por compatibilidade. Inclui uma justificação breve para cada.
       `;
 
       const result = await base44.integrations.Core.InvokeLLM({
@@ -319,7 +307,7 @@ export default function ContactMatching({ contact }) {
           if (property) {
             return { 
               ...property, 
-              matchScore: m.score, 
+              matchScore: Math.min(100, m.score), 
               aiReason: m.reason,
               isFavorite: favoriteIds.includes(property.id)
             };
@@ -328,10 +316,12 @@ export default function ContactMatching({ contact }) {
         }).filter(Boolean);
         
         setMatchResults(aiMatches);
+        setActiveTab("results");
+        toast.success(`IA encontrou ${aiMatches.length} matches`);
       }
     } catch (error) {
       toast.error("Erro na análise AI");
-      handleSearch();
+      handleAutoMatch();
     }
     setAnalyzing(false);
   };
@@ -374,16 +364,11 @@ export default function ContactMatching({ contact }) {
       contact_name: contact.full_name,
       contact_email: contact.email,
       name: searchName,
-      criteria: filters,
+      criteria: req,
       alerts_enabled: alertsEnabled,
       alert_frequency: alertFrequency,
       matched_properties_sent: []
     });
-  };
-
-  const handleLoadSearch = (search) => {
-    setFilters(search.criteria);
-    toast.success(`Pesquisa "${search.name}" carregada`);
   };
 
   const handleSendMatches = async () => {
@@ -451,554 +436,444 @@ Zugruppe
     setSendingEmail(false);
   };
 
-  const getScoreBadgeColor = (score) => {
-    if (score >= 80) return "bg-green-100 text-green-800 border-green-300";
-    if (score >= 60) return "bg-blue-100 text-blue-800 border-blue-300";
-    if (score >= 40) return "bg-amber-100 text-amber-800 border-amber-300";
-    return "bg-slate-100 text-slate-800 border-slate-300";
+  const getScoreColor = (score) => {
+    if (score >= 80) return "text-green-600 bg-green-100 border-green-200";
+    if (score >= 60) return "text-blue-600 bg-blue-100 border-blue-200";
+    if (score >= 40) return "text-amber-600 bg-amber-100 border-amber-200";
+    return "text-slate-600 bg-slate-100 border-slate-200";
   };
 
-  const propertyTypeLabels = {
-    apartment: "Apartamento",
-    house: "Moradia",
-    townhouse: "Casa Geminada",
-    condo: "Condomínio",
-    land: "Terreno",
-    commercial: "Comercial",
-    building: "Prédio"
+  const getScoreLabel = (score) => {
+    if (score >= 80) return "Excelente";
+    if (score >= 60) return "Bom";
+    if (score >= 40) return "Regular";
+    return "Baixo";
   };
 
-  const toggleCity = (city) => {
-    setFilters(prev => ({
-      ...prev,
-      cities: prev.cities.includes(city) 
-        ? prev.cities.filter(c => c !== city)
-        : [...prev.cities, city]
-    }));
-  };
+  const hasRequirements = req && (req.listing_type || req.locations?.length || req.budget_min || req.budget_max || req.property_types?.length);
 
-  const togglePropertyType = (type) => {
-    setFilters(prev => ({
-      ...prev,
-      property_types: prev.property_types.includes(type)
-        ? prev.property_types.filter(t => t !== type)
-        : [...prev.property_types, type]
-    }));
-  };
-
-  const toggleAmenity = (amenity) => {
-    setFilters(prev => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
-        : [...prev.amenities, amenity]
-    }));
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      listing_type: "sale",
-      property_types: [],
-      cities: [],
-      priceMin: "",
-      priceMax: "",
-      bedroomsMin: "",
-      bedroomsMax: "",
-      bathroomsMin: "",
-      areaMin: "",
-      areaMax: "",
-      yearBuiltMin: "",
-      amenities: [],
-      onlyFeatured: false
-    });
-    setMatchResults([]);
-  };
+  // Get favorite properties
+  const favoriteProperties = activeProperties.filter(p => favoriteIds.includes(p.id));
 
   return (
     <div className="space-y-4">
       {/* Quick Stats */}
       <div className="grid grid-cols-4 gap-2">
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-2 text-center">
-            <div className="text-xl font-bold text-blue-700">{activeProperties.length}</div>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-blue-700">{activeProperties.length}</div>
             <div className="text-xs text-blue-600">Disponíveis</div>
           </CardContent>
         </Card>
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="p-2 text-center">
-            <div className="text-xl font-bold text-green-700">{matchResults.length}</div>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-green-700">{matchResults.length}</div>
             <div className="text-xs text-green-600">Matches</div>
           </CardContent>
         </Card>
-        <Card className="bg-pink-50 border-pink-200">
-          <CardContent className="p-2 text-center">
-            <div className="text-xl font-bold text-pink-700">{favoriteIds.length}</div>
+        <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-pink-700">{favoriteIds.length}</div>
             <div className="text-xs text-pink-600">Favoritos</div>
           </CardContent>
         </Card>
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-2 text-center">
-            <div className="text-xl font-bold text-purple-700">{savedSearches.length}</div>
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-purple-700">{savedSearches.length}</div>
             <div className="text-xs text-purple-600">Pesquisas</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Saved Searches */}
-      {savedSearches.length > 0 && (
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-purple-900 flex items-center gap-2">
-                <Bookmark className="w-4 h-4" />
-                Pesquisas Guardadas
-              </h4>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {savedSearches.map(search => (
-                <div key={search.id} className="flex items-center gap-1 bg-white rounded-lg border border-purple-200 p-1 pl-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => handleLoadSearch(search)}
-                  >
-                    {search.name}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`h-6 w-6 p-0 ${search.alerts_enabled ? 'text-amber-500' : 'text-slate-400'}`}
-                    onClick={() => toggleAlertMutation.mutate({ id: search.id, enabled: !search.alerts_enabled })}
-                  >
-                    {search.alerts_enabled ? <Bell className="w-3 h-3" /> : <BellOff className="w-3 h-3" />}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
-                    onClick={() => deleteSearchMutation.mutate(search.id)}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleAutoMatch} 
+          disabled={analyzing || !hasRequirements}
+          className="flex-1 bg-green-600 hover:bg-green-700"
+        >
+          <Zap className="w-4 h-4 mr-2" />
+          {analyzing ? "A analisar..." : "Match Automático"}
+        </Button>
+        <Button 
+          onClick={handleAIMatch} 
+          disabled={analyzing || !hasRequirements}
+          variant="outline"
+          className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          {analyzing ? "..." : "Match IA"}
+        </Button>
+      </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Critérios de Pesquisa
-            </h4>
-            <div className="flex gap-1">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-7 text-xs"
-                onClick={() => setSaveSearchDialogOpen(true)}
-              >
-                <Save className="w-3 h-3 mr-1" />
-                Guardar
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={clearFilters}>
-                Limpar
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7"
-                onClick={() => setExpandedFilters(!expandedFilters)}
-              >
-                {expandedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Basic Filters */}
-          <div className="grid grid-cols-4 gap-2 mb-3">
-            <div>
-              <Label className="text-xs">Negócio</Label>
-              <Select 
-                value={filters.listing_type} 
-                onValueChange={(v) => setFilters({...filters, listing_type: v})}
-              >
-                <SelectTrigger className="h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sale">Compra</SelectItem>
-                  <SelectItem value="rent">Arrendamento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs">Preço Mín (€)</Label>
-              <Input
-                type="number"
-                className="h-8"
-                value={filters.priceMin}
-                onChange={(e) => setFilters({...filters, priceMin: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Preço Máx (€)</Label>
-              <Input
-                type="number"
-                className="h-8"
-                value={filters.priceMax}
-                onChange={(e) => setFilters({...filters, priceMax: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Quartos Mín</Label>
-              <Input
-                type="number"
-                className="h-8"
-                value={filters.bedroomsMin}
-                onChange={(e) => setFilters({...filters, bedroomsMin: e.target.value})}
-              />
-            </div>
-          </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="requirements" className="text-xs">
+            <Target className="w-3 h-3 mr-1" />
+            Requisitos
+          </TabsTrigger>
+          <TabsTrigger value="results" className="text-xs">
+            <TrendingUp className="w-3 h-3 mr-1" />
+            Resultados
+          </TabsTrigger>
+          <TabsTrigger value="favorites" className="text-xs">
+            <Heart className="w-3 h-3 mr-1" />
+            Favoritos
+          </TabsTrigger>
+          <TabsTrigger value="searches" className="text-xs">
+            <Bookmark className="w-3 h-3 mr-1" />
+            Guardados
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Property Types */}
-          <div className="mb-3">
-            <Label className="text-xs mb-1 block">Tipo de Imóvel</Label>
-            <div className="flex flex-wrap gap-1">
-              {Object.entries(propertyTypeLabels).map(([key, label]) => (
-                <Badge
-                  key={key}
-                  variant={filters.property_types.includes(key) ? "default" : "outline"}
-                  className={`cursor-pointer text-xs ${
-                    filters.property_types.includes(key) ? "bg-slate-900" : "hover:bg-slate-100"
-                  }`}
-                  onClick={() => togglePropertyType(key)}
-                >
-                  {label}
-                </Badge>
-              ))}
-            </div>
-          </div>
+        {/* Requirements Tab */}
+        <TabsContent value="requirements" className="mt-4">
+          <ContactRequirements 
+            contact={contact} 
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['clientContacts'] })}
+          />
+        </TabsContent>
 
-          {/* Cities */}
-          <div className="mb-3">
-            <Label className="text-xs mb-1 block">Cidades</Label>
-            <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
-              {allCities.slice(0, 12).map(city => (
-                <Badge
-                  key={city}
-                  variant={filters.cities.includes(city) ? "default" : "outline"}
-                  className={`cursor-pointer text-xs ${
-                    filters.cities.includes(city) ? "bg-blue-600" : "hover:bg-blue-50"
-                  }`}
-                  onClick={() => toggleCity(city)}
-                >
-                  {city}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Expanded Filters */}
-          {expandedFilters && (
-            <div className="space-y-3 pt-3 border-t">
-              <div className="grid grid-cols-4 gap-2">
-                <div>
-                  <Label className="text-xs">Quartos Máx</Label>
-                  <Input
-                    type="number"
-                    className="h-8"
-                    value={filters.bedroomsMax}
-                    onChange={(e) => setFilters({...filters, bedroomsMax: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">WCs Mín</Label>
-                  <Input
-                    type="number"
-                    className="h-8"
-                    value={filters.bathroomsMin}
-                    onChange={(e) => setFilters({...filters, bathroomsMin: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Área Mín (m²)</Label>
-                  <Input
-                    type="number"
-                    className="h-8"
-                    value={filters.areaMin}
-                    onChange={(e) => setFilters({...filters, areaMin: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Ano Mín</Label>
-                  <Input
-                    type="number"
-                    className="h-8"
-                    value={filters.yearBuiltMin}
-                    onChange={(e) => setFilters({...filters, yearBuiltMin: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              {allAmenities.length > 0 && (
-                <div>
-                  <Label className="text-xs mb-1 block">Comodidades</Label>
-                  <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
-                    {allAmenities.slice(0, 10).map(amenity => (
-                      <Badge
-                        key={amenity}
-                        variant={filters.amenities.includes(amenity) ? "default" : "outline"}
-                        className={`cursor-pointer text-xs ${
-                          filters.amenities.includes(amenity) ? "bg-purple-600" : "hover:bg-purple-50"
-                        }`}
-                        onClick={() => toggleAmenity(amenity)}
-                      >
-                        {amenity}
-                      </Badge>
-                    ))}
+        {/* Results Tab */}
+        <TabsContent value="results" className="mt-4 space-y-3">
+          {/* Selected Actions */}
+          {selectedProperties.length > 0 && (
+            <Card className="border-green-300 bg-green-50">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-green-800">
+                    {selectedProperties.length} selecionado(s)
+                  </span>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSendMatches}
+                      disabled={sendingEmail}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Send className="w-4 h-4 mr-1" />
+                      {sendingEmail ? "..." : "Enviar Email"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedProperties([])}>
+                      Limpar
+                    </Button>
                   </div>
                 </div>
-              )}
+              </CardContent>
+            </Card>
+          )}
 
+          {/* Results Header */}
+          {matchResults.length > 0 && (
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-slate-900">
+                {matchResults.length} imóveis encontrados
+              </h4>
               <div className="flex items-center gap-2">
-                <Checkbox 
-                  id="featured" 
-                  checked={filters.onlyFeatured}
-                  onCheckedChange={(checked) => setFilters({...filters, onlyFeatured: checked})}
-                />
-                <Label htmlFor="featured" className="text-xs cursor-pointer">
-                  Apenas destaques
-                </Label>
+                <Button variant="ghost" size="sm" onClick={handleAutoMatch}>
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="score">Melhor Match</SelectItem>
+                    <SelectItem value="price_asc">Preço ↑</SelectItem>
+                    <SelectItem value="price_desc">Preço ↓</SelectItem>
+                    <SelectItem value="date">Recentes</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
 
-          {/* Search Buttons */}
-          <div className="flex gap-2 mt-3 pt-3 border-t">
-            <Button onClick={handleSearch} disabled={analyzing} className="flex-1 h-9">
-              <Search className="w-4 h-4 mr-1" />
-              {analyzing ? "..." : "Pesquisar"}
-            </Button>
-            <Button 
-              onClick={handleAIMatch} 
-              disabled={analyzing} 
-              variant="outline" 
-              className="flex-1 h-9 border-purple-300 text-purple-700"
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Match IA
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Selected Actions */}
-      {selectedProperties.length > 0 && (
-        <Card className="border-green-300 bg-green-50">
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-green-800 text-sm">
-                {selectedProperties.length} selecionado(s)
-              </span>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleSendMatches}
-                  disabled={sendingEmail}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 h-8"
-                >
-                  <Send className="w-3 h-3 mr-1" />
-                  {sendingEmail ? "..." : "Enviar Email"}
-                </Button>
-                <Button variant="outline" size="sm" className="h-8" onClick={() => setSelectedProperties([])}>
-                  Limpar
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Results Header */}
-      {matchResults.length > 0 && (
-        <div className="flex items-center justify-between">
-          <h4 className="font-semibold text-slate-900 text-sm">
-            {matchResults.length} imóveis
-          </h4>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32 h-7 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="score">Melhor Match</SelectItem>
-              <SelectItem value="price_asc">Preço ↑</SelectItem>
-              <SelectItem value="price_desc">Preço ↓</SelectItem>
-              <SelectItem value="date">Recentes</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Results */}
-      {matchResults.length > 0 ? (
-        <div className="space-y-2">
-          {matchResults.map((property) => {
-            const isSelected = selectedProperties.includes(property.id);
-            
-            return (
-              <Card 
-                key={property.id} 
-                className={`overflow-hidden transition-all ${
-                  isSelected ? 'ring-2 ring-green-500' : 'hover:shadow-md'
-                } ${property.isFavorite ? 'border-pink-300 bg-pink-50/30' : ''}`}
-              >
-                <CardContent className="p-0">
-                  <div className="flex">
-                    {/* Image */}
-                    <div 
-                      className="w-28 h-24 relative cursor-pointer flex-shrink-0"
-                      onClick={() => togglePropertySelection(property.id)}
+          {/* Property Results */}
+          {matchResults.length > 0 ? (
+            <div className="space-y-3">
+              {matchResults
+                .sort((a, b) => {
+                  if (sortBy === "score") return b.matchScore - a.matchScore;
+                  if (sortBy === "price_asc") return (a.price || 0) - (b.price || 0);
+                  if (sortBy === "price_desc") return (b.price || 0) - (a.price || 0);
+                  return new Date(b.created_date) - new Date(a.created_date);
+                })
+                .map((property) => {
+                  const isSelected = selectedProperties.includes(property.id);
+                  
+                  return (
+                    <Card 
+                      key={property.id} 
+                      className={`overflow-hidden transition-all ${
+                        isSelected ? 'ring-2 ring-green-500 bg-green-50/50' : 'hover:shadow-md'
+                      } ${property.isFavorite ? 'border-pink-300' : ''}`}
                     >
+                      <CardContent className="p-0">
+                        <div className="flex">
+                          {/* Image */}
+                          <div 
+                            className="w-32 h-28 relative cursor-pointer flex-shrink-0"
+                            onClick={() => togglePropertySelection(property.id)}
+                          >
+                            {property.images?.[0] ? (
+                              <img 
+                                src={property.images[0]} 
+                                alt={property.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                                <Home className="w-8 h-8 text-slate-300" />
+                              </div>
+                            )}
+                            
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
+                                <Check className="w-8 h-8 text-white" />
+                              </div>
+                            )}
+
+                            {property.isFavorite && (
+                              <div className="absolute top-2 left-2">
+                                <Heart className="w-5 h-5 text-pink-500 fill-pink-500 drop-shadow" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 p-3">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-slate-900 line-clamp-1">{property.title}</h4>
+                                <div className="flex items-center gap-1 text-sm text-slate-600">
+                                  <MapPin className="w-3 h-3" />
+                                  {property.city}
+                                </div>
+                              </div>
+                              <div className="text-right flex-shrink-0 ml-2">
+                                <div className="font-bold text-slate-900">
+                                  €{property.price?.toLocaleString()}
+                                  {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+                                </div>
+                                <Badge className={`${getScoreColor(property.matchScore)} border text-xs`}>
+                                  {property.matchScore}% - {getScoreLabel(property.matchScore)}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {/* Details */}
+                            <div className="flex items-center gap-3 text-sm text-slate-600 mb-2">
+                              {property.bedrooms && (
+                                <span className="flex items-center gap-1">
+                                  <Bed className="w-4 h-4" />
+                                  T{property.bedrooms}
+                                </span>
+                              )}
+                              {property.bathrooms && (
+                                <span className="flex items-center gap-1">
+                                  <Bath className="w-4 h-4" />
+                                  {property.bathrooms}
+                                </span>
+                              )}
+                              {(property.useful_area || property.square_feet) && (
+                                <span className="flex items-center gap-1">
+                                  <Square className="w-4 h-4" />
+                                  {property.useful_area || property.square_feet}m²
+                                </span>
+                              )}
+                              <Badge variant="outline" className="text-xs">
+                                {propertyTypeLabels[property.property_type] || property.property_type}
+                              </Badge>
+                            </div>
+
+                            {property.aiReason && (
+                              <p className="text-xs text-purple-600 bg-purple-50 rounded px-2 py-1 mb-2">
+                                ✨ {property.aiReason}
+                              </p>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm" 
+                                className="h-7 text-xs"
+                                onClick={() => togglePropertySelection(property.id)}
+                              >
+                                <Check className="w-3 h-3 mr-1" />
+                                {isSelected ? "Selecionado" : "Selecionar"}
+                              </Button>
+                              
+                              <Link 
+                                to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                                target="_blank"
+                              >
+                                <Button variant="outline" size="sm" className="h-7 text-xs">
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Ver
+                                </Button>
+                              </Link>
+
+                              <div className="flex items-center gap-1 ml-auto">
+                                {!property.isFavorite && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 w-7 p-0 text-pink-500 hover:bg-pink-50"
+                                    onClick={() => handleFeedback(property.id, 'favorite')}
+                                  >
+                                    <Heart className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-7 w-7 p-0 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                                  onClick={() => handleFeedback(property.id, 'rejected')}
+                                >
+                                  <ThumbsDown className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          ) : (
+            <Card className="text-center py-8">
+              <CardContent>
+                <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="font-semibold text-slate-900 mb-1">Sem resultados</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  {hasRequirements 
+                    ? "Clique em 'Match Automático' para encontrar imóveis" 
+                    : "Defina os requisitos do cliente primeiro"}
+                </p>
+                {!hasRequirements && (
+                  <Button variant="outline" onClick={() => setActiveTab("requirements")}>
+                    <Target className="w-4 h-4 mr-2" />
+                    Definir Requisitos
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Favorites Tab */}
+        <TabsContent value="favorites" className="mt-4">
+          {favoriteProperties.length > 0 ? (
+            <div className="space-y-3">
+              {favoriteProperties.map((property) => (
+                <Card key={property.id} className="border-pink-200 bg-pink-50/30">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-3">
                       {property.images?.[0] ? (
                         <img 
                           src={property.images[0]} 
                           alt={property.title}
-                          className="w-full h-full object-cover"
+                          className="w-16 h-16 object-cover rounded-lg"
                         />
                       ) : (
-                        <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                          <Home className="w-8 h-8 text-slate-300" />
+                        <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
+                          <Home className="w-6 h-6 text-slate-300" />
                         </div>
                       )}
-                      
-                      {isSelected && (
-                        <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
-                          <Check className="w-6 h-6 text-white" />
-                        </div>
-                      )}
-
-                      <div className="absolute top-1 right-1">
-                        <Badge className={`${getScoreBadgeColor(property.matchScore)} border text-xs font-bold`}>
-                          {property.matchScore}%
-                        </Badge>
-                      </div>
-
-                      {property.isFavorite && (
-                        <div className="absolute top-1 left-1">
-                          <Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 p-2">
-                      <div className="flex items-start justify-between mb-1">
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-slate-900 text-sm line-clamp-1">{property.title}</h4>
-                          <div className="flex items-center gap-1 text-xs text-slate-600">
-                            <MapPin className="w-3 h-3" />
-                            {property.city}
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <div className="font-bold text-slate-900 text-sm">
-                            €{property.price?.toLocaleString()}
-                          </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-slate-900">{property.title}</h4>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <MapPin className="w-3 h-3" />
+                          {property.city}
+                          <span className="font-medium">€{property.price?.toLocaleString()}</span>
                         </div>
                       </div>
-
-                      {/* Details */}
-                      <div className="flex items-center gap-2 text-xs text-slate-600 mb-1">
-                        {property.bedrooms && (
-                          <span className="flex items-center gap-0.5">
-                            <Bed className="w-3 h-3" />
-                            T{property.bedrooms}
-                          </span>
-                        )}
-                        {property.bathrooms && (
-                          <span className="flex items-center gap-0.5">
-                            <Bath className="w-3 h-3" />
-                            {property.bathrooms}
-                          </span>
-                        )}
-                        {(property.useful_area || property.square_feet) && (
-                          <span className="flex items-center gap-0.5">
-                            <Square className="w-3 h-3" />
-                            {property.useful_area || property.square_feet}m²
-                          </span>
-                        )}
-                      </div>
-
-                      {property.aiReason && (
-                        <p className="text-xs text-purple-600 line-clamp-1 mb-1">
-                          ✨ {property.aiReason}
-                        </p>
-                      )}
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 px-2 text-xs"
-                          onClick={() => togglePropertySelection(property.id)}
-                        >
-                          <Check className={`w-3 h-3 mr-1 ${isSelected ? 'text-green-600' : ''}`} />
-                          {isSelected ? "✓" : "Selecionar"}
+                      <Link 
+                        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                        target="_blank"
+                      >
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4" />
                         </Button>
-                        
-                        <Link 
-                          to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-                          target="_blank"
-                        >
-                          <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                            <Eye className="w-3 h-3" />
-                          </Button>
-                        </Link>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="text-center py-8">
+              <CardContent>
+                <Heart className="w-12 h-12 text-pink-200 mx-auto mb-3" />
+                <h3 className="font-semibold text-slate-900 mb-1">Sem favoritos</h3>
+                <p className="text-sm text-slate-600">
+                  Marque imóveis como favoritos durante a pesquisa
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-                        <div className="flex items-center gap-0.5 ml-auto">
-                          {!property.isFavorite && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 text-pink-500 hover:bg-pink-50"
-                              onClick={() => handleFeedback(property.id, 'favorite')}
-                            >
-                              <Heart className="w-3 h-3" />
-                            </Button>
-                          )}
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 text-slate-400 hover:bg-red-50 hover:text-red-500"
-                            onClick={() => handleFeedback(property.id, 'rejected')}
-                          >
-                            <ThumbsDown className="w-3 h-3" />
-                          </Button>
-                        </div>
+        {/* Saved Searches Tab */}
+        <TabsContent value="searches" className="mt-4 space-y-3">
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => setSaveSearchDialogOpen(true)}
+            disabled={!hasRequirements}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Guardar Pesquisa Atual
+          </Button>
+
+          {savedSearches.length > 0 ? (
+            <div className="space-y-2">
+              {savedSearches.map(search => (
+                <Card key={search.id} className="border-purple-200">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-slate-900">{search.name}</h4>
+                        <p className="text-xs text-slate-500">
+                          Criado em {new Date(search.created_date).toLocaleDateString('pt-PT')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 p-0 ${search.alerts_enabled ? 'text-amber-500' : 'text-slate-400'}`}
+                          onClick={() => toggleAlertMutation.mutate({ id: search.id, enabled: !search.alerts_enabled })}
+                        >
+                          {search.alerts_enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-400 hover:text-red-600"
+                          onClick={() => deleteSearchMutation.mutate(search.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <Card className="text-center py-6">
-          <CardContent>
-            <Home className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-slate-900 text-sm mb-1">Pesquise imóveis</h3>
-            <p className="text-xs text-slate-600">Configure os critérios e clique em Pesquisar</p>
-          </CardContent>
-        </Card>
-      )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card className="text-center py-6">
+              <CardContent>
+                <Bookmark className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-600">Nenhuma pesquisa guardada</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Save Search Dialog */}
       <Dialog open={saveSearchDialogOpen} onOpenChange={setSaveSearchDialogOpen}>
