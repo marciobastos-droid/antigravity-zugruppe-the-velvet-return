@@ -146,59 +146,170 @@ const validateProperty = (prop, portalName) => {
   const errors = [];
   const warnings = [];
   
-  // Validações obrigatórias
-  if (!prop.title || prop.title.length < 5) {
-    errors.push("Título inválido ou muito curto");
+  // ========== VALIDAÇÕES CRÍTICAS (BLOQUEIAM IMPORTAÇÃO) ==========
+  
+  // Título
+  if (!prop.title || prop.title.trim().length < 10) {
+    errors.push("Título ausente ou muito curto (mínimo 10 caracteres)");
+  } else if (prop.title.length > 200) {
+    errors.push("Título demasiado longo (máximo 200 caracteres)");
+  } else if (/^[^a-zA-ZÀ-ÿ]+$/.test(prop.title)) {
+    errors.push("Título inválido - deve conter texto");
   }
   
+  // Preço - validação rigorosa
   if (!prop.price || prop.price <= 0) {
     errors.push("Preço inválido ou ausente");
+  } else if (!Number.isFinite(prop.price)) {
+    errors.push("Preço deve ser um número válido");
   } else {
-    // Validação específica de preço
-    if (prop.listing_type === 'sale' && prop.price < 10000) {
-      errors.push(`Preço muito baixo para venda: €${prop.price}`);
+    // Validação específica por tipo de negócio
+    if (prop.listing_type === 'sale') {
+      if (prop.price < 15000) {
+        errors.push(`Preço demasiado baixo para venda: €${prop.price.toLocaleString()} (mínimo €15.000)`);
+      }
+      if (prop.price > 50000000) {
+        errors.push(`Preço irrealisticamente alto: €${prop.price.toLocaleString()}`);
+      }
     }
-    if (prop.listing_type === 'rent' && prop.price < 100) {
-      warnings.push(`Preço baixo para arrendamento: €${prop.price}`);
-    }
-    if (prop.price > 10000000) {
-      warnings.push(`Preço muito alto: €${prop.price.toLocaleString()}`);
+    if (prop.listing_type === 'rent') {
+      if (prop.price < 50) {
+        errors.push(`Preço demasiado baixo para arrendamento: €${prop.price}/mês`);
+      }
+      if (prop.price > 50000) {
+        errors.push(`Preço de arrendamento suspeito: €${prop.price}/mês - verificar se não é venda`);
+      }
     }
   }
   
-  if (!prop.city || prop.city.length < 2) {
+  // Cidade - obrigatório
+  if (!prop.city || prop.city.trim().length < 2) {
     errors.push("Cidade inválida ou ausente");
+  } else if (/^\d+$/.test(prop.city.trim())) {
+    errors.push("Cidade não pode ser apenas números");
   }
   
+  // Tipo de imóvel
+  const validPropertyTypes = ["apartment", "house", "land", "building", "farm", "store", "warehouse", "office"];
   if (!prop.property_type) {
     errors.push("Tipo de imóvel ausente");
+  } else if (!validPropertyTypes.includes(prop.property_type)) {
+    errors.push(`Tipo de imóvel inválido: ${prop.property_type}`);
   }
   
+  // Tipo de negócio
   if (!prop.listing_type) {
-    errors.push("Tipo de anúncio ausente");
+    errors.push("Tipo de negócio (venda/arrendamento) ausente");
+  } else if (!["sale", "rent"].includes(prop.listing_type)) {
+    errors.push(`Tipo de negócio inválido: ${prop.listing_type}`);
   }
   
-  // Validações de qualidade
-  if (!prop.description || prop.description.length < 50) {
-    warnings.push("Descrição muito curta ou ausente");
+  // ========== VALIDAÇÕES DE COERÊNCIA (BLOQUEIAM SE MUITO GRAVES) ==========
+  
+  // Área vs Quartos
+  if (prop.square_feet && prop.bedrooms) {
+    const areaPerRoom = prop.square_feet / (prop.bedrooms + 1); // +1 para sala
+    if (areaPerRoom < 8) {
+      errors.push(`Área incompatível com quartos: ${prop.square_feet}m² para T${prop.bedrooms} (${areaPerRoom.toFixed(0)}m²/divisão)`);
+    }
+    if (prop.property_type === 'apartment' && prop.square_feet > 500 && prop.bedrooms < 3) {
+      warnings.push(`Área grande (${prop.square_feet}m²) para apenas ${prop.bedrooms} quartos - verificar dados`);
+    }
   }
   
+  // Preço vs Área (€/m²) - verificação de coerência
+  if (prop.price && prop.square_feet && prop.square_feet > 0 && prop.listing_type === 'sale') {
+    const pricePerSqm = prop.price / prop.square_feet;
+    if (pricePerSqm < 200) {
+      errors.push(`Preço por m² suspeito: €${pricePerSqm.toFixed(0)}/m² - demasiado baixo`);
+    }
+    if (pricePerSqm > 20000) {
+      errors.push(`Preço por m² suspeito: €${pricePerSqm.toFixed(0)}/m² - verificar área ou preço`);
+    }
+  }
+  
+  // Quartos - validação de valores
+  if (prop.bedrooms !== undefined && prop.bedrooms !== null) {
+    if (!Number.isInteger(prop.bedrooms) || prop.bedrooms < 0) {
+      errors.push("Número de quartos inválido");
+    } else if (prop.bedrooms > 20) {
+      errors.push(`Número de quartos improvável: ${prop.bedrooms}`);
+    }
+  }
+  
+  // WCs - validação
+  if (prop.bathrooms !== undefined && prop.bathrooms !== null) {
+    if (!Number.isInteger(prop.bathrooms) || prop.bathrooms < 0) {
+      errors.push("Número de WCs inválido");
+    } else if (prop.bathrooms > 15) {
+      errors.push(`Número de WCs improvável: ${prop.bathrooms}`);
+    }
+  }
+  
+  // Área - validação
+  if (prop.square_feet !== undefined && prop.square_feet !== null) {
+    if (prop.square_feet <= 0 || !Number.isFinite(prop.square_feet)) {
+      errors.push("Área inválida");
+    } else if (prop.square_feet < 10 && prop.property_type !== 'land') {
+      errors.push(`Área demasiado pequena: ${prop.square_feet}m²`);
+    } else if (prop.square_feet > 100000 && prop.property_type !== 'land' && prop.property_type !== 'farm') {
+      errors.push(`Área improvável para ${prop.property_type}: ${prop.square_feet}m²`);
+    }
+  }
+  
+  // Ano de construção
+  if (prop.year_built) {
+    const currentYear = new Date().getFullYear();
+    if (prop.year_built < 1800 || prop.year_built > currentYear + 2) {
+      errors.push(`Ano de construção inválido: ${prop.year_built}`);
+    }
+  }
+  
+  // ========== AVISOS DE QUALIDADE (NÃO BLOQUEIAM) ==========
+  
+  // Descrição
+  if (!prop.description || prop.description.trim().length < 100) {
+    warnings.push("Descrição ausente ou muito curta (recomendado mínimo 100 caracteres)");
+  } else if (prop.description.length > 5000) {
+    warnings.push("Descrição muito longa");
+  }
+  
+  // Imagens
   if (!prop.images || prop.images.length === 0) {
-    warnings.push("Sem imagens");
-  } else if (prop.images.length < 3) {
-    warnings.push(`Poucas imagens (${prop.images.length})`);
+    warnings.push("Sem imagens - recomendado adicionar fotos");
+  } else if (prop.images.length < 5) {
+    warnings.push(`Poucas imagens (${prop.images.length}) - recomendado mínimo 5`);
   }
   
+  // Amenidades
   if (!prop.amenities || prop.amenities.length === 0) {
-    warnings.push("Sem amenidades");
+    warnings.push("Sem comodidades listadas");
   }
   
-  if (!prop.bedrooms && prop.property_type === 'apartment') {
-    warnings.push("Número de quartos ausente");
+  // Campos importantes em falta
+  if (!prop.bedrooms && ['apartment', 'house'].includes(prop.property_type)) {
+    warnings.push("Número de quartos não especificado");
   }
   
-  if (!prop.square_feet) {
+  if (!prop.bathrooms && ['apartment', 'house'].includes(prop.property_type)) {
+    warnings.push("Número de WCs não especificado");
+  }
+  
+  if (!prop.square_feet && prop.property_type !== 'land') {
     warnings.push("Área não especificada");
+  }
+  
+  if (!prop.address) {
+    warnings.push("Morada não especificada");
+  }
+  
+  if (!prop.state) {
+    warnings.push("Distrito não especificado");
+  }
+  
+  // Verificar duplicação de título (indicador básico)
+  if (prop.title && prop.title.toLowerCase().includes('copiar') || prop.title.toLowerCase().includes('copy')) {
+    warnings.push("Título pode indicar duplicação");
   }
   
   return { errors, warnings, isValid: errors.length === 0 };
