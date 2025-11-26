@@ -14,6 +14,7 @@ import AIAssistant from "./AIAssistant";
 import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
 import SendEmailDialog from "../email/SendEmailDialog";
+import LeadPropertyMatching from "./LeadPropertyMatching";
 
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
@@ -314,17 +315,23 @@ Extrai:
           </CardContent>
         </Card>
 
+        {/* Property Matching */}
+        <LeadPropertyMatching 
+          lead={lead}
+          onAssociateProperty={handleAssociateProperty}
+        />
+
         {/* Associated Property */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Imóvel de Interesse
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {lead.property_title ? (
-              <div className="bg-blue-50 rounded p-3 mb-2">
+        {lead.property_title && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Imóvel Associado
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-blue-50 rounded p-3">
                 <p className="font-medium text-blue-900">{lead.property_title}</p>
                 <Button 
                   variant="link" 
@@ -335,43 +342,9 @@ Extrai:
                   Remover associação
                 </Button>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <Input
-                    value={propertyLocationFilter}
-                    onChange={(e) => setPropertyLocationFilter(e.target.value)}
-                    placeholder="Filtrar por localização..."
-                    className="pl-9"
-                  />
-                </div>
-                <Select onValueChange={handleAssociateProperty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Associar a um imóvel..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {properties
-                      .filter(p => 
-                        propertyLocationFilter === "" ||
-                        p.city?.toLowerCase().includes(propertyLocationFilter.toLowerCase()) ||
-                        p.address?.toLowerCase().includes(propertyLocationFilter.toLowerCase()) ||
-                        p.state?.toLowerCase().includes(propertyLocationFilter.toLowerCase())
-                      )
-                      .map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          <div className="flex flex-col">
-                            <span>{p.title} - €{p.price?.toLocaleString()}</span>
-                            <span className="text-xs text-slate-500">{p.city}{p.address ? `, ${p.address}` : ''}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Qualification */}
         {lead.qualification_status && (
