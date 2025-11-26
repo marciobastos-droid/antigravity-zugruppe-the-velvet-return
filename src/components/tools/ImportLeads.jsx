@@ -72,16 +72,41 @@ export default function ImportLeads() {
         promptAddition = `- property_to_sell: Descrição do imóvel a vender`;
         schemaAddition = { property_to_sell: { type: "string" } };
       } else {
+        // Parceiro - também pode ter requisitos de imóvel que procura para clientes
         promptAddition = `
 - company_name: Nome da empresa
 - partnership_type: Tipo de parceria (Angariador, Construtor, Investidor, Mediador, etc)
 - specialization: Especialização ou área de atuação
-- locations: Localizações onde atua`;
+- locations: Localizações onde atua ou procura imóveis
+
+SE O PARCEIRO MENCIONAR REQUISITOS DE IMÓVEIS QUE PROCURA:
+- budget_min: Orçamento mínimo (número)
+- budget_max: Orçamento máximo (número)
+- property_types: Array de tipos de imóvel (house, apartment, townhouse, condo, land, commercial)
+- listing_type: Tipo de negócio (sale, rent, both)
+- bedrooms_min: Quartos mínimos (número)
+- bedrooms_max: Quartos máximos (número)
+- bathrooms_min: Casas de banho mínimas (número)
+- area_min: Área mínima em m² (número)
+- area_max: Área máxima em m² (número)
+- amenities: Array de comodidades desejadas
+- additional_notes: Notas adicionais sobre requisitos`;
         schemaAddition = {
           company_name: { type: "string" },
           partnership_type: { type: "string" },
           specialization: { type: "string" },
-          locations: { type: "array", items: { type: "string" } }
+          locations: { type: "array", items: { type: "string" } },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          property_types: { type: "array", items: { type: "string" } },
+          listing_type: { type: "string" },
+          bedrooms_min: { type: "number" },
+          bedrooms_max: { type: "number" },
+          bathrooms_min: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          amenities: { type: "array", items: { type: "string" } },
+          additional_notes: { type: "string" }
         };
       }
       
