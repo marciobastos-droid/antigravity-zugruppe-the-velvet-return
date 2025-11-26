@@ -203,7 +203,22 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         opportunityData.partnership_type = extracted.partnership_type || "";
         contactData.company_name = extracted.company_name || "";
         contactData.job_title = extracted.partnership_type || "";
-        contactData.notes = `Tipo de Parceria: ${extracted.partnership_type || ""}\nEspecialização: ${extracted.specialization || ""}\nLocalizações: ${extracted.locations?.join(", ") || ""}\n\n${extracted.message || ""}`;
+        contactData.city = extracted.locations?.[0] || location || extracted.location || "";
+        
+        // Build detailed notes for partner
+        const partnerNotes = [];
+        if (extracted.partnership_type) partnerNotes.push(`Tipo de Parceria: ${extracted.partnership_type}`);
+        if (extracted.company_name) partnerNotes.push(`Empresa: ${extracted.company_name}`);
+        if (extracted.specialization) partnerNotes.push(`Especialização: ${extracted.specialization}`);
+        if (extracted.locations?.length) partnerNotes.push(`Localizações de atuação: ${extracted.locations.join(", ")}`);
+        if (extracted.message) partnerNotes.push(`\nMensagem:\n${extracted.message}`);
+        
+        contactData.notes = partnerNotes.join("\n");
+        
+        // Store partner requirements in property_requirements for reference
+        contactData.property_requirements = {
+          additional_notes: `Tipo: ${extracted.partnership_type || "Parceiro"}\nEspecialização: ${extracted.specialization || ""}\nÁreas: ${extracted.locations?.join(", ") || ""}`
+        };
       }
 
       // Create ClientContact
