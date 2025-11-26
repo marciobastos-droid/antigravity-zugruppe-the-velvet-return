@@ -893,54 +893,113 @@ Retorna array de imóveis em JSON estruturado.`,
 
   return (
     <div className="grid gap-6">
-      {/* Partner Property Selection */}
-      <Card className="border-purple-200 bg-purple-50">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <input
-              type="checkbox"
-              id="is-partner"
-              checked={isPartnerProperty}
-              onChange={(e) => {
-                setIsPartnerProperty(e.target.checked);
-                if (!e.target.checked) setSelectedPartner(null);
-              }}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <label htmlFor="is-partner" className="font-semibold text-purple-900 cursor-pointer">
-                Imóvel de Parceiro
-              </label>
-              <p className="text-sm text-purple-700 mt-1">
-                Marque se estes imóveis pertencem a um parceiro externo
+      {/* Property Ownership Selection */}
+      <Card className="border-slate-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Origem do Imóvel</CardTitle>
+          <p className="text-sm text-slate-500">Defina a quem pertence este imóvel</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div 
+              onClick={() => { setPropertyOwnership("own"); setSelectedPartner(null); setPrivateOwnerName(""); }}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all text-center ${
+                propertyOwnership === "own" 
+                  ? "border-blue-500 bg-blue-50" 
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <Building2 className={`w-6 h-6 mx-auto mb-2 ${propertyOwnership === "own" ? "text-blue-600" : "text-slate-400"}`} />
+              <p className={`font-medium text-sm ${propertyOwnership === "own" ? "text-blue-900" : "text-slate-700"}`}>
+                Próprio
               </p>
-              
-              {isPartnerProperty && (
-                <div className="mt-3">
-                  <Select 
-                    value={selectedPartner?.id || ""} 
-                    onValueChange={(id) => setSelectedPartner(partners.find(p => p.id === id))}
-                  >
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Selecione o parceiro..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {partners.map(partner => (
-                        <SelectItem key={partner.id} value={partner.id}>
-                          {partner.buyer_name} - {partner.buyer_email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedPartner && (
-                    <p className="text-xs text-purple-600 mt-2">
-                      ✓ Imóveis serão atribuídos a {selectedPartner.buyer_name}
-                    </p>
-                  )}
-                </div>
-              )}
+              <p className="text-xs text-slate-500 mt-1">Imóvel da empresa</p>
+            </div>
+            
+            <div 
+              onClick={() => { setPropertyOwnership("partner"); setPrivateOwnerName(""); }}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all text-center ${
+                propertyOwnership === "partner" 
+                  ? "border-purple-500 bg-purple-50" 
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <Users2 className={`w-6 h-6 mx-auto mb-2 ${propertyOwnership === "partner" ? "text-purple-600" : "text-slate-400"}`} />
+              <p className={`font-medium text-sm ${propertyOwnership === "partner" ? "text-purple-900" : "text-slate-700"}`}>
+                Parceiro
+              </p>
+              <p className="text-xs text-slate-500 mt-1">Parceiro comercial</p>
+            </div>
+            
+            <div 
+              onClick={() => { setPropertyOwnership("private"); setSelectedPartner(null); }}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all text-center ${
+                propertyOwnership === "private" 
+                  ? "border-green-500 bg-green-50" 
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              <User className={`w-6 h-6 mx-auto mb-2 ${propertyOwnership === "private" ? "text-green-600" : "text-slate-400"}`} />
+              <p className={`font-medium text-sm ${propertyOwnership === "private" ? "text-green-900" : "text-slate-700"}`}>
+                Particular
+              </p>
+              <p className="text-xs text-slate-500 mt-1">Proprietário privado</p>
             </div>
           </div>
+          
+          {propertyOwnership === "partner" && (
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <Label className="text-sm text-purple-900 mb-2 block">Selecione o Parceiro</Label>
+              <Select 
+                value={selectedPartner?.id || ""} 
+                onValueChange={(id) => setSelectedPartner(partners.find(p => p.id === id))}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="Selecione o parceiro..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {partners.map(partner => (
+                    <SelectItem key={partner.id} value={partner.id}>
+                      {partner.buyer_name} - {partner.buyer_email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedPartner && (
+                <p className="text-xs text-purple-600 mt-2">
+                  ✓ Imóveis serão atribuídos a {selectedPartner.buyer_name}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {propertyOwnership === "private" && (
+            <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-3">
+              <div>
+                <Label className="text-sm text-green-900 mb-1.5 block">Nome do Proprietário</Label>
+                <Input
+                  value={privateOwnerName}
+                  onChange={(e) => setPrivateOwnerName(e.target.value)}
+                  placeholder="Nome completo do proprietário"
+                  className="bg-white"
+                />
+              </div>
+              <div>
+                <Label className="text-sm text-green-900 mb-1.5 block">Telefone (opcional)</Label>
+                <Input
+                  value={privateOwnerPhone}
+                  onChange={(e) => setPrivateOwnerPhone(e.target.value)}
+                  placeholder="+351 912 345 678"
+                  className="bg-white"
+                />
+              </div>
+              {privateOwnerName && (
+                <p className="text-xs text-green-600">
+                  ✓ Imóveis serão registados como propriedade de {privateOwnerName}
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
