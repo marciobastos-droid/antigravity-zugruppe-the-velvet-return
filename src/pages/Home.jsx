@@ -113,7 +113,7 @@ export default function Home() {
         <img
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
           alt="Zugruppe"
-          className="h-40 md:h-56 w-auto mx-auto" />
+          className="h-56 md:h-72 w-auto mx-auto" />
 
       </motion.div>
 
