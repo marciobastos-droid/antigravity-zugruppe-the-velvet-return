@@ -343,13 +343,16 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         data: extracted,
         property: property,
         profileCreated: leadType === "comprador",
-        contactCreated: true,
+        contactCreated: !existingContact,
+        contactUpdated: !!existingContact,
         requirementsExtracted: requirementsExtracted,
-        message: leadType === "comprador" 
-          ? `Lead e contacto criados${requirementsExtracted ? " com requisitos de imóvel extraídos!" : "!"}`
-          : leadType === "parceiro"
-          ? "Lead e contacto de parceiro criados!"
-          : "Lead e contacto criados!"
+        message: existingContact
+          ? `Oportunidade adicionada ao contacto existente "${existingContact.full_name}"${requirementsExtracted ? " com requisitos atualizados!" : "!"}`
+          : leadType === "comprador" 
+            ? `Lead e contacto criados${requirementsExtracted ? " com requisitos de imóvel extraídos!" : "!"}`
+            : leadType === "parceiro"
+            ? "Lead e contacto de parceiro criados!"
+            : "Lead e contacto criados!"
       });
 
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
