@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search } from "lucide-react";
+import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
