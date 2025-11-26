@@ -715,7 +715,10 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       setContactProgressText("A analisar contactos...");
       setContactProgress(30);
 
-      const pairs = findContactDuplicatePairs(contacts);
+      // Filter out ignored contacts
+      const activeContacts = contacts.filter(c => !ignoredContactIds.includes(c.id));
+
+      const pairs = findContactDuplicatePairs(activeContacts);
       
       setContactProgress(50);
       setContactProgressText(`Encontrados ${pairs.length} pares potenciais...`);
