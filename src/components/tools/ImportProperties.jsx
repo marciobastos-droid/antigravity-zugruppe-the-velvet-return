@@ -384,8 +384,19 @@ export default function ImportProperties() {
 
       setProgress(`A guardar ${validProperties.length} imóveis...`);
 
+      // Gerar tags com IA para cada imóvel válido
+      setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
+      const propertiesWithTags = await Promise.all(
+        validProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
+      setProgress(`A guardar ${propertiesWithTags.length} imóveis...`);
+
       const created = await base44.entities.Property.bulkCreate(
-        validProperties.map(p => ({
+        propertiesWithTags.map(p => ({
           ...p,
           status: "active",
           address: p.address || p.city,
@@ -498,10 +509,19 @@ Retorna array de imóveis em JSON estruturado.`,
         throw new Error("Nenhum imóvel passou na validação. Forneça mais informações (preço, localização, tipo).");
       }
 
-      setProgress(`A guardar ${validProperties.length} imóvel(is)...`);
+      // Gerar tags com IA para cada imóvel
+      setProgress(`A gerar tags com IA para ${validProperties.length} imóvel(is)...`);
+      const propertiesWithTags = await Promise.all(
+        validProperties.map(async (v) => {
+          const tags = await generatePropertyTags(v.property);
+          return { ...v, property: { ...v.property, tags } };
+        })
+      );
+
+      setProgress(`A guardar ${propertiesWithTags.length} imóvel(is)...`);
 
       const created = await base44.entities.Property.bulkCreate(
-        validProperties.map(v => ({
+        propertiesWithTags.map(v => ({
           ...v.property,
           status: "active",
           address: v.property.address || v.property.city,
@@ -579,8 +599,17 @@ Retorna array de imóveis em JSON estruturado.`,
         throw new Error("Nenhum imóvel válido no JSON");
       }
 
+      // Gerar tags com IA para cada imóvel
+      setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
+      const propertiesWithTags = await Promise.all(
+        validProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
       const created = await base44.entities.Property.bulkCreate(
-        validProperties.map(p => ({
+        propertiesWithTags.map(p => ({
           ...p,
           status: "active",
           address: p.address || p.city,
@@ -771,10 +800,19 @@ Retorna array de imóveis em JSON estruturado.`,
         })
       );
 
+      // Gerar tags com IA para cada imóvel
+      setProgress(`A gerar tags com IA para ${processedProperties.length} imóveis...`);
+      const propertiesWithTags = await Promise.all(
+        processedProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
       setProgress("A guardar no sistema...");
 
       const created = await base44.entities.Property.bulkCreate(
-        processedProperties.map(p => ({ 
+        propertiesWithTags.map(p => ({ 
           ...p, 
           status: "active", 
           featured: false,
