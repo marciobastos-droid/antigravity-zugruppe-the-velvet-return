@@ -124,7 +124,7 @@ export default function Home() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="text-center mb-10">
 
-        <h1 className="text-[#27251f] mb-2 text-base font-semibold md:text-3xl">Plataforma de Gestão Imobiliária
+        <h1 className="text-[#27251f] mb-2 text-base font-semibold md:text-3xl">
 
         </h1>
         <p className="text-[#27251f]/60"></p>
