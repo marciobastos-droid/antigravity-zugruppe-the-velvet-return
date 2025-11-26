@@ -28,11 +28,16 @@ export default function ClientDatabase() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
+  const [sourceFilter, setSourceFilter] = React.useState("all");
+  const [cityFilter, setCityFilter] = React.useState("all");
+  const [tagFilter, setTagFilter] = React.useState("all");
+  const [hasRequirementsFilter, setHasRequirementsFilter] = React.useState("all");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingClient, setEditingClient] = React.useState(null);
   const [selectedClient, setSelectedClient] = React.useState(null);
   const [commDialogOpen, setCommDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("details");
+  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     full_name: "",
