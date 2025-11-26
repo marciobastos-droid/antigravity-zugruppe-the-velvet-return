@@ -953,6 +953,18 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                       <div className="text-xs text-slate-600">Grupos Duplicados</div>
                     </div>
                   )}
+                  {ignoredPropertyIds.length > 0 && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-slate-400">{ignoredPropertyIds.length}</div>
+                      <div className="text-xs text-slate-600">Ignorados</div>
+                    </div>
+                  )}
+                  {scheduledPropertyReviews.length > 0 && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-amber-500">{scheduledPropertyReviews.length}</div>
+                      <div className="text-xs text-slate-600">Agendados</div>
+                    </div>
+                  )}
                 </div>
                 
                 <Button
