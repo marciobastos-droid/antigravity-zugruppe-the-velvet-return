@@ -302,8 +302,10 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         contactId = createdContact?.id;
       }
 
-      // Link opportunity to contact
+      // Link opportunity to contact and generate ref_id
       opportunityData.profile_id = contactId;
+      const { data: oppRefData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+      opportunityData.ref_id = oppRefData.ref_id;
       const createdOpportunity = await base44.entities.Opportunity.create(opportunityData);
 
       // Update contact with opportunity link (append to existing array)
