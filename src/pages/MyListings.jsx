@@ -221,7 +221,8 @@ export default function MyListings() {
     townhouse: "Casa Geminada",
     building: "Prédio",
     land: "Terreno",
-    commercial: "Comercial"
+    commercial: "Comercial",
+    development: "Empreendimento"
   };
 
   const hasActiveFilters = searchTerm || statusFilter !== "all" || typeFilter !== "all" || 
@@ -331,6 +332,7 @@ export default function MyListings() {
                     <SelectItem value="building">Prédio</SelectItem>
                     <SelectItem value="land">Terreno</SelectItem>
                     <SelectItem value="commercial">Comercial</SelectItem>
+                    <SelectItem value="development">Empreendimento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
