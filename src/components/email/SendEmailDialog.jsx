@@ -1,0 +1,281 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Send, Loader2, FileText, Eye, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+
+export default function SendEmailDialog({ 
+  open, 
+  onOpenChange, 
+  recipient, // { type: 'client' | 'opportunity', id, name, email, data }
+}) {
+  const queryClient = useQueryClient();
+  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['emailTemplates'],
+    queryFn: () => base44.entities.EmailTemplate.list()
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: smtpSettings } = useQuery({
+    queryKey: ['smtpSettings'],
+    queryFn: async () => {
+      const settings = await base44.entities.SMTPSettings.list();
+      return settings.find(s => s.is_active);
+    }
+  });
+
+  // Replace dynamic fields with actual data
+  const replaceDynamicFields = (text, data) => {
+    if (!text) return "";
+    let result = text;
+    
+    // Contact/Opportunity fields
+    result = result.replace(/\{\{nome\}\}/g, data?.name || recipient?.name || "");
+    result = result.replace(/\{\{email\}\}/g, data?.email || recipient?.email || "");
+    result = result.replace(/\{\{telefone\}\}/g, data?.phone || "");
+    result = result.replace(/\{\{cidade\}\}/g, data?.city || data?.location || "");
+    result = result.replace(/\{\{empresa\}\}/g, data?.company_name || "");
+    result = result.replace(/\{\{imovel\}\}/g, data?.property_title || "");
+    result = result.replace(/\{\{orcamento\}\}/g, data?.budget ? `€${data.budget.toLocaleString()}` : "");
+    result = result.replace(/\{\{localizacao\}\}/g, data?.location || data?.city || "");
+    
+    // Agent fields
+    result = result.replace(/\{\{agente_nome\}\}/g, user?.full_name || "");
+    result = result.replace(/\{\{agente_email\}\}/g, user?.email || "");
+    result = result.replace(/\{\{agente_telefone\}\}/g, user?.phone || "");
+    
+    // General fields
+    result = result.replace(/\{\{data_atual\}\}/g, new Date().toLocaleDateString('pt-PT'));
+    
+    return result;
+  };
+
+  const handleTemplateSelect = (templateId) => {
+    setSelectedTemplate(templateId);
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setSubject(template.subject);
+      setBody(template.body);
+    }
+  };
+
+  const getProcessedContent = () => {
+    const data = recipient?.data || {};
+    return {
+      subject: replaceDynamicFields(subject, data),
+      body: replaceDynamicFields(body, data)
+    };
+  };
+
+  const handleSend = async () => {
+    if (!recipient?.email) {
+      toast.error("Destinatário sem email");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const processed = getProcessedContent();
+      
+      // Send email using Core integration
+      await base44.integrations.Core.SendEmail({
+        to: recipient.email,
+        subject: processed.subject,
+        body: processed.body,
+        from_name: user?.full_name || "Zugruppe"
+      });
+
+      // Log the email
+      await base44.entities.EmailLog.create({
+        template_id: selectedTemplate || null,
+        recipient_email: recipient.email,
+        recipient_name: recipient.name,
+        recipient_type: recipient.type,
+        recipient_id: recipient.id,
+        subject: processed.subject,
+        body: processed.body,
+        status: "sent",
+        sent_at: new Date().toISOString(),
+        sent_by: user?.email
+      });
+
+      // Update template usage count
+      if (selectedTemplate) {
+        const template = templates.find(t => t.id === selectedTemplate);
+        if (template) {
+          await base44.entities.EmailTemplate.update(selectedTemplate, {
+            usage_count: (template.usage_count || 0) + 1
+          });
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['emailLogs'] });
+      toast.success("Email enviado com sucesso!");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      
+      // Log failed email
+      await base44.entities.EmailLog.create({
+        template_id: selectedTemplate || null,
+        recipient_email: recipient.email,
+        recipient_name: recipient.name,
+        recipient_type: recipient.type,
+        recipient_id: recipient.id,
+        subject: getProcessedContent().subject,
+        body: getProcessedContent().body,
+        status: "failed",
+        error_message: error.message,
+        sent_by: user?.email
+      });
+
+      toast.error("Erro ao enviar email");
+    }
+    setSending(false);
+  };
+
+  const processed = getProcessedContent();
+  const filteredTemplates = templates.filter(t => 
+    t.is_active && (t.category === recipient?.type || t.category === 'general')
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Send className="w-5 h-5" />
+            Enviar Email para {recipient?.name}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-4">
+          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+            <span className="text-sm text-slate-600">Para:</span>
+            <Badge variant="outline">{recipient?.email}</Badge>
+          </div>
+
+          {/* Template Selection */}
+          <div>
+            <Label>Template (opcional)</Label>
+            <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolher template ou escrever manualmente..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>Escrever manualmente</SelectItem>
+                {filteredTemplates.map(t => (
+                  <SelectItem key={t.id} value={t.id}>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      {t.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Tabs value={previewMode ? "preview" : "edit"} onValueChange={(v) => setPreviewMode(v === "preview")}>
+            <TabsList>
+              <TabsTrigger value="edit">Editar</TabsTrigger>
+              <TabsTrigger value="preview">
+                <Eye className="w-4 h-4 mr-1" />
+                Pré-visualizar
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="edit" className="space-y-4 mt-4">
+              <div>
+                <Label>Assunto *</Label>
+                <Input
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Assunto do email..."
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <Label>Mensagem *</Label>
+                  <Badge variant="outline" className="text-xs">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Suporta campos dinâmicos
+                  </Badge>
+                </div>
+                <Textarea
+                  required
+                  value={body}
+                  onChange={(e) => setBody(e.target.value)}
+                  placeholder="Conteúdo do email..."
+                  rows={10}
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Campos disponíveis: {"{{nome}}"}, {"{{email}}"}, {"{{telefone}}"}, {"{{cidade}}"}, {"{{imovel}}"}, {"{{orcamento}}"}
+                </p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="preview" className="mt-4">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="p-3 bg-slate-100 border-b">
+                  <p className="text-sm text-slate-600">Assunto:</p>
+                  <p className="font-medium">{processed.subject}</p>
+                </div>
+                <div className="p-4 bg-white min-h-[200px]">
+                  <div 
+                    className="prose prose-sm max-w-none whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: processed.body }}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSend} 
+              disabled={sending || !subject || !body || !recipient?.email}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A enviar...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Enviar Email
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
