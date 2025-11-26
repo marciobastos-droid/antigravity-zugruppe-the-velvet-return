@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import CommunicationHistory from "./CommunicationHistory";
 import AddCommunicationDialog from "./AddCommunicationDialog";
 import ContactMatching from "./ContactMatching";
+import MatchingReport from "../matching/MatchingReport";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
@@ -37,6 +38,7 @@ export default function ClientDatabase() {
   const [editingClient, setEditingClient] = React.useState(null);
   const [selectedClient, setSelectedClient] = React.useState(null);
   const [commDialogOpen, setCommDialogOpen] = React.useState(false);
+  const [matchingReportOpen, setMatchingReportOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("details");
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
 
@@ -1064,13 +1066,20 @@ export default function ClientDatabase() {
                   </div>
                 )}
 
-                <div className="flex gap-2 mt-6">
+                <div className="flex flex-wrap gap-2 mt-6">
                   <Button 
                     onClick={() => { setCommDialogOpen(true); }}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Registar Comunicação
+                  </Button>
+                  <Button 
+                    onClick={() => setMatchingReportOpen(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Relatório de Matching
                   </Button>
                   <Button variant="outline" onClick={() => handleEdit(selectedClient)}>
                     <Edit className="w-4 h-4 mr-2" />
@@ -1169,6 +1178,15 @@ export default function ClientDatabase() {
           onOpenChange={setCommDialogOpen}
           contactId={selectedClient.id}
           contactName={selectedClient.full_name}
+        />
+      )}
+
+      {/* Matching Report Dialog */}
+      {selectedClient && (
+        <MatchingReport
+          contact={selectedClient}
+          open={matchingReportOpen}
+          onOpenChange={setMatchingReportOpen}
         />
       )}
     </div>
