@@ -42,13 +42,8 @@ export default function Home() {
     path: "Browse"
   },
   {
-    image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
-    title: "Clientes",
-    path: "CRMAdvanced"
-  },
-  {
     image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
-    title: "Oportunidades",
+    title: "CRM",
     path: "CRMAdvanced"
   }];
 
