@@ -27,6 +27,11 @@ export default function Home() {
   // Menu CRM
   const menuItems = [
   {
+    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
+    title: "Dashboard",
+    path: "Dashboard"
+  },
+  {
     image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
     title: "Imóveis",
     path: "MyListings"
@@ -40,11 +45,6 @@ export default function Home() {
     image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
     title: "Clientes",
     path: "CRMAdvanced"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
-    title: "Dashboard",
-    path: "Dashboard"
   },
   {
     image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
