@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,19 +11,23 @@ import LeadsTable from "./LeadsTable";
 import LeadDetailPanel from "./LeadDetailPanel";
 import PipelineView from "./PipelineView";
 import OpportunitiesDashboard from "../opportunities/OpportunitiesDashboard";
+import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
+import OpportunityKanban from "../opportunities/OpportunityKanban";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = React.useState("table");
+  const [viewMode, setViewMode] = React.useState("kanban");
   const [selectedLead, setSelectedLead] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("new");
+  const [statusFilter, setStatusFilter] = React.useState("all");
   const [leadTypeFilter, setLeadTypeFilter] = React.useState("all");
   const [qualificationFilter, setQualificationFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
   const [agentFilter, setAgentFilter] = React.useState("all");
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
+  const [formDialogOpen, setFormDialogOpen] = React.useState(false);
+  const [editingOpportunity, setEditingOpportunity] = React.useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -85,12 +89,22 @@ export default function OpportunitiesContent() {
     if (!destination) return;
     
     const newStatus = destination.droppableId;
-    if (['new', 'contacted', 'scheduled', 'closed'].includes(newStatus)) {
+    if (['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
       updateMutation.mutate({
         id: draggableId,
         data: { status: newStatus }
       });
     }
+  };
+
+  const handleEditOpportunity = (opp) => {
+    setEditingOpportunity(opp);
+    setFormDialogOpen(true);
+  };
+
+  const handleCloseFormDialog = () => {
+    setFormDialogOpen(false);
+    setEditingOpportunity(null);
   };
 
   const handleToggleImportant = (lead) => {
@@ -219,11 +233,20 @@ export default function OpportunitiesContent() {
   });
 
   const stats = React.useMemo(() => {
+    const totalValue = opportunities.reduce((sum, o) => sum + (o.estimated_value || 0), 0);
+    const weightedValue = opportunities.reduce((sum, o) => {
+      const val = o.estimated_value || 0;
+      const prob = o.probability || 50;
+      return sum + (val * prob / 100);
+    }, 0);
+    
     return {
       total: opportunities.length,
       new: opportunities.filter(o => o.status === 'new').length,
       hot: opportunities.filter(o => o.qualification_status === 'hot').length,
-      facebook: opportunities.filter(o => o.source_url?.includes('facebook')).length
+      facebook: opportunities.filter(o => o.source_url?.includes('facebook')).length,
+      totalValue,
+      weightedValue
     };
   }, [opportunities]);
 
@@ -239,48 +262,61 @@ export default function OpportunitiesContent() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Leads & Pipeline</h2>
-          <p className="text-slate-600">Gerir leads e pipeline de vendas</p>
+          <h2 className="text-2xl font-bold text-slate-900">Oportunidades & Pipeline</h2>
+          <p className="text-slate-600">Gerir oportunidades de negócio</p>
         </div>
         <div className="flex gap-2">
           <Button
-            variant={viewMode === "dashboard" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("dashboard")}
+            onClick={() => { setEditingOpportunity(null); setFormDialogOpen(true); }}
+            className="bg-green-600 hover:bg-green-700"
           >
-            <TrendingUp className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Oportunidade
           </Button>
-          <Button
-            variant={viewMode === "pipeline" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("pipeline")}
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("table")}
-          >
-            <TableIcon className="w-4 h-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("list")}
-          >
-            <List className="w-4 h-4" />
-          </Button>
+          <div className="flex border rounded-lg overflow-hidden">
+            <Button
+              variant={viewMode === "dashboard" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("dashboard")}
+              className="rounded-none"
+            >
+              <TrendingUp className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("kanban")}
+              className="rounded-none"
+            >
+              <Kanban className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "pipeline" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("pipeline")}
+              className="rounded-none"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="rounded-none"
+            >
+              <TableIcon className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Quick Stats */}
       {viewMode !== "dashboard" && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
-              <div className="text-xs text-blue-700">Total Leads</div>
+              <div className="text-xs text-blue-700">Total</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-green-100">
@@ -292,7 +328,33 @@ export default function OpportunitiesContent() {
           <Card className="bg-gradient-to-br from-red-50 to-red-100">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-red-900">{stats.hot}</div>
-              <div className="text-xs text-red-700">🔥 Hot Leads</div>
+              <div className="text-xs text-red-700">🔥 Hot</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-amber-50 to-amber-100">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-1">
+                <Euro className="w-4 h-4 text-amber-700" />
+                <div className="text-lg font-bold text-amber-900">
+                  {stats.totalValue > 1000000 
+                    ? `${(stats.totalValue / 1000000).toFixed(1)}M` 
+                    : `${Math.round(stats.totalValue / 1000)}k`}
+                </div>
+              </div>
+              <div className="text-xs text-amber-700">Valor Total</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-1">
+                <Target className="w-4 h-4 text-emerald-700" />
+                <div className="text-lg font-bold text-emerald-900">
+                  {stats.weightedValue > 1000000 
+                    ? `${(stats.weightedValue / 1000000).toFixed(1)}M` 
+                    : `${Math.round(stats.weightedValue / 1000)}k`}
+                </div>
+              </div>
+              <div className="text-xs text-emerald-700">Ponderado</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
@@ -377,8 +439,11 @@ export default function OpportunitiesContent() {
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="new">Novos</SelectItem>
                       <SelectItem value="contacted">Contactados</SelectItem>
-                      <SelectItem value="scheduled">Agendados</SelectItem>
-                      <SelectItem value="closed">Fechados</SelectItem>
+                      <SelectItem value="qualified">Qualificados</SelectItem>
+                      <SelectItem value="proposal">Proposta</SelectItem>
+                      <SelectItem value="negotiation">Negociação</SelectItem>
+                      <SelectItem value="won">Ganhos</SelectItem>
+                      <SelectItem value="lost">Perdidos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -456,6 +521,16 @@ export default function OpportunitiesContent() {
         <OpportunitiesDashboard opportunities={opportunities} />
       )}
 
+      {viewMode === "kanban" && (
+        <OpportunityKanban
+          opportunities={filteredOpportunities}
+          onDragEnd={onDragEnd}
+          onOpportunityClick={setSelectedLead}
+          onEdit={handleEditOpportunity}
+          onDelete={handleDelete}
+        />
+      )}
+
       {viewMode === "pipeline" && (
         <PipelineView 
           leads={filteredOpportunities}
@@ -511,8 +586,19 @@ export default function OpportunitiesContent() {
           onClose={() => setSelectedLead(null)}
           onUpdate={(id, data) => updateMutation.mutate({ id, data })}
           properties={properties}
+          onEdit={() => handleEditOpportunity(selectedLead)}
         />
       )}
+
+      {/* Opportunity Form Dialog */}
+      <OpportunityFormDialog
+        opportunity={editingOpportunity}
+        open={formDialogOpen}
+        onOpenChange={handleCloseFormDialog}
+        onSaved={() => {
+          setSelectedLead(null);
+        }}
+      />
     </div>
   );
 }
