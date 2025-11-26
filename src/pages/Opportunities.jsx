@@ -331,6 +331,14 @@ export default function Opportunities() {
                   >
                     Atribuir
                   </Button>
+                  <Button 
+                    onClick={handleBulkConvert}
+                    disabled={bulkConvertMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" />
+                    {bulkConvertMutation.isPending ? "A converter..." : "Converter em Contactos"}
+                  </Button>
                   <Button variant="outline" onClick={() => setSelectedLeads([])}>
                     Cancelar
                   </Button>
