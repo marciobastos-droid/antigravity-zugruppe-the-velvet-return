@@ -486,19 +486,19 @@ export default function ClientDatabase() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar por nome, email ou telefone..."
-                  className="pl-10"
-                />
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-5 gap-3">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Nome, email, telefone, empresa..."
+                    className="pl-10"
+                  />
+                </div>
               </div>
-            </div>
-            <div>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Tipo" />
@@ -511,8 +511,6 @@ export default function ClientDatabase() {
                   <SelectItem value="vendor">Fornecedores</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Estado" />
@@ -524,7 +522,99 @@ export default function ClientDatabase() {
                   <SelectItem value="prospect">Prospects</SelectItem>
                 </SelectContent>
               </Select>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                className="flex items-center gap-2"
+              >
+                <Filter className="w-4 h-4" />
+                Mais Filtros
+                <ChevronDown className={`w-4 h-4 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
+              </Button>
             </div>
+
+            {showAdvancedFilters && (
+              <div className="grid md:grid-cols-5 gap-3 pt-3 border-t">
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Origens</SelectItem>
+                    <SelectItem value="facebook_ads">Facebook Ads</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="referral">Indicação</SelectItem>
+                    <SelectItem value="direct_contact">Contacto Direto</SelectItem>
+                    <SelectItem value="networking">Networking</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Cidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Cidades</SelectItem>
+                    {allCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={tagFilter} onValueChange={setTagFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas Tags</SelectItem>
+                    {allTags.map(tag => (
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={hasRequirementsFilter} onValueChange={setHasRequirementsFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Requisitos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="yes">Com Requisitos</SelectItem>
+                    <SelectItem value="no">Sem Requisitos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setTypeFilter("all");
+                    setStatusFilter("all");
+                    setSourceFilter("all");
+                    setCityFilter("all");
+                    setTagFilter("all");
+                    setHasRequirementsFilter("all");
+                    setSearchTerm("");
+                  }}
+                  className="text-slate-600"
+                >
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+
+            {/* Quick Tags */}
+            {allTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {allTags.slice(0, 10).map(tag => (
+                  <Badge 
+                    key={tag}
+                    variant={tagFilter === tag ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-slate-100"
+                    onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
+                  >
+                    <Tag className="w-3 h-3 mr-1" />
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
