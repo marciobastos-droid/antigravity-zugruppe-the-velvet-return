@@ -129,6 +129,39 @@ export default function Opportunities() {
     },
   });
 
+  const bulkConvertMutation = useMutation({
+    mutationFn: async (leadIds) => {
+      const leadsToConvert = opportunities.filter(o => leadIds.includes(o.id));
+      await Promise.all(leadsToConvert.map(lead => 
+        base44.entities.ClientContact.create({
+          full_name: lead.buyer_name,
+          email: lead.buyer_email || "",
+          phone: lead.buyer_phone || "",
+          city: lead.location || "",
+          contact_type: lead.lead_type === 'parceiro_comprador' || lead.lead_type === 'parceiro_vendedor' ? 'partner' : 'client',
+          source: lead.lead_source || "other",
+          notes: lead.message || "",
+          linked_opportunity_ids: [lead.id]
+        })
+      ));
+    },
+    onSuccess: (_, leadIds) => {
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      toast.success(`${leadIds.length} lead${leadIds.length > 1 ? 's' : ''} convertido${leadIds.length > 1 ? 's' : ''} em contactos`);
+      setSelectedLeads([]);
+    },
+  });
+
+  const handleBulkConvert = () => {
+    if (selectedLeads.length === 0) {
+      toast.error("Selecione pelo menos um lead");
+      return;
+    }
+    if (window.confirm(`Converter ${selectedLeads.length} lead${selectedLeads.length > 1 ? 's' : ''} em contactos?`)) {
+      bulkConvertMutation.mutate(selectedLeads);
+    }
+  };
+
   const handleBulkAssign = () => {
     if (!bulkAssignAgent || selectedLeads.length === 0) {
       toast.error("Selecione um agente e pelo menos um lead");
