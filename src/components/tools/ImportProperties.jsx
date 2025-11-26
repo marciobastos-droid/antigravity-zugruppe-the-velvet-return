@@ -85,6 +85,42 @@ const detectPropertyTypes = async (title, description) => {
   }
 };
 
+const generatePropertyTags = async (property) => {
+  try {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Gera tags e categorias para este imóvel para organização e pesquisa.
+
+IMÓVEL:
+Título: ${property.title || ''}
+Tipo: ${property.property_type || ''}
+Localização: ${property.city || ''}, ${property.state || ''}
+Preço: €${property.price || 0}
+${property.bedrooms ? `Quartos: ${property.bedrooms}` : ''}
+${property.square_feet ? `Área: ${property.square_feet}m²` : ''}
+${property.year_built ? `Ano: ${property.year_built}` : ''}
+Descrição: ${property.description || 'Sem descrição'}
+Comodidades: ${property.amenities?.join(', ') || 'Nenhuma'}
+
+INSTRUÇÕES:
+1. Gera 5-8 tags relevantes
+2. Inclui: localização (zona/bairro), estilo (moderno, renovado, luxo), target (família, investimento), diferenciadores
+3. PORTUGUÊS, minúsculas, sem acentos
+4. Tags úteis para pesquisa
+
+Retorna array de strings.`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          tags: { type: "array", items: { type: "string" } }
+        }
+      }
+    });
+    return result.tags || [];
+  } catch {
+    return [];
+  }
+};
+
 const validateProperty = (prop, portalName) => {
   const errors = [];
   const warnings = [];
