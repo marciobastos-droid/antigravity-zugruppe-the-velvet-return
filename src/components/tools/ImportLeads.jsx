@@ -196,7 +196,16 @@ Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition
       // Create ClientContact
       const createdContact = await base44.entities.ClientContact.create(contactData);
 
+      // Link opportunity to contact
+      opportunityData.profile_id = createdContact?.id;
       const createdOpportunity = await base44.entities.Opportunity.create(opportunityData);
+
+      // Update contact with opportunity link
+      if (createdContact?.id) {
+        await base44.entities.ClientContact.update(createdContact.id, {
+          linked_opportunity_ids: [createdOpportunity.id]
+        });
+      }
 
       // Create notification for imported lead
       if (user) {
@@ -208,18 +217,28 @@ Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition
           user_email: user.email,
           related_type: "Opportunity",
           related_id: createdOpportunity.id,
-          action_url: "/Opportunities"
+          action_url: "/CRMAdvanced"
         });
       }
+
+      const requirementsExtracted = leadType === "comprador" && (
+        extracted.budget_min || extracted.budget_max || 
+        extracted.property_types?.length || extracted.locations?.length ||
+        extracted.bedrooms_min || extracted.area_min
+      );
 
       setResult({
         success: true,
         data: extracted,
         property: property,
         profileCreated: leadType === "comprador",
+        contactCreated: true,
+        requirementsExtracted: requirementsExtracted,
         message: leadType === "comprador" 
-          ? "Oportunidade criada e perfil de cliente gerado!"
-          : "Oportunidade criada com sucesso!"
+          ? `Lead e contacto criados${requirementsExtracted ? " com requisitos de imóvel extraídos!" : "!"}`
+          : leadType === "parceiro"
+          ? "Lead e contacto de parceiro criados!"
+          : "Lead e contacto criados!"
       });
 
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
