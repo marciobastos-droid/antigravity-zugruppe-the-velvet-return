@@ -8,7 +8,6 @@ import {
   ArrowDownLeft, ArrowUpRight, Clock, Calendar
 } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 export default function CommunicationHistory({ contactId }) {
   const { data: communications = [], isLoading } = useQuery({
@@ -130,7 +129,7 @@ export default function CommunicationHistory({ contactId }) {
                   <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {format(new Date(comm.communication_date || comm.created_date), "d MMM yyyy, HH:mm", { locale: ptBR })}
+                      {format(new Date(comm.communication_date || comm.created_date), "dd/MM/yyyy, HH:mm")}
                     </span>
                     {comm.duration_minutes > 0 && (
                       <span className="flex items-center gap-1">
@@ -143,7 +142,7 @@ export default function CommunicationHistory({ contactId }) {
                   {comm.follow_up_required && comm.follow_up_date && (
                     <div className="mt-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
                       <p className="text-xs font-medium text-amber-800">
-                        📅 Follow-up: {format(new Date(comm.follow_up_date), "d MMM yyyy, HH:mm", { locale: ptBR })}
+                        📅 Follow-up: {format(new Date(comm.follow_up_date), "dd/MM/yyyy, HH:mm")}
                       </p>
                       {comm.follow_up_notes && (
                         <p className="text-xs text-amber-700 mt-1">{comm.follow_up_notes}</p>
