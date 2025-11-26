@@ -499,7 +499,13 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
                           <p>{result.data.partnership_type}</p>
                         </div>
                       )}
-                    </div>
+                      {result.data.specialization && (
+                        <div>
+                          <p className="text-xs text-slate-500">Especialização</p>
+                          <p>{result.data.specialization}</p>
+                        </div>
+                      )}
+                      </div>
                     {result.requirementsExtracted && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
                         <p className="text-xs text-green-600 font-medium">
