@@ -199,10 +199,18 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-5 h-5 text-amber-600" />
                 <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
-                <span className="text-sm text-amber-600">(2 ferramentas)</span>
+                <span className="text-sm text-amber-600">(3 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === "autoMatching" ? "default" : "outline"}
+                  onClick={() => setActiveTab("autoMatching")}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Auto-Matching IA
+                </Button>
                 <Button
                   variant={activeTab === "marketIntelligence" ? "default" : "outline"}
                   onClick={() => setActiveTab("marketIntelligence")}
