@@ -86,7 +86,10 @@ export default function ClientDatabase() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.ClientContact.create(data),
+    mutationFn: async (data) => {
+      const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
+      return base44.entities.ClientContact.create({ ...data, ref_id: refData.ref_id });
+    },
     onSuccess: () => {
       toast.success("Contacto criado");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
