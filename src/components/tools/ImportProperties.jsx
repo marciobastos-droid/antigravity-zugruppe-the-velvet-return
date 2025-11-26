@@ -404,9 +404,12 @@ export default function ImportProperties() {
           address: p.address || p.city,
           state: p.state || p.city,
           source_url: 'CSV Import',
-          is_partner_property: isPartnerProperty,
-          partner_id: isPartnerProperty ? selectedPartner?.id : undefined,
-          partner_name: isPartnerProperty ? selectedPartner?.buyer_name : undefined
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.buyer_name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
         }))
       );
       
