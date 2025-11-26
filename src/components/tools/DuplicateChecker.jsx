@@ -994,16 +994,16 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
 
       {/* Action Bar */}
       {selectedForDeletion.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                <span className="font-medium text-red-900">
-                  {selectedForDeletion.length} imóvel(is) selecionado(s) para eliminação
+                <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-900">
+                  {selectedForDeletion.length} imóvel(is) selecionado(s)
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -1011,14 +1011,33 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                 >
                   Cancelar
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={deleteSelected}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar Selecionados
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreHorizontal className="w-4 h-4 mr-2" />
+                      Ações em Massa
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={markPropertiesAsNotDuplicate}>
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Marcar como Não Duplicado
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={addPropertiesToIgnoreList}>
+                      <ListX className="w-4 h-4 mr-2" />
+                      Adicionar à Lista de Ignorados
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={schedulePropertiesForReview}>
+                      <Clock className="w-4 h-4 mr-2" />
+                      Agendar Revisão (7 dias)
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={deleteSelected} className="text-red-600">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar Selecionados
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardContent>
