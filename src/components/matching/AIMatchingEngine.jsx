@@ -786,8 +786,8 @@ Retorna análise detalhada em JSON.`,
           {showMatchDetails && (
             <div className="space-y-4">
               {/* Property Summary */}
-              <div className="flex gap-4 p-4 bg-slate-50 rounded-lg">
-                <div className="w-24 h-20 rounded-lg overflow-hidden bg-slate-200">
+              <div className="flex gap-6 p-6 bg-slate-50 rounded-xl">
+                <div className="w-48 h-36 rounded-xl overflow-hidden bg-slate-200 flex-shrink-0">
                   {showMatchDetails.property.images?.[0] ? (
                     <img 
                       src={showMatchDetails.property.images[0]} 
@@ -796,18 +796,43 @@ Retorna análise detalhada em JSON.`,
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Building2 className="w-8 h-8 text-slate-400" />
+                      <Building2 className="w-12 h-12 text-slate-400" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900">{showMatchDetails.property.title}</h3>
-                  <p className="text-sm text-slate-600">
-                    {showMatchDetails.property.city} • €{showMatchDetails.property.price?.toLocaleString()}
+                  <h3 className="text-xl font-bold text-slate-900">{showMatchDetails.property.title}</h3>
+                  <p className="text-base text-slate-600 mt-1">
+                    <MapPin className="w-4 h-4 inline mr-1" />
+                    {showMatchDetails.property.city}, {showMatchDetails.property.state}
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="text-2xl font-bold text-indigo-600">{showMatchDetails.aiScore}%</div>
-                    <Badge className={getCompatibilityColor(showMatchDetails.compatibilityLevel)}>
+                  <p className="text-2xl font-bold text-slate-900 mt-2">
+                    €{showMatchDetails.property.price?.toLocaleString()}
+                    {showMatchDetails.property.listing_type === 'rent' && <span className="text-sm font-normal text-slate-500">/mês</span>}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 text-sm text-slate-600">
+                    {showMatchDetails.property.bedrooms > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Bed className="w-4 h-4" />
+                        T{showMatchDetails.property.bedrooms}
+                      </span>
+                    )}
+                    {showMatchDetails.property.bathrooms > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Bath className="w-4 h-4" />
+                        {showMatchDetails.property.bathrooms} WC
+                      </span>
+                    )}
+                    {(showMatchDetails.property.useful_area || showMatchDetails.property.square_feet) > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Maximize className="w-4 h-4" />
+                        {showMatchDetails.property.useful_area || showMatchDetails.property.square_feet}m²
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-4">
+                    <div className="text-3xl font-bold text-indigo-600">{showMatchDetails.aiScore}%</div>
+                    <Badge className={`text-sm px-3 py-1 ${getCompatibilityColor(showMatchDetails.compatibilityLevel)}`}>
                       {getCompatibilityLabel(showMatchDetails.compatibilityLevel)}
                     </Badge>
                   </div>
