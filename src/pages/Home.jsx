@@ -47,7 +47,7 @@ export default function Home() {
     path: "CRMAdvanced"
   },
   {
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop",
     title: "Ferramentas",
     path: "Tools"
   }];
