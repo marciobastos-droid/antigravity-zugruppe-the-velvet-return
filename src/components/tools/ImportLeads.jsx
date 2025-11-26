@@ -42,15 +42,31 @@ export default function ImportLeads() {
       
       if (leadType === "comprador") {
         promptAddition = `
-- budget: Orçamento (número)
-- property_type_interest: Tipo de imóvel
-- bedrooms_min: Quartos mínimos
-- locations: Array de localizações`;
+- budget_min: Orçamento mínimo (número)
+- budget_max: Orçamento máximo (número)
+- property_types: Array de tipos de imóvel (house, apartment, townhouse, condo, land, commercial)
+- listing_type: Tipo de negócio (sale, rent, both)
+- bedrooms_min: Quartos mínimos (número)
+- bedrooms_max: Quartos máximos (número)
+- bathrooms_min: Casas de banho mínimas (número)
+- area_min: Área mínima em m² (número)
+- area_max: Área máxima em m² (número)
+- locations: Array de localizações/cidades de interesse
+- amenities: Array de comodidades desejadas (garagem, piscina, varanda, elevador, etc)
+- additional_notes: Notas adicionais sobre requisitos`;
         schemaAddition = {
-          budget: { type: "number" },
-          property_type_interest: { type: "string" },
+          budget_min: { type: "number" },
+          budget_max: { type: "number" },
+          property_types: { type: "array", items: { type: "string" } },
+          listing_type: { type: "string" },
           bedrooms_min: { type: "number" },
-          locations: { type: "array", items: { type: "string" } }
+          bedrooms_max: { type: "number" },
+          bathrooms_min: { type: "number" },
+          area_min: { type: "number" },
+          area_max: { type: "number" },
+          locations: { type: "array", items: { type: "string" } },
+          amenities: { type: "array", items: { type: "string" } },
+          additional_notes: { type: "string" }
         };
       } else if (leadType === "vendedor") {
         promptAddition = `- property_to_sell: Descrição do imóvel a vender`;
@@ -58,10 +74,14 @@ export default function ImportLeads() {
       } else {
         promptAddition = `
 - company_name: Nome da empresa
-- partnership_type: Tipo de parceria`;
+- partnership_type: Tipo de parceria (Angariador, Construtor, Investidor, Mediador, etc)
+- specialization: Especialização ou área de atuação
+- locations: Localizações onde atua`;
         schemaAddition = {
           company_name: { type: "string" },
-          partnership_type: { type: "string" }
+          partnership_type: { type: "string" },
+          specialization: { type: "string" },
+          locations: { type: "array", items: { type: "string" } }
         };
       }
       
