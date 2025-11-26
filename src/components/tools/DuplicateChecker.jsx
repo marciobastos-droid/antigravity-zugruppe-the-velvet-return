@@ -1614,6 +1614,23 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
               </Card>
               </React.Fragment>
               )}
+
+      {/* Data Enrichment Dialog */}
+      {enrichmentRecord && (
+        <DataEnrichment
+          type={enrichmentType}
+          record={enrichmentRecord}
+          open={enrichmentOpen}
+          onOpenChange={setEnrichmentOpen}
+          onEnriched={() => {
+            if (enrichmentType === "property") {
+              refetchProperties();
+            } else {
+              refetchContacts();
+            }
+          }}
+        />
+      )}
               </div>
               );
               }
