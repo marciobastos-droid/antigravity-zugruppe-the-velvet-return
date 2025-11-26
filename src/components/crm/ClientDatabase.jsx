@@ -998,7 +998,7 @@ export default function ClientDatabase() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {getClientOpportunities(selectedClient.id, selectedClient.email).map((opp) => {
+                    {getClientOpportunities(selectedClient).map((opp) => {
                       const statusConfig = {
                         new: { label: 'Novo', color: 'bg-blue-100 text-blue-800' },
                         contacted: { label: 'Contactado', color: 'bg-amber-100 text-amber-800' },
