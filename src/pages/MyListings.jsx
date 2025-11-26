@@ -234,22 +234,43 @@ export default function MyListings() {
     );
   }
 
+  const [activeTab, setActiveTab] = React.useState("properties");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-slate-900">Os Meus Anúncios</h1>
-            <p className="text-slate-600 mt-2">Gerir os seus anúncios de imóveis</p>
+            <p className="text-slate-600 mt-2">Gerir os seus anúncios de imóveis e empreendimentos</p>
           </div>
-          <Link to={createPageUrl("AddListing")}>
-            <Button className="bg-slate-900 hover:bg-slate-800">
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Anúncio
-            </Button>
-          </Link>
+          {activeTab === "properties" && (
+            <Link to={createPageUrl("AddListing")}>
+              <Button className="bg-slate-900 hover:bg-slate-800">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Anúncio
+              </Button>
+            </Link>
+          )}
         </div>
 
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="properties" className="flex items-center gap-2">
+              <Eye className="w-4 h-4" />
+              Imóveis ({properties.length})
+            </TabsTrigger>
+            <TabsTrigger value="developments" className="flex items-center gap-2">
+              <Building2 className="w-4 h-4" />
+              Empreendimentos
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {activeTab === "developments" ? (
+          <DevelopmentsTab />
+        ) : (
+        <>
         {/* Advanced Filters */}
         <Card className="mb-6">
           <CardContent className="p-6">
