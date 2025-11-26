@@ -991,7 +991,7 @@ export default function ClientDatabase() {
               </TabsContent>
 
               <TabsContent value="opportunities" className="mt-4">
-                {getClientOpportunities(selectedClient.id, selectedClient.email).length === 0 ? (
+                {getClientOpportunities(selectedClient).length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
                     <DollarSign className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>Nenhuma oportunidade associada</p>
