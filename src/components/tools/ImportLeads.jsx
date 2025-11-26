@@ -293,13 +293,14 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         });
       }
 
-      const requirementsExtracted = (leadType === "comprador" && (
+      const requirementsExtracted = (
         extracted.budget_min || extracted.budget_max || 
         extracted.property_types?.length || extracted.locations?.length ||
-        extracted.bedrooms_min || extracted.area_min
-      )) || (leadType === "parceiro" && (
+        extracted.bedrooms_min || extracted.area_min ||
+        extracted.amenities?.length
+      ) || (leadType === "parceiro" && (
         extracted.partnership_type || extracted.company_name || 
-        extracted.specialization || extracted.locations?.length
+        extracted.specialization
       ));
 
       setResult({
