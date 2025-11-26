@@ -22,6 +22,7 @@ import ListingOptimizer from "../components/tools/ListingOptimizer";
 import EmailSender from "../components/tools/EmailSender";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
 import DuplicateChecker from "../components/tools/DuplicateChecker";
+import AIMatchingEngine from "../components/matching/AIMatchingEngine";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
