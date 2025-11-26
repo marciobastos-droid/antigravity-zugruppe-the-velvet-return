@@ -763,60 +763,80 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
             Verificador de Duplicados com IA
           </CardTitle>
           <p className="text-sm text-slate-600">
-            Analisa automaticamente a base de dados para encontrar imóveis duplicados usando inteligência artificial.
+            Analisa automaticamente a base de dados para encontrar imóveis e contactos duplicados.
           </p>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-slate-900">{properties.length}</div>
-                <div className="text-xs text-slate-600">Total de Imóveis</div>
-              </div>
-              {lastAnalysis && (
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">{duplicateGroups.length}</div>
-                  <div className="text-xs text-slate-600">Grupos Duplicados</div>
-                </div>
-              )}
-            </div>
-            
-            <Button
-              onClick={analyzeDuplicates}
-              disabled={analyzing || properties.length === 0}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {analyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  A analisar...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  Analisar Duplicados
-                </>
-              )}
-            </Button>
-          </div>
-
-          {analyzing && (
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-600">{progressText}</span>
-                <span className="font-medium">{progress}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-          )}
-
-          {lastAnalysis && (
-            <p className="text-xs text-slate-500 mt-4">
-              Última análise: {lastAnalysis.toLocaleString('pt-PT')}
-            </p>
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="properties" className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Imóveis ({properties.length})
+              </TabsTrigger>
+              <TabsTrigger value="contacts" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Contactos ({contacts.length})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </CardContent>
       </Card>
+
+      {activeTab === "properties" && (
+        <>
+          {/* Properties Analysis Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-slate-900">{properties.length}</div>
+                    <div className="text-xs text-slate-600">Total de Imóveis</div>
+                  </div>
+                  {lastAnalysis && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-purple-600">{duplicateGroups.length}</div>
+                      <div className="text-xs text-slate-600">Grupos Duplicados</div>
+                    </div>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={analyzeDuplicates}
+                  disabled={analyzing || properties.length === 0}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A analisar...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Analisar Imóveis
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {analyzing && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">{progressText}</span>
+                    <span className="font-medium">{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
+              )}
+
+              {lastAnalysis && (
+                <p className="text-xs text-slate-500 mt-4">
+                  Última análise: {lastAnalysis.toLocaleString('pt-PT')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
       {/* Action Bar */}
       {selectedForDeletion.length > 0 && (
