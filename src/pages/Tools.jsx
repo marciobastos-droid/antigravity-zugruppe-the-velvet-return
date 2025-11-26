@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import VideoMaker from "../components/tools/VideoMaker";
@@ -21,6 +21,7 @@ import MarketIntelligence from "../components/tools/MarketIntelligence";
 import ListingOptimizer from "../components/tools/ListingOptimizer";
 import EmailSender from "../components/tools/EmailSender";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
+import DuplicateChecker from "../components/tools/DuplicateChecker";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -144,10 +145,18 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-green-600" />
                 <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
-                <span className="text-sm text-green-600">(5 ferramentas)</span>
+                <span className="text-sm text-green-600">(6 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === "duplicateChecker" ? "default" : "outline"}
+                  onClick={() => setActiveTab("duplicateChecker")}
+                  className="flex items-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  Verificar Duplicados
+                </Button>
                 <Button
                   variant={activeTab === "emailSender" ? "default" : "outline"}
                   onClick={() => setActiveTab("emailSender")}
@@ -261,6 +270,7 @@ export default function Tools() {
           </Card>
         </div>
 
+        {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
         {activeTab === "marketIntelligence" && <MarketIntelligence />}
         {activeTab === "emailSender" && <EmailSender />}
