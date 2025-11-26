@@ -19,7 +19,7 @@ const propertySchema = {
   properties: {
     title: { type: "string" },
     description: { type: "string" },
-    property_type: { type: "string", enum: ["house", "apartment", "condo", "townhouse", "land", "commercial"] },
+    property_type: { type: "string", enum: ["apartment", "house", "land", "building", "farm", "store", "warehouse", "office"] },
     listing_type: { type: "string", enum: ["sale", "rent"] },
     price: { type: "number" },
     bedrooms: { type: "number" },
@@ -77,14 +77,15 @@ DESCRIÇÃO: ${description || 'Sem descrição'}
 PREÇO: €${price || 0}
 
 INSTRUÇÕES:
-1. property_type - Tipo de imóvel:
-   - "house" = Moradia, vivenda, casa independente
+1. property_type - Natureza do imóvel:
    - "apartment" = Apartamento, andar, flat
-   - "condo" = Condomínio fechado
-   - "townhouse" = Moradia geminada, em banda
+   - "house" = Moradia, vivenda, casa independente
    - "land" = Terreno, lote
-   - "commercial" = Loja, escritório, armazém, comercial
    - "building" = Prédio inteiro
+   - "farm" = Quinta, herdade, propriedade rural
+   - "store" = Loja, espaço comercial
+   - "warehouse" = Armazém, pavilhão industrial
+   - "office" = Escritório, gabinete
 
 2. listing_type - Tipo de negócio:
    - "sale" = Venda (preços tipicamente > €50.000)
@@ -94,7 +95,7 @@ Analisa o contexto do título, descrição e preço para determinar corretamente
       response_json_schema: {
         type: "object",
         properties: {
-          property_type: { type: "string", enum: ["house", "apartment", "condo", "townhouse", "land", "commercial", "building"] },
+          property_type: { type: "string", enum: ["apartment", "house", "land", "building", "farm", "store", "warehouse", "office"] },
           listing_type: { type: "string", enum: ["sale", "rent"] }
         }
       }
