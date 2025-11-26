@@ -28,7 +28,6 @@ export default function Layout({ children, currentPageName }) {
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard" },
     { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
-    { name: "Empreendimentos", path: createPageUrl("Developments"), icon: Building2, id: "nav-developments" },
     { name: "Oportunidades", path: createPageUrl("Opportunities"), icon: MessageSquare, id: "nav-opportunities" },
     { name: "Contatos", path: createPageUrl("ClientPreferences"), icon: Users, id: "nav-clients" },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
