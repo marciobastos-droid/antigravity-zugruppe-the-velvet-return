@@ -14,7 +14,8 @@ import {
   UserPlus, Search, Phone, Mail, MapPin, Building2, 
   Calendar, MessageSquare, Edit, Trash2, Eye, X, 
   Tag, DollarSign, Clock, User, Filter, Home, Target,
-  TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone
+  TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
+  Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
