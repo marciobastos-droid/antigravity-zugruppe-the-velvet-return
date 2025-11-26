@@ -289,8 +289,11 @@ export default function DuplicateChecker() {
       setProgressText("A analisar características dos imóveis...");
       setProgress(20);
 
+      // Filter out ignored properties
+      const activeProperties = properties.filter(p => !ignoredPropertyIds.includes(p.id));
+
       // Step 1: Find potential duplicate pairs using multiple criteria
-      const pairs = findPotentialDuplicatePairs(properties);
+      const pairs = findPotentialDuplicatePairs(activeProperties);
       
       setProgress(40);
       setProgressText(`Encontrados ${pairs.length} pares potenciais...`);
