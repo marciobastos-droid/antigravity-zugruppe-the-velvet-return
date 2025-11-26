@@ -297,7 +297,9 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         }
         contactId = existingContact.id;
       } else {
-        // Create new ClientContact
+        // Create new ClientContact with ref_id
+        const { data: contactRefData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
+        contactData.ref_id = contactRefData.ref_id;
         const createdContact = await base44.entities.ClientContact.create(contactData);
         contactId = createdContact?.id;
       }
