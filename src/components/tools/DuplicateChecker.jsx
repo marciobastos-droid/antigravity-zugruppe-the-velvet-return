@@ -1330,10 +1330,10 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                 <li>• Antes de eliminar, verifique se os contactos têm oportunidades ou histórico associado</li>
                 <li>• Considere mesclar os dados manualmente antes de eliminar duplicados</li>
               </ul>
-            </CardContent>
-          </Card>
-        </>
-      )}
-    </div>
-  );
-}
+              </CardContent>
+              </Card>
+              </React.Fragment>
+              )}
+              </div>
+              );
+              }
