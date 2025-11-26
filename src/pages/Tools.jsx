@@ -294,6 +294,7 @@ export default function Tools() {
         </div>
 
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
+        {activeTab === "aiMatching" && <AIMatchingEngine />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
         {activeTab === "marketIntelligence" && <MarketIntelligence />}
         {activeTab === "emailSender" && <EmailSender />}
