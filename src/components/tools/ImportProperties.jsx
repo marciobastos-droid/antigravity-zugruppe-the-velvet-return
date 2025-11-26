@@ -193,8 +193,10 @@ export default function ImportProperties() {
   const [progress, setProgress] = React.useState("");
   const [results, setResults] = React.useState(null);
   const [validationDetails, setValidationDetails] = React.useState(null);
-  const [isPartnerProperty, setIsPartnerProperty] = React.useState(false);
+  const [propertyOwnership, setPropertyOwnership] = React.useState("own"); // "own", "partner", "private"
   const [selectedPartner, setSelectedPartner] = React.useState(null);
+  const [privateOwnerName, setPrivateOwnerName] = React.useState("");
+  const [privateOwnerPhone, setPrivateOwnerPhone] = React.useState("");
   
   const { data: partners = [] } = useQuery({
     queryKey: ['partners'],
