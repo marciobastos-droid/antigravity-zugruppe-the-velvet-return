@@ -990,26 +990,72 @@ export default function ClientDatabase() {
               </TabsContent>
 
               <TabsContent value="opportunities" className="mt-4">
-                {getClientOpportunities(selectedClient.email).length === 0 ? (
+                {getClientOpportunities(selectedClient.id, selectedClient.email).length === 0 ? (
                   <div className="text-center py-8 text-slate-500">
                     <DollarSign className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>Nenhuma oportunidade associada</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {getClientOpportunities(selectedClient.email).map((opp) => (
-                      <Card key={opp.id}>
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium text-slate-900">{opp.property_title || "Oportunidade"}</h4>
-                              <p className="text-sm text-slate-600">{opp.message?.substring(0, 100)}...</p>
+                    {getClientOpportunities(selectedClient.id, selectedClient.email).map((opp) => {
+                      const statusConfig = {
+                        new: { label: 'Novo', color: 'bg-blue-100 text-blue-800' },
+                        contacted: { label: 'Contactado', color: 'bg-amber-100 text-amber-800' },
+                        scheduled: { label: 'Agendado', color: 'bg-purple-100 text-purple-800' },
+                        closed: { label: 'Fechado', color: 'bg-green-100 text-green-800' }
+                      };
+                      const config = statusConfig[opp.status] || statusConfig.new;
+                      
+                      return (
+                        <Card key={opp.id} className="hover:shadow-sm transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">
+                                  {opp.lead_type === 'comprador' ? '🏠' : 
+                                   opp.lead_type === 'vendedor' ? '🏷️' : '🤝'}
+                                </span>
+                                <div>
+                                  <h4 className="font-medium text-slate-900">
+                                    {opp.property_title || (opp.lead_type === 'comprador' ? 'Comprador' : 
+                                     opp.lead_type === 'vendedor' ? 'Vendedor' : 'Parceiro')}
+                                  </h4>
+                                  <p className="text-xs text-slate-500">
+                                    Criado em {format(new Date(opp.created_date), "dd/MM/yyyy")}
+                                  </p>
+                                </div>
+                              </div>
+                              <Badge className={config.color}>{config.label}</Badge>
                             </div>
-                            <Badge>{opp.status}</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            
+                            {opp.message && (
+                              <p className="text-sm text-slate-600 mb-2 line-clamp-2">{opp.message}</p>
+                            )}
+                            
+                            <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                              {opp.budget > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <Euro className="w-3 h-3" />
+                                  €{opp.budget.toLocaleString()}
+                                </span>
+                              )}
+                              {opp.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {opp.location}
+                                </span>
+                              )}
+                              {opp.follow_ups?.length > 0 && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3" />
+                                  {opp.follow_ups.length} follow-up{opp.follow_ups.length !== 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
