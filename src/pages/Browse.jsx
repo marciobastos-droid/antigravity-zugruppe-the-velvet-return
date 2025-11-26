@@ -102,14 +102,13 @@ export default function Browse() {
   }, [listingType, propertyType, bedrooms, city, priceRange, sortBy]);
 
   const propertyTypeLabels = {
-    apartment: "Apartamento",
     house: "Moradia",
-    land: "Terreno",
+    apartment: "Apartamento",
+    condo: "Condomínio",
+    townhouse: "Casa Geminada",
     building: "Prédio",
-    farm: "Quinta/Herdade",
-    store: "Loja",
-    warehouse: "Armazém",
-    office: "Escritório"
+    land: "Terreno",
+    commercial: "Comercial"
   };
 
   if (isLoading) {
@@ -470,8 +469,8 @@ function PropertyCardCompact({ property, featured }) {
   const images = property.images?.length > 0 ? property.images : [];
 
   const propertyTypeLabels = {
-    apartment: "Apartamento", house: "Moradia", land: "Terreno",
-    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
+    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
+    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
   };
 
   return (
@@ -576,8 +575,8 @@ function PropertyCardList({ property }) {
   const image = property.images?.[0];
 
   const propertyTypeLabels = {
-    apartment: "Apartamento", house: "Moradia", land: "Terreno",
-    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
+    house: "Moradia", apartment: "Apartamento", condo: "Condomínio",
+    townhouse: "Casa Geminada", building: "Prédio", land: "Terreno", commercial: "Comercial"
   };
 
   return (
