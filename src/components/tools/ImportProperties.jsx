@@ -495,9 +495,13 @@ export default function ImportProperties() {
         })
       );
 
-      const created = await base44.entities.Property.bulkCreate(
-        propertiesWithTags.map(p => ({
+      // Generate sequential ref_ids for all properties
+      const propertiesWithRefIds = [];
+      for (const p of propertiesWithTags) {
+        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
+        propertiesWithRefIds.push({
           ...p,
+          ref_id: refData.ref_id,
           status: "active",
           address: p.address || p.city,
           state: p.state || p.city,
@@ -507,8 +511,9 @@ export default function ImportProperties() {
                         propertyOwnership === "private" ? privateOwnerName : undefined,
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-        }))
-      );
+        });
+      }
+      const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
       
       setResults({
         success: true,
