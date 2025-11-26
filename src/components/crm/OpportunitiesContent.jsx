@@ -13,6 +13,7 @@ import PipelineView from "./PipelineView";
 import OpportunitiesDashboard from "../opportunities/OpportunitiesDashboard";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
+import OpportunitiesTable from "./OpportunitiesTable";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
@@ -540,17 +541,17 @@ export default function OpportunitiesContent() {
       )}
 
       {viewMode === "table" && (
-        <LeadsTable 
-          leads={filteredOpportunities}
-          onLeadClick={setSelectedLead}
-          onToggleImportant={handleToggleImportant}
-          onDelete={handleDelete}
-          onAssign={handleAssign}
+        <OpportunitiesTable 
+          opportunities={filteredOpportunities}
           users={users}
-          profiles={profiles}
-          selectedLeads={selectedLeads}
+          selectedOpportunities={selectedLeads}
           onToggleSelect={toggleSelectLead}
           onToggleSelectAll={toggleSelectAll}
+          onOpportunityClick={setSelectedLead}
+          onEdit={handleEditOpportunity}
+          onDelete={handleDelete}
+          onToggleImportant={handleToggleImportant}
+          onAssign={handleAssign}
         />
       )}
 
