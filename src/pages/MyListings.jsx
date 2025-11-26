@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2 } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
+import PropertiesTable from "../components/listings/PropertiesTable";
 import { debounce } from "lodash";
 import DevelopmentsTab from "../components/developments/DevelopmentsTab";
 
@@ -33,6 +34,7 @@ export default function MyListings() {
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
+  const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
   
   const ITEMS_PER_PAGE = 10;
 
@@ -488,16 +490,54 @@ export default function MyListings() {
           </Card>
         ) : (
           <>
+            {/* View Mode Toggle */}
             <div className="mb-4 flex justify-between items-center">
-              <Button variant="outline" size="sm" onClick={toggleSelectAll}>
-                {selectedProperties.length === filteredProperties.length ? 'Desselecionar' : 'Selecionar'} Todos
-              </Button>
-              {totalPages > 1 && (
-                <p className="text-sm text-slate-600">
-                  Página {currentPage} de {totalPages}
-                </p>
-              )}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+                  {selectedProperties.length === filteredProperties.length ? 'Desselecionar' : 'Selecionar'} Todos
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex border rounded-lg overflow-hidden">
+                  <Button
+                    variant={viewMode === "table" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("table")}
+                    className="rounded-none"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "cards" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("cards")}
+                    className="rounded-none"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </Button>
+                </div>
+                {totalPages > 1 && viewMode === "cards" && (
+                  <p className="text-sm text-slate-600">
+                    Página {currentPage} de {totalPages}
+                  </p>
+                )}
+              </div>
             </div>
+
+            {viewMode === "table" ? (
+              <PropertiesTable
+                properties={filteredProperties}
+                selectedProperties={selectedProperties}
+                onToggleSelect={toggleSelect}
+                onToggleSelectAll={toggleSelectAll}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingProperty}
+                onDelete={handleDelete}
+                onToggleFeatured={handleToggleFeatured}
+                onDuplicate={handleDuplicate}
+              />
+            ) : (
+            <>
             <div className="grid grid-cols-1 gap-6">
               {paginatedProperties.map((property) => (
                 <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -747,6 +787,8 @@ export default function MyListings() {
                   </PaginationContent>
                 </Pagination>
               </div>
+            )}
+            </>
             )}
           </>
         )}
