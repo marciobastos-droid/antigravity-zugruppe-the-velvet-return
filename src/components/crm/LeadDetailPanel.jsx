@@ -210,8 +210,17 @@ Extrai:
             disabled={convertToContactMutation.isPending}
             className="text-green-600 border-green-300 hover:bg-green-50"
           >
-            <UserPlus className="w-4 h-4 mr-1" />
-            {convertToContactMutation.isPending ? "A converter..." : "Converter em Contacto"}
+            {convertToContactMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                A analisar com IA...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-1" />
+                Converter com IA
+              </>
+            )}
           </Button>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
