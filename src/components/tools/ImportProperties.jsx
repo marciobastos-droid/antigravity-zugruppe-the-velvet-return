@@ -188,7 +188,7 @@ export default function ImportProperties() {
   const [file, setFile] = React.useState(null);
   const [fileType, setFileType] = React.useState(null);
   const [url, setUrl] = React.useState("");
-  const [textInput, setTextInput] = React.useState("");
+
   const [importing, setImporting] = React.useState(false);
   const [progress, setProgress] = React.useState("");
   const [results, setResults] = React.useState(null);
