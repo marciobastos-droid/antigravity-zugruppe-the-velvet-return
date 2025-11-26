@@ -243,7 +243,8 @@ Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition
 
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       queryClient.invalidateQueries({ queryKey: ['buyerProfiles'] });
-      toast.success("Lead criado!");
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      toast.success("Lead e contacto criados!");
 
     } catch (error) {
       setResult({
