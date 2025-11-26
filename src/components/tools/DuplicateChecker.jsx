@@ -1290,23 +1290,35 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                   )}
                 </div>
                 
-                <Button
-                  onClick={analyzeContactDuplicates}
-                  disabled={analyzingContacts || contacts.length === 0}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {analyzingContacts ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      A analisar...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Analisar Contactos
-                    </>
+                <div className="flex gap-2">
+                  {(ignoredContactIds.length > 0 || scheduledContactReviews.length > 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearContactIgnoreList}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Limpar Listas
+                    </Button>
                   )}
-                </Button>
+                  <Button
+                    onClick={analyzeContactDuplicates}
+                    disabled={analyzingContacts || contacts.length === 0}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {analyzingContacts ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        A analisar...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4 mr-2" />
+                        Analisar Contactos
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {analyzingContacts && (
