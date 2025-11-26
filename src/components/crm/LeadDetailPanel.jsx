@@ -117,9 +117,21 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
              lead.lead_type === 'parceiro_vendedor' ? 'Parceiro Vendedor' : 'Parceiro'}
           </Badge>
         </div>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => convertToContactMutation.mutate()}
+            disabled={convertToContactMutation.isPending}
+            className="text-green-600 border-green-300 hover:bg-green-50"
+          >
+            <UserPlus className="w-4 h-4 mr-1" />
+            {convertToContactMutation.isPending ? "A converter..." : "Converter em Contacto"}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
