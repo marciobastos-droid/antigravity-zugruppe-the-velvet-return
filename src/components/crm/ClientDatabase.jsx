@@ -633,7 +633,7 @@ export default function ClientDatabase() {
         ) : (
           filteredClients.map((client) => {
             const clientComms = getClientCommunications(client.id);
-            const clientOpps = getClientOpportunities(client.id, client.email);
+            const clientOpps = getClientOpportunities(client);
             const matchScore = calculateMatchingScore(client);
             const req = client.property_requirements;
             const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
