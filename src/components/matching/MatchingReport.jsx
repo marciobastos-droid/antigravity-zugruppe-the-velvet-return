@@ -283,7 +283,7 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
     setSaving(false);
   };
 
-  const generateReport = async () => {
+  const generateReport = async (format = 'pdf') => {
     setGenerating(true);
     try {
       const selectedMatches = matches.filter(m => 
@@ -296,8 +296,185 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
         return;
       }
 
-      // Generate HTML report
-      const reportHtml = `
+      // Corporate Identity Colors
+      const brandColors = {
+        primary: '#0f172a',      // Slate 900
+        accent: '#d4af37',       // Gold
+        secondary: '#1e293b',    // Slate 800
+        lightBg: '#f8fafc',
+        text: '#334155'
+      };
+
+      const logoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg";
+
+      if (format === 'pdf') {
+        // Dynamic import jsPDF
+        const { jsPDF } = await import('jspdf');
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        let yPos = 20;
+
+        // Helper function to add new page if needed
+        const checkNewPage = (neededHeight) => {
+          if (yPos + neededHeight > pageHeight - 30) {
+            doc.addPage();
+            yPos = 20;
+            return true;
+          }
+          return false;
+        };
+
+        // Header with logo
+        try {
+          const img = new Image();
+          img.crossOrigin = 'Anonymous';
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = logoUrl;
+          });
+          doc.addImage(img, 'JPEG', margin, yPos, 40, 15);
+        } catch (e) {
+          // If logo fails, just add text
+          doc.setFontSize(16);
+          doc.setTextColor(brandColors.primary);
+          doc.text('ZUGRUPPE', margin, yPos + 10);
+        }
+
+        // Header line
+        doc.setDrawColor(brandColors.accent);
+        doc.setLineWidth(1);
+        doc.line(margin, yPos + 20, pageWidth - margin, yPos + 20);
+        yPos += 30;
+
+        // Title
+        doc.setFontSize(22);
+        doc.setTextColor(brandColors.primary);
+        doc.text('Relatório de Matching Imobiliário', margin, yPos);
+        yPos += 8;
+
+        doc.setFontSize(10);
+        doc.setTextColor(brandColors.text);
+        doc.text(`Gerado em ${moment().format('DD/MM/YYYY [às] HH:mm')}`, margin, yPos);
+        yPos += 15;
+
+        // Client Info Box
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 35, 3, 3, 'F');
+        
+        doc.setFontSize(14);
+        doc.setTextColor(brandColors.primary);
+        doc.text(contact.full_name, margin + 5, yPos + 10);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(brandColors.text);
+        let clientY = yPos + 18;
+        if (contact.email) {
+          doc.text(`Email: ${contact.email}`, margin + 5, clientY);
+          clientY += 6;
+        }
+        if (contact.phone) {
+          doc.text(`Telefone: ${contact.phone}`, margin + 5, clientY);
+        }
+        
+        // Requirements on right side
+        const req = contact.property_requirements;
+        if (req) {
+          let reqY = yPos + 10;
+          doc.setFontSize(9);
+          if (req.budget_max) {
+            doc.text(`Orçamento: até €${req.budget_max.toLocaleString()}`, pageWidth - margin - 60, reqY);
+            reqY += 5;
+          }
+          if (req.locations?.length) {
+            doc.text(`Localizações: ${req.locations.slice(0, 3).join(', ')}`, pageWidth - margin - 60, reqY);
+          }
+        }
+        
+        yPos += 45;
+
+        // Properties Section Title
+        doc.setFontSize(14);
+        doc.setTextColor(brandColors.primary);
+        doc.text(`Imóveis Recomendados (${selectedMatches.length})`, margin, yPos);
+        yPos += 10;
+
+        // Properties
+        for (let i = 0; i < selectedMatches.length; i++) {
+          const m = selectedMatches[i];
+          checkNewPage(55);
+
+          // Property card
+          doc.setDrawColor(226, 232, 240);
+          doc.setLineWidth(0.3);
+          doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 50, 2, 2, 'S');
+
+          // Score badge
+          const scoreX = pageWidth - margin - 25;
+          doc.setFillColor(brandColors.accent);
+          doc.roundedRect(scoreX, yPos + 5, 20, 10, 2, 2, 'F');
+          doc.setFontSize(10);
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${m.score}%`, scoreX + 10, yPos + 11.5, { align: 'center' });
+
+          // Property title
+          doc.setFontSize(12);
+          doc.setTextColor(brandColors.primary);
+          const title = `#${i + 1} - ${m.property.title}`;
+          doc.text(title.substring(0, 60) + (title.length > 60 ? '...' : ''), margin + 5, yPos + 10);
+
+          // Location
+          doc.setFontSize(9);
+          doc.setTextColor(brandColors.text);
+          doc.text(`${m.property.city || ''}, ${m.property.state || ''}`, margin + 5, yPos + 17);
+
+          // Details row
+          let detailsY = yPos + 25;
+          doc.setFontSize(10);
+          doc.text(`€${m.property.price?.toLocaleString() || 'N/A'}`, margin + 5, detailsY);
+          if (m.property.bedrooms) {
+            doc.text(`T${m.property.bedrooms}`, margin + 45, detailsY);
+          }
+          if (m.property.bathrooms) {
+            doc.text(`${m.property.bathrooms} WC`, margin + 60, detailsY);
+          }
+          if (m.property.useful_area || m.property.square_feet) {
+            doc.text(`${m.property.useful_area || m.property.square_feet}m²`, margin + 80, detailsY);
+          }
+
+          // Sales pitch
+          if (m.salesPitch) {
+            doc.setFillColor(240, 253, 244);
+            doc.roundedRect(margin + 5, yPos + 30, pageWidth - 2 * margin - 10, 15, 1, 1, 'F');
+            doc.setFontSize(8);
+            doc.setTextColor(34, 197, 94);
+            const pitch = m.salesPitch.substring(0, 120) + (m.salesPitch.length > 120 ? '...' : '');
+            doc.text(pitch, margin + 8, yPos + 38, { maxWidth: pageWidth - 2 * margin - 20 });
+          }
+
+          yPos += 55;
+        }
+
+        // Footer
+        checkNewPage(20);
+        doc.setDrawColor(brandColors.accent);
+        doc.setLineWidth(0.5);
+        doc.line(margin, pageHeight - 25, pageWidth - margin, pageHeight - 25);
+        
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Privileged Approach Unipessoal Lda | Relatório gerado automaticamente pelo sistema de Matching com IA', pageWidth / 2, pageHeight - 18, { align: 'center' });
+        doc.text(`© ${new Date().getFullYear()} Zugruppe - Todos os direitos reservados`, pageWidth / 2, pageHeight - 12, { align: 'center' });
+
+        // Save PDF
+        doc.save(`Matching_${contact.full_name.replace(/\s+/g, '_')}_${moment().format('YYYYMMDD')}.pdf`);
+        toast.success("PDF gerado com sucesso!");
+
+      } else {
+        // HTML format fallback
+        const reportHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -305,34 +482,34 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
   <title>Relatório de Matching - ${contact.full_name}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
-    .header { border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; }
-    .header h1 { margin: 0; color: #4f46e5; }
+    .header { border-bottom: 3px solid #d4af37; padding-bottom: 20px; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
+    .header img { height: 50px; }
+    .header h1 { margin: 0; color: #0f172a; }
     .header p { margin: 5px 0; color: #666; }
     .client-info { background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
     .client-info h2 { margin-top: 0; color: #1e293b; }
     .property { border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px; page-break-inside: avoid; }
     .property-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
     .property h3 { margin: 0; color: #1e293b; }
-    .score { background: #4f46e5; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+    .score { background: #d4af37; color: #0f172a; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
     .property-details { display: flex; gap: 20px; margin-bottom: 15px; color: #64748b; }
     .pitch { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; margin-top: 15px; }
-    .highlights { margin-top: 10px; }
-    .highlights span { background: #e0e7ff; color: #4338ca; padding: 3px 10px; border-radius: 4px; margin-right: 8px; font-size: 12px; }
-    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 12px; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #d4af37; text-align: center; color: #94a3b8; font-size: 12px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>Relatório de Matching Imobiliário</h1>
-    <p>Gerado em ${moment().format('DD/MM/YYYY HH:mm')}</p>
+    <img src="${logoUrl}" alt="Zugruppe" />
+    <div>
+      <h1>Relatório de Matching Imobiliário</h1>
+      <p>Gerado em ${moment().format('DD/MM/YYYY HH:mm')}</p>
+    </div>
   </div>
   
   <div class="client-info">
     <h2>${contact.full_name}</h2>
     <p><strong>Email:</strong> ${contact.email || 'N/A'}</p>
     <p><strong>Telefone:</strong> ${contact.phone || 'N/A'}</p>
-    ${contact.property_requirements?.budget_max ? `<p><strong>Orçamento:</strong> até €${contact.property_requirements.budget_max.toLocaleString()}</p>` : ''}
-    ${contact.property_requirements?.locations?.length ? `<p><strong>Localizações:</strong> ${contact.property_requirements.locations.join(', ')}</p>` : ''}
   </div>
 
   <h2>Imóveis Recomendados (${selectedMatches.length})</h2>
@@ -342,42 +519,40 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
       <div class="property-header">
         <div>
           <h3>#${idx + 1} - ${m.property.title}</h3>
-          <p style="color: #64748b; margin: 5px 0;">${m.property.address || ''} ${m.property.city}, ${m.property.state}</p>
+          <p style="color: #64748b; margin: 5px 0;">${m.property.city}, ${m.property.state}</p>
         </div>
         <div class="score">${m.score}%</div>
       </div>
       <div class="property-details">
-        <span>💰 €${m.property.price?.toLocaleString()}</span>
-        ${m.property.bedrooms ? `<span>🛏️ T${m.property.bedrooms}</span>` : ''}
-        ${m.property.bathrooms ? `<span>🚿 ${m.property.bathrooms} WC</span>` : ''}
-        ${m.property.useful_area || m.property.square_feet ? `<span>📐 ${m.property.useful_area || m.property.square_feet}m²</span>` : ''}
+        <span>€${m.property.price?.toLocaleString()}</span>
+        ${m.property.bedrooms ? `<span>T${m.property.bedrooms}</span>` : ''}
+        ${m.property.useful_area || m.property.square_feet ? `<span>${m.property.useful_area || m.property.square_feet}m²</span>` : ''}
       </div>
-      ${m.salesPitch ? `<div class="pitch"><strong>💡 Porque é ideal:</strong> ${m.salesPitch}</div>` : ''}
-      ${m.highlights?.length ? `<div class="highlights">${m.highlights.map(h => `<span>✓ ${h}</span>`).join('')}</div>` : ''}
+      ${m.salesPitch ? `<div class="pitch"><strong>Porque é ideal:</strong> ${m.salesPitch}</div>` : ''}
     </div>
   `).join('')}
 
   <div class="footer">
-    <p>Relatório gerado automaticamente pelo sistema de Matching com IA</p>
+    <p>Privileged Approach Unipessoal Lda</p>
+    <p>© ${new Date().getFullYear()} Zugruppe - Todos os direitos reservados</p>
   </div>
 </body>
-</html>
-      `;
+</html>`;
 
-      // Create blob and download
-      const blob = new Blob([reportHtml], { type: 'text/html' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Matching_${contact.full_name.replace(/\s+/g, '_')}_${moment().format('YYYYMMDD')}.html`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-
-      toast.success("Relatório gerado com sucesso!");
+        const blob = new Blob([reportHtml], { type: 'text/html' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Matching_${contact.full_name.replace(/\s+/g, '_')}_${moment().format('YYYYMMDD')}.html`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        toast.success("Relatório HTML gerado!");
+      }
 
     } catch (error) {
+      console.error("Error generating report:", error);
       toast.error("Erro ao gerar relatório");
     }
     setGenerating(false);
@@ -445,15 +620,16 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
                   )}
                 </Button>
                 <Button
-                  onClick={generateReport}
+                  onClick={() => generateReport('pdf')}
                   disabled={generating || selectedProperties.length === 0}
+                  className="bg-red-600 hover:bg-red-700"
                 >
                   {generating ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Gerar Relatório
+                      <Download className="w-4 h-4 mr-2" />
+                      Gerar PDF
                     </>
                   )}
                 </Button>
