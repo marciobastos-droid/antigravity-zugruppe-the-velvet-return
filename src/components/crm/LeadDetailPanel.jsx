@@ -2,9 +2,10 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus } from "lucide-react";
+import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -18,6 +19,7 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [newNote, setNewNote] = React.useState("");
   const [addingNote, setAddingNote] = React.useState(false);
   const [newFollowUp, setNewFollowUp] = React.useState({ type: "call", notes: "", date: "" });
+  const [propertyLocationFilter, setPropertyLocationFilter] = React.useState("");
   const [addingFollowUp, setAddingFollowUp] = React.useState(false);
 
   const convertToContactMutation = useMutation({
