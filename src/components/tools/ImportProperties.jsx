@@ -532,9 +532,12 @@ Retorna array de imóveis em JSON estruturado.`,
           address: v.property.address || v.property.city,
           state: v.property.state || v.property.city,
           source_url: 'Importação por Texto',
-          is_partner_property: isPartnerProperty,
-          partner_id: isPartnerProperty ? selectedPartner?.id : undefined,
-          partner_name: isPartnerProperty ? selectedPartner?.buyer_name : undefined
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.buyer_name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
         }))
       );
 
