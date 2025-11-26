@@ -14,10 +14,34 @@ import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
 
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [] }) {
+  const queryClient = useQueryClient();
   const [newNote, setNewNote] = React.useState("");
   const [addingNote, setAddingNote] = React.useState(false);
   const [newFollowUp, setNewFollowUp] = React.useState({ type: "call", notes: "", date: "" });
   const [addingFollowUp, setAddingFollowUp] = React.useState(false);
+
+  const convertToContactMutation = useMutation({
+    mutationFn: async () => {
+      const contactData = {
+        full_name: lead.buyer_name,
+        email: lead.buyer_email || "",
+        phone: lead.buyer_phone || "",
+        city: lead.location || "",
+        contact_type: lead.lead_type === 'parceiro_comprador' || lead.lead_type === 'parceiro_vendedor' ? 'partner' : 'client',
+        source: lead.lead_source || "other",
+        notes: lead.message || "",
+        linked_opportunity_ids: [lead.id]
+      };
+      return await base44.entities.ClientContact.create(contactData);
+    },
+    onSuccess: () => {
+      toast.success("Lead convertido em contacto!");
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    },
+    onError: () => {
+      toast.error("Erro ao converter lead");
+    }
+  });
 
   const handleAddNote = async () => {
     if (!newNote.trim()) return;
