@@ -202,10 +202,6 @@ export default function Home() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                  <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
-                </div>
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
               </motion.div>
             </a>
