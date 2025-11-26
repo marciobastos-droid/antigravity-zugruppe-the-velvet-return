@@ -27,10 +27,23 @@ export default function DuplicateChecker() {
   const [selectedForDeletion, setSelectedForDeletion] = React.useState([]);
   const [lastAnalysis, setLastAnalysis] = React.useState(null);
 
-  const { data: properties = [], isLoading, refetch } = useQuery({
+  const { data: properties = [], isLoading: loadingProperties, refetch: refetchProperties } = useQuery({
     queryKey: ['properties-duplicates'],
     queryFn: () => base44.entities.Property.list('-created_date')
   });
+
+  const { data: contacts = [], isLoading: loadingContacts, refetch: refetchContacts } = useQuery({
+    queryKey: ['contacts-duplicates'],
+    queryFn: () => base44.entities.ClientContact.list('-created_date')
+  });
+
+  const [contactDuplicateGroups, setContactDuplicateGroups] = React.useState([]);
+  const [selectedContactsForDeletion, setSelectedContactsForDeletion] = React.useState([]);
+  const [lastContactAnalysis, setLastContactAnalysis] = React.useState(null);
+  const [analyzingContacts, setAnalyzingContacts] = React.useState(false);
+  const [contactProgress, setContactProgress] = React.useState(0);
+  const [contactProgressText, setContactProgressText] = React.useState("");
+  const [expandedContactGroups, setExpandedContactGroups] = React.useState({});
 
   // Normalize text for comparison
   const normalizeText = (text) => {
