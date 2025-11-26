@@ -31,6 +31,8 @@ export default function MyListings() {
   const [priceMin, setPriceMin] = React.useState("");
   const [priceMax, setPriceMax] = React.useState("");
   const [selectedTags, setSelectedTags] = React.useState([]);
+  const [stateFilter, setStateFilter] = React.useState("all");
+  const [cityFilter, setCityFilter] = React.useState("all");
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
@@ -167,6 +169,8 @@ export default function MyListings() {
     setPriceMin("");
     setPriceMax("");
     setSelectedTags([]);
+    setStateFilter("all");
+    setCityFilter("all");
     setCurrentPage(1);
   };
 
@@ -180,6 +184,25 @@ export default function MyListings() {
     });
     return Array.from(tagsSet).sort();
   }, [properties]);
+
+  // Extrair todos os distritos e concelhos únicos
+  const allStates = React.useMemo(() => {
+    const statesSet = new Set();
+    properties.forEach(p => {
+      if (p.state) statesSet.add(p.state);
+    });
+    return Array.from(statesSet).sort();
+  }, [properties]);
+
+  const allCities = React.useMemo(() => {
+    const citiesSet = new Set();
+    properties.forEach(p => {
+      if (p.city && (stateFilter === "all" || p.state === stateFilter)) {
+        citiesSet.add(p.city);
+      }
+    });
+    return Array.from(citiesSet).sort();
+  }, [properties, stateFilter]);
 
   const toggleTag = (tag) => {
     setSelectedTags(prev => 
@@ -201,8 +224,10 @@ export default function MyListings() {
     const matchesPriceMin = priceMin === "" || p.price >= parseFloat(priceMin);
     const matchesPriceMax = priceMax === "" || p.price <= parseFloat(priceMax);
     const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => p.tags?.includes(tag));
+    const matchesState = stateFilter === "all" || p.state === stateFilter;
+    const matchesCity = cityFilter === "all" || p.city === cityFilter;
     
-    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax && matchesTags;
+    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax && matchesTags && matchesState && matchesCity;
   });
 
   const toggleSelectAll = () => {
@@ -219,7 +244,12 @@ export default function MyListings() {
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax, selectedTags]);
+  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax, selectedTags, stateFilter, cityFilter]);
+
+  // Reset city filter when state changes
+  React.useEffect(() => {
+    setCityFilter("all");
+  }, [stateFilter]);
 
   const statusLabels = {
     active: "Ativo",
@@ -249,7 +279,8 @@ export default function MyListings() {
   };
 
   const hasActiveFilters = searchTerm || statusFilter !== "all" || typeFilter !== "all" || 
-                          listingTypeFilter !== "all" || priceMin || priceMax || selectedTags.length > 0;
+                          listingTypeFilter !== "all" || priceMin || priceMax || selectedTags.length > 0 ||
+                          stateFilter !== "all" || cityFilter !== "all";
 
   if (isLoading) {
     return (
@@ -392,6 +423,36 @@ export default function MyListings() {
                   onChange={(e) => setPriceMax(e.target.value)}
                   placeholder="5000000"
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Distrito</label>
+                <Select value={stateFilter} onValueChange={setStateFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Distritos</SelectItem>
+                    {allStates.map((state) => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Concelho</label>
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Concelhos</SelectItem>
+                    {allCities.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
