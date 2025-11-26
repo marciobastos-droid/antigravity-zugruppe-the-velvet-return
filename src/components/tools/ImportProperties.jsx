@@ -366,23 +366,28 @@ export default function ImportProperties() {
         throw new Error("Nenhum dado válido para importar");
       }
 
-      setProgress(`A validar ${properties.length} imóveis...`);
+      setProgress(`A classificar ${properties.length} imóveis com IA...`);
 
+      // Always use AI to detect/confirm property and listing type
       const processedProperties = await Promise.all(
         properties.map(async (p) => {
-          if (!p.property_type || !p.listing_type) {
-            const detected = await detectPropertyTypes(p.title, p.description);
-            if (detected) {
-              return {
-                ...p,
-                property_type: p.property_type || detected.property_type || 'apartment',
-                listing_type: p.listing_type || detected.listing_type || 'sale'
-              };
-            }
+          const detected = await detectPropertyTypes(p.title, p.description, p.price);
+          if (detected) {
+            return {
+              ...p,
+              property_type: detected.property_type || p.property_type || 'apartment',
+              listing_type: detected.listing_type || p.listing_type || 'sale'
+            };
           }
-          return p;
+          return {
+            ...p,
+            property_type: p.property_type || 'apartment',
+            listing_type: p.listing_type || 'sale'
+          };
         })
       );
+
+      setProgress(`A validar ${processedProperties.length} imóveis...`);
 
       const validationResults = processedProperties.map(prop => ({
         property: prop,
