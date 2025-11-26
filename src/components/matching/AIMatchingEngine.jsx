@@ -775,7 +775,7 @@ Retorna análise detalhada em JSON.`,
 
       {/* Match Details Dialog */}
       <Dialog open={!!showMatchDetails} onOpenChange={() => setShowMatchDetails(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-indigo-600" />
