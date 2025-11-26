@@ -538,7 +538,7 @@ export default function ClientDatabase() {
                         {client.last_contact_date && (
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            Último contacto: {format(new Date(client.last_contact_date), "d MMM", { locale: ptBR })}
+                            Último contacto: {format(new Date(client.last_contact_date), "dd/MM/yyyy")}
                           </span>
                         )}
                       </div>
