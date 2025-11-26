@@ -29,6 +29,7 @@ export default function MyListings() {
   const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
   const [priceMin, setPriceMin] = React.useState("");
   const [priceMax, setPriceMax] = React.useState("");
+  const [selectedTags, setSelectedTags] = React.useState([]);
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
@@ -163,6 +164,25 @@ export default function MyListings() {
     setListingTypeFilter("all");
     setPriceMin("");
     setPriceMax("");
+    setSelectedTags([]);
+    setCurrentPage(1);
+  };
+
+  // Extrair todas as tags únicas dos imóveis
+  const allTags = React.useMemo(() => {
+    const tagsSet = new Set();
+    properties.forEach(p => {
+      if (p.tags?.length) {
+        p.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  }, [properties]);
+
+  const toggleTag = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
     setCurrentPage(1);
   };
 
@@ -178,8 +198,9 @@ export default function MyListings() {
     
     const matchesPriceMin = priceMin === "" || p.price >= parseFloat(priceMin);
     const matchesPriceMax = priceMax === "" || p.price <= parseFloat(priceMax);
+    const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => p.tags?.includes(tag));
     
-    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax;
+    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax && matchesTags;
   });
 
   const toggleSelectAll = () => {
@@ -196,7 +217,7 @@ export default function MyListings() {
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax]);
+  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax, selectedTags]);
 
   const statusLabels = {
     active: "Ativo",
@@ -226,7 +247,7 @@ export default function MyListings() {
   };
 
   const hasActiveFilters = searchTerm || statusFilter !== "all" || typeFilter !== "all" || 
-                          listingTypeFilter !== "all" || priceMin || priceMax;
+                          listingTypeFilter !== "all" || priceMin || priceMax || selectedTags.length > 0;
 
   if (isLoading) {
     return (
@@ -371,6 +392,32 @@ export default function MyListings() {
                 />
               </div>
             </div>
+
+            {/* Tags Filter */}
+            {allTags.length > 0 && (
+              <div className="pt-4 border-t border-slate-200">
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Filtrar por Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {allTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant={selectedTags.includes(tag) ? "default" : "outline"}
+                      className={`cursor-pointer transition-colors ${
+                        selectedTags.includes(tag) 
+                          ? "bg-slate-900 hover:bg-slate-800" 
+                          : "hover:bg-slate-100"
+                      }`}
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                      {selectedTags.includes(tag) && (
+                        <X className="w-3 h-3 ml-1" />
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-between items-center pt-4 border-t border-slate-200">
               <p className="text-sm text-slate-600">
