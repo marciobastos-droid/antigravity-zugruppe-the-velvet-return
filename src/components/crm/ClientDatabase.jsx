@@ -15,7 +15,8 @@ import {
   Calendar, MessageSquare, Edit, Trash2, Eye, X, 
   Tag, DollarSign, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
-  Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun
+  Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
+  LayoutGrid, List
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ import CommunicationHistory from "./CommunicationHistory";
 import AddCommunicationDialog from "./AddCommunicationDialog";
 import ContactMatching from "./ContactMatching";
 import MatchingReport from "../matching/MatchingReport";
+import ClientsTable from "./ClientsTable";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
@@ -41,6 +43,7 @@ export default function ClientDatabase() {
   const [matchingReportOpen, setMatchingReportOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("details");
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
 
   const [formData, setFormData] = React.useState({
     full_name: "",
@@ -626,7 +629,40 @@ export default function ClientDatabase() {
         </CardContent>
       </Card>
 
+      {/* View Mode Toggle */}
+      <div className="flex justify-end mb-4">
+        <div className="flex border rounded-lg overflow-hidden">
+          <Button
+            variant={viewMode === "table" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("table")}
+            className="rounded-none"
+          >
+            <List className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === "cards" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("cards")}
+            className="rounded-none"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
       {/* Client List */}
+      {viewMode === "table" ? (
+        <ClientsTable
+          clients={filteredClients}
+          communications={communications}
+          opportunities={opportunities}
+          onClientClick={(client) => { setActiveTab("details"); setSelectedClient(client); }}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onMatching={(client) => { setActiveTab("matching"); setSelectedClient(client); }}
+        />
+      ) : (
       <div className="grid gap-4">
         {filteredClients.length === 0 ? (
           <Card className="text-center py-12">
@@ -915,6 +951,7 @@ export default function ClientDatabase() {
           })
         )}
       </div>
+      )}
 
       {/* Client Detail Panel */}
       {selectedClient && (
