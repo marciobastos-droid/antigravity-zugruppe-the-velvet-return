@@ -1499,7 +1499,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                             {/* Info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
-                                <div>
+                                <div className="flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {cIndex === 0 && (
                                       <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
@@ -1519,6 +1519,19 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                                     {contact.full_name}
                                   </h5>
                                 </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEnrichmentRecord(contact);
+                                    setEnrichmentType("contact");
+                                    setEnrichmentOpen(true);
+                                  }}
+                                >
+                                  <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                                </Button>
                               </div>
                               
                               <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
