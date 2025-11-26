@@ -212,10 +212,9 @@ export default function OpportunitiesContent() {
       toast.error("Selecione um agente e pelo menos um lead");
       return;
     }
-    const agent = users.find(u => u.id === bulkAssignAgent);
     bulkAssignMutation.mutate({ 
       leadIds: selectedLeads, 
-      agentEmail: agent?.email 
+      agentEmail: bulkAssignAgent 
     });
   };
 
@@ -421,7 +420,7 @@ export default function OpportunitiesContent() {
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
+                      <SelectItem key={u.id} value={u.email}>
                         {u.full_name}
                       </SelectItem>
                     ))}
