@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { 
   Building2, MapPin, Euro, Calendar, Home, 
-  Globe, Mail, Phone, Link2, Plus, X
+  Globe, Mail, Phone, Link2, Plus, X, TrendingUp, 
+  CheckCircle2, Clock, Ban
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -21,6 +23,24 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
 
   const linkedProperties = properties.filter(p => p.development_id === development.id);
   const availableProperties = properties.filter(p => !p.development_id);
+
+  // Estatísticas de vendas/arrendamentos
+  const stats = React.useMemo(() => {
+    const total = linkedProperties.length;
+    const sold = linkedProperties.filter(p => p.status === 'sold').length;
+    const rented = linkedProperties.filter(p => p.status === 'rented').length;
+    const active = linkedProperties.filter(p => p.status === 'active').length;
+    const pending = linkedProperties.filter(p => p.status === 'pending').length;
+    const offMarket = linkedProperties.filter(p => p.status === 'off_market').length;
+    
+    const totalValue = linkedProperties.reduce((sum, p) => sum + (p.price || 0), 0);
+    const soldValue = linkedProperties.filter(p => p.status === 'sold').reduce((sum, p) => sum + (p.price || 0), 0);
+    const rentedValue = linkedProperties.filter(p => p.status === 'rented').reduce((sum, p) => sum + (p.price || 0), 0);
+    
+    const progressPercent = total > 0 ? Math.round(((sold + rented) / total) * 100) : 0;
+    
+    return { total, sold, rented, active, pending, offMarket, totalValue, soldValue, rentedValue, progressPercent };
+  }, [linkedProperties]);
 
   const linkMutation = useMutation({
     mutationFn: async ({ propertyId, developmentId, developmentName }) => {
@@ -84,6 +104,71 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
             </Badge>
           </DialogTitle>
         </DialogHeader>
+
+        {/* Progresso de Vendas */}
+        {linkedProperties.length > 0 && (
+          <Card className="mt-4 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-green-900 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Progresso de Comercialização
+                </h4>
+                <span className="text-2xl font-bold text-green-700">{stats.progressPercent}%</span>
+              </div>
+              
+              <Progress value={stats.progressPercent} className="h-3 mb-4" />
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-white rounded-lg p-3 text-center border border-green-200">
+                  <div className="flex items-center justify-center gap-1 text-green-600 mb-1">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="text-xs font-medium">Vendidos</span>
+                  </div>
+                  <span className="text-xl font-bold text-green-700">{stats.sold}</span>
+                  {stats.soldValue > 0 && (
+                    <p className="text-xs text-green-600">€{stats.soldValue.toLocaleString()}</p>
+                  )}
+                </div>
+                
+                <div className="bg-white rounded-lg p-3 text-center border border-purple-200">
+                  <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
+                    <Home className="w-4 h-4" />
+                    <span className="text-xs font-medium">Arrendados</span>
+                  </div>
+                  <span className="text-xl font-bold text-purple-700">{stats.rented}</span>
+                  {stats.rentedValue > 0 && (
+                    <p className="text-xs text-purple-600">€{stats.rentedValue.toLocaleString()}/mês</p>
+                  )}
+                </div>
+                
+                <div className="bg-white rounded-lg p-3 text-center border border-blue-200">
+                  <div className="flex items-center justify-center gap-1 text-blue-600 mb-1">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs font-medium">Disponíveis</span>
+                  </div>
+                  <span className="text-xl font-bold text-blue-700">{stats.active}</span>
+                </div>
+                
+                <div className="bg-white rounded-lg p-3 text-center border border-slate-200">
+                  <div className="flex items-center justify-center gap-1 text-slate-600 mb-1">
+                    <Ban className="w-4 h-4" />
+                    <span className="text-xs font-medium">Reservados</span>
+                  </div>
+                  <span className="text-xl font-bold text-slate-700">{stats.pending + stats.offMarket}</span>
+                </div>
+              </div>
+
+              {stats.totalValue > 0 && (
+                <div className="mt-3 pt-3 border-t border-green-200 text-center">
+                  <p className="text-sm text-green-700">
+                    Valor Total do Empreendimento: <span className="font-bold">€{stats.totalValue.toLocaleString()}</span>
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="details" className="mt-4">
           <TabsList className="grid w-full grid-cols-3">
