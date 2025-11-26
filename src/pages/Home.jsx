@@ -3,13 +3,26 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Camera, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function Home() {
+  const queryClient = useQueryClient();
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [editingBrand, setEditingBrand] = React.useState(null);
+  const [uploading, setUploading] = React.useState(false);
+
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
   });
+
+  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
   // Menu CRM
   const menuItems = [
@@ -40,34 +53,53 @@ export default function Home() {
     }
   ];
 
-  // Marcas da empresa
-  const brandItems = [
-    {
-      image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop",
-      title: "Marca 1",
-      url: "#"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop",
-      title: "Marca 2",
-      url: "#"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop",
-      title: "Marca 3",
-      url: "#"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop",
-      title: "Marca 4",
-      url: "#"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop",
-      title: "Marca 5",
-      url: "#"
-    }
+  // Marcas da empresa - guardadas no user settings ou estado local
+  const defaultBrands = [
+    { id: 1, image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", title: "Marca 1", url: "#" },
+    { id: 2, image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop", title: "Marca 2", url: "#" },
+    { id: 3, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop", title: "Marca 3", url: "#" },
+    { id: 4, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop", title: "Marca 4", url: "#" },
+    { id: 5, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop", title: "Marca 5", url: "#" }
   ];
+
+  const [brandItems, setBrandItems] = React.useState(defaultBrands);
+
+  // Carregar marcas guardadas
+  React.useEffect(() => {
+    const saved = localStorage.getItem('zugruppe_brands');
+    if (saved) {
+      setBrandItems(JSON.parse(saved));
+    }
+  }, []);
+
+  const handleEditBrand = (brand) => {
+    setEditingBrand({ ...brand });
+    setEditDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditingBrand(prev => ({ ...prev, image: file_url }));
+      toast.success("Imagem carregada");
+    } catch (error) {
+      toast.error("Erro ao carregar imagem");
+    }
+    setUploading(false);
+  };
+
+  const handleSaveBrand = () => {
+    const updated = brandItems.map(b => b.id === editingBrand.id ? editingBrand : b);
+    setBrandItems(updated);
+    localStorage.setItem('zugruppe_brands', JSON.stringify(updated));
+    setEditDialogOpen(false);
+    setEditingBrand(null);
+    toast.success("Marca atualizada");
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
@@ -151,35 +183,107 @@ export default function Home() {
         className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full"
       >
         {brandItems.map((item, index) => (
-          <a 
-            key={item.title} 
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
-              className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105"
+          <div key={item.id} className="relative group">
+            <a 
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img 
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
-              </div>
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
-            </motion.div>
-          </a>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
+                className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img 
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                  <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
+                </div>
+                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
+              </motion.div>
+            </a>
+            {isAdmin && (
+              <button
+                onClick={(e) => { e.preventDefault(); handleEditBrand(item); }}
+                className="absolute top-2 right-2 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+              >
+                <Settings className="w-4 h-4 text-[#27251f]" />
+              </button>
+            )}
+          </div>
         ))}
       </motion.div>
+
+      {/* Edit Brand Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Marca</DialogTitle>
+          </DialogHeader>
+          {editingBrand && (
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Imagem</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  <img 
+                    src={editingBrand.image} 
+                    alt="Preview" 
+                    className="w-24 h-18 object-cover rounded-lg"
+                  />
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="brand-image-upload"
+                    />
+                    <label htmlFor="brand-image-upload">
+                      <Button variant="outline" size="sm" asChild disabled={uploading}>
+                        <span>
+                          <Camera className="w-4 h-4 mr-2" />
+                          {uploading ? "A carregar..." : "Alterar Imagem"}
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <Label>Nome da Marca</Label>
+                <Input
+                  value={editingBrand.title}
+                  onChange={(e) => setEditingBrand(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Nome da marca"
+                />
+              </div>
+              <div>
+                <Label>URL (link externo)</Label>
+                <Input
+                  value={editingBrand.url}
+                  onChange={(e) => setEditingBrand(prev => ({ ...prev, url: e.target.value }))}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveBrand} className="flex-1 bg-[#4cb5f5] hover:bg-[#3da5e5]">
+                  Guardar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <motion.footer
