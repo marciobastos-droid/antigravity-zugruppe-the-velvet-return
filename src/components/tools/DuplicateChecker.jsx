@@ -783,7 +783,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       </Card>
 
       {activeTab === "properties" && (
-        <>
+        <React.Fragment>
           {/* Properties Analysis Card */}
           <Card>
             <CardContent className="p-4">
