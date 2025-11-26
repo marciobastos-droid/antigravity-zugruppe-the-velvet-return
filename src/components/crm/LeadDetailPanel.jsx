@@ -31,6 +31,80 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
         'parceiro_comprador': 'partner',
         'parceiro_vendedor': 'partner'
       };
+
+      // Use AI to extract property requirements from lead message and data
+      let propertyRequirements = {};
+      
+      if (lead.message || lead.budget || lead.location || lead.property_type_interest) {
+        try {
+          const textToAnalyze = `
+            Nome: ${lead.buyer_name}
+            Tipo: ${lead.lead_type}
+            Localização: ${lead.location || ''}
+            Orçamento: ${lead.budget || ''}
+            Tipo de imóvel: ${lead.property_type_interest || ''}
+            Mensagem: ${lead.message || ''}
+            Imóvel de interesse: ${lead.property_title || ''}
+          `;
+
+          const extracted = await base44.integrations.Core.InvokeLLM({
+            prompt: `Analisa as informações deste lead e extrai requisitos de imóvel:
+
+${textToAnalyze}
+
+Extrai:
+- listing_type: sale, rent ou both
+- budget_min e budget_max (números)
+- locations: array de cidades/localizações
+- property_types: array (apartment, house, townhouse, condo, land, commercial, building)
+- bedrooms_min e bedrooms_max
+- bathrooms_min
+- area_min e area_max (m²)
+- amenities: array de comodidades desejadas
+- additional_notes: outras preferências mencionadas`,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                listing_type: { type: "string" },
+                budget_min: { type: "number" },
+                budget_max: { type: "number" },
+                locations: { type: "array", items: { type: "string" } },
+                property_types: { type: "array", items: { type: "string" } },
+                bedrooms_min: { type: "number" },
+                bedrooms_max: { type: "number" },
+                bathrooms_min: { type: "number" },
+                area_min: { type: "number" },
+                area_max: { type: "number" },
+                amenities: { type: "array", items: { type: "string" } },
+                additional_notes: { type: "string" }
+              }
+            }
+          });
+
+          propertyRequirements = {
+            listing_type: extracted.listing_type || "sale",
+            property_types: extracted.property_types || [],
+            locations: extracted.locations?.length > 0 ? extracted.locations : (lead.location ? [lead.location] : []),
+            budget_min: extracted.budget_min || lead.budget || 0,
+            budget_max: extracted.budget_max || lead.budget || 0,
+            bedrooms_min: extracted.bedrooms_min || null,
+            bedrooms_max: extracted.bedrooms_max || null,
+            bathrooms_min: extracted.bathrooms_min || null,
+            area_min: extracted.area_min || null,
+            area_max: extracted.area_max || null,
+            amenities: extracted.amenities || [],
+            additional_notes: extracted.additional_notes || ""
+          };
+        } catch (e) {
+          // If AI fails, use basic data from lead
+          propertyRequirements = {
+            listing_type: "sale",
+            locations: lead.location ? [lead.location] : [],
+            budget_min: lead.budget || 0,
+            budget_max: lead.budget || 0
+          };
+        }
+      }
       
       const contactData = {
         full_name: lead.buyer_name,
@@ -40,12 +114,13 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
         contact_type: contactTypeMap[lead.lead_type] || 'client',
         source: lead.lead_source || "other",
         notes: `Tipo original: ${lead.lead_type === 'comprador' ? 'Comprador' : lead.lead_type === 'vendedor' ? 'Vendedor' : lead.lead_type === 'parceiro_comprador' ? 'Parceiro Comprador' : 'Parceiro Vendedor'}\n\n${lead.message || ""}`,
-        linked_opportunity_ids: [lead.id]
+        linked_opportunity_ids: [lead.id],
+        property_requirements: propertyRequirements
       };
       return await base44.entities.ClientContact.create(contactData);
     },
     onSuccess: () => {
-      toast.success("Lead convertido em contacto!");
+      toast.success("Lead convertido em contacto com requisitos extraídos!");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
     },
     onError: () => {
