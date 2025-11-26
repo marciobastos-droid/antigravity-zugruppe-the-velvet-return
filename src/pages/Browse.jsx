@@ -26,7 +26,7 @@ export default function Browse() {
   const [priceRange, setPriceRange] = React.useState([0, 2000000]);
   const [city, setCity] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("recent");
-  const [showFilters, setShowFilters] = React.useState(false);
+  const [showFilters, setShowFilters] = React.useState(true);
   const [viewMode, setViewMode] = React.useState("grid");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [country, setCountry] = React.useState("all");
