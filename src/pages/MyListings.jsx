@@ -31,6 +31,7 @@ export default function MyListings() {
   const [priceMax, setPriceMax] = React.useState("");
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
+  const [activeTab, setActiveTab] = React.useState("properties");
   
   const ITEMS_PER_PAGE = 10;
 
