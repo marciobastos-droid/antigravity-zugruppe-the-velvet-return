@@ -552,6 +552,19 @@ export default function MyListings() {
                               {property.front_count > 0 && <span>🏠 {property.front_count} frentes</span>}
                             </div>
                             
+                            {/* Empreendimento Info */}
+                            {(property.development_name || property.unit_number) && (
+                              <div className="flex items-center gap-2 mt-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                                <Building2 className="w-4 h-4 text-purple-600" />
+                                <span className="text-sm text-purple-900 font-medium">
+                                  {property.development_name}
+                                  {property.unit_number && (
+                                    <span className="text-purple-600 ml-1">• Fração {property.unit_number}</span>
+                                  )}
+                                </span>
+                              </div>
+                            )}
+
                             {(property.external_id || property.source_url) && (
                               <div className="flex flex-wrap items-center gap-2 mt-2">
                                 {property.external_id && (
