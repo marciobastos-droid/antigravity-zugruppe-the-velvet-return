@@ -465,11 +465,283 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     office: "Escritório"
   };
 
+  // Contact duplicate analysis
+  const findContactDuplicatePairs = (contacts) => {
+    const pairs = [];
+    const checked = new Set();
+
+    for (let i = 0; i < contacts.length; i++) {
+      for (let j = i + 1; j < contacts.length; j++) {
+        const c1 = contacts[i];
+        const c2 = contacts[j];
+        const pairKey = `${c1.id}-${c2.id}`;
+        if (checked.has(pairKey)) continue;
+        checked.add(pairKey);
+
+        let matchScore = 0;
+        const matchReasons = [];
+
+        // Check email (strongest indicator)
+        if (c1.email && c2.email && normalizeText(c1.email) === normalizeText(c2.email)) {
+          matchScore += 60;
+          matchReasons.push("mesmo email");
+        }
+
+        // Check phone
+        const phone1 = (c1.phone || "").replace(/\D/g, "");
+        const phone2 = (c2.phone || "").replace(/\D/g, "");
+        if (phone1 && phone2 && phone1.length >= 9 && phone2.length >= 9) {
+          if (phone1 === phone2 || phone1.endsWith(phone2.slice(-9)) || phone2.endsWith(phone1.slice(-9))) {
+            matchScore += 50;
+            matchReasons.push("mesmo telefone");
+          }
+        }
+
+        // Check secondary phone
+        const secPhone1 = (c1.secondary_phone || "").replace(/\D/g, "");
+        const secPhone2 = (c2.secondary_phone || "").replace(/\D/g, "");
+        if (secPhone1 && secPhone2 && secPhone1.length >= 9 && secPhone2.length >= 9) {
+          if (secPhone1 === secPhone2 || secPhone1.endsWith(secPhone2.slice(-9)) || secPhone2.endsWith(secPhone1.slice(-9))) {
+            matchScore += 30;
+            matchReasons.push("mesmo telefone secundário");
+          }
+        }
+
+        // Cross-check phones
+        if (phone1 && secPhone2 && (phone1 === secPhone2 || phone1.endsWith(secPhone2.slice(-9)))) {
+          matchScore += 25;
+          matchReasons.push("telefones cruzados");
+        }
+        if (phone2 && secPhone1 && (phone2 === secPhone1 || phone2.endsWith(secPhone1.slice(-9)))) {
+          matchScore += 25;
+          matchReasons.push("telefones cruzados");
+        }
+
+        // Check name similarity
+        const nameSim = calculateSimilarity(c1.full_name, c2.full_name);
+        if (nameSim >= 90) {
+          matchScore += 30;
+          matchReasons.push("nome idêntico");
+        } else if (nameSim >= 70) {
+          matchScore += 15;
+          matchReasons.push("nome similar");
+        }
+
+        // Check NIF
+        if (c1.nif && c2.nif && c1.nif === c2.nif) {
+          matchScore += 60;
+          matchReasons.push("mesmo NIF");
+        }
+
+        // Check company
+        if (c1.company_name && c2.company_name) {
+          const companySim = calculateSimilarity(c1.company_name, c2.company_name);
+          if (companySim >= 80) {
+            matchScore += 15;
+            matchReasons.push("mesma empresa");
+          }
+        }
+
+        if (matchScore >= 50) {
+          pairs.push({
+            contacts: [c1, c2],
+            score: matchScore,
+            reasons: matchReasons
+          });
+        }
+      }
+    }
+
+    return pairs;
+  };
+
+  const clusterContactPairs = (pairs) => {
+    const clusters = [];
+    const contactToCluster = new Map();
+
+    pairs.sort((a, b) => b.score - a.score);
+
+    for (const pair of pairs) {
+      const [c1, c2] = pair.contacts;
+      const cluster1 = contactToCluster.get(c1.id);
+      const cluster2 = contactToCluster.get(c2.id);
+
+      if (cluster1 && cluster2 && cluster1 !== cluster2) {
+        cluster1.contacts = [...new Set([...cluster1.contacts, ...cluster2.contacts])];
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        cluster2.contacts.forEach(c => contactToCluster.set(c.id, cluster1));
+        const idx = clusters.indexOf(cluster2);
+        if (idx > -1) clusters.splice(idx, 1);
+      } else if (cluster1) {
+        if (!cluster1.contacts.find(c => c.id === c2.id)) {
+          cluster1.contacts.push(c2);
+        }
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        contactToCluster.set(c2.id, cluster1);
+      } else if (cluster2) {
+        if (!cluster2.contacts.find(c => c.id === c1.id)) {
+          cluster2.contacts.push(c1);
+        }
+        cluster2.reasons = [...new Set([...cluster2.reasons, ...pair.reasons])];
+        cluster2.minScore = Math.min(cluster2.minScore, pair.score);
+        contactToCluster.set(c1.id, cluster2);
+      } else {
+        const newCluster = {
+          contacts: [c1, c2],
+          reasons: pair.reasons,
+          minScore: pair.score
+        };
+        clusters.push(newCluster);
+        contactToCluster.set(c1.id, newCluster);
+        contactToCluster.set(c2.id, newCluster);
+      }
+    }
+
+    return clusters;
+  };
+
+  const analyzeContactDuplicates = async () => {
+    setAnalyzingContacts(true);
+    setContactProgress(0);
+    setContactProgressText("A preparar análise de contactos...");
+    setContactDuplicateGroups([]);
+    setSelectedContactsForDeletion([]);
+
+    try {
+      setContactProgressText("A analisar contactos...");
+      setContactProgress(30);
+
+      const pairs = findContactDuplicatePairs(contacts);
+      
+      setContactProgress(50);
+      setContactProgressText(`Encontrados ${pairs.length} pares potenciais...`);
+
+      if (pairs.length === 0) {
+        setContactDuplicateGroups([]);
+        setLastContactAnalysis(new Date());
+        toast.success("Nenhum contacto duplicado encontrado!");
+        setAnalyzingContacts(false);
+        return;
+      }
+
+      setContactProgress(70);
+      setContactProgressText("A agrupar duplicados...");
+      const clusters = clusterContactPairs(pairs);
+
+      // Convert clusters to groups
+      const confirmedDuplicates = clusters.map(cluster => ({
+        contacts: cluster.contacts.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+        confidence: Math.min(99, cluster.minScore),
+        reason: cluster.reasons.join(", ")
+      }));
+
+      setContactProgress(90);
+      setContactProgressText("A finalizar...");
+
+      // Remove overlaps
+      const uniqueGroups = [];
+      const usedIds = new Set();
+
+      confirmedDuplicates
+        .sort((a, b) => b.confidence - a.confidence)
+        .forEach(group => {
+          const newContacts = group.contacts.filter(c => !usedIds.has(c.id));
+          if (newContacts.length > 1) {
+            uniqueGroups.push({
+              ...group,
+              contacts: newContacts
+            });
+            newContacts.forEach(c => usedIds.add(c.id));
+          }
+        });
+
+      setContactDuplicateGroups(uniqueGroups);
+      setLastContactAnalysis(new Date());
+      setContactProgress(100);
+
+      if (uniqueGroups.length > 0) {
+        const totalDuplicates = uniqueGroups.reduce((sum, g) => sum + g.contacts.length - 1, 0);
+        toast.warning(`Encontrados ${uniqueGroups.length} grupos com ${totalDuplicates} contactos duplicados!`);
+      } else {
+        toast.success("Nenhum contacto duplicado encontrado!");
+      }
+
+    } catch (error) {
+      console.error("Error analyzing contact duplicates:", error);
+      toast.error("Erro ao analisar contactos duplicados");
+    }
+
+    setAnalyzingContacts(false);
+  };
+
+  const toggleContactGroup = (index) => {
+    setExpandedContactGroups(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const toggleContactSelection = (contactId) => {
+    setSelectedContactsForDeletion(prev => 
+      prev.includes(contactId)
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
+  };
+
+  const selectAllContactsExceptFirst = (group) => {
+    const idsToSelect = group.contacts.slice(1).map(c => c.id);
+    setSelectedContactsForDeletion(prev => {
+      const newSelection = [...prev];
+      idsToSelect.forEach(id => {
+        if (!newSelection.includes(id)) {
+          newSelection.push(id);
+        }
+      });
+      return newSelection;
+    });
+  };
+
+  const deleteSelectedContacts = async () => {
+    if (selectedContactsForDeletion.length === 0) {
+      toast.error("Nenhum contacto selecionado");
+      return;
+    }
+
+    if (!window.confirm(`Tem certeza que deseja eliminar ${selectedContactsForDeletion.length} contacto(s)?`)) {
+      return;
+    }
+
+    try {
+      for (const id of selectedContactsForDeletion) {
+        await base44.entities.ClientContact.delete(id);
+      }
+      toast.success(`${selectedContactsForDeletion.length} contactos eliminados!`);
+      setSelectedContactsForDeletion([]);
+      refetchContacts();
+      analyzeContactDuplicates();
+    } catch (error) {
+      toast.error("Erro ao eliminar contactos");
+    }
+  };
+
   const getConfidenceColor = (confidence) => {
     if (confidence >= 90) return "bg-red-100 text-red-800 border-red-200";
     if (confidence >= 80) return "bg-orange-100 text-orange-800 border-orange-200";
     return "bg-yellow-100 text-yellow-800 border-yellow-200";
   };
+
+  const contactTypeLabels = {
+    client: "Cliente",
+    partner: "Parceiro",
+    investor: "Investidor",
+    vendor: "Fornecedor",
+    other: "Outro"
+  };
+
+  const isLoading = loadingProperties || loadingContacts;
 
   if (isLoading) {
     return (
