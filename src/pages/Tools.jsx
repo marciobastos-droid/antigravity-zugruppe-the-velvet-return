@@ -25,6 +25,7 @@ import DuplicateChecker from "../components/tools/DuplicateChecker";
 import PropertyInconsistencyChecker from "../components/tools/PropertyInconsistencyChecker";
 import AIMatchingEngine from "../components/matching/AIMatchingEngine";
 import AutomaticMatching from "../components/matching/AutomaticMatching";
+import EmailHub from "../components/email/EmailHub";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -169,12 +170,12 @@ export default function Tools() {
                   Verificar Inconsistências
                 </Button>
                 <Button
-                  variant={activeTab === "emailSender" ? "default" : "outline"}
-                  onClick={() => setActiveTab("emailSender")}
+                  variant={activeTab === "emailHub" ? "default" : "outline"}
+                  onClick={() => setActiveTab("emailHub")}
                   className="flex items-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
-                  Enviar Emails
+                  Centro de Email
                 </Button>
                 <Button
                   variant={activeTab === "video" ? "default" : "outline"}
@@ -317,7 +318,7 @@ export default function Tools() {
         {activeTab === "autoMatching" && <AutomaticMatching />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
         {activeTab === "marketIntelligence" && <MarketIntelligence />}
-        {activeTab === "emailSender" && <EmailSender />}
+        {activeTab === "emailHub" && <EmailHub />}
         {activeTab === "importProperties" && <ImportProperties />}
         {activeTab === "exportProperties" && <PropertyExporter />}
         {activeTab === "apiPublish" && <DirectAPIExporter />}
