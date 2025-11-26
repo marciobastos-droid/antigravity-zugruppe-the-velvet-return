@@ -14,6 +14,7 @@ import OpportunitiesDashboard from "../opportunities/OpportunitiesDashboard";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
 import OpportunitiesTable from "./OpportunitiesTable";
+import SendEmailDialog from "../email/SendEmailDialog";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
@@ -29,6 +30,8 @@ export default function OpportunitiesContent() {
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
   const [formDialogOpen, setFormDialogOpen] = React.useState(false);
   const [editingOpportunity, setEditingOpportunity] = React.useState(null);
+  const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
+  const [emailRecipient, setEmailRecipient] = React.useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -599,6 +602,13 @@ export default function OpportunitiesContent() {
         onSaved={() => {
           setSelectedLead(null);
         }}
+      />
+
+      {/* Send Email Dialog */}
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        recipient={emailRecipient}
       />
     </div>
   );
