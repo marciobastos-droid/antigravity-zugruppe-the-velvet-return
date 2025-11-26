@@ -15,7 +15,7 @@ import {
   Edit, Trash2, Eye, Home, Camera, TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
-import DevelopmentDetail from "./DevelopmentDetail";
+import DevelopmentDetail from "@/components/developments/DevelopmentDetail";
 
 export default function DevelopmentsTab() {
   const queryClient = useQueryClient();
