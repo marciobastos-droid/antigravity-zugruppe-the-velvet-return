@@ -1186,14 +1186,29 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                                 {property.title}
                               </h5>
                             </div>
-                            <Link
-                              to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-                              target="_blank"
-                              className="p-1.5 hover:bg-slate-100 rounded"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <ExternalLink className="w-4 h-4 text-slate-400" />
-                            </Link>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEnrichmentRecord(property);
+                                  setEnrichmentType("property");
+                                  setEnrichmentOpen(true);
+                                }}
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-purple-500" />
+                              </Button>
+                              <Link
+                                to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                                target="_blank"
+                                className="p-1.5 hover:bg-slate-100 rounded"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="w-4 h-4 text-slate-400" />
+                              </Link>
+                            </div>
                           </div>
                           
                           <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
