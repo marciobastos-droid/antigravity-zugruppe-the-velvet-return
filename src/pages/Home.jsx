@@ -53,11 +53,24 @@ export default function Home() {
   }];
 
 
-  // Marcas da empresa - carregadas da base de dados
-  const { data: brandItems = [], refetch: refetchBrands } = useQuery({
-    queryKey: ['brandItems'],
-    queryFn: () => base44.entities.BrandItem.list('order')
-  });
+  // Marcas da empresa - guardadas no user settings ou estado local
+  const defaultBrands = [
+  { id: 1, image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", title: "Marca 1", url: "#" },
+  { id: 2, image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop", title: "Marca 2", url: "#" },
+  { id: 3, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop", title: "Marca 3", url: "#" },
+  { id: 4, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop", title: "Marca 4", url: "#" },
+  { id: 5, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop", title: "Marca 5", url: "#" }];
+
+
+  const [brandItems, setBrandItems] = React.useState(defaultBrands);
+
+  // Carregar marcas guardadas
+  React.useEffect(() => {
+    const saved = localStorage.getItem('zugruppe_brands');
+    if (saved) {
+      setBrandItems(JSON.parse(saved));
+    }
+  }, []);
 
   const handleEditBrand = (brand) => {
     setEditingBrand({ ...brand });
@@ -79,20 +92,13 @@ export default function Home() {
     setUploading(false);
   };
 
-  const handleSaveBrand = async () => {
-    try {
-      await base44.entities.BrandItem.update(editingBrand.id, {
-        title: editingBrand.title,
-        image: editingBrand.image,
-        url: editingBrand.url
-      });
-      refetchBrands();
-      setEditDialogOpen(false);
-      setEditingBrand(null);
-      toast.success("Marca atualizada");
-    } catch (error) {
-      toast.error("Erro ao guardar marca");
-    }
+  const handleSaveBrand = () => {
+    const updated = brandItems.map((b) => b.id === editingBrand.id ? editingBrand : b);
+    setBrandItems(updated);
+    localStorage.setItem('zugruppe_brands', JSON.stringify(updated));
+    setEditDialogOpen(false);
+    setEditingBrand(null);
+    toast.success("Marca atualizada");
   };
 
   return (
@@ -107,7 +113,7 @@ export default function Home() {
         <img
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
           alt="Zugruppe"
-          className="h-56 md:h-72 w-auto mx-auto" />
+          className="h-40 md:h-56 w-auto mx-auto" />
 
       </motion.div>
 
@@ -195,6 +201,10 @@ export default function Home() {
                   alt={item.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
 
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                  <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
                 </div>
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
               </motion.div>
