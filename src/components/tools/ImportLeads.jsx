@@ -410,13 +410,72 @@ Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition
                           <p>{result.data.buyer_phone}</p>
                         </div>
                       )}
-                      {result.data.budget > 0 && (
+                      {(result.data.budget_min > 0 || result.data.budget_max > 0) && (
                         <div>
                           <p className="text-xs text-slate-500">Orçamento</p>
-                          <p>€{result.data.budget.toLocaleString()}</p>
+                          <p>
+                            {result.data.budget_min > 0 && `€${result.data.budget_min.toLocaleString()}`}
+                            {result.data.budget_min > 0 && result.data.budget_max > 0 && " - "}
+                            {result.data.budget_max > 0 && `€${result.data.budget_max.toLocaleString()}`}
+                          </p>
+                        </div>
+                      )}
+                      {result.data.locations?.length > 0 && (
+                        <div>
+                          <p className="text-xs text-slate-500">Localizações</p>
+                          <p>{result.data.locations.join(", ")}</p>
+                        </div>
+                      )}
+                      {result.data.property_types?.length > 0 && (
+                        <div>
+                          <p className="text-xs text-slate-500">Tipos de Imóvel</p>
+                          <p>{result.data.property_types.join(", ")}</p>
+                        </div>
+                      )}
+                      {result.data.bedrooms_min > 0 && (
+                        <div>
+                          <p className="text-xs text-slate-500">Quartos</p>
+                          <p>
+                            {result.data.bedrooms_min}
+                            {result.data.bedrooms_max > 0 && ` - ${result.data.bedrooms_max}`}
+                          </p>
+                        </div>
+                      )}
+                      {result.data.area_min > 0 && (
+                        <div>
+                          <p className="text-xs text-slate-500">Área</p>
+                          <p>
+                            {result.data.area_min}m²
+                            {result.data.area_max > 0 && ` - ${result.data.area_max}m²`}
+                          </p>
+                        </div>
+                      )}
+                      {result.data.amenities?.length > 0 && (
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Comodidades</p>
+                          <p>{result.data.amenities.join(", ")}</p>
+                        </div>
+                      )}
+                      {result.data.company_name && (
+                        <div>
+                          <p className="text-xs text-slate-500">Empresa</p>
+                          <p>{result.data.company_name}</p>
+                        </div>
+                      )}
+                      {result.data.partnership_type && (
+                        <div>
+                          <p className="text-xs text-slate-500">Tipo de Parceria</p>
+                          <p>{result.data.partnership_type}</p>
                         </div>
                       )}
                     </div>
+                    {result.requirementsExtracted && (
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <p className="text-xs text-green-600 font-medium">
+                          ✅ Requisitos de imóvel extraídos e guardados no contacto
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
