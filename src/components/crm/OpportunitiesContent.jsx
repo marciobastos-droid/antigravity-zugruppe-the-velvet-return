@@ -147,11 +147,10 @@ export default function OpportunitiesContent() {
     }
   };
 
-  const handleAssign = (lead, userId) => {
-    const user = users.find(u => u.id === userId);
+  const handleAssign = (lead, email) => {
     updateMutation.mutate({
       id: lead.id,
-      data: { assigned_to: user?.email }
+      data: { assigned_to: email }
     });
   };
 

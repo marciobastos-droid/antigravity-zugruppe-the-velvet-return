@@ -191,14 +191,16 @@ export default function OpportunitiesTable({
       render: (val, opp) => (
         <Select 
           value={val || ""} 
-          onValueChange={(userId) => onAssign?.(opp, userId)}
+          onValueChange={(email) => onAssign?.(opp, email)}
         >
           <SelectTrigger className="h-8 text-xs w-32" onClick={(e) => e.stopPropagation()}>
-            <SelectValue placeholder="Atribuir..." />
+            <SelectValue placeholder="Atribuir...">
+              {val ? users.find(u => u.email === val)?.full_name || val.split('@')[0] : "Atribuir..."}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent onClick={(e) => e.stopPropagation()}>
             {users.map((u) => (
-              <SelectItem key={u.id} value={u.id}>
+              <SelectItem key={u.id} value={u.email}>
                 {u.full_name}
               </SelectItem>
             ))}
