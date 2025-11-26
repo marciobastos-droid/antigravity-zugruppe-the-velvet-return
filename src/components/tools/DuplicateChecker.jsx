@@ -1059,7 +1059,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
           </ul>
         </CardContent>
       </Card>
-        </>
+        </React.Fragment>
       )}
 
       {activeTab === "contacts" && (
