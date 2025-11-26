@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   UserPlus, Search, Phone, Mail, MapPin, Building2, 
   Calendar, MessageSquare, Edit, Trash2, Eye, X, 
-  Tag, DollarSign, Clock, User, Filter
+  Tag, DollarSign, Clock, User, Filter, Home
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,6 +30,7 @@ export default function ClientDatabase() {
   const [editingClient, setEditingClient] = React.useState(null);
   const [selectedClient, setSelectedClient] = React.useState(null);
   const [commDialogOpen, setCommDialogOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("details");
 
   const [formData, setFormData] = React.useState({
     full_name: "",
@@ -545,7 +546,16 @@ export default function ClientDatabase() {
                     </div>
 
                     <div className="flex gap-2 ml-4">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedClient(client)}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
+                        className="text-purple-600 hover:bg-purple-50"
+                        title="Matching de Imóveis"
+                      >
+                        <Home className="w-4 h-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }}>
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => handleEdit(client)}>
@@ -581,7 +591,7 @@ export default function ClientDatabase() {
               </DialogTitle>
             </DialogHeader>
 
-            <Tabs defaultValue="details" className="mt-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="matching">Matching</TabsTrigger>
