@@ -79,13 +79,20 @@ export default function Home() {
     setUploading(false);
   };
 
-  const handleSaveBrand = () => {
-    const updated = brandItems.map((b) => b.id === editingBrand.id ? editingBrand : b);
-    setBrandItems(updated);
-    localStorage.setItem('zugruppe_brands', JSON.stringify(updated));
-    setEditDialogOpen(false);
-    setEditingBrand(null);
-    toast.success("Marca atualizada");
+  const handleSaveBrand = async () => {
+    try {
+      await base44.entities.BrandItem.update(editingBrand.id, {
+        title: editingBrand.title,
+        image: editingBrand.image,
+        url: editingBrand.url
+      });
+      refetchBrands();
+      setEditDialogOpen(false);
+      setEditingBrand(null);
+      toast.success("Marca atualizada");
+    } catch (error) {
+      toast.error("Erro ao guardar marca");
+    }
   };
 
   return (
