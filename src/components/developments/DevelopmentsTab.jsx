@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { 
   Building2, Plus, Search, MapPin, Euro, 
-  Edit, Trash2, Eye, Home, Camera
+  Edit, Trash2, Eye, Home, Camera, TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import DevelopmentDetail from "./DevelopmentDetail";
@@ -498,7 +499,13 @@ export default function DevelopmentsTab() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDevelopments.map((dev) => {
             const devProperties = getPropertiesForDevelopment(dev.id);
-            
+
+            // Calcular progresso de vendas
+            const sold = devProperties.filter(p => p.status === 'sold').length;
+            const rented = devProperties.filter(p => p.status === 'rented').length;
+            const total = devProperties.length;
+            const progressPercent = total > 0 ? Math.round(((sold + rented) / total) * 100) : 0;
+
             return (
               <Card key={dev.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 {dev.images?.[0] ? (
@@ -514,7 +521,7 @@ export default function DevelopmentsTab() {
                     <Building2 className="w-16 h-16 text-slate-300" />
                   </div>
                 )}
-                
+
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-lg font-semibold text-slate-900">{dev.name}</h3>
@@ -543,6 +550,25 @@ export default function DevelopmentsTab() {
                       </div>
                     )}
                   </div>
+
+                  {/* Progresso de Vendas */}
+                  {total > 0 && (
+                    <div className="mb-3 p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="flex items-center gap-1 text-slate-600">
+                          <TrendingUp className="w-3 h-3" />
+                          Progresso
+                        </span>
+                        <span className="font-semibold text-green-600">{progressPercent}%</span>
+                      </div>
+                      <Progress value={progressPercent} className="h-2" />
+                      <div className="flex justify-between text-xs mt-1 text-slate-500">
+                        <span>{sold} vendidos</span>
+                        <span>{rented} arrendados</span>
+                        <span>{total - sold - rented} disponíveis</span>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
                     <span className="flex items-center gap-1">
