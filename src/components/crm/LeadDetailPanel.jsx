@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2 } from "lucide-react";
+import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2, Send } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -13,14 +13,16 @@ import { toast } from "sonner";
 import AIAssistant from "./AIAssistant";
 import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
+import SendEmailDialog from "../email/SendEmailDialog";
 
-export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [] }) {
+export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
   const [newNote, setNewNote] = React.useState("");
   const [addingNote, setAddingNote] = React.useState(false);
   const [newFollowUp, setNewFollowUp] = React.useState({ type: "call", notes: "", date: "" });
   const [propertyLocationFilter, setPropertyLocationFilter] = React.useState("");
   const [addingFollowUp, setAddingFollowUp] = React.useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
 
   const convertToContactMutation = useMutation({
     mutationFn: async () => {
@@ -203,6 +205,17 @@ Extrai:
           </Badge>
         </div>
         <div className="flex items-center gap-2">
+          {lead.buyer_email && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setEmailDialogOpen(true)}
+              className="text-blue-600 border-blue-300 hover:bg-blue-50"
+            >
+              <Send className="w-4 h-4 mr-1" />
+              Email
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm"
@@ -559,6 +572,26 @@ Extrai:
           </Card>
         )}
       </div>
+
+      {/* Send Email Dialog */}
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        recipient={{
+          type: 'opportunity',
+          id: lead.id,
+          name: lead.buyer_name,
+          email: lead.buyer_email,
+          data: {
+            name: lead.buyer_name,
+            email: lead.buyer_email,
+            phone: lead.buyer_phone,
+            location: lead.location,
+            property_title: lead.property_title,
+            budget: lead.budget
+          }
+        }}
+      />
     </div>
   );
 }
