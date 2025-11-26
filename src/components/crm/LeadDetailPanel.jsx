@@ -24,14 +24,22 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
 
   const convertToContactMutation = useMutation({
     mutationFn: async () => {
+      // Map lead_type to contact_type
+      const contactTypeMap = {
+        'comprador': 'client',
+        'vendedor': 'client',
+        'parceiro_comprador': 'partner',
+        'parceiro_vendedor': 'partner'
+      };
+      
       const contactData = {
         full_name: lead.buyer_name,
         email: lead.buyer_email || "",
         phone: lead.buyer_phone || "",
         city: lead.location || "",
-        contact_type: lead.lead_type === 'parceiro_comprador' || lead.lead_type === 'parceiro_vendedor' ? 'partner' : 'client',
+        contact_type: contactTypeMap[lead.lead_type] || 'client',
         source: lead.lead_source || "other",
-        notes: lead.message || "",
+        notes: `Tipo original: ${lead.lead_type === 'comprador' ? 'Comprador' : lead.lead_type === 'vendedor' ? 'Vendedor' : lead.lead_type === 'parceiro_comprador' ? 'Parceiro Comprador' : 'Parceiro Vendedor'}\n\n${lead.message || ""}`,
         linked_opportunity_ids: [lead.id]
       };
       return await base44.entities.ClientContact.create(contactData);
