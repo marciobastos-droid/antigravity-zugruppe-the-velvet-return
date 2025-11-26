@@ -65,7 +65,7 @@ export default function OpportunitiesContent() {
     queryKey: ['users'],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.role === 'admin' || u.user_type === 'admin' || u.user_type === 'gestor' || u.user_type === 'agente');
+      return allUsers;
     },
   });
 
