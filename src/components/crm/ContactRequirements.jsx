@@ -184,6 +184,15 @@ INSTRUÇÕES:
               Requisitos do Cliente
             </span>
             <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setShowAiInput(!showAiInput)}
+                className="text-purple-600 hover:bg-purple-50"
+              >
+                <Wand2 className="w-4 h-4 mr-1" />
+                IA
+              </Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
                 <X className="w-4 h-4" />
               </Button>
@@ -191,6 +200,49 @@ INSTRUÇÕES:
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* AI Text Input */}
+          {showAiInput && (
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-purple-700">
+                <Sparkles className="w-4 h-4" />
+                <span className="font-medium text-sm">Extrair requisitos com IA</span>
+              </div>
+              <Textarea
+                value={aiText}
+                onChange={(e) => setAiText(e.target.value)}
+                placeholder="Cole aqui o texto do cliente (email, mensagem, notas...) e a IA extrairá automaticamente os requisitos de imóvel..."
+                rows={4}
+                className="bg-white"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleAiExtract} 
+                  disabled={aiLoading || !aiText.trim()}
+                  className="bg-purple-600 hover:bg-purple-700"
+                  size="sm"
+                >
+                  {aiLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      A analisar...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      Extrair Requisitos
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => { setShowAiInput(false); setAiText(""); }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
           {/* Listing Type */}
           <div>
             <Label>Tipo de Negócio</Label>
