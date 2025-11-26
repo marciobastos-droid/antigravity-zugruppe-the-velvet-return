@@ -706,9 +706,13 @@ export default function ImportProperties() {
 
       setProgress("A guardar no sistema...");
 
-      const created = await base44.entities.Property.bulkCreate(
-        propertiesWithTags.map(p => ({ 
+      // Generate sequential ref_ids for all properties
+      const propertiesWithRefIds = [];
+      for (const p of propertiesWithTags) {
+        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
+        propertiesWithRefIds.push({ 
           ...p, 
+          ref_id: refData.ref_id,
           status: "active", 
           featured: false,
           address: p.address || p.city,
@@ -719,8 +723,9 @@ export default function ImportProperties() {
                         propertyOwnership === "private" ? privateOwnerName : undefined,
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-        }))
-      );
+        });
+      }
+      const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
 
       const countWithImages = created.filter(p => p.images?.length > 0).length;
       const totalImages = created.reduce((sum, p) => sum + (p.images?.length || 0), 0);
