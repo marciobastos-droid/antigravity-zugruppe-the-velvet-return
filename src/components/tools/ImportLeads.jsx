@@ -85,12 +85,25 @@ export default function ImportLeads() {
         };
       }
       
-      const extracted = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analise o texto e extraia informações de ${leadType}:
+      const leadTypeLabels = {
+        comprador: "comprador/cliente interessado em comprar imóvel",
+        vendedor: "vendedor/proprietário que quer vender imóvel",
+        parceiro: "parceiro de negócio/empresa imobiliária"
+      };
 
+      const extracted = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analise cuidadosamente o seguinte texto e extraia TODAS as informações disponíveis sobre este ${leadTypeLabels[leadType]}:
+
+TEXTO:
 ${text}
 
-Extrair: buyer_name, buyer_email, buyer_phone, location, message${promptAddition}`,
+INSTRUÇÕES:
+- Extrai todos os dados de contacto: nome, email, telefone
+- Extrai localização mencionada
+- Resume a mensagem/pedido principal
+${promptAddition}
+
+Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         response_json_schema: {
           type: "object",
           properties: {
