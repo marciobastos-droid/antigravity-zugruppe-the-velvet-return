@@ -183,10 +183,11 @@ export default function ClientDatabase() {
     return communications.filter(c => c.contact_id === clientId);
   };
 
-  const getClientOpportunities = (clientId, clientEmail) => {
-    // Match by linked_opportunity_ids OR by email for backwards compatibility
+  const getClientOpportunities = (client) => {
+    // Match by profile_id OR by linked_opportunity_ids
+    const linkedIds = client.linked_opportunity_ids || [];
     return opportunities.filter(o => 
-      o.profile_id === clientId || o.buyer_email === clientEmail
+      o.profile_id === client.id || linkedIds.includes(o.id)
     );
   };
 
