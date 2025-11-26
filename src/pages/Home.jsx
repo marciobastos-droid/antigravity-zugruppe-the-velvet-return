@@ -19,48 +19,48 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => base44.auth.me()
   });
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
   // Menu CRM
   const menuItems = [
-    {
-      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
-      title: "Imóveis",
-      path: "MyListings"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-      title: "Explorar",
-      path: "Browse"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
-      title: "Clientes",
-      path: "ClientPreferences"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
-      title: "Dashboard",
-      path: "Dashboard"
-    },
-    {
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
-      title: "Oportunidades",
-      path: "Opportunities"
-    }
-  ];
+  {
+    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
+    title: "Imóveis",
+    path: "MyListings"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
+    title: "Explorar",
+    path: "Browse"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
+    title: "Clientes",
+    path: "ClientPreferences"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
+    title: "Dashboard",
+    path: "Dashboard"
+  },
+  {
+    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
+    title: "Oportunidades",
+    path: "Opportunities"
+  }];
+
 
   // Marcas da empresa - guardadas no user settings ou estado local
   const defaultBrands = [
-    { id: 1, image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", title: "Marca 1", url: "#" },
-    { id: 2, image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop", title: "Marca 2", url: "#" },
-    { id: 3, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop", title: "Marca 3", url: "#" },
-    { id: 4, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop", title: "Marca 4", url: "#" },
-    { id: 5, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop", title: "Marca 5", url: "#" }
-  ];
+  { id: 1, image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", title: "Marca 1", url: "#" },
+  { id: 2, image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop", title: "Marca 2", url: "#" },
+  { id: 3, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop", title: "Marca 3", url: "#" },
+  { id: 4, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop", title: "Marca 4", url: "#" },
+  { id: 5, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop", title: "Marca 5", url: "#" }];
+
 
   const [brandItems, setBrandItems] = React.useState(defaultBrands);
 
@@ -84,7 +84,7 @@ export default function Home() {
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setEditingBrand(prev => ({ ...prev, image: file_url }));
+      setEditingBrand((prev) => ({ ...prev, image: file_url }));
       toast.success("Imagem carregada");
     } catch (error) {
       toast.error("Erro ao carregar imagem");
@@ -93,7 +93,7 @@ export default function Home() {
   };
 
   const handleSaveBrand = () => {
-    const updated = brandItems.map(b => b.id === editingBrand.id ? editingBrand : b);
+    const updated = brandItems.map((b) => b.id === editingBrand.id ? editingBrand : b);
     setBrandItems(updated);
     localStorage.setItem('zugruppe_brands', JSON.stringify(updated));
     setEditDialogOpen(false);
@@ -108,13 +108,13 @@ export default function Home() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
-        className="mb-12"
-      >
-        <img 
+        className="mb-12">
+
+        <img
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
           alt="Zugruppe"
-          className="h-24 md:h-32 w-auto mx-auto"
-        />
+          className="h-40 md:h-56 w-auto mx-auto" />
+
       </motion.div>
 
       {/* Welcome */}
@@ -122,12 +122,12 @@ export default function Home() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-center mb-10"
-      >
+        className="text-center mb-10">
+
         <h1 className="text-2xl md:text-3xl font-semibold text-[#27251f] mb-2">
           Plataforma de Gestão Imobiliária
         </h1>
-        <p className="text-[#27251f]/60">Selecione uma área para começar</p>
+        <p className="text-[#27251f]/60"></p>
       </motion.div>
 
       {/* Menu CRM Grid */}
@@ -135,26 +135,26 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full"
-      >
-        {menuItems.map((item, index) => (
-          <Link 
-            key={item.path} 
-            to={createPageUrl(item.path)}
-            className="group"
-          >
+        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full">
+
+        {menuItems.map((item, index) =>
+        <Link
+          key={item.path}
+          to={createPageUrl(item.path)}
+          className="group">
+
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 * index }}
-              className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 * index }}
+            className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
+
               <div className="aspect-[4/3] overflow-hidden">
-                <img 
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                />
+                <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
@@ -163,7 +163,7 @@ export default function Home() {
               <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
             </motion.div>
           </Link>
-        ))}
+        )}
       </motion.div>
 
       {/* Marcas da Empresa */}
@@ -171,8 +171,8 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-12 text-center"
-      >
+        className="mt-12 text-center">
+
         <h2 className="text-lg font-medium text-[#27251f]/60 mb-6">As Nossas Marcas</h2>
       </motion.div>
 
@@ -180,41 +180,45 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full"
-      >
-        {brandItems.map((item, index) => (
-          <div key={item.id} className="relative group">
-            <a 
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full">
+
+        {brandItems.map((item, index) =>
+        <div key={item.id} className="relative group">
+            <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer">
+
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
-                className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105"
-              >
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
+              className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
+
                 <div className="aspect-[4/3] overflow-hidden">
-                  <img 
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                  <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
                 </div>
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
               </motion.div>
             </a>
-            {isAdmin && (
-              <button
-                onClick={(e) => { e.preventDefault(); handleEditBrand(item); }}
-                className="absolute top-2 right-2 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
-              >
+            {isAdmin &&
+          <button
+            onClick={(e) => {e.preventDefault();handleEditBrand(item);}}
+            className="absolute top-2 right-2 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white">
+
                 <Settings className="w-4 h-4 text-[#27251f]" />
               </button>
-            )}
+          }
           </div>
-        ))}
+        )}
       </motion.div>
 
       {/* Edit Brand Dialog */}
@@ -223,24 +227,24 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>Editar Marca</DialogTitle>
           </DialogHeader>
-          {editingBrand && (
-            <div className="space-y-4 mt-4">
+          {editingBrand &&
+          <div className="space-y-4 mt-4">
               <div>
                 <Label>Imagem</Label>
                 <div className="mt-2 flex items-center gap-4">
-                  <img 
-                    src={editingBrand.image} 
-                    alt="Preview" 
-                    className="w-24 h-18 object-cover rounded-lg"
-                  />
+                  <img
+                  src={editingBrand.image}
+                  alt="Preview"
+                  className="w-24 h-18 object-cover rounded-lg" />
+
                   <div>
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="brand-image-upload"
-                    />
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="brand-image-upload" />
+
                     <label htmlFor="brand-image-upload">
                       <Button variant="outline" size="sm" asChild disabled={uploading}>
                         <span>
@@ -255,18 +259,18 @@ export default function Home() {
               <div>
                 <Label>Nome da Marca</Label>
                 <Input
-                  value={editingBrand.title}
-                  onChange={(e) => setEditingBrand(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Nome da marca"
-                />
+                value={editingBrand.title}
+                onChange={(e) => setEditingBrand((prev) => ({ ...prev, title: e.target.value }))}
+                placeholder="Nome da marca" />
+
               </div>
               <div>
                 <Label>URL (link externo)</Label>
                 <Input
-                  value={editingBrand.url}
-                  onChange={(e) => setEditingBrand(prev => ({ ...prev, url: e.target.value }))}
-                  placeholder="https://..."
-                />
+                value={editingBrand.url}
+                onChange={(e) => setEditingBrand((prev) => ({ ...prev, url: e.target.value }))}
+                placeholder="https://..." />
+
               </div>
               <div className="flex gap-2 pt-4">
                 <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1">
@@ -277,7 +281,7 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-          )}
+          }
         </DialogContent>
       </Dialog>
 
@@ -286,12 +290,12 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.8 }}
-        className="mt-16 text-center"
-      >
+        className="mt-16 text-center">
+
         <p className="text-[#27251f]/40 text-sm">
           © 2025 Zugruppe - Privileged Approach
         </p>
       </motion.footer>
-    </div>
-  );
+    </div>);
+
 }
