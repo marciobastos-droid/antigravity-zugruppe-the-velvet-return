@@ -187,7 +187,7 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         opportunityData.budget = extracted.budget_max || extracted.budget_min || 0;
         opportunityData.property_type_interest = extracted.property_types?.[0] || "";
         
-        // Add property requirements to contact
+        // Add property requirements to contact - AI already extracted these
         contactData.property_requirements = {
           listing_type: extracted.listing_type || "sale",
           property_types: extracted.property_types || [],
