@@ -25,14 +25,13 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
   const navItems = [
-    { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard" },
-    { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
-    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
-    { name: "Oportunidades", path: createPageUrl("Opportunities"), icon: MessageSquare, id: "nav-opportunities" },
-    { name: "Contatos", path: createPageUrl("ClientPreferences"), icon: Users, id: "nav-clients" },
-    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
-  ];
+        { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard" },
+        { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
+        { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
+        { name: "Oportunidades", path: createPageUrl("Opportunities"), icon: MessageSquare, id: "nav-opportunities" },
+        { name: "Contatos/CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
+        { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
+      ];
 
   if (isAdmin) {
     navItems.push({ name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users });
