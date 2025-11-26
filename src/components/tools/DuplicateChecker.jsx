@@ -967,23 +967,35 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                   )}
                 </div>
                 
-                <Button
-                  onClick={analyzeDuplicates}
-                  disabled={analyzing || properties.length === 0}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  {analyzing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      A analisar...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Analisar Imóveis
-                    </>
+                <div className="flex gap-2">
+                  {(ignoredPropertyIds.length > 0 || scheduledPropertyReviews.length > 0) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearPropertyIgnoreList}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Limpar Listas
+                    </Button>
                   )}
-                </Button>
+                  <Button
+                    onClick={analyzeDuplicates}
+                    disabled={analyzing || properties.length === 0}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    {analyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        A analisar...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4 mr-2" />
+                        Analisar Imóveis
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
 
               {analyzing && (
