@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, Edit, X, ArrowRight, FileInput, Building2, Users2, User } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User } from "lucide-react";
 import { toast } from "sonner";
 
 const propertySchema = {
