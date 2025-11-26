@@ -53,6 +53,41 @@ export default function DuplicateChecker() {
   const [contactProgressText, setContactProgressText] = React.useState("");
   const [expandedContactGroups, setExpandedContactGroups] = React.useState({});
 
+  // Ignore lists and scheduled reviews
+  const [ignoredPropertyIds, setIgnoredPropertyIds] = React.useState(() => {
+    const saved = localStorage.getItem('duplicateChecker_ignoredProperties');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [ignoredContactIds, setIgnoredContactIds] = React.useState(() => {
+    const saved = localStorage.getItem('duplicateChecker_ignoredContacts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [scheduledPropertyReviews, setScheduledPropertyReviews] = React.useState(() => {
+    const saved = localStorage.getItem('duplicateChecker_scheduledProperties');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [scheduledContactReviews, setScheduledContactReviews] = React.useState(() => {
+    const saved = localStorage.getItem('duplicateChecker_scheduledContacts');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Save to localStorage when ignore lists change
+  React.useEffect(() => {
+    localStorage.setItem('duplicateChecker_ignoredProperties', JSON.stringify(ignoredPropertyIds));
+  }, [ignoredPropertyIds]);
+
+  React.useEffect(() => {
+    localStorage.setItem('duplicateChecker_ignoredContacts', JSON.stringify(ignoredContactIds));
+  }, [ignoredContactIds]);
+
+  React.useEffect(() => {
+    localStorage.setItem('duplicateChecker_scheduledProperties', JSON.stringify(scheduledPropertyReviews));
+  }, [scheduledPropertyReviews]);
+
+  React.useEffect(() => {
+    localStorage.setItem('duplicateChecker_scheduledContacts', JSON.stringify(scheduledContactReviews));
+  }, [scheduledContactReviews]);
+
   // Normalize text for comparison
   const normalizeText = (text) => {
     if (!text) return "";
