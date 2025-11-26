@@ -1047,10 +1047,10 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
         </Card>
       )}
 
-      {/* Tips */}
+      {/* Tips for Properties */}
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="p-4">
-          <h4 className="font-medium text-blue-900 mb-2">💡 Dicas</h4>
+          <h4 className="font-medium text-blue-900 mb-2">💡 Dicas - Imóveis</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• A IA analisa títulos, endereços, preços e características para identificar duplicados</li>
             <li>• O primeiro imóvel de cada grupo é marcado como "Original" - geralmente o mais antigo</li>
@@ -1059,6 +1059,281 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
           </ul>
         </CardContent>
       </Card>
+        </>
+      )}
+
+      {activeTab === "contacts" && (
+        <>
+          {/* Contacts Analysis Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-slate-900">{contacts.length}</div>
+                    <div className="text-xs text-slate-600">Total de Contactos</div>
+                  </div>
+                  {lastContactAnalysis && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600">{contactDuplicateGroups.length}</div>
+                      <div className="text-xs text-slate-600">Grupos Duplicados</div>
+                    </div>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={analyzeContactDuplicates}
+                  disabled={analyzingContacts || contacts.length === 0}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {analyzingContacts ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A analisar...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Analisar Contactos
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {analyzingContacts && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">{contactProgressText}</span>
+                    <span className="font-medium">{contactProgress}%</span>
+                  </div>
+                  <Progress value={contactProgress} className="h-2" />
+                </div>
+              )}
+
+              {lastContactAnalysis && (
+                <p className="text-xs text-slate-500 mt-4">
+                  Última análise: {lastContactAnalysis.toLocaleString('pt-PT')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Contact Action Bar */}
+          {selectedContactsForDeletion.length > 0 && (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <span className="font-medium text-red-900">
+                      {selectedContactsForDeletion.length} contacto(s) selecionado(s) para eliminação
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedContactsForDeletion([])}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={deleteSelectedContacts}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar Selecionados
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Contact Results */}
+          {contactDuplicateGroups.length > 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Grupos de Contactos Duplicados
+                </h3>
+                <Badge variant="outline" className="text-green-600 border-green-200">
+                  {contactDuplicateGroups.reduce((sum, g) => sum + g.contacts.length - 1, 0)} duplicados
+                </Badge>
+              </div>
+
+              {contactDuplicateGroups.map((group, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <div 
+                    className="p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleContactGroup(index)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-lg shadow-sm">
+                          <Users className="w-4 h-4 text-slate-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900">
+                            Grupo #{index + 1} - {group.contacts.length} contactos
+                          </h4>
+                          <p className="text-sm text-slate-600">{group.reason}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={getConfidenceColor(group.confidence)}>
+                          {group.confidence}% confiança
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); selectAllContactsExceptFirst(group); }}
+                        >
+                          <Merge className="w-4 h-4 mr-1" />
+                          Manter 1º
+                        </Button>
+                        {expandedContactGroups[index] ? (
+                          <ChevronUp className="w-5 h-5 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {expandedContactGroups[index] && (
+                    <CardContent className="p-4 border-t">
+                      <div className="space-y-3">
+                        {group.contacts.map((contact, cIndex) => (
+                          <div 
+                            key={contact.id}
+                            className={`flex items-start gap-4 p-3 rounded-lg border transition-colors ${
+                              selectedContactsForDeletion.includes(contact.id)
+                                ? 'bg-red-50 border-red-200'
+                                : cIndex === 0
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={selectedContactsForDeletion.includes(contact.id)}
+                              onCheckedChange={() => toggleContactSelection(contact.id)}
+                              className="mt-1"
+                            />
+                            
+                            {/* Avatar */}
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center flex-shrink-0">
+                              <span className="text-lg font-semibold text-slate-600">
+                                {contact.full_name?.[0]?.toUpperCase() || "?"}
+                              </span>
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {cIndex === 0 && (
+                                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                        Original
+                                      </Badge>
+                                    )}
+                                    {contact.ref_id && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {contact.ref_id}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className="text-xs">
+                                      {contactTypeLabels[contact.contact_type] || contact.contact_type}
+                                    </Badge>
+                                  </div>
+                                  <h5 className="font-medium text-slate-900 mt-1">
+                                    {contact.full_name}
+                                  </h5>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
+                                {contact.email && (
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    {contact.email}
+                                  </span>
+                                )}
+                                {contact.phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3.5 h-3.5" />
+                                    {contact.phone}
+                                  </span>
+                                )}
+                                {contact.city && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    {contact.city}
+                                  </span>
+                                )}
+                              </div>
+
+                              {contact.company_name && (
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Empresa: {contact.company_name}
+                                </p>
+                              )}
+                              {contact.nif && (
+                                <p className="text-xs text-slate-500">
+                                  NIF: {contact.nif}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : lastContactAnalysis && !analyzingContacts ? (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="py-12 text-center">
+                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-green-900 mb-2">
+                  Sem Contactos Duplicados
+                </h3>
+                <p className="text-green-700">
+                  A sua base de dados de contactos está limpa!
+                </p>
+              </CardContent>
+            </Card>
+          ) : !analyzingContacts && (
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center">
+                <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-slate-700 mb-2">
+                  Pronto para Analisar Contactos
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Clique no botão acima para iniciar a análise de contactos duplicados.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tips for Contacts */}
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4">
+              <h4 className="font-medium text-green-900 mb-2">💡 Dicas - Contactos</h4>
+              <ul className="text-sm text-green-800 space-y-1">
+                <li>• A análise compara emails, telefones, nomes e NIFs para identificar duplicados</li>
+                <li>• O primeiro contacto é marcado como "Original" - geralmente o mais antigo</li>
+                <li>• Antes de eliminar, verifique se os contactos têm oportunidades ou histórico associado</li>
+                <li>• Considere mesclar os dados manualmente antes de eliminar duplicados</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
