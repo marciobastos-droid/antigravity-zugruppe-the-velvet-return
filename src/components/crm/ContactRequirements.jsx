@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Home, MapPin, Euro, Bed, Bath, Square, 
-  Edit, Save, X, Plus, Sparkles, Target
+  Edit, Save, X, Plus, Sparkles, Target, Loader2, Wand2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
