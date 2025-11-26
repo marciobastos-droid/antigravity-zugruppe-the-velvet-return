@@ -53,24 +53,11 @@ export default function Home() {
   }];
 
 
-  // Marcas da empresa - guardadas no user settings ou estado local
-  const defaultBrands = [
-  { id: 1, image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", title: "Marca 1", url: "#" },
-  { id: 2, image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop", title: "Marca 2", url: "#" },
-  { id: 3, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop", title: "Marca 3", url: "#" },
-  { id: 4, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop", title: "Marca 4", url: "#" },
-  { id: 5, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=300&fit=crop", title: "Marca 5", url: "#" }];
-
-
-  const [brandItems, setBrandItems] = React.useState(defaultBrands);
-
-  // Carregar marcas guardadas
-  React.useEffect(() => {
-    const saved = localStorage.getItem('zugruppe_brands');
-    if (saved) {
-      setBrandItems(JSON.parse(saved));
-    }
-  }, []);
+  // Marcas da empresa - carregadas da base de dados
+  const { data: brandItems = [], refetch: refetchBrands } = useQuery({
+    queryKey: ['brandItems'],
+    queryFn: () => base44.entities.BrandItem.list('order')
+  });
 
   const handleEditBrand = (brand) => {
     setEditingBrand({ ...brand });
