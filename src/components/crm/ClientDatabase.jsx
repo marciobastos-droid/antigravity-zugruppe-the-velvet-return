@@ -79,6 +79,11 @@ export default function ClientDatabase() {
     queryFn: () => base44.entities.Opportunity.list()
   });
 
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list()
+  });
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientContact.create(data),
     onSuccess: () => {
