@@ -67,15 +67,35 @@ const fieldLabels = {
   amenities: "Comodidades"
 };
 
-const detectPropertyTypes = async (title, description) => {
+const detectPropertyTypes = async (title, description, price) => {
   try {
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Analisa: "${title}" - ${description || ''}. Retorna property_type ("house", "apartment", "condo", "townhouse", "land", "commercial") e listing_type ("sale" ou "rent").`,
+      prompt: `Analisa este imóvel e classifica-o corretamente:
+
+TÍTULO: "${title}"
+DESCRIÇÃO: ${description || 'Sem descrição'}
+PREÇO: €${price || 0}
+
+INSTRUÇÕES:
+1. property_type - Tipo de imóvel:
+   - "house" = Moradia, vivenda, casa independente
+   - "apartment" = Apartamento, andar, flat
+   - "condo" = Condomínio fechado
+   - "townhouse" = Moradia geminada, em banda
+   - "land" = Terreno, lote
+   - "commercial" = Loja, escritório, armazém, comercial
+   - "building" = Prédio inteiro
+
+2. listing_type - Tipo de negócio:
+   - "sale" = Venda (preços tipicamente > €50.000)
+   - "rent" = Arrendamento (preços tipicamente < €5.000/mês)
+
+Analisa o contexto do título, descrição e preço para determinar corretamente.`,
       response_json_schema: {
         type: "object",
         properties: {
-          property_type: { type: "string" },
-          listing_type: { type: "string" }
+          property_type: { type: "string", enum: ["house", "apartment", "condo", "townhouse", "land", "commercial", "building"] },
+          listing_type: { type: "string", enum: ["sale", "rent"] }
         }
       }
     });
