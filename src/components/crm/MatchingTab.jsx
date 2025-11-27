@@ -417,7 +417,7 @@ export default function MatchingTab() {
             </CardContent>
           </Card>
         </div>
-      </div>
+        </div>
       )}
 
       {/* Matching Dialog */}
