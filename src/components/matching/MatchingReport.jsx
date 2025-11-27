@@ -25,6 +25,9 @@ export default function MatchingReport({ contact, open, onOpenChange }) {
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const [reportConfig, setReportConfig] = useState(DEFAULT_CONFIG);
+  const [activeReportTab, setActiveReportTab] = useState("matches");
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
