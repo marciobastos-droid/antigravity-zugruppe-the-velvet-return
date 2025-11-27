@@ -127,6 +127,20 @@ export default function FacebookSyncDashboard({
           </CardContent>
         </Card>
 
+        <Card className={`border-purple-200 bg-gradient-to-br from-purple-50 to-white ${unconvertedCount > 0 ? '' : ''}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-purple-900">{unconvertedCount}</p>
+                <p className="text-xs text-purple-600">Não Convertidas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className={`border-orange-200 bg-gradient-to-br from-orange-50 to-white ${campaignsOverdue > 0 ? 'animate-pulse' : ''}`}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
