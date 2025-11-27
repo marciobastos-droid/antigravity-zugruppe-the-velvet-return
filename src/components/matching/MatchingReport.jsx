@@ -686,8 +686,23 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
             </div>
           )}
 
+          {/* Customizer Panel */}
+          {showCustomizer && matches.length > 0 && (
+            <div className="mt-4 p-4 bg-slate-50 rounded-xl border">
+              <ReportCustomizer
+                config={reportConfig}
+                onConfigChange={setReportConfig}
+                onSave={(config) => {
+                  setReportConfig(config);
+                  setShowCustomizer(false);
+                  toast.success("Configurações do relatório guardadas!");
+                }}
+              />
+            </div>
+          )}
+
           {/* Results */}
-          {!analyzing && matches.length > 0 && (
+          {!analyzing && matches.length > 0 && !showCustomizer && (
             <ScrollArea className="flex-1 mt-4">
               <div className="space-y-4 pr-4">
                 {matches.map((match, idx) => (
