@@ -155,8 +155,13 @@ Deno.serve(async (req) => {
       await base44.entities.FacebookLead.create(leadData);
       newLeads.push(leadData);
       
+      // Adicionar aos sets para evitar duplicados na mesma sincronização
+      existingLeadIds.add(fbLead.id);
       if (email) {
         existingEmails.add(email);
+      }
+      if (phone && phone.length >= 9) {
+        existingPhones.add(phone);
       }
     }
 
