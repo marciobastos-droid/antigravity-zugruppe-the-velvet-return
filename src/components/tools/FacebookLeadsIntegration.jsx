@@ -1176,72 +1176,84 @@ export default function FacebookLeadsIntegration() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {filteredLeads.map((lead) => (
-                <Card key={lead.id} className={`border-2 ${selectedLeads.includes(lead.id) ? 'border-blue-500 bg-blue-100' : lead.status === 'new' ? 'border-blue-300 bg-blue-50' : lead.status === 'converted' ? 'border-green-300 bg-green-50' : ''}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1">
-                        <Checkbox
-                          checked={selectedLeads.includes(lead.id)}
-                          onCheckedChange={() => toggleSelectLead(lead.id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
-                            <Badge className={
-                              lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
-                              lead.status === 'converted' ? 'bg-green-100 text-green-800' :
-                              lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-slate-100 text-slate-800'
-                            }>
-                              {lead.status === 'new' ? 'Novo' :
-                               lead.status === 'converted' ? 'Convertido' :
-                               lead.status === 'contacted' ? 'Contactado' : 'Arquivado'}
-                            </Badge>
+            {filteredLeads.length === 0 ? (
+              <div className="text-center py-12">
+                <Filter className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-600 font-medium">Nenhuma lead encontrada</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  {fbLeads.length > 0 
+                    ? "Tente ajustar os filtros de pesquisa" 
+                    : "Sincronize campanhas para importar leads"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredLeads.map((lead) => (
+                  <Card key={lead.id} className={`border-2 ${selectedLeads.includes(lead.id) ? 'border-blue-500 bg-blue-100' : lead.status === 'new' ? 'border-blue-300 bg-blue-50' : lead.status === 'converted' ? 'border-green-300 bg-green-50' : ''}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <Checkbox
+                            checked={selectedLeads.includes(lead.id)}
+                            onCheckedChange={() => toggleSelectLead(lead.id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
+                              <Badge className={
+                                lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                                lead.status === 'converted' ? 'bg-green-100 text-green-800' :
+                                lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-slate-100 text-slate-800'
+                              }>
+                                {lead.status === 'new' ? 'Novo' :
+                                 lead.status === 'converted' ? 'Convertido' :
+                                 lead.status === 'contacted' ? 'Contactado' : 'Arquivado'}
+                              </Badge>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-2 text-sm text-slate-700">
+                              <div>📧 {lead.email}</div>
+                              {lead.phone && <div>📱 {lead.phone}</div>}
+                              {lead.location && <div>📍 {lead.location}</div>}
+                              {lead.property_type && <div>🏠 {lead.property_type}</div>}
+                              {lead.budget && <div>💰 €{Number(lead.budget).toLocaleString()}</div>}
+                            </div>
+                            <p className="text-xs text-slate-600 mt-2">
+                              Campanha: {lead.campaign_name || lead.campaign_id} • Formulário: {lead.form_name || lead.form_id}
+                            </p>
+                            {lead.message && (
+                              <p className="text-sm text-slate-600 mt-2 line-clamp-2">{lead.message}</p>
+                            )}
                           </div>
-                          <div className="grid md:grid-cols-2 gap-2 text-sm text-slate-700">
-                            <div>📧 {lead.email}</div>
-                            {lead.phone && <div>📱 {lead.phone}</div>}
-                            {lead.location && <div>📍 {lead.location}</div>}
-                            {lead.property_type && <div>🏠 {lead.property_type}</div>}
-                            {lead.budget && <div>💰 €{Number(lead.budget).toLocaleString()}</div>}
-                          </div>
-                          <p className="text-xs text-slate-600 mt-2">
-                            Campanha: {lead.campaign_name || lead.campaign_id} • Formulário: {lead.form_name || lead.form_id}
-                          </p>
-                          {lead.message && (
-                            <p className="text-sm text-slate-600 mt-2 line-clamp-2">{lead.message}</p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          {lead.status === 'new' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleOpenConvertDialog(lead)}
+                              disabled={convertToOpportunityMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Converter
+                            </Button>
                           )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteLeadMutation.mutate(lead.id)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2 ml-4">
-                        {lead.status === 'new' && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleOpenConvertDialog(lead)}
-                            disabled={convertToOpportunityMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Converter
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteLeadMutation.mutate(lead.id)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
