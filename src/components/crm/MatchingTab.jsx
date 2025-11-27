@@ -149,7 +149,55 @@ export default function MatchingTab() {
         </Card>
       </div>
 
+      {/* View Mode Toggle */}
+      <div className="flex justify-end">
+        <div className="flex border rounded-lg overflow-hidden">
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className="rounded-none"
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Lista
+          </Button>
+          <Button
+            variant={viewMode === "ai" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("ai")}
+            className="rounded-none"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Análise IA
+          </Button>
+        </div>
+      </div>
+
+      {viewMode === "ai" && selectedContact ? (
+        <AIMatchingInsights 
+          contact={selectedContact} 
+          onSelectProperty={(property) => {
+            setMatchingOpen(true);
+          }}
+        />
+      ) : viewMode === "ai" ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Brain className="w-16 h-16 text-indigo-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Selecione um Cliente</h3>
+            <p className="text-slate-500 mb-4">
+              Escolha um cliente da lista abaixo para iniciar a análise IA avançada
+            </p>
+            <Button onClick={() => setViewMode("list")}>
+              <Users className="w-4 h-4 mr-2" />
+              Ver Lista de Clientes
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Main Content */}
+      {viewMode === "list" && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Client List */}
         <div className="lg:col-span-2">
