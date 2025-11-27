@@ -776,6 +776,50 @@ export default function FacebookLeadsIntegration() {
       )}
 
       {fbSettings?.configured && (
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Campanhas
+            </TabsTrigger>
+            <TabsTrigger value="leads" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Leads
+              {newLeadsCount > 0 && (
+                <Badge className="ml-1 bg-blue-600 text-white text-xs h-5 min-w-5 flex items-center justify-center">
+                  {newLeadsCount}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              Alertas
+              {recentSyncErrors.length > 0 && (
+                <Badge className="ml-1 bg-red-600 text-white text-xs h-5 min-w-5 flex items-center justify-center">
+                  {recentSyncErrors.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard">
+            <FacebookSyncDashboard
+              campaigns={fbSettings.campaigns || []}
+              lastSync={fbSettings.last_sync || {}}
+              syncLogs={syncLogs}
+              leadsByCampaign={leadsByCampaign}
+              onSync={handleSyncLeads}
+              syncing={syncing}
+            />
+          </TabsContent>
+
+          {/* Campaigns Tab */}
+          <TabsContent value="campaigns">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
