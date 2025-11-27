@@ -27,6 +27,7 @@ import ContactMatching from "./ContactMatching";
 import MatchingReport from "../matching/MatchingReport";
 import ClientsTable from "./ClientsTable";
 import SendEmailDialog from "../email/SendEmailDialog";
+import ClientPortalManager from "./ClientPortalManager";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
