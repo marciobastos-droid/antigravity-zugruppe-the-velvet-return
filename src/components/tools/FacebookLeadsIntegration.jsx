@@ -1177,7 +1177,7 @@ export default function FacebookLeadsIntegration() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {fbLeads.map((lead) => (
+              {filteredLeads.map((lead) => (
                 <Card key={lead.id} className={`border-2 ${selectedLeads.includes(lead.id) ? 'border-blue-500 bg-blue-100' : lead.status === 'new' ? 'border-blue-300 bg-blue-50' : lead.status === 'converted' ? 'border-green-300 bg-green-50' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
