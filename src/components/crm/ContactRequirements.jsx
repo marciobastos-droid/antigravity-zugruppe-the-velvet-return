@@ -35,6 +35,13 @@ export default function ContactRequirements({ contact, onUpdate }) {
   const [showAiInput, setShowAiInput] = React.useState(false);
   const [autoLoadedText, setAutoLoadedText] = React.useState(false);
 
+  // Sync requirements state when contact changes or when editing starts
+  React.useEffect(() => {
+    if (contact?.property_requirements) {
+      setRequirements(contact.property_requirements);
+    }
+  }, [contact?.id, contact?.property_requirements]);
+
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date')
