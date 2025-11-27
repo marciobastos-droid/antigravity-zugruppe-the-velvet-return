@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import VideoMaker from "../components/tools/VideoMaker";
@@ -29,6 +29,7 @@ import AutoMatchingDashboard from "../components/matching/AutoMatchingDashboard"
 import EmailHub from "../components/email/EmailHub";
 import CreditSimulator from "../components/tools/CreditSimulator";
 import ReportsExporter from "../components/tools/ReportsExporter";
+import WhatsAppIntegration from "../components/tools/WhatsAppIntegration";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -52,7 +53,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Facebook className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(6 ferramentas)</span>
+                <span className="text-sm text-purple-600">(7 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -103,6 +104,14 @@ export default function Tools() {
                 >
                   <Key className="w-4 h-4" />
                   Integrações API
+                </Button>
+                <Button
+                  variant={activeTab === "whatsapp" ? "default" : "outline"}
+                  onClick={() => setActiveTab("whatsapp")}
+                  className="flex items-center gap-2 bg-green-50 border-green-300 hover:bg-green-100"
+                >
+                  <MessageCircle className="w-4 h-4 text-green-600" />
+                  WhatsApp Business
                 </Button>
               </div>
             </CardContent>
@@ -365,6 +374,7 @@ export default function Tools() {
         {activeTab === "devNotes" && <DevelopmentNotes />}
         {activeTab === "creditSimulator" && <CreditSimulator />}
         {activeTab === "reportsExporter" && <ReportsExporter />}
+        {activeTab === "whatsapp" && <WhatsAppIntegration />}
       </div>
     </div>
   );
