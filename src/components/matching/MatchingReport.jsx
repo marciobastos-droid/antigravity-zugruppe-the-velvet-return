@@ -825,14 +825,27 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
           {/* Empty State */}
           {!analyzing && matches.length === 0 && (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center py-12">
-                <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">
-                  Iniciar Análise de Matching
+              <div className="text-center py-12 px-8">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse" />
+                  <div className="relative bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full p-6">
+                    <Brain className="w-16 h-16 text-indigo-600" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-slate-800 mt-6 mb-2">
+                  Análise Inteligente de Matching
                 </h3>
-                <p className="text-slate-500 mb-4">
-                  Clique em "Iniciar Matching" para encontrar imóveis compatíveis
+                <p className="text-slate-500 mb-6 max-w-sm mx-auto">
+                  A IA vai analisar os requisitos do cliente e encontrar os imóveis mais compatíveis da sua carteira.
                 </p>
+                <Button 
+                  onClick={runMatching} 
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-200"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Iniciar Matching com IA
+                </Button>
               </div>
             </div>
           )}
