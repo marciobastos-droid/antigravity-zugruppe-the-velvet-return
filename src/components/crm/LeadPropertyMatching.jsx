@@ -5,16 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Home, Sparkles, Loader2, Euro, Bed, Bath, Maximize, 
   MapPin, Check, X, Eye, Plus, ChevronDown, ChevronUp 
 } from "lucide-react";
 import { toast } from "sonner";
+import MatchCriteriaDisplay, { evaluateCriteria, MatchScoreBadge } from "../matching/MatchCriteriaDisplay";
 
 export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMatching, setIsMatching] = React.useState(false);
   const [matches, setMatches] = React.useState([]);
+  const [expandedMatch, setExpandedMatch] = React.useState(null);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -23,62 +26,17 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
 
   const activeProperties = properties.filter(p => p.status === 'active');
 
-  const calculateBasicScore = (property) => {
-    let score = 0;
-    let maxScore = 0;
-
-    // Location matching (30 points)
-    if (lead.location) {
-      maxScore += 30;
-      const locations = [lead.location.toLowerCase()];
-      if (property.city?.toLowerCase().includes(lead.location.toLowerCase()) ||
-          property.state?.toLowerCase().includes(lead.location.toLowerCase()) ||
-          property.address?.toLowerCase().includes(lead.location.toLowerCase())) {
-        score += 30;
-      }
-    }
-
-    // Budget matching (40 points)
-    if (lead.budget && lead.budget > 0) {
-      maxScore += 40;
-      const budget = lead.budget;
-      const price = property.price || 0;
-      
-      if (price <= budget * 1.1 && price >= budget * 0.7) {
-        score += 40;
-      } else if (price <= budget * 1.2 && price >= budget * 0.5) {
-        score += 25;
-      } else if (price <= budget * 1.5) {
-        score += 10;
-      }
-    }
-
-    // Property type matching (20 points)
-    if (lead.property_type_interest) {
-      maxScore += 20;
-      const interest = lead.property_type_interest.toLowerCase();
-      const propType = property.property_type?.toLowerCase() || '';
-      
-      if (interest.includes(propType) || propType.includes(interest) ||
-          (interest.includes('apartamento') && propType === 'apartment') ||
-          (interest.includes('moradia') && propType === 'house') ||
-          (interest.includes('t1') && property.bedrooms === 1) ||
-          (interest.includes('t2') && property.bedrooms === 2) ||
-          (interest.includes('t3') && property.bedrooms === 3) ||
-          (interest.includes('t4') && property.bedrooms >= 4)) {
-        score += 20;
-      }
-    }
-
-    // Listing type (10 points)
-    maxScore += 10;
-    if (lead.lead_type === 'comprador' && property.listing_type === 'sale') {
-      score += 10;
-    } else if (lead.lead_type === 'vendedor' && property.listing_type === 'rent') {
-      score += 5;
-    }
-
-    return maxScore > 0 ? Math.round((score / maxScore) * 100) : 50;
+  // Build requirements from lead data
+  const getRequirementsFromLead = () => {
+    return {
+      budget_min: lead.budget ? lead.budget * 0.7 : null,
+      budget_max: lead.budget || null,
+      locations: lead.location ? [lead.location] : [],
+      property_types: lead.property_type_interest ? [lead.property_type_interest.toLowerCase()] : [],
+      listing_type: lead.lead_type === 'comprador' ? 'sale' : null,
+      bedrooms_min: null,
+      area_min: null
+    };
   };
 
   const runMatching = async () => {
