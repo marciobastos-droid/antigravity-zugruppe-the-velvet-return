@@ -431,25 +431,27 @@ export default function ImportProperties() {
 
       setProgress(`A guardar ${propertiesWithTags.length} imóveis...`);
 
-      // Generate sequential ref_ids for all properties
-      const propertiesWithRefIds = [];
-      for (const p of propertiesWithTags) {
-        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
-        propertiesWithRefIds.push({
-          ...p,
-          ref_id: refData.ref_id,
-          status: "active",
-          address: p.address || p.city,
-          state: p.state || p.city,
-          source_url: 'CSV Import',
-          is_partner_property: propertyOwnership === "partner",
-          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
-                        propertyOwnership === "private" ? privateOwnerName : undefined,
-          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
-                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-        });
-      }
+      // Generate sequential ref_ids for all properties in batch
+      const { data: refData } = await base44.functions.invoke('generateRefId', { 
+        entity_type: 'Property', 
+        count: propertiesWithTags.length 
+      });
+      const refIds = refData.ref_ids || [refData.ref_id];
+
+      const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+        ...p,
+        ref_id: refIds[index],
+        status: "active",
+        address: p.address || p.city,
+        state: p.state || p.city,
+        source_url: 'CSV Import',
+        is_partner_property: propertyOwnership === "partner",
+        partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+        partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                      propertyOwnership === "private" ? privateOwnerName : undefined,
+        internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                       `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+      }));
       const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
       
       setResults({
