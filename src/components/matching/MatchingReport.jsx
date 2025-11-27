@@ -675,117 +675,145 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
           {/* Results */}
           {!analyzing && matches.length > 0 && (
             <ScrollArea className="flex-1 mt-4">
-              <div className="space-y-3 pr-4">
+              <div className="space-y-4 pr-4">
                 {matches.map((match, idx) => (
                   <div
                     key={match.property.id}
-                    className={`p-4 border rounded-lg transition-all ${
+                    className={`relative overflow-hidden rounded-xl border-2 transition-all duration-200 ${
                       selectedProperties.includes(match.property.id)
-                        ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-200'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-indigo-500 bg-gradient-to-r from-indigo-50 to-white shadow-lg shadow-indigo-100'
+                        : 'border-slate-200 hover:border-slate-300 hover:shadow-md bg-white'
                     }`}
                   >
-                    <div className="flex gap-4">
-                      {/* Checkbox */}
-                      <div className="flex items-start pt-1">
-                        <Checkbox
-                          checked={selectedProperties.includes(match.property.id)}
-                          onCheckedChange={() => toggleProperty(match.property.id)}
-                        />
-                      </div>
-
-                      {/* Rank */}
-                      <div className="flex flex-col items-center w-12">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                          idx === 0 ? 'bg-amber-100 text-amber-700' :
-                          idx === 1 ? 'bg-slate-200 text-slate-700' :
-                          idx === 2 ? 'bg-orange-100 text-orange-700' :
-                          'bg-slate-100 text-slate-600'
-                        }`}>
-                          #{idx + 1}
-                        </div>
-                        <Badge className={`mt-2 text-xs ${getScoreColor(match.score)}`}>
-                          {match.score}%
-                        </Badge>
-                      </div>
-
-                      {/* Image */}
-                      <div className="w-32 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                        {match.property.images?.[0] ? (
-                          <img 
-                            src={match.property.images[0]} 
-                            alt=""
-                            className="w-full h-full object-cover"
+                    {/* Top Score Bar */}
+                    <div className={`h-1.5 w-full bg-gradient-to-r ${getScoreGradient(match.score)}`} />
+                    
+                    <div className="p-4">
+                      <div className="flex gap-4">
+                        {/* Checkbox & Rank */}
+                        <div className="flex flex-col items-center gap-2">
+                          <Checkbox
+                            checked={selectedProperties.includes(match.property.id)}
+                            onCheckedChange={() => toggleProperty(match.property.id)}
+                            className="h-5 w-5"
                           />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Building2 className="w-8 h-8 text-slate-300" />
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm ${
+                            idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white' :
+                            idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white' :
+                            idx === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            {idx + 1}
                           </div>
-                        )}
-                      </div>
+                        </div>
 
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold text-slate-900 line-clamp-1">
-                              {match.property.title}
-                            </h4>
-                            <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
-                              <MapPin className="w-3.5 h-3.5" />
-                              {match.property.city}
-                              <span className="font-semibold text-slate-900">
-                                €{match.property.price?.toLocaleString()}
-                              </span>
+                        {/* Image with Score Overlay */}
+                        <div className="relative w-36 h-28 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 shadow-sm">
+                          {match.property.images?.[0] ? (
+                            <img 
+                              src={match.property.images[0]} 
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                              <Building2 className="w-10 h-10 text-slate-400" />
+                            </div>
+                          )}
+                          {/* Score Badge Overlay */}
+                          <div className="absolute top-2 right-2">
+                            <div className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-lg bg-gradient-to-r ${getScoreGradient(match.score)}`}>
+                              {match.score}%
                             </div>
                           </div>
                           {match.isSaved && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Star className="w-3 h-3 mr-1" />
-                              Guardado
-                            </Badge>
+                            <div className="absolute bottom-2 left-2">
+                              <div className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow">
+                                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                              </div>
+                            </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-3 mt-2 text-sm text-slate-600">
-                          {match.property.bedrooms > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Bed className="w-3.5 h-3.5" />
-                              T{match.property.bedrooms}
-                            </span>
-                          )}
-                          {match.property.bathrooms > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Bath className="w-3.5 h-3.5" />
-                              {match.property.bathrooms}
-                            </span>
-                          )}
-                          {(match.property.useful_area || match.property.square_feet) > 0 && (
-                            <span className="flex items-center gap-1">
-                              <Maximize className="w-3.5 h-3.5" />
-                              {match.property.useful_area || match.property.square_feet}m²
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Sales Pitch */}
-                        {match.salesPitch && (
-                          <div className="mt-2 p-2 bg-green-50 border-l-2 border-green-500 rounded text-sm text-green-800">
-                            💡 {match.salesPitch}
-                          </div>
-                        )}
-
-                        {/* Highlights */}
-                        {match.highlights?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {match.highlights.slice(0, 4).map((h, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                <Check className="w-3 h-3 mr-1" />
-                                {h}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-slate-900 text-lg line-clamp-1">
+                                {match.property.title}
+                              </h4>
+                              <div className="flex items-center gap-1.5 text-sm text-slate-500 mt-0.5">
+                                <MapPin className="w-3.5 h-3.5" />
+                                {match.property.city}, {match.property.state}
+                              </div>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-xl font-bold text-slate-900">
+                                €{match.property.price?.toLocaleString()}
+                              </div>
+                              <Badge className={`mt-1 text-xs ${getScoreColor(match.score)}`}>
+                                {getScoreLabel(match.score)}
                               </Badge>
-                            ))}
+                            </div>
                           </div>
-                        )}
+
+                          {/* Property Details */}
+                          <div className="flex items-center gap-4 mt-3 text-sm">
+                            {match.property.bedrooms > 0 && (
+                              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                <Bed className="w-4 h-4 text-slate-500" />
+                                <span className="font-medium">T{match.property.bedrooms}</span>
+                              </div>
+                            )}
+                            {match.property.bathrooms > 0 && (
+                              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                <Bath className="w-4 h-4 text-slate-500" />
+                                <span className="font-medium">{match.property.bathrooms}</span>
+                              </div>
+                            )}
+                            {(match.property.useful_area || match.property.square_feet) > 0 && (
+                              <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg">
+                                <Maximize className="w-4 h-4 text-slate-500" />
+                                <span className="font-medium">{match.property.useful_area || match.property.square_feet}m²</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Match Details */}
+                          {match.details?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {match.details.slice(0, 4).map((d, i) => (
+                                <span key={i} className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                                  <Check className="w-3 h-3" />
+                                  {d.factor}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Sales Pitch */}
+                          {match.salesPitch && (
+                            <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <div className="p-1 bg-green-500 rounded-full flex-shrink-0 mt-0.5">
+                                  <Sparkles className="w-3 h-3 text-white" />
+                                </div>
+                                <p className="text-sm text-green-800 leading-relaxed">{match.salesPitch}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Highlights */}
+                          {match.highlights?.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {match.highlights.slice(0, 4).map((h, i) => (
+                                <Badge key={i} variant="outline" className="text-xs bg-white border-indigo-200 text-indigo-700">
+                                  ✨ {h}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
