@@ -39,12 +39,12 @@ const propertySchema = {
 };
 
 const supportedPortals = [
+  { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
   { name: "Idealista", domain: "idealista.pt", color: "bg-yellow-100 text-yellow-800" },
   { name: "Imovirtual", domain: "imovirtual.com", color: "bg-green-100 text-green-800" },
-  { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
   { name: "Infocasa", domain: "infocasa.pt", color: "bg-purple-100 text-purple-800" },
-  { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" },
   { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
+  { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" },
   { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
 ];
 
