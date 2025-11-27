@@ -32,6 +32,7 @@ export default function FacebookLeadsIntegration() {
   const [convertDialogOpen, setConvertDialogOpen] = React.useState(false);
   const [leadToConvert, setLeadToConvert] = React.useState(null);
   const [selectedPropertyId, setSelectedPropertyId] = React.useState("");
+  const [selectedAgentEmail, setSelectedAgentEmail] = React.useState("");
   const [logsDialogOpen, setLogsDialogOpen] = React.useState(false);
   const [selectedFormForLogs, setSelectedFormForLogs] = React.useState(null);
   const [selectedLeads, setSelectedLeads] = React.useState([]);
