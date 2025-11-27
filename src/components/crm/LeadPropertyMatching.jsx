@@ -5,19 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Home, Sparkles, Loader2, Euro, Bed, Bath, Maximize, 
   MapPin, Check, X, Eye, Plus, ChevronDown, ChevronUp 
 } from "lucide-react";
 import { toast } from "sonner";
-import MatchCriteriaDisplay, { evaluateCriteria, MatchScoreBadge } from "../matching/MatchCriteriaDisplay";
 
 export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMatching, setIsMatching] = React.useState(false);
   const [matches, setMatches] = React.useState([]);
-  const [expandedMatch, setExpandedMatch] = React.useState(null);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -26,17 +23,62 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
 
   const activeProperties = properties.filter(p => p.status === 'active');
 
-  // Build requirements from lead data
-  const getRequirementsFromLead = () => {
-    return {
-      budget_min: lead.budget ? lead.budget * 0.7 : null,
-      budget_max: lead.budget || null,
-      locations: lead.location ? [lead.location] : [],
-      property_types: lead.property_type_interest ? [lead.property_type_interest.toLowerCase()] : [],
-      listing_type: lead.lead_type === 'comprador' ? 'sale' : null,
-      bedrooms_min: null,
-      area_min: null
-    };
+  const calculateBasicScore = (property) => {
+    let score = 0;
+    let maxScore = 0;
+
+    // Location matching (30 points)
+    if (lead.location) {
+      maxScore += 30;
+      const locations = [lead.location.toLowerCase()];
+      if (property.city?.toLowerCase().includes(lead.location.toLowerCase()) ||
+          property.state?.toLowerCase().includes(lead.location.toLowerCase()) ||
+          property.address?.toLowerCase().includes(lead.location.toLowerCase())) {
+        score += 30;
+      }
+    }
+
+    // Budget matching (40 points)
+    if (lead.budget && lead.budget > 0) {
+      maxScore += 40;
+      const budget = lead.budget;
+      const price = property.price || 0;
+      
+      if (price <= budget * 1.1 && price >= budget * 0.7) {
+        score += 40;
+      } else if (price <= budget * 1.2 && price >= budget * 0.5) {
+        score += 25;
+      } else if (price <= budget * 1.5) {
+        score += 10;
+      }
+    }
+
+    // Property type matching (20 points)
+    if (lead.property_type_interest) {
+      maxScore += 20;
+      const interest = lead.property_type_interest.toLowerCase();
+      const propType = property.property_type?.toLowerCase() || '';
+      
+      if (interest.includes(propType) || propType.includes(interest) ||
+          (interest.includes('apartamento') && propType === 'apartment') ||
+          (interest.includes('moradia') && propType === 'house') ||
+          (interest.includes('t1') && property.bedrooms === 1) ||
+          (interest.includes('t2') && property.bedrooms === 2) ||
+          (interest.includes('t3') && property.bedrooms === 3) ||
+          (interest.includes('t4') && property.bedrooms >= 4)) {
+        score += 20;
+      }
+    }
+
+    // Listing type (10 points)
+    maxScore += 10;
+    if (lead.lead_type === 'comprador' && property.listing_type === 'sale') {
+      score += 10;
+    } else if (lead.lead_type === 'vendedor' && property.listing_type === 'rent') {
+      score += 5;
+    }
+
+    return maxScore > 0 ? Math.round((score / maxScore) * 100) : 50;
   };
 
   const runMatching = async () => {
@@ -44,34 +86,20 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
     setIsExpanded(true);
 
     try {
-      const requirements = getRequirementsFromLead();
-      
-      // Calculate scores with detailed criteria for all properties
-      const scoredProperties = activeProperties.map(property => {
-        const evaluation = evaluateCriteria(requirements, property);
-        return {
-          ...property,
-          score: evaluation.score,
-          criteria: evaluation.criteria,
-          matchedCount: evaluation.matchedCount,
-          totalCriteria: evaluation.totalCriteria,
-          matchRatio: evaluation.matchRatio
-        };
-      });
+      // Calculate basic scores for all properties
+      const scoredProperties = activeProperties.map(property => ({
+        ...property,
+        score: calculateBasicScore(property)
+      }));
 
-      // Sort by score (descending), then by matched criteria count
-      const sortedMatches = scoredProperties
-        .filter(p => p.score >= 20) // Include partial matches
-        .sort((a, b) => {
-          if (b.score !== a.score) return b.score - a.score;
-          return b.matchedCount - a.matchedCount;
-        })
-        .slice(0, 10);
+      // Sort by score and get top matches
+      const topMatches = scoredProperties
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
 
-      // If we have enough data, use AI to refine top matches
+      // If we have enough data, use AI to refine
       if (lead.message || lead.property_type_interest || lead.location) {
         try {
-          const topForAI = sortedMatches.slice(0, 5);
           const leadContext = `
             Nome: ${lead.buyer_name}
             Tipo: ${lead.lead_type}
@@ -81,7 +109,7 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
             Mensagem: ${lead.message || 'Sem mensagem'}
           `;
 
-          const propertiesContext = topForAI.map(p => `
+          const propertiesContext = topMatches.map(p => `
             ID: ${p.id}
             Título: ${p.title}
             Preço: €${p.price?.toLocaleString()}
@@ -89,17 +117,19 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
             Localização: ${p.city}, ${p.state}
             Quartos: ${p.bedrooms || 'N/A'}
             Área: ${p.useful_area || p.square_feet || 'N/A'} m²
-            Score: ${p.score}% (${p.matchRatio} critérios)
+            Score básico: ${p.score}%
           `).join('\n---\n');
 
           const aiResult = await base44.integrations.Core.InvokeLLM({
-            prompt: `Analisa a compatibilidade entre este lead e os imóveis. Dá uma razão curta para cada match.
+            prompt: `Analisa a compatibilidade entre este lead e os imóveis disponíveis.
 
 LEAD:
 ${leadContext}
 
 IMÓVEIS:
-${propertiesContext}`,
+${propertiesContext}
+
+Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais compatível para o menos.`,
             response_json_schema: {
               type: "object",
               properties: {
@@ -109,6 +139,7 @@ ${propertiesContext}`,
                     type: "object",
                     properties: {
                       property_id: { type: "string" },
+                      ai_score: { type: "number" },
                       reason: { type: "string" }
                     }
                   }
@@ -117,20 +148,29 @@ ${propertiesContext}`,
             }
           });
 
-          // Merge AI reasons
-          sortedMatches.forEach(property => {
+          // Merge AI scores with basic scores
+          const enhancedMatches = topMatches.map(property => {
             const aiMatch = aiResult.matches?.find(m => m.property_id === property.id);
-            if (aiMatch) {
-              property.reason = aiMatch.reason;
-            }
+            return {
+              ...property,
+              aiScore: aiMatch?.ai_score || property.score,
+              reason: aiMatch?.reason || '',
+              finalScore: aiMatch?.ai_score 
+                ? Math.round((property.score + aiMatch.ai_score) / 2)
+                : property.score
+            };
           });
+
+          setMatches(enhancedMatches.sort((a, b) => b.finalScore - a.finalScore));
         } catch {
-          // AI failed, continue without reasons
+          // If AI fails, use basic scores
+          setMatches(topMatches.map(p => ({ ...p, finalScore: p.score, reason: '' })));
         }
+      } else {
+        setMatches(topMatches.map(p => ({ ...p, finalScore: p.score, reason: '' })));
       }
 
-      setMatches(sortedMatches);
-      toast.success(`Encontrados ${sortedMatches.length} imóveis compatíveis`);
+      toast.success(`Encontrados ${topMatches.length} imóveis compatíveis`);
     } catch (error) {
       toast.error("Erro ao procurar imóveis");
     }
@@ -259,22 +299,15 @@ ${propertiesContext}`,
                         {property.city}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <Badge 
-                        className={`text-xs ${
-                          property.score >= 70 ? 'bg-green-100 text-green-800' :
-                          property.score >= 40 ? 'bg-amber-100 text-amber-800' :
-                          'bg-slate-100 text-slate-800'
-                        }`}
-                      >
-                        {property.score}%
-                      </Badge>
-                      {property.matchRatio && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {property.matchRatio}
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge 
+                      className={`text-xs flex-shrink-0 ${
+                        property.finalScore >= 70 ? 'bg-green-100 text-green-800' :
+                        property.finalScore >= 40 ? 'bg-amber-100 text-amber-800' :
+                        'bg-slate-100 text-slate-800'
+                      }`}
+                    >
+                      {property.finalScore}%
+                    </Badge>
                   </div>
 
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600">
@@ -298,13 +331,6 @@ ${propertiesContext}`,
                     </Badge>
                   </div>
 
-                  {/* Criteria indicators */}
-                  {property.criteria?.length > 0 && (
-                    <div className="mt-1.5">
-                      <MatchCriteriaDisplay criteria={property.criteria} compact={true} />
-                    </div>
-                  )}
-
                   {property.reason && (
                     <p className="text-xs text-purple-600 mt-1 line-clamp-1">
                       💡 {property.reason}
@@ -313,41 +339,27 @@ ${propertiesContext}`,
                 </div>
               </div>
 
-              {/* Expandable criteria details */}
-              <Collapsible open={expandedMatch === property.id} onOpenChange={() => setExpandedMatch(expandedMatch === property.id ? null : property.id)}>
-                <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-                  <Progress value={property.score} className="flex-1 h-1.5" />
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">
-                      {expandedMatch === property.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => window.open(`/PropertyDetails?id=${property.id}`, '_blank')}
-                    className="h-7 text-xs"
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    Ver
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleAssociate(property)}
-                    className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Associar
-                  </Button>
-                </div>
-                <CollapsibleContent>
-                  {property.criteria?.length > 0 && (
-                    <div className="mt-2 p-2 bg-slate-50 rounded-lg">
-                      <MatchCriteriaDisplay criteria={property.criteria} compact={false} />
-                    </div>
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                <Progress value={property.finalScore} className="flex-1 h-1.5" />
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => window.open(`/PropertyDetails?id=${property.id}`, '_blank')}
+                  className="h-7 text-xs"
+                >
+                  <Eye className="w-3 h-3 mr-1" />
+                  Ver
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={() => handleAssociate(property)}
+                  className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Associar
+                </Button>
+              </div>
             </div>
           ))}
 
