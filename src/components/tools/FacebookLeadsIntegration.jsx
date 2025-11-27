@@ -161,7 +161,7 @@ export default function FacebookLeadsIntegration() {
   };
 
   const convertToOpportunityMutation = useMutation({
-    mutationFn: async ({ lead, propertyId }) => {
+    mutationFn: async ({ lead, propertyId, agentEmail }) => {
       const opportunity = await base44.entities.Opportunity.create({
         lead_type: "comprador",
         buyer_name: lead.full_name,
@@ -171,6 +171,7 @@ export default function FacebookLeadsIntegration() {
         budget: lead.budget ? Number(lead.budget) : undefined,
         property_type_interest: lead.property_type,
         property_id: propertyId || undefined,
+        assigned_to: agentEmail || undefined,
         message: `Lead do Facebook (Campanha: ${lead.campaign_name})\n\n${lead.message || ''}`,
         status: "new",
         priority: "high"
