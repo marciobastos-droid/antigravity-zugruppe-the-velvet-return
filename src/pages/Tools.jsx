@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import VideoMaker from "../components/tools/VideoMaker";
@@ -26,6 +26,7 @@ import PropertyInconsistencyChecker from "../components/tools/PropertyInconsiste
 import AIMatchingEngine from "../components/matching/AIMatchingEngine";
 import AutomaticMatching from "../components/matching/AutomaticMatching";
 import EmailHub from "../components/email/EmailHub";
+import CreditSimulator from "../components/tools/CreditSimulator";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -249,7 +250,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-5 h-5 text-amber-600" />
                 <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
-                <span className="text-sm text-amber-600">(2 ferramentas)</span>
+                <span className="text-sm text-amber-600">(3 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -268,6 +269,14 @@ export default function Tools() {
                 >
                   <TrendingUp className="w-4 h-4" />
                   Sugestor de Preços
+                </Button>
+                <Button
+                  variant={activeTab === "creditSimulator" ? "default" : "outline"}
+                  onClick={() => setActiveTab("creditSimulator")}
+                  className="flex items-center gap-2"
+                >
+                  <Calculator className="w-4 h-4" />
+                  Simulador de Crédito
                 </Button>
               </div>
             </CardContent>
@@ -335,6 +344,7 @@ export default function Tools() {
         {activeTab === "calendar" && <CalendarTool />}
         {activeTab === "documents" && <DocumentsAndContracts />}
         {activeTab === "devNotes" && <DevelopmentNotes />}
+        {activeTab === "creditSimulator" && <CreditSimulator />}
       </div>
     </div>
   );
