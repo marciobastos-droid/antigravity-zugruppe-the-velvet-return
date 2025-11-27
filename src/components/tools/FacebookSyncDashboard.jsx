@@ -98,7 +98,7 @@ export default function FacebookSyncDashboard({
   return (
     <div className="space-y-4">
       {/* Overview Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
