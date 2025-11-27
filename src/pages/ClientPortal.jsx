@@ -330,10 +330,7 @@ export default function ClientPortal() {
                             {[1, 2, 3, 4, 5].map((star) => (
                               <button
                                 key={star}
-                                onClick={() => updateInterestMutation.mutate({
-                                  id: interest.id,
-                                  data: { client_rating: star }
-                                })}
+                                onClick={() => updateInterest(interest.id, { client_rating: star })}
                                 className="p-1 hover:scale-110 transition-transform"
                               >
                                 <Star 
