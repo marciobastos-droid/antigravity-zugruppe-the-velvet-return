@@ -111,6 +111,10 @@ export default function ClientDatabase() {
     onSuccess: () => {
       toast.success("Contacto atualizado");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      // Update selectedClient if it was the one being edited
+      if (selectedClient && editingClient && selectedClient.id === editingClient.id) {
+        setSelectedClient(prev => prev ? { ...prev, ...formData } : null);
+      }
       resetForm();
     }
   });
