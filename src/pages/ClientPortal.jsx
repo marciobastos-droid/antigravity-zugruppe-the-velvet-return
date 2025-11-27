@@ -505,8 +505,8 @@ export default function ClientPortal() {
                     className="flex-1 min-h-[80px]"
                   />
                   <Button
-                    onClick={() => sendMessageMutation.mutate(newMessage)}
-                    disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                    onClick={() => sendMessage(newMessage)}
+                    disabled={!newMessage.trim()}
                     className="self-end"
                   >
                     <Send className="w-4 h-4" />
