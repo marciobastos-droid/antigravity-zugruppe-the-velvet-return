@@ -30,6 +30,7 @@ export default function Layout({ children, currentPageName }) {
         { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
         { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
         { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
+        { name: "Dashboards", path: createPageUrl("CustomDashboards"), icon: LayoutDashboard, id: "nav-custom-dashboards" },
       ];
 
   if (isAdmin) {
