@@ -18,7 +18,6 @@ import { pt } from "date-fns/locale";
 ClientPortal.public = true;
 
 export default function ClientPortal() {
-  const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState("");
   const [activeTab, setActiveTab] = useState("properties");
   const [portalAccess, setPortalAccess] = useState(null);
