@@ -219,6 +219,9 @@ export default function FacebookLeadsIntegration() {
   const handleOpenConvertDialog = (lead) => {
     setLeadToConvert(lead);
     setSelectedPropertyId("");
+    // Pre-select campaign's assigned agent if available
+    const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
+    setSelectedAgentEmail(campaign?.assigned_to || "");
     setConvertDialogOpen(true);
   };
 
