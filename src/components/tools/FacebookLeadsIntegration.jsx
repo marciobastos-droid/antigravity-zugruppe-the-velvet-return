@@ -41,6 +41,16 @@ export default function FacebookLeadsIntegration() {
   const [selectedFormForLogs, setSelectedFormForLogs] = React.useState(null);
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [deletingBulk, setDeletingBulk] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("dashboard");
+  const [leadFilters, setLeadFilters] = React.useState({
+    search: '',
+    status: 'all',
+    campaign: 'all',
+    dateFrom: '',
+    dateTo: '',
+    syncDateFrom: '',
+    syncDateTo: ''
+  });
 
   const [fbConfig, setFbConfig] = React.useState({
     access_token: "",
