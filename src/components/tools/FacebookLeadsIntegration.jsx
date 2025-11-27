@@ -696,10 +696,17 @@ export default function FacebookLeadsIntegration() {
             <div className="text-center py-8">
               <Facebook className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <p className="text-slate-600 mb-4">Configure a integração para começar a importar leads</p>
-              <Button onClick={handleOpenEditDialog}>
-                <Settings className="w-4 h-4 mr-2" />
-                Configurar Integração
-              </Button>
+              {canEditConfigPerm ? (
+                <Button onClick={handleOpenEditDialog}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configurar Integração
+                </Button>
+              ) : (
+                <div className="flex items-center justify-center gap-2 text-slate-500">
+                  <Lock className="w-4 h-4" />
+                  <span className="text-sm">Contacte um administrador para configurar</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -708,22 +715,24 @@ export default function FacebookLeadsIntegration() {
                   <p className="text-sm font-medium text-slate-900">Integração Ativa</p>
                   <p className="text-xs text-slate-600">Qualificação automática ativada</p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleOpenEditDialog}>
-                    <Settings className="w-4 h-4 mr-2" />
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleResetIntegration}
-                    disabled={resetting}
-                    className="text-red-600 hover:bg-red-50"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    {resetting ? 'A resetar...' : 'Reset'}
-                  </Button>
-                </div>
+                {canEditConfigPerm && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={handleOpenEditDialog}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleResetIntegration}
+                      disabled={resetting}
+                      className="text-red-600 hover:bg-red-50"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      {resetting ? 'A resetar...' : 'Reset'}
+                    </Button>
+                  </div>
+                )}
                 </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -908,18 +917,19 @@ export default function FacebookLeadsIntegration() {
                 <TrendingUp className="w-5 h-5" />
                 Campanhas e Formulários
               </span>
-              <Dialog open={campaignDialogOpen} onOpenChange={(open) => {
-                if (!open) {
-                  setEditingCampaignIndex(null);
-                }
-                setCampaignDialogOpen(open);
-              }}>
-                <DialogTrigger asChild>
-                  <Button size="sm" onClick={handleOpenAddCampaignDialog}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Campanha
-                  </Button>
-                </DialogTrigger>
+              {canCreateCampaign && (
+                <Dialog open={campaignDialogOpen} onOpenChange={(open) => {
+                  if (!open) {
+                    setEditingCampaignIndex(null);
+                  }
+                  setCampaignDialogOpen(open);
+                }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" onClick={handleOpenAddCampaignDialog}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Campanha
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
@@ -997,6 +1007,7 @@ export default function FacebookLeadsIntegration() {
                   </div>
                 </DialogContent>
               </Dialog>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1062,56 +1073,66 @@ export default function FacebookLeadsIntegration() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenEditCampaignDialog(campaign, idx)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleSyncLeads(campaign.form_id)}
-                            disabled={syncing === campaign.form_id}
-                          >
-                            {syncing === campaign.form_id ? (
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Download className="w-4 h-4 mr-2" />
-                                Sincronizar
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenDateRangeDialog(campaign.form_id)}
-                            disabled={syncing === campaign.form_id}
-                          >
-                            <Calendar className="w-4 h-4 mr-2" />
-                            Histórico
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedFormForLogs(campaign.form_id);
-                              setLogsDialogOpen(true);
-                            }}
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Logs
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRemoveCampaign(campaign.form_id)}
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canEditCampaign && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenEditCampaignDialog(campaign, idx)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {canTriggerSync && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSyncLeads(campaign.form_id)}
+                              disabled={syncing === campaign.form_id}
+                            >
+                              {syncing === campaign.form_id ? (
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Sincronizar
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          {canSyncHistoricalPerm && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenDateRangeDialog(campaign.form_id)}
+                              disabled={syncing === campaign.form_id}
+                            >
+                              <Calendar className="w-4 h-4 mr-2" />
+                              Histórico
+                            </Button>
+                          )}
+                          {canViewLogs && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedFormForLogs(campaign.form_id);
+                                setLogsDialogOpen(true);
+                              }}
+                            >
+                              <FileText className="w-4 h-4 mr-2" />
+                              Logs
+                            </Button>
+                          )}
+                          {canDeleteCampaign && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRemoveCampaign(campaign.form_id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -1138,8 +1159,9 @@ export default function FacebookLeadsIntegration() {
           <TabsContent value="alerts">
             <FacebookSyncAlerts
               settings={fbSettings.alertSettings || {}}
-              onSaveSettings={handleSaveAlertSettings}
+              onSaveSettings={canEditAlerts ? handleSaveAlertSettings : null}
               recentErrors={recentSyncErrors}
+              readOnly={!canEditAlerts}
             />
           </TabsContent>
         </Tabs>
@@ -1271,7 +1293,7 @@ export default function FacebookLeadsIntegration() {
                 )}
               </span>
               <div className="flex items-center gap-2">
-                {selectedLeads.length > 0 && (
+                {selectedLeads.length > 0 && canBulkDelete && (
                   <Button
                     variant="destructive"
                     size="sm"
@@ -1286,23 +1308,25 @@ export default function FacebookLeadsIntegration() {
                     Eliminar {selectedLeads.length}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleSelectAllLeads}
-                >
-                  {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? (
-                    <>
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Desselecionar
-                    </>
-                  ) : (
-                    <>
-                      <CheckSquare className="w-4 h-4 mr-2" />
-                      Selecionar Todos
-                    </>
-                  )}
-                </Button>
+                {canBulkDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleSelectAllLeads}
+                  >
+                    {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? (
+                      <>
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Desselecionar
+                      </>
+                    ) : (
+                      <>
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Selecionar Todos
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </CardTitle>
           </CardHeader>
@@ -1359,7 +1383,7 @@ export default function FacebookLeadsIntegration() {
                           </div>
                         </div>
                         <div className="flex gap-2 ml-4">
-                          {lead.status === 'new' && (
+                          {lead.status === 'new' && canConvertLeads && (
                             <Button
                               size="sm"
                               onClick={() => handleOpenConvertDialog(lead)}
@@ -1370,14 +1394,16 @@ export default function FacebookLeadsIntegration() {
                               Converter
                             </Button>
                           )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteLeadMutation.mutate(lead.id)}
-                            className="text-red-600 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canDeleteLeadsPerm && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteLeadMutation.mutate(lead.id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
