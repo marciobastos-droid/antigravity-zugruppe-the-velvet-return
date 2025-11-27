@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3 } from "lucide-react";
+import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
 
@@ -33,6 +33,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: ['admin', 'gestor', 'agente'] },
+    { name: "Matching", path: createPageUrl("Matching"), icon: Sparkles, id: "nav-matching", visibility: ['admin', 'gestor', 'agente'] },
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
     { name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users, id: "nav-users", visibility: ['admin'] },
   ];
