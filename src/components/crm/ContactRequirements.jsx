@@ -382,8 +382,8 @@ INSTRUÇÕES:
               <Label>Orçamento Mín (€)</Label>
               <Input
                 type="number"
-                value={requirements.budget_min || ""}
-                onChange={(e) => setRequirements({...requirements, budget_min: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.budget_min ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, budget_min: e.target.value !== "" ? Number(e.target.value) : null}))}
                 placeholder="0"
               />
             </div>
@@ -391,8 +391,8 @@ INSTRUÇÕES:
               <Label>Orçamento Máx (€)</Label>
               <Input
                 type="number"
-                value={requirements.budget_max || ""}
-                onChange={(e) => setRequirements({...requirements, budget_max: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.budget_max ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, budget_max: e.target.value !== "" ? Number(e.target.value) : null}))}
                 placeholder="Sem limite"
               />
             </div>
@@ -404,16 +404,16 @@ INSTRUÇÕES:
               <Label>Quartos Mín</Label>
               <Input
                 type="number"
-                value={requirements.bedrooms_min || ""}
-                onChange={(e) => setRequirements({...requirements, bedrooms_min: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.bedrooms_min ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, bedrooms_min: e.target.value !== "" ? Number(e.target.value) : null}))}
               />
             </div>
             <div>
               <Label>Quartos Máx</Label>
               <Input
                 type="number"
-                value={requirements.bedrooms_max || ""}
-                onChange={(e) => setRequirements({...requirements, bedrooms_max: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.bedrooms_max ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, bedrooms_max: e.target.value !== "" ? Number(e.target.value) : null}))}
               />
             </div>
           </div>
@@ -424,16 +424,16 @@ INSTRUÇÕES:
               <Label>Área Mín (m²)</Label>
               <Input
                 type="number"
-                value={requirements.area_min || ""}
-                onChange={(e) => setRequirements({...requirements, area_min: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.area_min ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, area_min: e.target.value !== "" ? Number(e.target.value) : null}))}
               />
             </div>
             <div>
               <Label>Área Máx (m²)</Label>
               <Input
                 type="number"
-                value={requirements.area_max || ""}
-                onChange={(e) => setRequirements({...requirements, area_max: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.area_max ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, area_max: e.target.value !== "" ? Number(e.target.value) : null}))}
               />
             </div>
           </div>
@@ -444,8 +444,8 @@ INSTRUÇÕES:
               <Label>Casas de Banho Mín</Label>
               <Input
                 type="number"
-                value={requirements.bathrooms_min || ""}
-                onChange={(e) => setRequirements({...requirements, bathrooms_min: e.target.value ? Number(e.target.value) : null})}
+                value={requirements.bathrooms_min ?? ""}
+                onChange={(e) => setRequirements(prev => ({...prev, bathrooms_min: e.target.value !== "" ? Number(e.target.value) : null}))}
               />
             </div>
           </div>
