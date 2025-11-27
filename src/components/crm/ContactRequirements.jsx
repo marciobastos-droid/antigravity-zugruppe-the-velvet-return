@@ -33,6 +33,7 @@ export default function ContactRequirements({ contact, onUpdate }) {
   const [aiText, setAiText] = React.useState("");
   const [aiLoading, setAiLoading] = React.useState(false);
   const [showAiInput, setShowAiInput] = React.useState(false);
+  const [autoLoadedText, setAutoLoadedText] = React.useState(false);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
