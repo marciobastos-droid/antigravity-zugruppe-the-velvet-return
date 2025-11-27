@@ -561,18 +561,20 @@ export default function FacebookLeadsIntegration() {
     setSyncing(null);
   };
 
-  const handleSyncWithDateRange = () => {
-    if (!dateRange.start_date || !dateRange.end_date) {
-      toast.error('Por favor, selecione ambas as datas');
-      return;
+  const handleSyncWithOptions = () => {
+    if (syncOptions.sync_type === 'historical') {
+      if (!syncOptions.start_date || !syncOptions.end_date) {
+        toast.error('Por favor, selecione ambas as datas para sincronização histórica');
+        return;
+      }
+      
+      if (new Date(syncOptions.start_date) > new Date(syncOptions.end_date)) {
+        toast.error('A data de início deve ser anterior à data de fim');
+        return;
+      }
     }
     
-    if (new Date(dateRange.start_date) > new Date(dateRange.end_date)) {
-      toast.error('A data de início deve ser anterior à data de fim');
-      return;
-    }
-    
-    handleSyncLeads(selectedFormForSync, dateRange);
+    handleSyncLeads(selectedFormForSync, syncOptions);
   };
 
   const leadsByCampaign = fbLeads.reduce((acc, lead) => {
