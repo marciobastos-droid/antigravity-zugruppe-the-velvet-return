@@ -166,6 +166,21 @@ export const widgetTypes = {
         { value: "yellow", label: "Amarelo" }
       ]}
     }
+  },
+  agent_stats: {
+    id: "agent_stats",
+    name: "Estatísticas por Agente",
+    description: "Performance e métricas de cada agente",
+    icon: "Users",
+    category: "crm",
+    defaultSize: { w: 6, h: 5 },
+    minSize: { w: 4, h: 3 },
+    configSchema: {
+      displayMode: { type: "select", label: "Modo de exibição", options: [
+        { value: "cards", label: "Cartões detalhados" },
+        { value: "chart", label: "Gráfico comparativo" }
+      ]}
+    }
   }
 };
 
