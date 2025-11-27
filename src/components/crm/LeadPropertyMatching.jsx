@@ -44,20 +44,34 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
     setIsExpanded(true);
 
     try {
-      // Calculate basic scores for all properties
-      const scoredProperties = activeProperties.map(property => ({
-        ...property,
-        score: calculateBasicScore(property)
-      }));
+      const requirements = getRequirementsFromLead();
+      
+      // Calculate scores with detailed criteria for all properties
+      const scoredProperties = activeProperties.map(property => {
+        const evaluation = evaluateCriteria(requirements, property);
+        return {
+          ...property,
+          score: evaluation.score,
+          criteria: evaluation.criteria,
+          matchedCount: evaluation.matchedCount,
+          totalCriteria: evaluation.totalCriteria,
+          matchRatio: evaluation.matchRatio
+        };
+      });
 
-      // Sort by score and get top matches
-      const topMatches = scoredProperties
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5);
+      // Sort by score (descending), then by matched criteria count
+      const sortedMatches = scoredProperties
+        .filter(p => p.score >= 20) // Include partial matches
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return b.matchedCount - a.matchedCount;
+        })
+        .slice(0, 10);
 
-      // If we have enough data, use AI to refine
+      // If we have enough data, use AI to refine top matches
       if (lead.message || lead.property_type_interest || lead.location) {
         try {
+          const topForAI = sortedMatches.slice(0, 5);
           const leadContext = `
             Nome: ${lead.buyer_name}
             Tipo: ${lead.lead_type}
@@ -67,7 +81,7 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
             Mensagem: ${lead.message || 'Sem mensagem'}
           `;
 
-          const propertiesContext = topMatches.map(p => `
+          const propertiesContext = topForAI.map(p => `
             ID: ${p.id}
             Título: ${p.title}
             Preço: €${p.price?.toLocaleString()}
@@ -75,19 +89,17 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
             Localização: ${p.city}, ${p.state}
             Quartos: ${p.bedrooms || 'N/A'}
             Área: ${p.useful_area || p.square_feet || 'N/A'} m²
-            Score básico: ${p.score}%
+            Score: ${p.score}% (${p.matchRatio} critérios)
           `).join('\n---\n');
 
           const aiResult = await base44.integrations.Core.InvokeLLM({
-            prompt: `Analisa a compatibilidade entre este lead e os imóveis disponíveis.
+            prompt: `Analisa a compatibilidade entre este lead e os imóveis. Dá uma razão curta para cada match.
 
 LEAD:
 ${leadContext}
 
 IMÓVEIS:
-${propertiesContext}
-
-Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais compatível para o menos.`,
+${propertiesContext}`,
             response_json_schema: {
               type: "object",
               properties: {
@@ -97,7 +109,6 @@ Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais comp
                     type: "object",
                     properties: {
                       property_id: { type: "string" },
-                      ai_score: { type: "number" },
                       reason: { type: "string" }
                     }
                   }
@@ -106,29 +117,20 @@ Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais comp
             }
           });
 
-          // Merge AI scores with basic scores
-          const enhancedMatches = topMatches.map(property => {
+          // Merge AI reasons
+          sortedMatches.forEach(property => {
             const aiMatch = aiResult.matches?.find(m => m.property_id === property.id);
-            return {
-              ...property,
-              aiScore: aiMatch?.ai_score || property.score,
-              reason: aiMatch?.reason || '',
-              finalScore: aiMatch?.ai_score 
-                ? Math.round((property.score + aiMatch.ai_score) / 2)
-                : property.score
-            };
+            if (aiMatch) {
+              property.reason = aiMatch.reason;
+            }
           });
-
-          setMatches(enhancedMatches.sort((a, b) => b.finalScore - a.finalScore));
         } catch {
-          // If AI fails, use basic scores
-          setMatches(topMatches.map(p => ({ ...p, finalScore: p.score, reason: '' })));
+          // AI failed, continue without reasons
         }
-      } else {
-        setMatches(topMatches.map(p => ({ ...p, finalScore: p.score, reason: '' })));
       }
 
-      toast.success(`Encontrados ${topMatches.length} imóveis compatíveis`);
+      setMatches(sortedMatches);
+      toast.success(`Encontrados ${sortedMatches.length} imóveis compatíveis`);
     } catch (error) {
       toast.error("Erro ao procurar imóveis");
     }
