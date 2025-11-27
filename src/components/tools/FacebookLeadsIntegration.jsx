@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock, CheckSquare, Square, LayoutDashboard, Bell, Filter } from "lucide-react";
+import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock, CheckSquare, Square, LayoutDashboard, Bell, Filter, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { qualifyLead } from "../opportunities/LeadQualification";
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import FacebookSyncDashboard from "./FacebookSyncDashboard";
 import FacebookLeadsFilters from "./FacebookLeadsFilters";
 import FacebookSyncAlerts from "./FacebookSyncAlerts";
+import { FB_PERMISSIONS, hasPermission, canEditConfig, canManageCampaigns, canDeleteLeads, canSyncHistorical } from "./FacebookPermissions";
 
 export default function FacebookLeadsIntegration() {
   const queryClient = useQueryClient();
@@ -585,6 +586,26 @@ export default function FacebookLeadsIntegration() {
   }, {});
 
   const newLeadsCount = fbLeads.filter(l => l.status === 'new').length;
+
+  // Permissões
+  const canViewConfig = hasPermission(user, FB_PERMISSIONS.CONFIG_VIEW);
+  const canEditConfigPerm = canEditConfig(user);
+  const canViewCampaigns = hasPermission(user, FB_PERMISSIONS.CAMPAIGN_VIEW);
+  const canManageCampaignsPerm = canManageCampaigns(user);
+  const canCreateCampaign = hasPermission(user, FB_PERMISSIONS.CAMPAIGN_CREATE);
+  const canEditCampaign = hasPermission(user, FB_PERMISSIONS.CAMPAIGN_EDIT);
+  const canDeleteCampaign = hasPermission(user, FB_PERMISSIONS.CAMPAIGN_DELETE);
+  const canViewLeads = hasPermission(user, FB_PERMISSIONS.LEAD_VIEW);
+  const canEditLeads = hasPermission(user, FB_PERMISSIONS.LEAD_EDIT);
+  const canDeleteLeadsPerm = canDeleteLeads(user);
+  const canConvertLeads = hasPermission(user, FB_PERMISSIONS.LEAD_CONVERT);
+  const canBulkDelete = hasPermission(user, FB_PERMISSIONS.LEAD_BULK_DELETE);
+  const canTriggerSync = hasPermission(user, FB_PERMISSIONS.SYNC_TRIGGER);
+  const canSyncHistoricalPerm = canSyncHistorical(user);
+  const canViewLogs = hasPermission(user, FB_PERMISSIONS.SYNC_VIEW_LOGS);
+  const canViewAlerts = hasPermission(user, FB_PERMISSIONS.ALERTS_VIEW);
+  const canEditAlerts = hasPermission(user, FB_PERMISSIONS.ALERTS_EDIT);
+  const canViewDashboard = hasPermission(user, FB_PERMISSIONS.DASHBOARD_VIEW);
 
   // Filter leads based on filters
   const filteredLeads = React.useMemo(() => {
