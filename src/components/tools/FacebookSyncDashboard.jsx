@@ -87,7 +87,10 @@ export default function FacebookSyncDashboard({
   };
 
   // Calculate overall stats
-  const totalLeads = Object.values(leadsByCampaign).flat().length;
+  const allLeads = Object.values(leadsByCampaign).flat();
+  const totalLeads = allLeads.length;
+  const unconvertedLeads = allLeads.filter(l => l.status !== 'converted');
+  const unconvertedCount = unconvertedLeads.length;
   const totalCampaigns = campaigns.length;
   const campaignsWithErrors = campaigns.filter(c => getCampaignStatus(c).status === 'error').length;
   const campaignsOverdue = campaigns.filter(c => getCampaignStatus(c).status === 'overdue').length;
