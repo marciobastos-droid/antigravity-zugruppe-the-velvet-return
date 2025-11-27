@@ -1126,7 +1126,7 @@ export default function FacebookLeadsIntegration() {
         </DialogContent>
       </Dialog>
 
-      {fbSettings?.configured && activeTab === 'leads' && filteredLeads.length > 0 && (
+      {fbSettings?.configured && activeTab === 'leads' && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
