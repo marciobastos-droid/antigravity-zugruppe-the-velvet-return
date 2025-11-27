@@ -212,6 +212,7 @@ export default function FacebookLeadsIntegration() {
       setConvertDialogOpen(false);
       setLeadToConvert(null);
       setSelectedPropertyId("");
+      setSelectedAgentEmail("");
     },
   });
 
