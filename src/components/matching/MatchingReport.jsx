@@ -8,13 +8,15 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sparkles, Loader2, Building2, MapPin, Euro, Bed, Bath,
   Maximize, FileText, Download, Send, Check, Star,
-  Target, Brain, Save, Printer, Mail
+  Target, Brain, Save, Printer, Mail, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
+import ReportCustomizer, { DEFAULT_CONFIG } from "./ReportCustomizer";
 
 export default function MatchingReport({ contact, open, onOpenChange }) {
   const [analyzing, setAnalyzing] = useState(false);
