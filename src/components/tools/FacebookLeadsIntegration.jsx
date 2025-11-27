@@ -1124,44 +1124,94 @@ export default function FacebookLeadsIntegration() {
         </Tabs>
       )}
 
-      {/* Dialog de Intervalo de Datas */}
+      {/* Dialog de Sincronização Avançada */}
       <Dialog open={dateRangeDialogOpen} onOpenChange={setDateRangeDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-blue-600" />
-              Sincronizar Leads Históricas
+              Sincronização Avançada
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-900">
-                Selecione um intervalo de datas para importar leads históricas do Facebook. 
-                Isto é útil quando adiciona uma nova campanha ou quer recuperar leads antigas.
+            <div>
+              <Label>Tipo de Sincronização</Label>
+              <Select
+                value={syncOptions.sync_type}
+                onValueChange={(v) => setSyncOptions({...syncOptions, sync_type: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual (todas as leads)</SelectItem>
+                  <SelectItem value="incremental">Incremental (desde última sync)</SelectItem>
+                  <SelectItem value="historical">Histórico (intervalo de datas)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                {syncOptions.sync_type === 'manual' && 'Importa todas as leads disponíveis, ignorando duplicados.'}
+                {syncOptions.sync_type === 'incremental' && 'Importa apenas leads criadas desde a última sincronização.'}
+                {syncOptions.sync_type === 'historical' && 'Importa leads de um período específico.'}
               </p>
             </div>
-            
+
+            {syncOptions.sync_type === 'historical' && (
+              <>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-900">
+                    Selecione o período para importar leads históricas do Facebook.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Data de Início *</Label>
+                    <Input
+                      type="date"
+                      value={syncOptions.start_date}
+                      onChange={(e) => setSyncOptions({...syncOptions, start_date: e.target.value})}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Data de Fim *</Label>
+                    <Input
+                      type="date"
+                      value={syncOptions.end_date}
+                      onChange={(e) => setSyncOptions({...syncOptions, end_date: e.target.value})}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
             <div>
-              <Label>Data de Início *</Label>
-              <Input
-                type="date"
-                value={dateRange.start_date}
-                onChange={(e) => setDateRange({...dateRange, start_date: e.target.value})}
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-            
-            <div>
-              <Label>Data de Fim *</Label>
-              <Input
-                type="date"
-                value={dateRange.end_date}
-                onChange={(e) => setDateRange({...dateRange, end_date: e.target.value})}
-                max={new Date().toISOString().split('T')[0]}
-              />
+              <Label>Atribuir a Agente</Label>
+              <Select
+                value={syncOptions.assigned_to}
+                onValueChange={(v) => setSyncOptions({...syncOptions, assigned_to: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Usar padrão da campanha" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Usar padrão da campanha</SelectItem>
+                  {allUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.email}>
+                      {u.full_name} ({u.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">
+                Agente que receberá notificações das leads importadas nesta sync.
+              </p>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-2">
               <Button 
                 variant="outline" 
                 onClick={() => setDateRangeDialogOpen(false)}
@@ -1170,7 +1220,7 @@ export default function FacebookLeadsIntegration() {
                 Cancelar
               </Button>
               <Button 
-                onClick={handleSyncWithDateRange}
+                onClick={handleSyncWithOptions}
                 disabled={syncing === selectedFormForSync}
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
               >
