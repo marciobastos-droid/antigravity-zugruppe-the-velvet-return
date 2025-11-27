@@ -336,8 +336,8 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
             img.src = logoUrl;
           });
           // Calculate proper dimensions maintaining aspect ratio
-          const logoMaxWidth = 35;
-          const logoMaxHeight = 12;
+          const logoMaxWidth = 50;
+          const logoMaxHeight = 18;
           const imgRatio = img.width / img.height;
           let logoWidth = logoMaxWidth;
           let logoHeight = logoWidth / imgRatio;
