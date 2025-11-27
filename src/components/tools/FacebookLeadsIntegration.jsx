@@ -201,6 +201,10 @@ export default function FacebookLeadsIntegration() {
         console.error("Error creating contact:", err);
       }
 
+      // Get the campaign's assigned agent if no agent was explicitly selected
+      const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
+      const finalAgentEmail = agentEmail || campaign?.assigned_to || undefined;
+
       const opportunity = await base44.entities.Opportunity.create({
         lead_type: "comprador",
         contact_id: contactId || undefined,
@@ -211,7 +215,7 @@ export default function FacebookLeadsIntegration() {
         budget: lead.budget ? Number(lead.budget) : undefined,
         property_type_interest: lead.property_type,
         property_id: propertyId || undefined,
-        assigned_to: agentEmail || undefined,
+        assigned_to: finalAgentEmail,
         message: `Lead do Facebook (Campanha: ${lead.campaign_name})\n\n${lead.message || ''}`,
         status: "new",
         priority: "high",
@@ -265,7 +269,8 @@ export default function FacebookLeadsIntegration() {
     setSelectedPropertyId("");
     // Pre-select campaign's assigned agent if available
     const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
-    setSelectedAgentEmail(campaign?.assigned_to || "");
+    const agentEmail = campaign?.assigned_to || "";
+    setSelectedAgentEmail(agentEmail);
     setConvertDialogOpen(true);
   };
 
