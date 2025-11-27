@@ -13,6 +13,7 @@ import Contracts from './pages/Contracts';
 import DocumentsHub from './pages/DocumentsHub';
 import Home from './pages/Home';
 import CRMAdvanced from './pages/CRMAdvanced';
+import ClientPortal from './pages/ClientPortal';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "DocumentsHub": DocumentsHub,
     "Home": Home,
     "CRMAdvanced": CRMAdvanced,
+    "ClientPortal": ClientPortal,
 }
 
 export const pagesConfig = {
