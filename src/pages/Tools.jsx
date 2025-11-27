@@ -28,6 +28,7 @@ import AutomaticMatching from "../components/matching/AutomaticMatching";
 import AutoMatchingDashboard from "../components/matching/AutoMatchingDashboard";
 import EmailHub from "../components/email/EmailHub";
 import CreditSimulator from "../components/tools/CreditSimulator";
+import ReportsExporter from "../components/tools/ReportsExporter";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -113,7 +114,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Download className="w-5 h-5 text-blue-600" />
                 <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(3 ferramentas)</span>
+                <span className="text-sm text-blue-600">(4 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -140,6 +141,14 @@ export default function Tools() {
                 >
                   <UploadCloud className="w-4 h-4" />
                   Exportar Ficheiros
+                </Button>
+                <Button
+                  variant={activeTab === "reportsExporter" ? "default" : "outline"}
+                  onClick={() => setActiveTab("reportsExporter")}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Relatórios & Exportações
                 </Button>
               </div>
             </CardContent>
@@ -355,6 +364,7 @@ export default function Tools() {
         {activeTab === "documents" && <DocumentsAndContracts />}
         {activeTab === "devNotes" && <DevelopmentNotes />}
         {activeTab === "creditSimulator" && <CreditSimulator />}
+        {activeTab === "reportsExporter" && <ReportsExporter />}
       </div>
     </div>
   );
