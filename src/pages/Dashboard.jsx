@@ -16,12 +16,15 @@ import NotificationBoard from "../components/notifications/NotificationBoard";
 import OnboardingTour from "../components/onboarding/OnboardingTour";
 import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
 import ContextualTip from "../components/onboarding/ContextualTip";
+import DashboardBuilder from "../components/dashboard/DashboardBuilder";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export default function Dashboard() {
   const [dateRange, setDateRange] = React.useState("30");
   const [syncingFacebookLeads, setSyncingFacebookLeads] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("overview");
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -378,36 +381,49 @@ export default function Dashboard() {
           </div>
 
           <div className="flex gap-3">
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">Últimos 7 dias</SelectItem>
-                <SelectItem value="30">Últimos 30 dias</SelectItem>
-                <SelectItem value="90">Últimos 90 dias</SelectItem>
-                <SelectItem value="365">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
+            {activeTab === "overview" && (
+              <>
+                <Select value={dateRange} onValueChange={setDateRange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30">Últimos 30 dias</SelectItem>
+                    <SelectItem value="90">Últimos 90 dias</SelectItem>
+                    <SelectItem value="365">Último ano</SelectItem>
+                  </SelectContent>
+                </Select>
 
-            {fbSettings?.access_token && (
-              <Button 
-                onClick={syncFacebookLeads} 
-                disabled={syncingFacebookLeads}
-                variant="outline"
-                className="border-blue-500 text-blue-600 hover:bg-blue-50"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${syncingFacebookLeads ? 'animate-spin' : ''}`} />
-                {syncingFacebookLeads ? 'Sincronizando...' : 'Sync Facebook Leads'}
-              </Button>
+                {fbSettings?.access_token && (
+                  <Button 
+                    onClick={syncFacebookLeads} 
+                    disabled={syncingFacebookLeads}
+                    variant="outline"
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${syncingFacebookLeads ? 'animate-spin' : ''}`} />
+                    {syncingFacebookLeads ? 'Sincronizando...' : 'Sync Facebook Leads'}
+                  </Button>
+                )}
+                
+                <Button onClick={exportReport} variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar Relatório
+                </Button>
+              </>
             )}
-            
-            <Button onClick={exportReport} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Exportar Relatório
-            </Button>
           </div>
         </div>
+
+        {isAdmin ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList>
+              <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="adminboard">AdminBoard</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview">
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -689,6 +705,99 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+            </TabsContent>
+
+            <TabsContent value="adminboard">
+              <DashboardBuilder />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <>
+            {/* Key Metrics for non-admin - duplicated content structure */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <Card className="border-l-4 border-l-blue-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm text-slate-600 mb-1">Total Imóveis</p>
+                      <p className="text-3xl font-bold text-slate-900">{totalProperties}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {recentProperties.length} nos últimos {dateRange} dias
+                      </p>
+                    </div>
+                    <Building2 className="w-8 h-8 text-blue-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-green-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm text-slate-600 mb-1">Taxa de Importação</p>
+                      <p className="text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {importedProperties} importados
+                      </p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-purple-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm text-slate-600 mb-1">Total Leads</p>
+                      <p className="text-3xl font-bold text-slate-900">{totalLeads}</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {recentOpportunities.length} nos últimos {dateRange} dias
+                      </p>
+                    </div>
+                    <Users className="w-8 h-8 text-purple-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-amber-500">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm text-slate-600 mb-1">Taxa de Conversão</p>
+                      <p className="text-3xl font-bold text-slate-900">{conversionRate}%</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {closedLeads} leads fechados
+                      </p>
+                    </div>
+                    <Target className="w-8 h-8 text-amber-600" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {shouldShowChecklist && (
+              <div className="mb-6">
+                <OnboardingChecklist 
+                  progress={onboardingProgress} 
+                  onDismiss={() => {
+                    updateProgressMutation.mutate({ 
+                      steps_completed: {
+                        ...onboardingProgress?.steps_completed,
+                        checklist_dismissed: true
+                      }
+                    });
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
+              <NotificationBoard user={user} />
+              <AIMatchingSuggestions user={user} />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
