@@ -275,6 +275,52 @@ export default function FacebookSyncDashboard({
           </CardContent>
         </Card>
       )}
+
+      {/* Unconverted Leads List */}
+      {unconvertedCount > 0 && (
+        <Card className="border-purple-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-purple-600" />
+              Leads Não Convertidas ({unconvertedCount})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {unconvertedLeads.slice(0, 20).map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 truncate">{lead.full_name}</p>
+                      <Badge className={
+                        lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                        lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-slate-100 text-slate-800'
+                      }>
+                        {lead.status === 'new' ? 'Novo' :
+                         lead.status === 'contacted' ? 'Contactado' : 
+                         lead.status === 'archived' ? 'Arquivado' : lead.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                      <span>{lead.email}</span>
+                      {lead.phone && <span>• {lead.phone}</span>}
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-400 text-right">
+                    {lead.campaign_name || lead.form_id}
+                  </div>
+                </div>
+              ))}
+              {unconvertedCount > 20 && (
+                <p className="text-center text-sm text-slate-500 py-2">
+                  ... e mais {unconvertedCount - 20} leads
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
