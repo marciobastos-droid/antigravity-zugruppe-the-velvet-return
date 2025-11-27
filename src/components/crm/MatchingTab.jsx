@@ -193,6 +193,14 @@ export default function MatchingTab() {
         </div>
       </div>
 
+      {viewMode === "dashboard" && (
+        <MatchingDashboard />
+      )}
+
+      {viewMode === "scheduled" && (
+        <ScheduledReports />
+      )}
+
       {viewMode === "ai" && selectedContact ? (
         <AIMatchingInsights 
           contact={selectedContact} 
