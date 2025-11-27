@@ -142,7 +142,8 @@ export default function ClientDatabase() {
       birthday: "",
       preferred_contact_method: "phone",
       tags: [],
-      notes: ""
+      notes: "",
+      property_requirements: null
     });
     setEditingClient(null);
     setDialogOpen(false);
