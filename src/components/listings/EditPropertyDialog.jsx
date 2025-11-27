@@ -38,6 +38,9 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     images: [],
     amenities: [],
     status: "active",
+    visibility: "public",
+    assigned_consultant: "",
+    assigned_consultant_name: "",
     internal_notes: "",
     tags: [],
     development_id: "",
@@ -48,6 +51,11 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const { data: developments = [] } = useQuery({
     queryKey: ['developments'],
     queryFn: () => base44.entities.Development.list('name')
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list()
   });
 
   useEffect(() => {
@@ -75,6 +83,9 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         images: property.images || [],
         amenities: property.amenities || [],
         status: property.status || "active",
+        visibility: property.visibility || "public",
+        assigned_consultant: property.assigned_consultant || "",
+        assigned_consultant_name: property.assigned_consultant_name || "",
         internal_notes: property.internal_notes || "",
         tags: property.tags || [],
         development_id: property.development_id || "",
@@ -348,6 +359,52 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value="sold">Vendido</SelectItem>
                   <SelectItem value="rented">Arrendado</SelectItem>
                   <SelectItem value="off_market">Desativado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Consultant & Visibility */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Consultor Responsável</Label>
+              <Select 
+                value={formData.assigned_consultant} 
+                onValueChange={(v) => {
+                  const user = users.find(u => u.email === v);
+                  setFormData({
+                    ...formData, 
+                    assigned_consultant: v,
+                    assigned_consultant_name: user?.full_name || ""
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um consultor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Nenhum</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.email}>
+                      {user.full_name} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Visibilidade</Label>
+              <Select 
+                value={formData.visibility} 
+                onValueChange={(v) => setFormData({...formData, visibility: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Público (visível a todos)</SelectItem>
+                  <SelectItem value="team_only">Apenas Equipa</SelectItem>
+                  <SelectItem value="private">Privado (só eu)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
