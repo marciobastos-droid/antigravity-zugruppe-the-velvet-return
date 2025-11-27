@@ -350,10 +350,7 @@ export default function ClientPortal() {
                           <Button
                             size="sm"
                             variant={interest.status === 'interested' ? 'default' : 'outline'}
-                            onClick={() => updateInterestMutation.mutate({
-                              id: interest.id,
-                              data: { status: 'interested' }
-                            })}
+                            onClick={() => updateInterest(interest.id, { status: 'interested' })}
                             className="flex items-center gap-1"
                           >
                             <ThumbsUp className="w-4 h-4" />
@@ -362,10 +359,7 @@ export default function ClientPortal() {
                           <Button
                             size="sm"
                             variant={interest.status === 'not_interested' ? 'destructive' : 'outline'}
-                            onClick={() => updateInterestMutation.mutate({
-                              id: interest.id,
-                              data: { status: 'not_interested' }
-                            })}
+                            onClick={() => updateInterest(interest.id, { status: 'not_interested' })}
                             className="flex items-center gap-1"
                           >
                             <ThumbsDown className="w-4 h-4" />
