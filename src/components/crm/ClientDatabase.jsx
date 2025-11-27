@@ -1241,6 +1241,10 @@ export default function ClientDatabase() {
                   </div>
                 )}
               </TabsContent>
+
+              <TabsContent value="portal" className="mt-4">
+                <ClientPortalManager client={selectedClient} />
+              </TabsContent>
             </Tabs>
           </DialogContent>
         </Dialog>
