@@ -526,6 +526,73 @@ export default function FacebookLeadsIntegration() {
 
   const newLeadsCount = fbLeads.filter(l => l.status === 'new').length;
 
+  // Filter leads based on filters
+  const filteredLeads = React.useMemo(() => {
+    return fbLeads.filter(lead => {
+      // Search filter
+      if (leadFilters.search) {
+        const search = leadFilters.search.toLowerCase();
+        const matchesSearch = 
+          lead.full_name?.toLowerCase().includes(search) ||
+          lead.email?.toLowerCase().includes(search) ||
+          lead.phone?.includes(search);
+        if (!matchesSearch) return false;
+      }
+
+      // Status filter
+      if (leadFilters.status !== 'all' && lead.status !== leadFilters.status) {
+        return false;
+      }
+
+      // Campaign filter
+      if (leadFilters.campaign !== 'all' && lead.form_id !== leadFilters.campaign) {
+        return false;
+      }
+
+      // Date range filter (lead created date)
+      if (leadFilters.dateFrom) {
+        const leadDate = new Date(lead.created_date);
+        const fromDate = new Date(leadFilters.dateFrom);
+        if (leadDate < fromDate) return false;
+      }
+      if (leadFilters.dateTo) {
+        const leadDate = new Date(lead.created_date);
+        const toDate = new Date(leadFilters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (leadDate > toDate) return false;
+      }
+
+      // Sync date filter
+      if (leadFilters.syncDateFrom || leadFilters.syncDateTo) {
+        const syncDate = lead.synced_at ? new Date(lead.synced_at) : new Date(lead.created_date);
+        if (leadFilters.syncDateFrom) {
+          const fromDate = new Date(leadFilters.syncDateFrom);
+          if (syncDate < fromDate) return false;
+        }
+        if (leadFilters.syncDateTo) {
+          const toDate = new Date(leadFilters.syncDateTo);
+          toDate.setHours(23, 59, 59, 999);
+          if (syncDate > toDate) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [fbLeads, leadFilters]);
+
+  // Get recent sync errors
+  const recentSyncErrors = syncLogs
+    .filter(log => log.status === 'error')
+    .slice(0, 5);
+
+  // Save alert settings
+  const handleSaveAlertSettings = async (alertSettings) => {
+    await updateSettingsMutation.mutateAsync({
+      ...fbSettings,
+      alertSettings
+    });
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-blue-500">
