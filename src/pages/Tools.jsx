@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import VideoMaker from "../components/tools/VideoMaker";
@@ -25,6 +25,7 @@ import DuplicateChecker from "../components/tools/DuplicateChecker";
 import PropertyInconsistencyChecker from "../components/tools/PropertyInconsistencyChecker";
 import AIMatchingEngine from "../components/matching/AIMatchingEngine";
 import AutomaticMatching from "../components/matching/AutomaticMatching";
+import AutoMatchingDashboard from "../components/matching/AutoMatchingDashboard";
 import EmailHub from "../components/email/EmailHub";
 import CreditSimulator from "../components/tools/CreditSimulator";
 
@@ -220,7 +221,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Brain className="w-5 h-5 text-indigo-600" />
                 <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
-                <span className="text-sm text-indigo-600">(2 ferramentas)</span>
+                <span className="text-sm text-indigo-600">(3 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -239,6 +240,14 @@ export default function Tools() {
                 >
                   <Zap className="w-4 h-4" />
                   Matching Automático
+                </Button>
+                <Button
+                  variant={activeTab === "autoMatchingDashboard" ? "default" : "outline"}
+                  onClick={() => setActiveTab("autoMatchingDashboard")}
+                  className="flex items-center gap-2"
+                >
+                  <Bell className="w-4 h-4" />
+                  Alertas de Matching
                 </Button>
               </div>
             </CardContent>
@@ -325,6 +334,7 @@ export default function Tools() {
         {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
         {activeTab === "aiMatching" && <AIMatchingEngine />}
         {activeTab === "autoMatching" && <AutomaticMatching />}
+        {activeTab === "autoMatchingDashboard" && <AutoMatchingDashboard />}
         {activeTab === "listingOptimizer" && <ListingOptimizer />}
         {activeTab === "marketIntelligence" && <MarketIntelligence />}
         {activeTab === "emailHub" && <EmailHub />}
