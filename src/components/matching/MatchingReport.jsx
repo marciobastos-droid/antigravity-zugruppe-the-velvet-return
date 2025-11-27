@@ -8,13 +8,15 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Sparkles, Loader2, Building2, MapPin, Euro, Bed, Bath,
   Maximize, FileText, Download, Send, Check, Star,
-  Target, Brain, Save, Printer, Mail
+  Target, Brain, Save, Printer, Mail, ChevronDown, ChevronUp
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
+import MatchCriteriaDisplay, { evaluateCriteria, MatchScoreBadge } from "./MatchCriteriaDisplay";
 
 export default function MatchingReport({ contact, open, onOpenChange }) {
   const [analyzing, setAnalyzing] = useState(false);
