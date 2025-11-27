@@ -176,8 +176,34 @@ export default function FacebookLeadsIntegration() {
 
   const convertToOpportunityMutation = useMutation({
     mutationFn: async ({ lead, propertyId, agentEmail }) => {
+      // First, create or find the contact
+      let contactId = null;
+      try {
+        // Check if contact already exists
+        const existingContacts = await base44.entities.ClientContact.filter({ email: lead.email });
+        
+        if (existingContacts && existingContacts.length > 0) {
+          contactId = existingContacts[0].id;
+        } else {
+          // Create new contact
+          const newContact = await base44.entities.ClientContact.create({
+            full_name: lead.full_name,
+            email: lead.email,
+            phone: lead.phone,
+            location: lead.location,
+            contact_type: "lead",
+            lead_source: "facebook_ads",
+            notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
+          });
+          contactId = newContact.id;
+        }
+      } catch (err) {
+        console.error("Error creating contact:", err);
+      }
+
       const opportunity = await base44.entities.Opportunity.create({
         lead_type: "comprador",
+        contact_id: contactId || undefined,
         buyer_name: lead.full_name,
         buyer_email: lead.email,
         buyer_phone: lead.phone,
@@ -188,7 +214,8 @@ export default function FacebookLeadsIntegration() {
         assigned_to: agentEmail || undefined,
         message: `Lead do Facebook (Campanha: ${lead.campaign_name})\n\n${lead.message || ''}`,
         status: "new",
-        priority: "high"
+        priority: "high",
+        lead_source: "facebook_ads"
       });
 
       // Auto-qualify the lead
@@ -216,6 +243,9 @@ export default function FacebookLeadsIntegration() {
         });
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       }
+
+      // Invalidate contacts query
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
 
       return opportunity;
     },
