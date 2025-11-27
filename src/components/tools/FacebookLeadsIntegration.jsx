@@ -167,10 +167,10 @@ export default function FacebookLeadsIntegration() {
   };
 
   const toggleSelectAllLeads = () => {
-    if (selectedLeads.length === fbLeads.length) {
+    if (selectedLeads.length === filteredLeads.length) {
       setSelectedLeads([]);
     } else {
-      setSelectedLeads(fbLeads.map(l => l.id));
+      setSelectedLeads(filteredLeads.map(l => l.id));
     }
   };
 
