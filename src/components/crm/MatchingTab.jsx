@@ -22,7 +22,7 @@ export default function MatchingTab() {
   const [selectedContact, setSelectedContact] = useState(null);
   const [matchingOpen, setMatchingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("clients");
-  const [viewMode, setViewMode] = useState("list"); // "list" or "ai"
+  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled"
 
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ['clientContacts'],
