@@ -514,7 +514,7 @@ export default function FacebookLeadsIntegration() {
       const { created_count, duplicated_count, total_fetched } = response.data;
 
       // Atualizar data da última sincronização apenas se não for sincronização histórica
-      if (!customDateRange) {
+      if (!isHistorical) {
         const updatedLastSync = {
           ...(fbSettings.last_sync || {}),
           [formId]: new Date().toISOString()
