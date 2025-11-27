@@ -23,19 +23,28 @@ export default function Layout({ children, currentPageName }) {
   }
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  const isGestor = user && user.user_type === 'gestor';
+  const isAgente = user && user.user_type === 'agente';
+  const userType = user?.user_type || user?.role || 'user';
 
-  const navItems = [
-        { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard" },
-        { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse" },
-        { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties" },
-        { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm" },
-        { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools" },
+  // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
+  const allNavItems = [
+    { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all' },
+    { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all' },
+    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all' },
+    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: ['admin', 'gestor', 'agente'] },
+    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
+    { name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users, id: "nav-users", visibility: ['admin'] },
+  ];
 
-      ];
-
-  if (isAdmin) {
-    navItems.push({ name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users });
-  }
+  // Filtrar itens baseado na visibilidade
+  const navItems = allNavItems.filter(item => {
+    if (item.visibility === 'all') return true;
+    if (Array.isArray(item.visibility)) {
+      return item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
+    }
+    return item.visibility === userType || (isAdmin && item.visibility === 'admin');
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
