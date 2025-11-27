@@ -1160,7 +1160,7 @@ export default function FacebookLeadsIntegration() {
                   size="sm"
                   onClick={toggleSelectAllLeads}
                 >
-                  {selectedLeads.length === fbLeads.length ? (
+                  {selectedLeads.length === filteredLeads.length && filteredLeads.length > 0 ? (
                     <>
                       <XCircle className="w-4 h-4 mr-2" />
                       Desselecionar
