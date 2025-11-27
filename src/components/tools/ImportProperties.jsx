@@ -42,6 +42,7 @@ const portalGroups = {
   imobiliarias: {
     label: "Imobiliárias",
     portals: [
+      { name: "Dils", domain: "dils.com", color: "bg-teal-100 text-teal-800" },
       { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
       { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
     ]
