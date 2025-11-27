@@ -1202,6 +1202,29 @@ export default function FacebookLeadsIntegration() {
               </div>
               
               <div>
+                <Label>Agente Responsável</Label>
+                <Select
+                  value={selectedAgentEmail}
+                  onValueChange={setSelectedAgentEmail}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar agente..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhum Agente</SelectItem>
+                    {allUsers.map((u) => (
+                      <SelectItem key={u.id} value={u.email}>
+                        {u.full_name} ({u.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-600 mt-1">
+                  Agente que ficará responsável por esta oportunidade
+                </p>
+              </div>
+
+              <div>
                 <Label>Imóvel (Opcional)</Label>
                 <Select
                   value={selectedPropertyId}
