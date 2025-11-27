@@ -342,6 +342,13 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         extracted.specialization
       ));
 
+      // Build requirements summary for result display
+      const reqSummary = [];
+      if (extracted.budget_max) reqSummary.push(`Orçamento até €${extracted.budget_max.toLocaleString()}`);
+      if (extracted.locations?.length) reqSummary.push(`Zonas: ${extracted.locations.join(', ')}`);
+      if (extracted.property_types?.length) reqSummary.push(`Tipos: ${extracted.property_types.join(', ')}`);
+      if (extracted.bedrooms_min) reqSummary.push(`T${extracted.bedrooms_min}+`);
+
       setResult({
         success: true,
         data: extracted,
@@ -350,10 +357,11 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         contactCreated: !existingContact,
         contactUpdated: !!existingContact,
         requirementsExtracted: requirementsExtracted,
+        requirementsSummary: reqSummary.join(' • '),
         message: existingContact
           ? `Oportunidade adicionada ao contacto existente "${existingContact.full_name}"${requirementsExtracted ? " com requisitos atualizados!" : "!"}`
           : leadType === "comprador" 
-            ? `Lead e contacto criados${requirementsExtracted ? " com requisitos de imóvel extraídos!" : "!"}`
+            ? `Lead e contacto criados${requirementsExtracted ? " com requisitos prontos para matching!" : "!"}`
             : leadType === "parceiro"
             ? "Lead e contacto de parceiro criados!"
             : "Lead e contacto criados!"
