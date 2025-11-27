@@ -10,10 +10,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Brain, Search, Users, Building2, Target, Sparkles,
   TrendingUp, Clock, CheckCircle2, AlertCircle, Filter,
-  ChevronRight, MapPin, Euro, Bed, RefreshCw, Zap
+  ChevronRight, MapPin, Euro, Bed, RefreshCw, Zap, BarChart3, Calendar, Settings
 } from "lucide-react";
 import MatchingReport from "@/components/matching/MatchingReport";
 import AIMatchingInsights from "@/components/matching/AIMatchingInsights";
+import MatchingDashboard from "@/components/matching/MatchingDashboard";
+import ScheduledReports from "@/components/matching/ScheduledReports";
 
 export default function MatchingTab() {
   const [searchTerm, setSearchTerm] = useState("");
