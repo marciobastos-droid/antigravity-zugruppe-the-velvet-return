@@ -94,13 +94,12 @@ Deno.serve(async (req) => {
 
     // Processar e mapear leads do Facebook
     const newLeads = [];
-    const duplicatedCount = fbLeads.filter(fbLead => 
-      existingLeadIds.has(fbLead.id)
-    ).length;
+    let duplicatedCount = 0;
 
     for (const fbLead of fbLeads) {
-      // Verificar se já existe
+      // Verificar se já existe pelo ID do Facebook
       if (existingLeadIds.has(fbLead.id)) {
+        duplicatedCount++;
         continue;
       }
 
@@ -112,11 +111,21 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Extrair email do field_data
-      const email = fieldData.email || fieldData.e_mail || fieldData['e-mail'] || '';
+      // Extrair email e telefone do field_data
+      const email = (fieldData.email || fieldData.e_mail || fieldData['e-mail'] || '').toLowerCase().trim();
+      const phone = (fieldData.phone_number || fieldData.phone || fieldData.telefone || '').replace(/\D/g, '');
       
-      // Verificar duplicação por email
+      // Verificar duplicação por email (global)
       if (email && existingEmails.has(email)) {
+        duplicatedCount++;
+        console.log(`Duplicado por email: ${email}`);
+        continue;
+      }
+      
+      // Verificar duplicação por telefone (global) - só se tiver 9+ dígitos
+      if (phone && phone.length >= 9 && existingPhones.has(phone)) {
+        duplicatedCount++;
+        console.log(`Duplicado por telefone: ${phone}`);
         continue;
       }
 
