@@ -167,7 +167,8 @@ export default function ClientDatabase() {
       birthday: client.birthday || "",
       preferred_contact_method: client.preferred_contact_method || "phone",
       tags: client.tags || [],
-      notes: client.notes || ""
+      notes: client.notes || "",
+      property_requirements: client.property_requirements || null
     });
     setDialogOpen(true);
   };
