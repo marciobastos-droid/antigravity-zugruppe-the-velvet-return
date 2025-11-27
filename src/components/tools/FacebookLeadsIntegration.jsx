@@ -191,7 +191,7 @@ export default function FacebookLeadsIntegration() {
             email: lead.email,
             phone: lead.phone,
             location: lead.location,
-            contact_type: "lead",
+            contact_type: "client",
             lead_source: "facebook_ads",
             notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
           });
