@@ -15,46 +15,102 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 
+// Mark page as public - no authentication required
+ClientPortal.public = true;
+
 export default function ClientPortal() {
   const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState("");
   const [activeTab, setActiveTab] = useState("properties");
+  const [portalAccess, setPortalAccess] = useState(null);
+  const [client, setClient] = useState(null);
+  const [interests, setInterests] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [agent, setAgent] = useState(null);
+  const [accessLoading, setAccessLoading] = useState(true);
+  const [accessError, setAccessError] = useState(null);
   
   // Get token from URL
   const urlParams = new URLSearchParams(window.location.search);
   const accessToken = urlParams.get("token");
 
-  // Validate access and get client data
-  const { data: portalAccess, isLoading: accessLoading, error: accessError } = useQuery({
-    queryKey: ['portal_access', accessToken],
-    queryFn: async () => {
-      if (!accessToken) throw new Error("Token não fornecido");
-      const accesses = await base44.entities.ClientPortalAccess.filter({ access_token: accessToken });
-      if (!accesses || accesses.length === 0) throw new Error("Acesso inválido");
-      const access = accesses[0];
-      if (!access.is_active) throw new Error("Acesso desativado");
-      if (access.expires_at && new Date(access.expires_at) < new Date()) throw new Error("Acesso expirado");
-      
-      // Update last access
-      await base44.entities.ClientPortalAccess.update(access.id, {
-        last_access: new Date().toISOString(),
-        access_count: (access.access_count || 0) + 1
-      });
-      
-      return access;
-    },
-    enabled: !!accessToken,
-    retry: false
-  });
+  // Load portal data on mount
+  useEffect(() => {
+    const loadPortalData = async () => {
+      if (!accessToken) {
+        setAccessError({ message: "Token não fornecido" });
+        setAccessLoading(false);
+        return;
+      }
 
-  const { data: client } = useQuery({
-    queryKey: ['portal_client', portalAccess?.contact_id],
-    queryFn: async () => {
-      const clients = await base44.entities.ClientContact.filter({ id: portalAccess.contact_id });
-      return clients[0];
-    },
-    enabled: !!portalAccess?.contact_id
-  });
+      try {
+        // Validate access token
+        const accesses = await base44.entities.ClientPortalAccess.filter({ access_token: accessToken });
+        if (!accesses || accesses.length === 0) {
+          setAccessError({ message: "Acesso inválido" });
+          setAccessLoading(false);
+          return;
+        }
+        
+        const access = accesses[0];
+        if (!access.is_active) {
+          setAccessError({ message: "Acesso desativado" });
+          setAccessLoading(false);
+          return;
+        }
+        if (access.expires_at && new Date(access.expires_at) < new Date()) {
+          setAccessError({ message: "Acesso expirado" });
+          setAccessLoading(false);
+          return;
+        }
+        
+        setPortalAccess(access);
+
+        // Update last access
+        await base44.entities.ClientPortalAccess.update(access.id, {
+          last_access: new Date().toISOString(),
+          access_count: (access.access_count || 0) + 1
+        });
+
+        // Load client data
+        const clients = await base44.entities.ClientContact.filter({ id: access.contact_id });
+        if (clients && clients.length > 0) {
+          setClient(clients[0]);
+          
+          // Load agent info if assigned
+          if (clients[0].assigned_agent) {
+            const users = await base44.entities.User.filter({ email: clients[0].assigned_agent });
+            if (users && users.length > 0) {
+              setAgent(users[0]);
+            }
+          }
+
+          // Load appointments
+          if (clients[0].email) {
+            const apts = await base44.entities.Appointment.filter({ client_email: clients[0].email });
+            setAppointments(apts || []);
+          }
+        }
+
+        // Load interests
+        const ints = await base44.entities.ClientPropertyInterest.filter({ contact_id: access.contact_id });
+        setInterests(ints || []);
+
+        // Load messages
+        const msgs = await base44.entities.ClientPortalMessage.filter({ contact_id: access.contact_id }, 'created_date');
+        setMessages(msgs || []);
+
+        setAccessLoading(false);
+      } catch (error) {
+        console.error("Error loading portal:", error);
+        setAccessError({ message: "Erro ao carregar portal" });
+        setAccessLoading(false);
+      }
+    };
+
+    loadPortalData();
+  }, [accessToken]);
 
   const { data: interests = [] } = useQuery({
     queryKey: ['portal_interests', portalAccess?.contact_id],
