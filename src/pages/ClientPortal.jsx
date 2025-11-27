@@ -112,54 +112,35 @@ export default function ClientPortal() {
     loadPortalData();
   }, [accessToken]);
 
-  const { data: interests = [] } = useQuery({
-    queryKey: ['portal_interests', portalAccess?.contact_id],
-    queryFn: () => base44.entities.ClientPropertyInterest.filter({ contact_id: portalAccess.contact_id }),
-    enabled: !!portalAccess?.contact_id
-  });
-
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['portal_appointments', client?.email],
-    queryFn: () => base44.entities.Appointment.filter({ client_email: client.email }),
-    enabled: !!client?.email
-  });
-
-  const { data: messages = [] } = useQuery({
-    queryKey: ['portal_messages', portalAccess?.contact_id],
-    queryFn: () => base44.entities.ClientPortalMessage.filter({ contact_id: portalAccess.contact_id }, 'created_date'),
-    enabled: !!portalAccess?.contact_id
-  });
-
-  const { data: agent } = useQuery({
-    queryKey: ['portal_agent', client?.assigned_agent],
-    queryFn: async () => {
-      const users = await base44.entities.User.filter({ email: client.assigned_agent });
-      return users[0];
-    },
-    enabled: !!client?.assigned_agent
-  });
-
-  const sendMessageMutation = useMutation({
-    mutationFn: (message) => base44.entities.ClientPortalMessage.create({
-      contact_id: portalAccess.contact_id,
-      agent_email: client?.assigned_agent,
-      sender_type: "client",
-      message
-    }),
-    onSuccess: () => {
+  const sendMessage = async (message) => {
+    try {
+      await base44.entities.ClientPortalMessage.create({
+        contact_id: portalAccess.contact_id,
+        agent_email: client?.assigned_agent,
+        sender_type: "client",
+        message
+      });
       toast.success("Mensagem enviada!");
       setNewMessage("");
-      queryClient.invalidateQueries({ queryKey: ['portal_messages'] });
+      // Reload messages
+      const msgs = await base44.entities.ClientPortalMessage.filter({ contact_id: portalAccess.contact_id }, 'created_date');
+      setMessages(msgs || []);
+    } catch (error) {
+      toast.error("Erro ao enviar mensagem");
     }
-  });
+  };
 
-  const updateInterestMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ClientPropertyInterest.update(id, data),
-    onSuccess: () => {
+  const updateInterest = async (id, data) => {
+    try {
+      await base44.entities.ClientPropertyInterest.update(id, data);
       toast.success("Atualizado!");
-      queryClient.invalidateQueries({ queryKey: ['portal_interests'] });
+      // Reload interests
+      const ints = await base44.entities.ClientPropertyInterest.filter({ contact_id: portalAccess.contact_id });
+      setInterests(ints || []);
+    } catch (error) {
+      toast.error("Erro ao atualizar");
     }
-  });
+  };
 
   if (!accessToken) {
     return (
