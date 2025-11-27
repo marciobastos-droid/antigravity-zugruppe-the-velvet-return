@@ -178,7 +178,7 @@ export default function ClientDatabase() {
     e.preventDefault();
     const data = {
       ...formData,
-      assigned_agent: user?.email
+      assigned_agent: editingClient ? (editingClient.assigned_agent || user?.email) : user?.email
     };
     
     if (editingClient) {
