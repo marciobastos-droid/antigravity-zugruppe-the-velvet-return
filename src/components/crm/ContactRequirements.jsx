@@ -237,9 +237,22 @@ INSTRUÇÕES:
           {/* AI Text Input */}
           {showAiInput && (
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-purple-700">
-                <Sparkles className="w-4 h-4" />
-                <span className="font-medium text-sm">Extrair requisitos com IA</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-purple-700">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium text-sm">Extrair requisitos com IA</span>
+                </div>
+                {linkedOpportunities.length > 0 && !aiText && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAiText(getLeadText())}
+                    className="text-purple-600 hover:bg-purple-100 text-xs h-7"
+                  >
+                    <Wand2 className="w-3 h-3 mr-1" />
+                    Usar texto da lead ({linkedOpportunities.length})
+                  </Button>
+                )}
               </div>
               <Textarea
                 value={aiText}
