@@ -1126,13 +1126,18 @@ export default function FacebookLeadsIntegration() {
         </DialogContent>
       </Dialog>
 
-      {fbLeads.length > 0 && (
+      {fbSettings?.configured && activeTab === 'leads' && filteredLeads.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
-                Leads do Facebook ({fbLeads.length})
+                Leads do Facebook ({filteredLeads.length})
+                {filteredLeads.length !== fbLeads.length && (
+                  <Badge variant="outline" className="text-xs">
+                    Filtrados
+                  </Badge>
+                )}
               </span>
               <div className="flex items-center gap-2">
                 {selectedLeads.length > 0 && (
