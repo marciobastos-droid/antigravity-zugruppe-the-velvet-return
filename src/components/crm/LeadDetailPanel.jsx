@@ -347,32 +347,8 @@ Extrai:
           </Card>
         )}
 
-        {/* Qualification */}
-        {lead.qualification_status && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Qualificação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Score:</span>
-                  <Badge variant="outline">{lead.qualification_score}/100</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Status:</span>
-                  <Badge>
-                    {lead.qualification_status === 'hot' ? '🔥 Quente' :
-                     lead.qualification_status === 'warm' ? '🌡️ Morno' : '❄️ Frio'}
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Lead Scoring */}
+        <LeadScoringEngine lead={lead} showDetails={true} />
 
         {/* Quick Notes */}
         <Card>
