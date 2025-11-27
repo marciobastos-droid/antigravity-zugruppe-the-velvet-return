@@ -39,10 +39,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Buscar leads existentes para deduplicação
-    const existingLeads = await base44.entities.FacebookLead.filter({ form_id });
-    const existingLeadIds = new Set(existingLeads.map(l => l.lead_id));
-    const existingEmails = new Set(existingLeads.map(l => l.email));
+    // Buscar leads existentes para deduplicação (de TODOS os formulários para evitar duplicados globais)
+    const existingLeads = await base44.entities.FacebookLead.list();
+    const existingLeadIds = new Set(existingLeads.map(l => l.lead_id).filter(Boolean));
+    const existingEmails = new Set(existingLeads.map(l => l.email?.toLowerCase()).filter(Boolean));
+    const existingPhones = new Set(existingLeads.map(l => l.phone?.replace(/\D/g, '')).filter(p => p && p.length >= 9));
 
     // Construir URL da API do Facebook
     let apiUrl = `https://graph.facebook.com/v18.0/${form_id}/leads?access_token=${access_token}&fields=id,created_time,field_data`;
