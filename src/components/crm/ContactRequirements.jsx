@@ -39,7 +39,41 @@ export default function ContactRequirements({ contact, onUpdate }) {
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
+  // Buscar oportunidades ligadas ao contacto para extrair texto
+  const { data: linkedOpportunities = [] } = useQuery({
+    queryKey: ['linkedOpportunities', contact?.id, contact?.email],
+    queryFn: async () => {
+      if (!contact) return [];
+      const allOpps = await base44.entities.Opportunity.list();
+      return allOpps.filter(o => 
+        o.contact_id === contact.id || 
+        o.buyer_email === contact.email ||
+        (contact.linked_opportunity_ids || []).includes(o.id)
+      );
+    },
+    enabled: !!contact
+  });
+
   const allCities = [...new Set(properties.filter(p => p.status === 'active').map(p => p.city).filter(Boolean))].sort();
+
+  // Extrair texto das oportunidades para pré-preencher a IA
+  const getLeadText = React.useCallback(() => {
+    if (linkedOpportunities.length === 0) return "";
+    
+    const texts = linkedOpportunities.map(opp => {
+      const parts = [];
+      if (opp.message) parts.push(opp.message);
+      if (opp.property_type_interest) parts.push(`Interesse: ${opp.property_type_interest}`);
+      if (opp.budget) parts.push(`Orçamento: €${opp.budget}`);
+      if (opp.location) parts.push(`Localização: ${opp.location}`);
+      if (opp.quick_notes?.length > 0) {
+        parts.push(...opp.quick_notes.map(n => n.text));
+      }
+      return parts.join('\n');
+    }).filter(Boolean);
+    
+    return texts.join('\n\n---\n\n');
+  }, [linkedOpportunities]);
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientContact.update(contact.id, { property_requirements: data }),
