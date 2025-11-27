@@ -113,10 +113,11 @@ export default function FacebookLeadsIntegration() {
   const updateSettingsMutation = useMutation({
     mutationFn: async (settings) => {
       await base44.auth.updateMe({ fb_lead_settings: settings });
+      return settings;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fb_settings', 'user'] });
-      toast.success("Configurações guardadas");
+      queryClient.invalidateQueries({ queryKey: ['fb_settings'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });
 
