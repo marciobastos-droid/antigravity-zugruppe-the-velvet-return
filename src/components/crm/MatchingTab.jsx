@@ -172,6 +172,24 @@ export default function MatchingTab() {
             <Zap className="w-4 h-4 mr-2" />
             Análise IA
           </Button>
+          <Button
+            variant={viewMode === "dashboard" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("dashboard")}
+            className="rounded-none"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Dashboard
+          </Button>
+          <Button
+            variant={viewMode === "scheduled" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("scheduled")}
+            className="rounded-none"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Agendados
+          </Button>
         </div>
       </div>
 
