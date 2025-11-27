@@ -259,15 +259,22 @@ ${propertiesContext}`,
                         {property.city}
                       </div>
                     </div>
-                    <Badge 
-                      className={`text-xs flex-shrink-0 ${
-                        property.finalScore >= 70 ? 'bg-green-100 text-green-800' :
-                        property.finalScore >= 40 ? 'bg-amber-100 text-amber-800' :
-                        'bg-slate-100 text-slate-800'
-                      }`}
-                    >
-                      {property.finalScore}%
-                    </Badge>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <Badge 
+                        className={`text-xs ${
+                          property.score >= 70 ? 'bg-green-100 text-green-800' :
+                          property.score >= 40 ? 'bg-amber-100 text-amber-800' :
+                          'bg-slate-100 text-slate-800'
+                        }`}
+                      >
+                        {property.score}%
+                      </Badge>
+                      {property.matchRatio && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {property.matchRatio}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-600">
@@ -291,6 +298,13 @@ ${propertiesContext}`,
                     </Badge>
                   </div>
 
+                  {/* Criteria indicators */}
+                  {property.criteria?.length > 0 && (
+                    <div className="mt-1.5">
+                      <MatchCriteriaDisplay criteria={property.criteria} compact={true} />
+                    </div>
+                  )}
+
                   {property.reason && (
                     <p className="text-xs text-purple-600 mt-1 line-clamp-1">
                       💡 {property.reason}
@@ -299,27 +313,41 @@ ${propertiesContext}`,
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-                <Progress value={property.finalScore} className="flex-1 h-1.5" />
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => window.open(`/PropertyDetails?id=${property.id}`, '_blank')}
-                  className="h-7 text-xs"
-                >
-                  <Eye className="w-3 h-3 mr-1" />
-                  Ver
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleAssociate(property)}
-                  className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
-                >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Associar
-                </Button>
-              </div>
+              {/* Expandable criteria details */}
+              <Collapsible open={expandedMatch === property.id} onOpenChange={() => setExpandedMatch(expandedMatch === property.id ? null : property.id)}>
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                  <Progress value={property.score} className="flex-1 h-1.5" />
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 text-xs">
+                      {expandedMatch === property.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => window.open(`/PropertyDetails?id=${property.id}`, '_blank')}
+                    className="h-7 text-xs"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    Ver
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleAssociate(property)}
+                    className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Associar
+                  </Button>
+                </div>
+                <CollapsibleContent>
+                  {property.criteria?.length > 0 && (
+                    <div className="mt-2 p-2 bg-slate-50 rounded-lg">
+                      <MatchCriteriaDisplay criteria={property.criteria} compact={false} />
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           ))}
 
