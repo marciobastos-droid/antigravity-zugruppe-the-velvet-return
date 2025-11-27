@@ -42,9 +42,8 @@ const supportedPortals = [
   { name: "Idealista", domain: "idealista.pt", color: "bg-yellow-100 text-yellow-800" },
   { name: "Imovirtual", domain: "imovirtual.com", color: "bg-green-100 text-green-800" },
   { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
-  { name: "OLX", domain: "olx.pt", color: "bg-purple-100 text-purple-800" },
+  { name: "Infocasa", domain: "infocasa.pt", color: "bg-purple-100 text-purple-800" },
   { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" },
-  { name: "Custojusto", domain: "custojusto.pt", color: "bg-orange-100 text-orange-800" },
   { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
   { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
 ];
@@ -186,9 +185,39 @@ export default function ImportProperties() {
     queryKey: ['partners'],
     queryFn: async () => {
       const profiles = await base44.entities.BuyerProfile.list();
-      return profiles.filter(p => p.profile_type === 'parceiro');
+      return profiles.filter(p => 
+        p.profile_type === 'parceiro' || 
+        p.profile_type === 'parceiro_comprador' || 
+        p.profile_type === 'parceiro_vendedor'
+      );
     },
   });
+
+  const { data: clientContacts = [] } = useQuery({
+    queryKey: ['partnerContacts'],
+    queryFn: async () => {
+      const contacts = await base44.entities.ClientContact.list();
+      return contacts.filter(c => c.contact_type === 'partner');
+    },
+  });
+
+  // Combine partners from both sources
+  const allPartners = React.useMemo(() => {
+    const combined = [];
+    partners.forEach(p => combined.push({ 
+      id: p.id, 
+      name: p.buyer_name, 
+      email: p.buyer_email,
+      source: 'profile'
+    }));
+    clientContacts.forEach(c => combined.push({ 
+      id: c.id, 
+      name: c.full_name, 
+      email: c.email,
+      source: 'contact'
+    }));
+    return combined;
+  }, [partners, clientContacts]);
   
   // CSV Preview State
   const [csvPreview, setCsvPreview] = React.useState(null);
@@ -399,7 +428,7 @@ export default function ImportProperties() {
           source_url: 'CSV Import',
           is_partner_property: propertyOwnership === "partner",
           partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.buyer_name : 
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
                         propertyOwnership === "private" ? privateOwnerName : undefined,
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
@@ -499,7 +528,7 @@ export default function ImportProperties() {
           state: p.state || p.city,
           is_partner_property: propertyOwnership === "partner",
           partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.buyer_name : 
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
                         propertyOwnership === "private" ? privateOwnerName : undefined,
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
@@ -722,7 +751,7 @@ export default function ImportProperties() {
           state: p.state || p.city,
           is_partner_property: propertyOwnership === "partner",
           partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.buyer_name : 
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
                         propertyOwnership === "private" ? privateOwnerName : undefined,
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
@@ -856,22 +885,34 @@ export default function ImportProperties() {
               <Label className="text-sm text-purple-900 mb-2 block">Selecione o Parceiro</Label>
               <Select 
                 value={selectedPartner?.id || ""} 
-                onValueChange={(id) => setSelectedPartner(partners.find(p => p.id === id))}
+                onValueChange={(id) => {
+                  const partner = allPartners.find(p => p.id === id);
+                  setSelectedPartner(partner);
+                }}
               >
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Selecione o parceiro..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {partners.map(partner => (
-                    <SelectItem key={partner.id} value={partner.id}>
-                      {partner.buyer_name} - {partner.buyer_email}
-                    </SelectItem>
-                  ))}
+                  {allPartners.length === 0 ? (
+                    <SelectItem value={null} disabled>Nenhum parceiro encontrado</SelectItem>
+                  ) : (
+                    allPartners.map(partner => (
+                      <SelectItem key={partner.id} value={partner.id}>
+                        {partner.name} {partner.email ? `- ${partner.email}` : ''}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               {selectedPartner && (
                 <p className="text-xs text-purple-600 mt-2">
-                  ✓ Imóveis serão atribuídos a {selectedPartner.buyer_name}
+                  ✓ Imóveis serão atribuídos a {selectedPartner.name}
+                </p>
+              )}
+              {allPartners.length === 0 && (
+                <p className="text-xs text-purple-600 mt-2">
+                  ⚠️ Crie primeiro um contacto do tipo "Parceiro" no CRM
                 </p>
               )}
             </div>
