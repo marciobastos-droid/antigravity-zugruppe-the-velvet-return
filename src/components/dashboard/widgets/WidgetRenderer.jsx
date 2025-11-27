@@ -8,6 +8,7 @@ import QuickActionsWidget from "./QuickActionsWidget";
 import PipelineSummaryWidget from "./PipelineSummaryWidget";
 import FollowupAlertsWidget from "./FollowupAlertsWidget";
 import TextNoteWidget from "./TextNoteWidget";
+import AgentStatsWidget from "./AgentStatsWidget";
 
 const widgetComponents = {
   metric_card: MetricCardWidget,
@@ -18,7 +19,8 @@ const widgetComponents = {
   quick_actions: QuickActionsWidget,
   pipeline_summary: PipelineSummaryWidget,
   followup_alerts: FollowupAlertsWidget,
-  text_note: TextNoteWidget
+  text_note: TextNoteWidget,
+  agent_stats: AgentStatsWidget
 };
 
 export default function WidgetRenderer({ widget, data }) {
