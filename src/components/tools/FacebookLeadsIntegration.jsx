@@ -27,9 +27,11 @@ export default function FacebookLeadsIntegration() {
   const [resetting, setResetting] = React.useState(false);
   const [dateRangeDialogOpen, setDateRangeDialogOpen] = React.useState(false);
   const [selectedFormForSync, setSelectedFormForSync] = React.useState(null);
-  const [dateRange, setDateRange] = React.useState({
+  const [syncOptions, setSyncOptions] = React.useState({
     start_date: '',
-    end_date: ''
+    end_date: '',
+    sync_type: 'manual',
+    assigned_to: ''
   });
   const [tokenValid, setTokenValid] = React.useState(null);
   const [checkingToken, setCheckingToken] = React.useState(false);
