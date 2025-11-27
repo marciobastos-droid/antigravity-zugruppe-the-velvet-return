@@ -602,9 +602,15 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
                       )}
                       </div>
                     {result.requirementsExtracted && (
-                      <div className="mt-3 pt-3 border-t border-slate-200">
-                        <p className="text-xs text-green-600 font-medium">
-                          ✅ Requisitos de imóvel extraídos e guardados no contacto
+                      <div className="mt-3 pt-3 border-t border-green-200 bg-green-50 rounded-lg p-3 -mx-1">
+                        <p className="text-sm text-green-700 font-medium mb-1">
+                          ✅ Requisitos prontos para Matching
+                        </p>
+                        {result.requirementsSummary && (
+                          <p className="text-xs text-green-600">{result.requirementsSummary}</p>
+                        )}
+                        <p className="text-xs text-green-600 mt-1">
+                          Já pode usar o Matching para encontrar imóveis compatíveis
                         </p>
                       </div>
                     )}
