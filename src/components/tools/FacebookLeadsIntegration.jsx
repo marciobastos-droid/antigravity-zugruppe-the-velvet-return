@@ -7,11 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock, CheckSquare, Square } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Facebook, Plus, Trash2, RefreshCw, CheckCircle2, XCircle, Settings, Download, Users, TrendingUp, Eye, Calendar, Pencil, FileText, Clock, CheckSquare, Square, LayoutDashboard, Bell, Filter } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { qualifyLead } from "../opportunities/LeadQualification";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import FacebookSyncDashboard from "./FacebookSyncDashboard";
+import FacebookLeadsFilters from "./FacebookLeadsFilters";
+import FacebookSyncAlerts from "./FacebookSyncAlerts";
 
 export default function FacebookLeadsIntegration() {
   const queryClient = useQueryClient();
