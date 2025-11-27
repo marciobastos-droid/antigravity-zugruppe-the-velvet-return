@@ -222,11 +222,22 @@ INSTRUÇÕES:
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => setShowAiInput(!showAiInput)}
+                onClick={() => {
+                  const newShowState = !showAiInput;
+                  setShowAiInput(newShowState);
+                  // Auto-carregar texto da lead quando abrir
+                  if (newShowState && !autoLoadedText && linkedOpportunities.length > 0) {
+                    const leadText = getLeadText();
+                    if (leadText) {
+                      setAiText(leadText);
+                      setAutoLoadedText(true);
+                    }
+                  }
+                }}
                 className="text-purple-600 hover:bg-purple-50"
               >
                 <Wand2 className="w-4 h-4 mr-1" />
-                IA
+                IA {linkedOpportunities.length > 0 && `(${linkedOpportunities.length})`}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
                 <X className="w-4 h-4" />
