@@ -1040,6 +1040,28 @@ export default function FacebookLeadsIntegration() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          {/* Leads Tab */}
+          <TabsContent value="leads">
+            <FacebookLeadsFilters
+              campaigns={fbSettings.campaigns || []}
+              filters={leadFilters}
+              onFilterChange={setLeadFilters}
+              totalLeads={fbLeads.length}
+              filteredCount={filteredLeads.length}
+            />
+          </TabsContent>
+
+          {/* Alerts Tab */}
+          <TabsContent value="alerts">
+            <FacebookSyncAlerts
+              settings={fbSettings.alertSettings || {}}
+              onSaveSettings={handleSaveAlertSettings}
+              recentErrors={recentSyncErrors}
+            />
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Dialog de Intervalo de Datas */}
