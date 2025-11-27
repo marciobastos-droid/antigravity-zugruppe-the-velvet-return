@@ -118,16 +118,32 @@ export default function Tools() {
             </CardContent>
           </Card>
 
-          {/* Importações e Exportações Group */}
-          <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
+          {/* Lead Management Group */}
+          <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Download className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(4 ferramentas)</span>
+                <Target className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-bold text-emerald-900 text-lg">Gestão de Leads</h3>
+                <span className="text-sm text-emerald-600">(3 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === "leadManagement" ? "default" : "outline"}
+                  onClick={() => setActiveTab("leadManagement")}
+                  className="flex items-center gap-2"
+                >
+                  <Target className="w-4 h-4" />
+                  Origens & Scoring
+                </Button>
+                <Button
+                  variant={activeTab === "leadNurturing" ? "default" : "outline"}
+                  onClick={() => setActiveTab("leadNurturing")}
+                  className="flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4" />
+                  Nurturing Automático
+                </Button>
                 <Button
                   variant={activeTab === "importLeads" ? "default" : "outline"}
                   onClick={() => setActiveTab("importLeads")}
@@ -136,6 +152,20 @@ export default function Tools() {
                   <UserPlus className="w-4 h-4" />
                   Importar Leads
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Importações e Exportações Group */}
+          <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Download className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
+                <span className="text-sm text-blue-600">(3 ferramentas)</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant={activeTab === "importProperties" ? "default" : "outline"}
                   onClick={() => setActiveTab("importProperties")}
