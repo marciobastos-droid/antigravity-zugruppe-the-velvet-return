@@ -1348,11 +1348,13 @@ export default function FacebookLeadsIntegration() {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3 flex-1">
-                          <Checkbox
-                            checked={selectedLeads.includes(lead.id)}
-                            onCheckedChange={() => toggleSelectLead(lead.id)}
-                            className="mt-1"
-                          />
+                          {canBulkDelete && (
+                            <Checkbox
+                              checked={selectedLeads.includes(lead.id)}
+                              onCheckedChange={() => toggleSelectLead(lead.id)}
+                              className="mt-1"
+                            />
+                          )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h4 className="font-semibold text-slate-900">{lead.full_name}</h4>
