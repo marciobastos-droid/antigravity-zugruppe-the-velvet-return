@@ -38,14 +38,29 @@ const propertySchema = {
   required: ["title", "property_type", "listing_type", "price", "city"]
 };
 
+const portalGroups = {
+  imobiliarias: {
+    label: "Imobiliárias",
+    portals: [
+      { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
+      { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
+    ]
+  },
+  genericos: {
+    label: "Genéricos",
+    portals: [
+      { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
+      { name: "Idealista", domain: "idealista.pt", color: "bg-yellow-100 text-yellow-800" },
+      { name: "Imovirtual", domain: "imovirtual.com", color: "bg-green-100 text-green-800" },
+      { name: "Infocasa", domain: "infocasa.pt", color: "bg-purple-100 text-purple-800" },
+      { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" }
+    ]
+  }
+};
+
 const supportedPortals = [
-  { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
-  { name: "Idealista", domain: "idealista.pt", color: "bg-yellow-100 text-yellow-800" },
-  { name: "Imovirtual", domain: "imovirtual.com", color: "bg-green-100 text-green-800" },
-  { name: "Infocasa", domain: "infocasa.pt", color: "bg-purple-100 text-purple-800" },
-  { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
-  { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" },
-  { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
+  ...portalGroups.imobiliarias.portals,
+  ...portalGroups.genericos.portals
 ];
 
 const fieldLabels = {
@@ -959,12 +974,27 @@ export default function ImportProperties() {
           <p className="text-sm text-slate-500">Extração precisa com validação rigorosa de preços</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2 mb-3">
-            {supportedPortals.map((portal) => (
-              <Badge key={portal.domain} className={portal.color} variant="secondary">
-                {portal.name}
-              </Badge>
-            ))}
+          <div className="space-y-2 mb-3">
+            <div>
+              <span className="text-xs font-medium text-slate-500 mr-2">Imobiliárias:</span>
+              <span className="inline-flex flex-wrap gap-1">
+                {portalGroups.imobiliarias.portals.map((portal) => (
+                  <Badge key={portal.domain} className={portal.color} variant="secondary">
+                    {portal.name}
+                  </Badge>
+                ))}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-500 mr-2">Genéricos:</span>
+              <span className="inline-flex flex-wrap gap-1">
+                {portalGroups.genericos.portals.map((portal) => (
+                  <Badge key={portal.domain} className={portal.color} variant="secondary">
+                    {portal.name}
+                  </Badge>
+                ))}
+              </span>
+            </div>
           </div>
 
           <Textarea
