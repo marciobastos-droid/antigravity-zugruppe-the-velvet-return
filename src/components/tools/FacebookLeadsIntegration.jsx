@@ -149,14 +149,28 @@ export default function FacebookLeadsIntegration() {
     if (!window.confirm(`Tem certeza que deseja eliminar ${selectedLeads.length} lead(s)?`)) return;
     
     setDeletingBulk(true);
-    try {
-      await Promise.all(selectedLeads.map(id => base44.entities.FacebookLead.delete(id)));
-      toast.success(`${selectedLeads.length} lead(s) eliminado(s)`);
-      setSelectedLeads([]);
-      queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
-    } catch (error) {
-      toast.error("Erro ao eliminar leads");
+    let deletedCount = 0;
+    let errorCount = 0;
+    
+    for (const id of selectedLeads) {
+      try {
+        await base44.entities.FacebookLead.delete(id);
+        deletedCount++;
+      } catch (error) {
+        console.error(`Erro ao eliminar lead ${id}:`, error);
+        errorCount++;
+      }
     }
+    
+    if (deletedCount > 0) {
+      toast.success(`${deletedCount} lead(s) eliminado(s)`);
+    }
+    if (errorCount > 0) {
+      toast.error(`Falha ao eliminar ${errorCount} lead(s)`);
+    }
+    
+    setSelectedLeads([]);
+    queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
     setDeletingBulk(false);
   };
 
