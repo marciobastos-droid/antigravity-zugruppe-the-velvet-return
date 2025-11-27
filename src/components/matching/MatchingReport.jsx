@@ -326,7 +326,7 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
           return false;
         };
 
-        // Header with logo
+        // Header with logo - maintain aspect ratio
         try {
           const img = new Image();
           img.crossOrigin = 'Anonymous';
@@ -335,7 +335,17 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
             img.onerror = reject;
             img.src = logoUrl;
           });
-          doc.addImage(img, 'JPEG', margin, yPos, 40, 15);
+          // Calculate proper dimensions maintaining aspect ratio
+          const logoMaxWidth = 35;
+          const logoMaxHeight = 12;
+          const imgRatio = img.width / img.height;
+          let logoWidth = logoMaxWidth;
+          let logoHeight = logoWidth / imgRatio;
+          if (logoHeight > logoMaxHeight) {
+            logoHeight = logoMaxHeight;
+            logoWidth = logoHeight * imgRatio;
+          }
+          doc.addImage(img, 'JPEG', margin, yPos, logoWidth, logoHeight);
         } catch (e) {
           // If logo fails, just add text
           doc.setFontSize(16);
