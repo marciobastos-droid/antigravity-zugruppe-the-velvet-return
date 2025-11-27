@@ -282,21 +282,35 @@ export default function MatchingTab() {
                                   </div>
                                 )}
                               </div>
-                              <Button 
-                                size="sm"
-                                className={hasRequirements 
-                                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700' 
-                                  : 'bg-slate-600 hover:bg-slate-700'
-                                }
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenMatching(contact);
-                                }}
-                              >
-                                <Sparkles className="w-4 h-4 mr-1" />
-                                Matching
-                                <ChevronRight className="w-4 h-4 ml-1" />
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedContact(contact);
+                                    setViewMode("ai");
+                                  }}
+                                >
+                                  <Zap className="w-4 h-4" />
+                                </Button>
+                                <Button 
+                                  size="sm"
+                                  className={hasRequirements 
+                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700' 
+                                    : 'bg-slate-600 hover:bg-slate-700'
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenMatching(contact);
+                                  }}
+                                >
+                                  <Sparkles className="w-4 h-4 mr-1" />
+                                  Matching
+                                  <ChevronRight className="w-4 h-4 ml-1" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         );
