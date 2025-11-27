@@ -229,7 +229,8 @@ export default function FacebookLeadsIntegration() {
     if (leadToConvert) {
       convertToOpportunityMutation.mutate({ 
         lead: leadToConvert, 
-        propertyId: selectedPropertyId 
+        propertyId: selectedPropertyId,
+        agentEmail: selectedAgentEmail
       });
     }
   };
