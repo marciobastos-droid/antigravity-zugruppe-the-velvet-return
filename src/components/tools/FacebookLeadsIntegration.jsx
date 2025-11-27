@@ -441,10 +441,16 @@ export default function FacebookLeadsIntegration() {
           [formId]: new Date().toISOString()
         };
 
-        await updateSettingsMutation.mutateAsync({
+        const updatedSettings = {
           ...fbSettings,
           last_sync: updatedLastSync
-        });
+        };
+
+        await updateSettingsMutation.mutateAsync(updatedSettings);
+        
+        // Force refetch to update UI immediately
+        queryClient.invalidateQueries({ queryKey: ['fb_settings'] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
       }
 
       // Mensagem detalhada
