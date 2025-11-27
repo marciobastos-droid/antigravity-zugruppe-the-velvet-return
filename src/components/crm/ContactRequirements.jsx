@@ -98,7 +98,16 @@ export default function ContactRequirements({ contact, onUpdate }) {
   });
 
   const handleSave = () => {
-    updateMutation.mutate(requirements);
+    // Criar cópia limpa dos requisitos, removendo valores undefined
+    const cleanRequirements = {};
+    Object.keys(requirements).forEach(key => {
+      const value = requirements[key];
+      if (value !== undefined && value !== null && value !== "") {
+        cleanRequirements[key] = value;
+      }
+    });
+    console.log('Saving requirements:', cleanRequirements);
+    updateMutation.mutate(cleanRequirements);
   };
 
   const addLocation = () => {
