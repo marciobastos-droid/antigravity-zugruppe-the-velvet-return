@@ -5,7 +5,7 @@ import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";
 import OpportunitiesContent from "../components/crm/OpportunitiesContent";
-import MatchingTab from "../components/crm/MatchingTab";
+import MatchingTab from "@/components/crm/MatchingTab";
 
 export default function CRMAdvanced() {
   const [activeTab, setActiveTab] = React.useState("clients");
