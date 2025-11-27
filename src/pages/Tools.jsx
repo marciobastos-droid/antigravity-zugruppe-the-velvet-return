@@ -379,6 +379,7 @@ export default function Tools() {
           </Card>
         </div>
 
+        {activeTab === "leadManagement" && <LeadManagementHub />}
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
         {activeTab === "aiMatching" && <AIMatchingEngine />}
