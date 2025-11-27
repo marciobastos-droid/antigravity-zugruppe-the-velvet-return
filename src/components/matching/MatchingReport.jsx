@@ -637,6 +637,15 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
+                  onClick={() => setShowCustomizer(!showCustomizer)}
+                  className={showCustomizer ? 'bg-indigo-50 border-indigo-300' : ''}
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  Personalizar
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={saveSelectedProperties}
                   disabled={saving || selectedProperties.length === 0}
                 >
