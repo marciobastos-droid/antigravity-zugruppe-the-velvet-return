@@ -569,9 +569,24 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'bg-green-100 text-green-800 border-green-200';
-    if (score >= 60) return 'bg-blue-100 text-blue-800 border-blue-200';
-    return 'bg-amber-100 text-amber-800 border-amber-200';
+    if (score >= 85) return 'bg-emerald-500 text-white';
+    if (score >= 70) return 'bg-green-500 text-white';
+    if (score >= 55) return 'bg-blue-500 text-white';
+    return 'bg-amber-500 text-white';
+  };
+
+  const getScoreLabel = (score) => {
+    if (score >= 85) return 'Excelente';
+    if (score >= 70) return 'Muito Bom';
+    if (score >= 55) return 'Bom';
+    return 'Razoável';
+  };
+
+  const getScoreGradient = (score) => {
+    if (score >= 85) return 'from-emerald-500 to-green-600';
+    if (score >= 70) return 'from-green-500 to-teal-600';
+    if (score >= 55) return 'from-blue-500 to-indigo-600';
+    return 'from-amber-500 to-orange-600';
   };
 
   return (
