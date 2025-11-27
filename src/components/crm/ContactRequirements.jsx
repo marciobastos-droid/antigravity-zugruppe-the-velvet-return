@@ -85,11 +85,15 @@ export default function ContactRequirements({ contact, onUpdate }) {
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientContact.update(contact.id, { property_requirements: data }),
-    onSuccess: () => {
+    onSuccess: (updatedContact) => {
       toast.success("Requisitos atualizados");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      queryClient.invalidateQueries({ queryKey: ['clientContact', contact.id] });
       setEditing(false);
-      if (onUpdate) onUpdate();
+      if (onUpdate) onUpdate(updatedContact);
+    },
+    onError: (error) => {
+      toast.error("Erro ao guardar requisitos: " + (error.message || "Tente novamente"));
     }
   });
 
