@@ -16,7 +16,7 @@ import {
   Tag, DollarSign, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
   Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
-  LayoutGrid, List
+  LayoutGrid, List, Link2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
