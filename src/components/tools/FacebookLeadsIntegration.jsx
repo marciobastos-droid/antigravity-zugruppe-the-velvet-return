@@ -457,7 +457,7 @@ export default function FacebookLeadsIntegration() {
     setDateRangeDialogOpen(true);
   };
 
-  const handleSyncLeads = async (formId, customDateRange = null) => {
+  const handleSyncLeads = async (formId, customOptions = null) => {
     setSyncing(formId);
     
     try {
@@ -477,6 +477,10 @@ export default function FacebookLeadsIntegration() {
       const campaign = fbSettings.campaigns.find(c => c.form_id === formId);
       const lastSync = fbSettings.last_sync?.[formId] || null;
 
+      // Determinar sync_type e datas
+      const isHistorical = customOptions?.sync_type === 'historical' || (customOptions?.start_date && customOptions?.end_date);
+      const isIncremental = customOptions?.sync_type === 'incremental' || (!isHistorical && lastSync);
+
       const payload = {
         access_token: fbSettings.access_token,
         page_id: fbSettings.page_id,
@@ -484,11 +488,11 @@ export default function FacebookLeadsIntegration() {
         campaign_id: campaign?.campaign_id || '',
         campaign_name: campaign?.campaign_name || '',
         form_name: campaign?.form_name || '',
-        assigned_to: campaign?.assigned_to || '',
-        last_sync: customDateRange ? null : lastSync,
-        start_date: customDateRange?.start_date || null,
-        end_date: customDateRange?.end_date || null,
-        sync_type: customDateRange ? 'historical' : 'manual'
+        assigned_to: customOptions?.assigned_to || campaign?.assigned_to || '',
+        last_sync: isHistorical ? null : lastSync,
+        start_date: customOptions?.start_date || null,
+        end_date: customOptions?.end_date || null,
+        sync_type: isHistorical ? 'historical' : (isIncremental ? 'incremental' : 'manual')
       };
 
       console.log('Enviando payload para syncFacebookLeads:', {
