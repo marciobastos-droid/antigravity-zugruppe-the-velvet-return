@@ -447,9 +447,12 @@ export default function FacebookLeadsIntegration() {
 
   const handleOpenDateRangeDialog = (formId) => {
     setSelectedFormForSync(formId);
-    setDateRange({
+    const campaign = fbSettings?.campaigns?.find(c => c.form_id === formId);
+    setSyncOptions({
       start_date: '',
-      end_date: ''
+      end_date: '',
+      sync_type: 'historical',
+      assigned_to: campaign?.assigned_to || ''
     });
     setDateRangeDialogOpen(true);
   };
