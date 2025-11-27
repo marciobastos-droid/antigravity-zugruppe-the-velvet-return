@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { entity_type } = await req.json();
+    const { entity_type, count = 1 } = await req.json();
 
     if (!entity_type || !['Property', 'ClientContact', 'Opportunity'].includes(entity_type)) {
       return Response.json({ error: 'Invalid entity_type' }, { status: 400 });
@@ -49,11 +49,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Generate next ref_id
-    const nextNumber = maxNumber + 1;
-    const ref_id = `${prefix}-${nextNumber.toString().padStart(4, '0')}`;
-
-    return Response.json({ ref_id });
+    // Generate ref_ids (single or multiple)
+    const numToGenerate = Math.min(Math.max(1, parseInt(count) || 1), 100); // Max 100 at a time
+    
+    if (numToGenerate === 1) {
+      // Single ref_id (backwards compatible)
+      const nextNumber = maxNumber + 1;
+      const ref_id = `${prefix}-${nextNumber.toString().padStart(4, '0')}`;
+      return Response.json({ ref_id });
+    } else {
+      // Multiple ref_ids
+      const ref_ids = [];
+      for (let i = 1; i <= numToGenerate; i++) {
+        const nextNumber = maxNumber + i;
+        ref_ids.push(`${prefix}-${nextNumber.toString().padStart(4, '0')}`);
+      }
+      return Response.json({ ref_ids });
+    }
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
