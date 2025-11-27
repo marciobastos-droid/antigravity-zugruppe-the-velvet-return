@@ -11,7 +11,8 @@ import { toast } from "sonner";
 export default function FacebookSyncAlerts({ 
   settings = {}, 
   onSaveSettings,
-  recentErrors = []
+  recentErrors = [],
+  readOnly = false
 }) {
   const [alertSettings, setAlertSettings] = React.useState({
     emailOnError: settings.emailOnError || false,
@@ -22,8 +23,10 @@ export default function FacebookSyncAlerts({
   });
 
   const handleSave = () => {
-    onSaveSettings(alertSettings);
-    toast.success("Configurações de alertas guardadas");
+    if (onSaveSettings) {
+      onSaveSettings(alertSettings);
+      toast.success("Configurações de alertas guardadas");
+    }
   };
 
   return (
@@ -73,6 +76,7 @@ export default function FacebookSyncAlerts({
             <Switch
               checked={alertSettings.emailOnError}
               onCheckedChange={(checked) => setAlertSettings({...alertSettings, emailOnError: checked})}
+              disabled={readOnly}
             />
           </div>
 
@@ -89,6 +93,7 @@ export default function FacebookSyncAlerts({
             <Switch
               checked={alertSettings.emailOnNewLeads}
               onCheckedChange={(checked) => setAlertSettings({...alertSettings, emailOnNewLeads: checked})}
+              disabled={readOnly}
             />
           </div>
 
@@ -109,6 +114,7 @@ export default function FacebookSyncAlerts({
               value={alertSettings.maxHoursWithoutSync}
               onChange={(e) => setAlertSettings({...alertSettings, maxHoursWithoutSync: parseInt(e.target.value) || 24})}
               className="w-20 h-8 text-center"
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -126,13 +132,21 @@ export default function FacebookSyncAlerts({
               onChange={(e) => setAlertSettings({...alertSettings, alertEmail: e.target.value})}
               placeholder="seu@email.com"
               className="h-9"
+              disabled={readOnly}
             />
           </div>
         )}
 
-        <Button onClick={handleSave} className="w-full" size="sm">
-          Guardar Configurações
-        </Button>
+        {!readOnly && (
+          <Button onClick={handleSave} className="w-full" size="sm">
+            Guardar Configurações
+          </Button>
+        )}
+        {readOnly && (
+          <p className="text-xs text-center text-slate-500">
+            Apenas administradores podem alterar estas configurações
+          </p>
+        )}
       </CardContent>
     </Card>
   );
