@@ -418,6 +418,7 @@ export default function MatchingTab() {
           </Card>
         </div>
       </div>
+      )}
 
       {/* Matching Dialog */}
       {selectedContact && (
