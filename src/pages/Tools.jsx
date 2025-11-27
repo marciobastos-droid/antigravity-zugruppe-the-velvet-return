@@ -188,7 +188,7 @@ export default function Tools() {
                   className="flex items-center gap-2"
                 >
                   <FileText className="w-4 h-4" />
-                  Relatórios & Exportações
+                  Relatórios
                 </Button>
               </div>
             </CardContent>
