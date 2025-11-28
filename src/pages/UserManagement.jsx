@@ -24,6 +24,7 @@ export default function UserManagement() {
     phone: "",
     user_type: "agente"
   });
+  const [inviteSent, setInviteSent] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['user'],
@@ -73,15 +74,9 @@ Equipa Zugruppe`
       return result;
     },
     onSuccess: () => {
+      setInviteSent(true);
       toast.success("Convite enviado com sucesso! O utilizador receberá um email.");
       queryClient.invalidateQueries({ queryKey: ['users'] });
-      setCreateDialogOpen(false);
-      setFormData({
-        full_name: "",
-        email: "",
-        phone: "",
-        user_type: "agente"
-      });
     },
     onError: (error) => {
       console.error("Erro ao enviar convite:", error);
@@ -193,7 +188,18 @@ Equipa Zugruppe`
             <p className="text-slate-600">Gerir equipa, permissões e atribuição de leads</p>
           </div>
 
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <Dialog open={createDialogOpen} onOpenChange={(open) => {
+              setCreateDialogOpen(open);
+              if (!open) {
+                setInviteSent(false);
+                setFormData({
+                  full_name: "",
+                  email: "",
+                  phone: "",
+                  user_type: "agente"
+                });
+              }
+            }}>
             <DialogTrigger asChild>
               <Button className="bg-slate-900 hover:bg-slate-800">
                 <UserPlus className="w-4 h-4 mr-2" />
@@ -204,68 +210,110 @@ Equipa Zugruppe`
               <DialogHeader>
                 <DialogTitle>Convidar Novo Utilizador</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleCreateUser} className="space-y-4 mt-4">
-                <div>
-                  <Label htmlFor="full_name">Nome Completo *</Label>
-                  <Input
-                    id="full_name"
-                    required
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                    placeholder="João Silva"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    placeholder="joao.silva@exemplo.com"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">Telefone (Opcional)</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="+351 912 345 678"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="userType">Tipo de Utilizador *</Label>
-                  <Select value={formData.user_type} onValueChange={(v) => setFormData({...formData, user_type: v})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="agente">🏠 Agente</SelectItem>
-                      <SelectItem value="gestor">📊 Gestor</SelectItem>
-                      <SelectItem value="admin">👑 Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-900 font-medium mb-1">
-                    ℹ️ Como funciona?
+              
+              {inviteSent ? (
+                <div className="py-8 text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Convite Enviado!</h3>
+                  <p className="text-slate-600 mb-1">
+                    Um email foi enviado para:
                   </p>
-                  <p className="text-xs text-blue-700">
-                    Um email de convite será enviado para {formData.email || 'o email indicado'}. 
-                    O utilizador deve registar-se na plataforma. Depois do registo, pode atribuir as permissões aqui.
+                  <p className="font-medium text-slate-900 mb-4">{formData.email}</p>
+                  <p className="text-sm text-slate-500 mb-6">
+                    O utilizador receberá instruções para se registar na plataforma.
                   </p>
+                  <Button 
+                    onClick={() => {
+                      setInviteSent(false);
+                      setCreateDialogOpen(false);
+                      setFormData({
+                        full_name: "",
+                        email: "",
+                        phone: "",
+                        user_type: "agente"
+                      });
+                    }}
+                    className="w-full"
+                  >
+                    Fechar
+                  </Button>
                 </div>
+              ) : (
+                <form onSubmit={handleCreateUser} className="space-y-4 mt-4">
+                  <div>
+                    <Label htmlFor="full_name">Nome Completo *</Label>
+                    <Input
+                      id="full_name"
+                      required
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                      placeholder="João Silva"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      placeholder="joao.silva@exemplo.com"
+                    />
+                  </div>
 
-                <Button type="submit" className="w-full" disabled={createUserMutation.isPending}>
-                  {createUserMutation.isPending ? "A enviar convite..." : "Enviar Convite por Email"}
-                </Button>
-              </form>
+                  <div>
+                    <Label htmlFor="phone">Telefone (Opcional)</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="+351 912 345 678"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="userType">Tipo de Utilizador *</Label>
+                    <Select value={formData.user_type} onValueChange={(v) => setFormData({...formData, user_type: v})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="agente">🏠 Agente</SelectItem>
+                        <SelectItem value="gestor">📊 Gestor</SelectItem>
+                        <SelectItem value="admin">👑 Administrador</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-900 font-medium mb-1">
+                      ℹ️ Como funciona?
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Um email de convite será enviado para {formData.email || 'o email indicado'}. 
+                      O utilizador deve registar-se na plataforma. Depois do registo, pode atribuir as permissões aqui.
+                    </p>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={createUserMutation.isPending}>
+                    {createUserMutation.isPending ? (
+                      <>
+                        <Mail className="w-4 h-4 mr-2 animate-pulse" />
+                        A enviar convite...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-2" />
+                        Enviar Convite por Email
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
             </DialogContent>
           </Dialog>
         </div>
