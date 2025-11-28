@@ -326,7 +326,7 @@ export default function Browse() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">Todos</SelectItem>
-                            {districts.map(d => (
+                            {ALL_DISTRICTS.map(d => (
                               <SelectItem key={d} value={d}>{d}</SelectItem>
                             ))}
                           </SelectContent>
@@ -334,13 +334,13 @@ export default function Browse() {
                       </div>
                       <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">Concelho</label>
-                        <Select value={city} onValueChange={setCity}>
+                        <Select value={city} onValueChange={setCity} disabled={district === "all"}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Todos" />
+                            <SelectValue placeholder={district === "all" ? "Escolha distrito" : "Todos"} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">Todos</SelectItem>
-                            {municipalities.map(m => (
+                            {municipalitiesForDistrict.map(m => (
                               <SelectItem key={m} value={m}>{m}</SelectItem>
                             ))}
                           </SelectContent>
