@@ -69,10 +69,11 @@ export default function MyListings() {
         return allProperties;
       }
       
-      // Agentes vêem imóveis que criaram OU que lhes estão atribuídos
+      // Agentes vêem imóveis que criaram OU que lhes estão atribuídos OU onde são agente
       return allProperties.filter(p => 
         p.created_by === user.email || 
-        p.assigned_consultant === user.email
+        p.assigned_consultant === user.email ||
+        p.agent_id === user.id
       );
     },
     enabled: !!user
