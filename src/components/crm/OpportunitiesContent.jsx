@@ -248,7 +248,8 @@ export default function OpportunitiesContent() {
     const matchesStatus = statusFilter === "all" || opp.status === statusFilter;
     const matchesLeadType = leadTypeFilter === "all" || opp.lead_type === leadTypeFilter;
     const matchesQualification = qualificationFilter === "all" || opp.qualification_status === qualificationFilter;
-    const matchesAgent = agentFilter === "all" || opp.assigned_to === agentFilter;
+    const matchesAgent = agentFilter === "all" || 
+      (agentFilter === "unassigned" ? !opp.assigned_to : opp.assigned_to === agentFilter);
     
     let matchesSource = true;
     if (sourceFilter !== "all") {
