@@ -654,6 +654,58 @@ INSTRUÇÕES:
           </div>
         )}
 
+        {/* Garage & Sun Exposure */}
+        {(req.garage || req.sun_exposure?.length > 0) && (
+          <div className="grid grid-cols-2 gap-2">
+            {req.garage && req.garage !== "any" && (
+              <div className="bg-white rounded-lg p-2 border border-green-100">
+                <div className="text-xs text-slate-500 flex items-center gap-1">
+                  <Car className="w-3 h-3" /> Garagem
+                </div>
+                <div className="font-medium text-sm">
+                  {req.garage === 'required' ? '✅ Obrigatório' : '❌ Não necessário'}
+                </div>
+              </div>
+            )}
+            {req.sun_exposure?.length > 0 && (
+              <div className="bg-white rounded-lg p-2 border border-green-100">
+                <div className="text-xs text-slate-500 flex items-center gap-1">
+                  <Sun className="w-3 h-3" /> Exposição Solar
+                </div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {req.sun_exposure.map(exp => (
+                    <Badge key={exp} variant="outline" className="text-xs">
+                      {exp === 'north' ? 'Norte' : exp === 'south' ? 'Sul' : exp === 'east' ? 'Nascente' : 'Poente'}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Dates */}
+        {(req.max_construction_date || req.max_completion_date) && (
+          <div className="grid grid-cols-2 gap-2">
+            {req.max_construction_date && (
+              <div className="bg-white rounded-lg p-2 border border-green-100">
+                <div className="text-xs text-slate-500 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Data Máx. Construção
+                </div>
+                <div className="font-medium text-sm">{req.max_construction_date}</div>
+              </div>
+            )}
+            {req.max_completion_date && (
+              <div className="bg-white rounded-lg p-2 border border-green-100">
+                <div className="text-xs text-slate-500 flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Data Máx. Conclusão
+                </div>
+                <div className="font-medium text-sm">{req.max_completion_date}</div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Notes */}
         {req.additional_notes && (
           <div className="bg-white rounded-lg p-2 border border-green-100 text-sm text-slate-600">
