@@ -12,7 +12,7 @@ import {
   Copy, Trash2, Eye, MapPin, Euro, Bed, 
   Sparkles, RefreshCw, ChevronDown, ChevronUp,
   Building2, ExternalLink, Merge, Users, Mail, Phone,
-  XCircle, Clock, ListX, MoreHorizontal
+  XCircle, Clock, ListX, MoreHorizontal, Target
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -46,6 +46,11 @@ export default function DuplicateChecker() {
     queryFn: () => base44.entities.ClientContact.list('-created_date')
   });
 
+  const { data: leads = [], isLoading: loadingLeads, refetch: refetchLeads } = useQuery({
+    queryKey: ['leads-duplicates'],
+    queryFn: () => base44.entities.Opportunity.list('-created_date')
+  });
+
   const [contactDuplicateGroups, setContactDuplicateGroups] = React.useState([]);
   const [selectedContactsForDeletion, setSelectedContactsForDeletion] = React.useState([]);
   const [lastContactAnalysis, setLastContactAnalysis] = React.useState(null);
@@ -53,6 +58,23 @@ export default function DuplicateChecker() {
   const [contactProgress, setContactProgress] = React.useState(0);
   const [contactProgressText, setContactProgressText] = React.useState("");
   const [expandedContactGroups, setExpandedContactGroups] = React.useState({});
+
+  // Lead duplicates state
+  const [leadDuplicateGroups, setLeadDuplicateGroups] = React.useState([]);
+  const [selectedLeadsForDeletion, setSelectedLeadsForDeletion] = React.useState([]);
+  const [lastLeadAnalysis, setLastLeadAnalysis] = React.useState(null);
+  const [analyzingLeads, setAnalyzingLeads] = React.useState(false);
+  const [leadProgress, setLeadProgress] = React.useState(0);
+  const [leadProgressText, setLeadProgressText] = React.useState("");
+  const [expandedLeadGroups, setExpandedLeadGroups] = React.useState({});
+  const [ignoredLeadIds, setIgnoredLeadIds] = React.useState(() => {
+    const saved = localStorage.getItem('duplicateChecker_ignoredLeads');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('duplicateChecker_ignoredLeads', JSON.stringify(ignoredLeadIds));
+  }, [ignoredLeadIds]);
 
   // Data Enrichment State
   const [enrichmentOpen, setEnrichmentOpen] = React.useState(false);
@@ -923,6 +945,285 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     toast.success("Lista de ignorados limpa");
   };
 
+  // Lead duplicate analysis
+  const findLeadDuplicatePairs = (leads) => {
+    const pairs = [];
+    const checked = new Set();
+
+    for (let i = 0; i < leads.length; i++) {
+      for (let j = i + 1; j < leads.length; j++) {
+        const l1 = leads[i];
+        const l2 = leads[j];
+        const pairKey = `${l1.id}-${l2.id}`;
+        if (checked.has(pairKey)) continue;
+        checked.add(pairKey);
+
+        let matchScore = 0;
+        const matchReasons = [];
+
+        // Check email (strongest indicator)
+        if (l1.buyer_email && l2.buyer_email && normalizeText(l1.buyer_email) === normalizeText(l2.buyer_email)) {
+          matchScore += 60;
+          matchReasons.push("mesmo email");
+        }
+
+        // Check phone
+        const phone1 = (l1.buyer_phone || "").replace(/\D/g, "");
+        const phone2 = (l2.buyer_phone || "").replace(/\D/g, "");
+        if (phone1 && phone2 && phone1.length >= 9 && phone2.length >= 9) {
+          if (phone1 === phone2 || phone1.endsWith(phone2.slice(-9)) || phone2.endsWith(phone1.slice(-9))) {
+            matchScore += 50;
+            matchReasons.push("mesmo telefone");
+          }
+        }
+
+        // Check name similarity
+        const nameSim = calculateSimilarity(l1.buyer_name, l2.buyer_name);
+        if (nameSim >= 90) {
+          matchScore += 30;
+          matchReasons.push("nome idêntico");
+        } else if (nameSim >= 70) {
+          matchScore += 15;
+          matchReasons.push("nome similar");
+        }
+
+        // Check same property
+        if (l1.property_id && l2.property_id && l1.property_id === l2.property_id) {
+          matchScore += 25;
+          matchReasons.push("mesmo imóvel");
+        }
+
+        // Check same lead source
+        if (l1.lead_source && l2.lead_source && l1.lead_source === l2.lead_source) {
+          matchScore += 10;
+          matchReasons.push("mesma origem");
+        }
+
+        // Check contact_id
+        if (l1.contact_id && l2.contact_id && l1.contact_id === l2.contact_id) {
+          matchScore += 40;
+          matchReasons.push("mesmo contacto");
+        }
+
+        if (matchScore >= 50) {
+          pairs.push({
+            leads: [l1, l2],
+            score: matchScore,
+            reasons: matchReasons
+          });
+        }
+      }
+    }
+
+    return pairs;
+  };
+
+  const clusterLeadPairs = (pairs) => {
+    const clusters = [];
+    const leadToCluster = new Map();
+
+    pairs.sort((a, b) => b.score - a.score);
+
+    for (const pair of pairs) {
+      const [l1, l2] = pair.leads;
+      const cluster1 = leadToCluster.get(l1.id);
+      const cluster2 = leadToCluster.get(l2.id);
+
+      if (cluster1 && cluster2 && cluster1 !== cluster2) {
+        cluster1.leads = [...new Set([...cluster1.leads, ...cluster2.leads])];
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        cluster2.leads.forEach(l => leadToCluster.set(l.id, cluster1));
+        const idx = clusters.indexOf(cluster2);
+        if (idx > -1) clusters.splice(idx, 1);
+      } else if (cluster1) {
+        if (!cluster1.leads.find(l => l.id === l2.id)) {
+          cluster1.leads.push(l2);
+        }
+        cluster1.reasons = [...new Set([...cluster1.reasons, ...pair.reasons])];
+        cluster1.minScore = Math.min(cluster1.minScore, pair.score);
+        leadToCluster.set(l2.id, cluster1);
+      } else if (cluster2) {
+        if (!cluster2.leads.find(l => l.id === l1.id)) {
+          cluster2.leads.push(l1);
+        }
+        cluster2.reasons = [...new Set([...cluster2.reasons, ...pair.reasons])];
+        cluster2.minScore = Math.min(cluster2.minScore, pair.score);
+        leadToCluster.set(l1.id, cluster2);
+      } else {
+        const newCluster = {
+          leads: [l1, l2],
+          reasons: pair.reasons,
+          minScore: pair.score
+        };
+        clusters.push(newCluster);
+        leadToCluster.set(l1.id, newCluster);
+        leadToCluster.set(l2.id, newCluster);
+      }
+    }
+
+    return clusters;
+  };
+
+  const analyzeLeadDuplicates = async () => {
+    setAnalyzingLeads(true);
+    setLeadProgress(0);
+    setLeadProgressText("A preparar análise de leads...");
+    setLeadDuplicateGroups([]);
+    setSelectedLeadsForDeletion([]);
+
+    try {
+      setLeadProgressText("A analisar leads...");
+      setLeadProgress(30);
+
+      const activeLeads = leads.filter(l => !ignoredLeadIds.includes(l.id));
+      const pairs = findLeadDuplicatePairs(activeLeads);
+      
+      setLeadProgress(50);
+      setLeadProgressText(`Encontrados ${pairs.length} pares potenciais...`);
+
+      if (pairs.length === 0) {
+        setLeadDuplicateGroups([]);
+        setLastLeadAnalysis(new Date());
+        toast.success("Nenhum lead duplicado encontrado!");
+        setAnalyzingLeads(false);
+        return;
+      }
+
+      setLeadProgress(70);
+      setLeadProgressText("A agrupar duplicados...");
+      const clusters = clusterLeadPairs(pairs);
+
+      const confirmedDuplicates = clusters.map(cluster => ({
+        leads: cluster.leads.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+        confidence: Math.min(99, cluster.minScore),
+        reason: cluster.reasons.join(", ")
+      }));
+
+      setLeadProgress(90);
+      setLeadProgressText("A finalizar...");
+
+      const uniqueGroups = [];
+      const usedIds = new Set();
+
+      confirmedDuplicates
+        .sort((a, b) => b.confidence - a.confidence)
+        .forEach(group => {
+          const newLeads = group.leads.filter(l => !usedIds.has(l.id));
+          if (newLeads.length > 1) {
+            uniqueGroups.push({ ...group, leads: newLeads });
+            newLeads.forEach(l => usedIds.add(l.id));
+          }
+        });
+
+      setLeadDuplicateGroups(uniqueGroups);
+      setLastLeadAnalysis(new Date());
+      setLeadProgress(100);
+
+      if (uniqueGroups.length > 0) {
+        const totalDuplicates = uniqueGroups.reduce((sum, g) => sum + g.leads.length - 1, 0);
+        toast.warning(`Encontrados ${uniqueGroups.length} grupos com ${totalDuplicates} leads duplicados!`);
+      } else {
+        toast.success("Nenhum lead duplicado encontrado!");
+      }
+
+    } catch (error) {
+      console.error("Error analyzing lead duplicates:", error);
+      toast.error("Erro ao analisar leads duplicados");
+    }
+
+    setAnalyzingLeads(false);
+  };
+
+  const toggleLeadGroup = (index) => {
+    setExpandedLeadGroups(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const toggleLeadSelection = (leadId) => {
+    setSelectedLeadsForDeletion(prev => 
+      prev.includes(leadId) ? prev.filter(id => id !== leadId) : [...prev, leadId]
+    );
+  };
+
+  const selectAllLeadsExceptFirst = async (group, groupIndex) => {
+    const idsToDelete = group.leads.slice(1).map(l => l.id);
+    
+    if (idsToDelete.length === 0) {
+      toast.info("Nenhum duplicado para eliminar");
+      return;
+    }
+
+    if (!window.confirm(`Manter "${group.leads[0]?.buyer_name}" e eliminar ${idsToDelete.length} duplicado(s)?`)) {
+      return;
+    }
+
+    try {
+      for (const id of idsToDelete) {
+        await base44.entities.Opportunity.delete(id);
+      }
+      toast.success(`Eliminados ${idsToDelete.length} duplicado(s). Mantido: "${group.leads[0]?.buyer_name}"`);
+      setLeadDuplicateGroups(prev => prev.filter((_, idx) => idx !== groupIndex));
+      refetchLeads();
+    } catch (error) {
+      toast.error("Erro ao eliminar leads");
+      console.error(error);
+    }
+  };
+
+  const deleteSelectedLeads = async () => {
+    if (selectedLeadsForDeletion.length === 0) {
+      toast.error("Nenhum lead selecionado");
+      return;
+    }
+
+    if (!window.confirm(`Tem certeza que deseja eliminar ${selectedLeadsForDeletion.length} lead(s)?`)) {
+      return;
+    }
+
+    try {
+      for (const id of selectedLeadsForDeletion) {
+        await base44.entities.Opportunity.delete(id);
+      }
+      toast.success(`${selectedLeadsForDeletion.length} leads eliminados!`);
+      setSelectedLeadsForDeletion([]);
+      refetchLeads();
+      analyzeLeadDuplicates();
+    } catch (error) {
+      toast.error("Erro ao eliminar leads");
+    }
+  };
+
+  const markLeadsAsNotDuplicate = () => {
+    if (selectedLeadsForDeletion.length === 0) {
+      toast.error("Nenhum lead selecionado");
+      return;
+    }
+    setIgnoredLeadIds(prev => [...new Set([...prev, ...selectedLeadsForDeletion])]);
+    setLeadDuplicateGroups(prev => 
+      prev.map(group => ({
+        ...group,
+        leads: group.leads.filter(l => !selectedLeadsForDeletion.includes(l.id))
+      })).filter(group => group.leads.length > 1)
+    );
+    toast.success(`${selectedLeadsForDeletion.length} leads marcados como não duplicados`);
+    setSelectedLeadsForDeletion([]);
+  };
+
+  const clearLeadIgnoreList = () => {
+    setIgnoredLeadIds([]);
+    toast.success("Lista de ignorados limpa");
+  };
+
+  const leadStatusLabels = {
+    new: "Novo",
+    contacted: "Contactado",
+    qualified: "Qualificado",
+    proposal: "Proposta",
+    negotiation: "Negociação",
+    won: "Ganho",
+    lost: "Perdido"
+  };
+
   const getConfidenceColor = (confidence) => {
     if (confidence >= 90) return "bg-red-100 text-red-800 border-red-200";
     if (confidence >= 80) return "bg-orange-100 text-orange-800 border-orange-200";
@@ -937,7 +1238,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     other: "Outro"
   };
 
-  const isLoading = loadingProperties || loadingContacts;
+  const isLoading = loadingProperties || loadingContacts || loadingLeads;
 
   if (isLoading) {
     return (
@@ -964,7 +1265,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="properties" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 Imóveis ({properties.length})
@@ -972,6 +1273,10 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
               <TabsTrigger value="contacts" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Contactos ({contacts.length})
+              </TabsTrigger>
+              <TabsTrigger value="leads" className="flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Leads ({leads.length})
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -1644,6 +1949,302 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
               </Card>
               </React.Fragment>
               )}
+
+      {activeTab === "leads" && (
+        <React.Fragment>
+          {/* Leads Analysis Card */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-slate-900">{leads.length}</div>
+                    <div className="text-xs text-slate-600">Total de Leads</div>
+                  </div>
+                  {lastLeadAnalysis && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-orange-600">{leadDuplicateGroups.length}</div>
+                      <div className="text-xs text-slate-600">Grupos Duplicados</div>
+                    </div>
+                  )}
+                  {ignoredLeadIds.length > 0 && (
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-slate-400">{ignoredLeadIds.length}</div>
+                      <div className="text-xs text-slate-600">Ignorados</div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  {ignoredLeadIds.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={clearLeadIgnoreList}>
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Limpar Lista
+                    </Button>
+                  )}
+                  <Button
+                    onClick={analyzeLeadDuplicates}
+                    disabled={analyzingLeads || leads.length === 0}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    {analyzingLeads ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        A analisar...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4 mr-2" />
+                        Analisar Leads
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {analyzingLeads && (
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">{leadProgressText}</span>
+                    <span className="font-medium">{leadProgress}%</span>
+                  </div>
+                  <Progress value={leadProgress} className="h-2" />
+                </div>
+              )}
+
+              {lastLeadAnalysis && (
+                <p className="text-xs text-slate-500 mt-4">
+                  Última análise: {lastLeadAnalysis.toLocaleString('pt-PT')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Lead Action Bar */}
+          {selectedLeadsForDeletion.length > 0 && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-orange-600" />
+                    <span className="font-medium text-orange-900">
+                      {selectedLeadsForDeletion.length} lead(s) selecionado(s)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setSelectedLeadsForDeletion([])}>
+                      Cancelar
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreHorizontal className="w-4 h-4 mr-2" />
+                          Ações
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={markLeadsAsNotDuplicate}>
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Marcar como Não Duplicado
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={deleteSelectedLeads} className="text-red-600">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar Selecionados
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Lead Results */}
+          {leadDuplicateGroups.length > 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Grupos de Leads Duplicados
+                </h3>
+                <Badge variant="outline" className="text-orange-600 border-orange-200">
+                  {leadDuplicateGroups.reduce((sum, g) => sum + g.leads.length - 1, 0)} duplicados
+                </Badge>
+              </div>
+
+              {leadDuplicateGroups.map((group, index) => (
+                <Card key={index} className="overflow-hidden">
+                  <div 
+                    className="p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleLeadGroup(index)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-lg shadow-sm">
+                          <Target className="w-4 h-4 text-slate-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-slate-900">
+                            Grupo #{index + 1} - {group.leads.length} leads
+                          </h4>
+                          <p className="text-sm text-slate-600">{group.reason}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Badge className={getConfidenceColor(group.confidence)}>
+                          {group.confidence}% confiança
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => { e.stopPropagation(); selectAllLeadsExceptFirst(group, index); }}
+                        >
+                          <Merge className="w-4 h-4 mr-1" />
+                          Manter 1º
+                        </Button>
+                        {expandedLeadGroups[index] ? (
+                          <ChevronUp className="w-5 h-5 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {expandedLeadGroups[index] && (
+                    <CardContent className="p-4 border-t">
+                      <div className="space-y-3">
+                        {group.leads.map((lead, lIndex) => (
+                          <div 
+                            key={lead.id}
+                            className={`flex items-start gap-4 p-3 rounded-lg border transition-colors ${
+                              selectedLeadsForDeletion.includes(lead.id)
+                                ? 'bg-red-50 border-red-200'
+                                : lIndex === 0
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-white border-slate-200 hover:border-slate-300'
+                            }`}
+                          >
+                            <Checkbox
+                              checked={selectedLeadsForDeletion.includes(lead.id)}
+                              onCheckedChange={() => toggleLeadSelection(lead.id)}
+                              className="mt-1"
+                            />
+                            
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center flex-shrink-0">
+                              <Target className="w-5 h-5 text-orange-700" />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {lIndex === 0 && (
+                                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
+                                        Original
+                                      </Badge>
+                                    )}
+                                    {lead.ref_id && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {lead.ref_id}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className="text-xs">
+                                      {leadStatusLabels[lead.status] || lead.status}
+                                    </Badge>
+                                  </div>
+                                  <h5 className="font-medium text-slate-900 mt-1">
+                                    {lead.buyer_name}
+                                  </h5>
+                                </div>
+                              </div>
+                              
+                              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-600">
+                                {lead.buyer_email && (
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3.5 h-3.5" />
+                                    {lead.buyer_email}
+                                  </span>
+                                )}
+                                {lead.buyer_phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3.5 h-3.5" />
+                                    {lead.buyer_phone}
+                                  </span>
+                                )}
+                                {lead.location && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5" />
+                                    {lead.location}
+                                  </span>
+                                )}
+                                {lead.budget && (
+                                  <span className="flex items-center gap-1">
+                                    <Euro className="w-3.5 h-3.5" />
+                                    {lead.budget.toLocaleString()}€
+                                  </span>
+                                )}
+                              </div>
+
+                              {lead.lead_source && (
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Origem: {lead.lead_source}
+                                </p>
+                              )}
+                              {lead.property_title && (
+                                <p className="text-xs text-slate-500">
+                                  Imóvel: {lead.property_title}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </div>
+          ) : lastLeadAnalysis && !analyzingLeads ? (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="py-12 text-center">
+                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-green-900 mb-2">
+                  Sem Leads Duplicados
+                </h3>
+                <p className="text-green-700">
+                  A sua base de dados de leads está limpa!
+                </p>
+              </CardContent>
+            </Card>
+          ) : !analyzingLeads && (
+            <Card className="border-dashed">
+              <CardContent className="py-12 text-center">
+                <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-slate-700 mb-2">
+                  Pronto para Analisar Leads
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Clique no botão acima para iniciar a análise de leads duplicados.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tips for Leads */}
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="p-4">
+              <h4 className="font-medium text-orange-900 mb-2">💡 Dicas - Leads</h4>
+              <ul className="text-sm text-orange-800 space-y-1">
+                <li>• A análise compara emails, telefones, nomes e imóveis associados</li>
+                <li>• O primeiro lead é marcado como "Original" - geralmente o mais antigo</li>
+                <li>• Leads do mesmo contacto interessados no mesmo imóvel são fortes indicadores</li>
+                <li>• Verifique o histórico de comunicação antes de eliminar duplicados</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </React.Fragment>
+      )}
 
       {/* Data Enrichment Dialog */}
       {enrichmentRecord && (
