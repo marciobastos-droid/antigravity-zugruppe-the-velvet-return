@@ -63,9 +63,15 @@ export default function MyListings() {
       const allProperties = await base44.entities.Property.list('-updated_date');
       
       const userType = user.user_type?.toLowerCase() || '';
+      const permissions = user.permissions || {};
       
       // Admin/Gestor vê todos os imóveis
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
+        return allProperties;
+      }
+      
+      // Verifica permissão canViewAllProperties
+      if (permissions.canViewAllProperties === true) {
         return allProperties;
       }
       
