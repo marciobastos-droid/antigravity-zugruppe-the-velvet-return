@@ -15,7 +15,7 @@ import {
   Target, TrendingUp, Heart, Star, MapPin, Euro,
   Bed, Bath, Maximize, ChevronRight, Send, Check,
   Brain, Zap, Filter, RefreshCw, Eye, Mail, Phone,
-  ThumbsUp, ThumbsDown, MessageSquare, Calendar
+  ThumbsUp, ThumbsDown, MessageSquare, Calendar, Bookmark
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -32,6 +32,7 @@ export default function AIMatchingEngine() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [showMatchDetails, setShowMatchDetails] = useState(null);
   const [sendingMatch, setSendingMatch] = useState(null);
+  const [savingMatch, setSavingMatch] = useState(null);
 
   // Fetch data
   const { data: profiles = [], isLoading: loadingProfiles } = useQuery({
@@ -365,8 +366,54 @@ Retorna análise detalhada em JSON.`,
   // Check if match was already sent
   const isMatchAlreadySent = (profileId, propertyId) => {
     return sentMatches.some(sm => 
-      sm.contact_id === profileId && sm.property_id === propertyId
+      sm.contact_id === profileId && sm.property_id === propertyId && sm.client_response !== 'saved'
     );
+  };
+
+  // Check if match is saved for later
+  const isMatchSaved = (profileId, propertyId) => {
+    return sentMatches.some(sm => 
+      sm.contact_id === profileId && sm.property_id === propertyId && sm.client_response === 'saved'
+    );
+  };
+
+  // Save match for later
+  const saveMatchForLater = async (match) => {
+    setSavingMatch(match.property.id);
+    
+    try {
+      const profile = selectedProfile;
+      const user = await base44.auth.me();
+      const now = new Date().toISOString();
+
+      // Create saved match record
+      await base44.entities.SentMatch.create({
+        contact_id: profile.id,
+        contact_name: profile.buyer_name,
+        contact_email: profile.buyer_email,
+        property_id: match.property.id,
+        property_title: match.property.title,
+        property_price: match.property.price,
+        property_city: match.property.city,
+        property_image: match.property.images?.[0] || null,
+        match_score: match.aiScore,
+        compatibility_level: match.compatibilityLevel,
+        sales_pitch: match.salesPitch,
+        key_strengths: match.keyStrengths,
+        sent_date: now,
+        sent_by: user?.email,
+        client_response: 'saved',
+        notes: 'Guardado para enviar mais tarde'
+      });
+
+      toast.success("Match guardado para enviar mais tarde!");
+      queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
+
+    } catch (error) {
+      toast.error("Erro ao guardar match");
+    }
+
+    setSavingMatch(null);
   };
 
   // Send match to client
@@ -824,22 +871,45 @@ Retorna análise detalhada em JSON.`,
                                 <Check className="w-3 h-3 mr-1" />
                                 Enviado
                               </Badge>
+                            ) : isMatchSaved(selectedProfile?.id, match.property.id) ? (
+                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 justify-center py-1">
+                                <Bookmark className="w-3 h-3 mr-1" />
+                                Guardado
+                              </Badge>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => sendMatchToClient(match)}
-                                disabled={sendingMatch === match.property.id}
-                              >
-                                {sendingMatch === match.property.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <Send className="w-4 h-4 mr-1" />
-                                    Enviar
-                                  </>
-                                )}
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => sendMatchToClient(match)}
+                                  disabled={sendingMatch === match.property.id}
+                                >
+                                  {sendingMatch === match.property.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Send className="w-4 h-4 mr-1" />
+                                      Enviar
+                                    </>
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => saveMatchForLater(match)}
+                                  disabled={savingMatch === match.property.id}
+                                  className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                >
+                                  {savingMatch === match.property.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Bookmark className="w-4 h-4 mr-1" />
+                                      Guardar
+                                    </>
+                                  )}
+                                </Button>
+                              </>
                             )}
                           </div>
                         </div>
