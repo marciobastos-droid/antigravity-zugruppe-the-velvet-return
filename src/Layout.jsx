@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all' },
     { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all' },
-    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: ['admin', 'gestor', 'agente'] },
+    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all' },
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
     { name: "Relatórios", path: createPageUrl("Reports"), icon: FileBarChart, id: "nav-reports", visibility: ['admin', 'gestor', 'agente'] },
     { name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users, id: "nav-users", visibility: ['admin'] },
