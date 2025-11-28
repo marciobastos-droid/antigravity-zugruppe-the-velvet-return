@@ -19,6 +19,165 @@ import moment from "moment";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend } from "recharts";
 import ReportCustomizer, { DEFAULT_CONFIG } from "./ReportCustomizer";
 
+// Visual Summary Component
+function MatchingSummary({ matches, contact, properties }) {
+  const req = contact?.property_requirements || {};
+  
+  // Calculate metrics
+  const metrics = useMemo(() => {
+    const budgetMatches = properties.filter(p => {
+      if (!req.budget_min && !req.budget_max) return true;
+      const price = p.price || 0;
+      return price >= (req.budget_min || 0) && price <= (req.budget_max || Infinity);
+    }).length;
+
+    const locationMatches = properties.filter(p => {
+      if (!req.locations?.length) return true;
+      return req.locations.some(loc => 
+        p.city?.toLowerCase().includes(loc.toLowerCase()) ||
+        p.state?.toLowerCase().includes(loc.toLowerCase())
+      );
+    }).length;
+
+    const typeMatches = properties.filter(p => {
+      if (!req.property_types?.length) return true;
+      return req.property_types.includes(p.property_type);
+    }).length;
+
+    const bedroomMatches = properties.filter(p => {
+      if (!req.bedrooms_min) return true;
+      return (p.bedrooms || 0) >= req.bedrooms_min;
+    }).length;
+
+    return { budgetMatches, locationMatches, typeMatches, bedroomMatches };
+  }, [properties, req]);
+
+  // Radar chart data for top 3
+  const top3 = matches.slice(0, 3);
+  const radarData = useMemo(() => {
+    const categories = [
+      { key: 'price', label: 'Preço', max: 30 },
+      { key: 'location', label: 'Localização', max: 25 },
+      { key: 'type', label: 'Tipo', max: 20 },
+      { key: 'bedrooms', label: 'Quartos', max: 15 },
+      { key: 'listing', label: 'Negócio', max: 10 }
+    ];
+
+    return categories.map(cat => {
+      const dataPoint = { category: cat.label };
+      top3.forEach((match, idx) => {
+        const detail = match.details?.find(d => {
+          if (cat.key === 'price') return d.factor.toLowerCase().includes('preço') || d.factor.toLowerCase().includes('orçamento');
+          if (cat.key === 'location') return d.factor.toLowerCase().includes('localização');
+          if (cat.key === 'type') return d.factor.toLowerCase().includes('tipo');
+          if (cat.key === 'bedrooms') return d.factor.toLowerCase().includes('quarto');
+          if (cat.key === 'listing') return d.factor.toLowerCase().includes('negócio');
+          return false;
+        });
+        dataPoint[`property${idx + 1}`] = detail ? Math.round((detail.points / cat.max) * 100) : 50;
+      });
+      return dataPoint;
+    });
+  }, [top3]);
+
+  const chartColors = ['#6366f1', '#22c55e', '#f59e0b'];
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-3 text-center">
+            <Euro className="w-5 h-5 mx-auto text-blue-600 mb-1" />
+            <div className="text-2xl font-bold text-blue-700">{metrics.budgetMatches}</div>
+            <div className="text-xs text-blue-600">No Orçamento</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="p-3 text-center">
+            <MapPin className="w-5 h-5 mx-auto text-green-600 mb-1" />
+            <div className="text-2xl font-bold text-green-700">{metrics.locationMatches}</div>
+            <div className="text-xs text-green-600">Localização</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <CardContent className="p-3 text-center">
+            <Home className="w-5 h-5 mx-auto text-purple-600 mb-1" />
+            <div className="text-2xl font-bold text-purple-700">{metrics.typeMatches}</div>
+            <div className="text-xs text-purple-600">Tipo Imóvel</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+          <CardContent className="p-3 text-center">
+            <Bed className="w-5 h-5 mx-auto text-amber-600 mb-1" />
+            <div className="text-2xl font-bold text-amber-700">{metrics.bedroomMatches}</div>
+            <div className="text-xs text-amber-600">Quartos</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top 3 Compatibility Chart */}
+      {top3.length > 0 && (
+        <Card className="border-indigo-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-indigo-600" />
+              Compatibilidade Top 3 Imóveis
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <div className="flex gap-4">
+              {/* Radar Chart */}
+              <div className="flex-1 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+                    <PolarGrid strokeDasharray="3 3" />
+                    <PolarAngleAxis dataKey="category" tick={{ fontSize: 10 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                    {top3.map((match, idx) => (
+                      <Radar
+                        key={match.property.id}
+                        name={`#${idx + 1}`}
+                        dataKey={`property${idx + 1}`}
+                        stroke={chartColors[idx]}
+                        fill={chartColors[idx]}
+                        fillOpacity={0.15}
+                        strokeWidth={2}
+                      />
+                    ))}
+                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Top 3 List */}
+              <div className="w-48 space-y-2">
+                {top3.map((match, idx) => (
+                  <div
+                    key={match.property.id}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-slate-50"
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: chartColors[idx] }}
+                    >
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{match.property.title}</p>
+                      <p className="text-xs text-slate-500">{match.score}%</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 export default function MatchingReport({ contact, open, onOpenChange }) {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
