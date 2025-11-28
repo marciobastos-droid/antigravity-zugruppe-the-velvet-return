@@ -18,6 +18,7 @@ export default function WhatsAppAgentConfig() {
   const queryClient = useQueryClient();
   const [showToken, setShowToken] = React.useState(false);
   const [testing, setTesting] = React.useState(false);
+  const [testResult, setTestResult] = React.useState(null);
   const [config, setConfig] = React.useState({
     phone_number_id: "",
     access_token: "",
@@ -76,6 +77,7 @@ export default function WhatsAppAgentConfig() {
     }
 
     setTesting(true);
+    setTestResult(null);
     try {
       const response = await fetch(
         `https://graph.facebook.com/v18.0/${config.phone_number_id}`,
@@ -88,14 +90,30 @@ export default function WhatsAppAgentConfig() {
 
       if (response.ok) {
         const data = await response.json();
-        toast.success(`Conexão OK! Número: ${data.display_phone_number || data.verified_name}`);
+        setTestResult({
+          success: true,
+          phone: data.display_phone_number,
+          name: data.verified_name,
+          quality: data.quality_rating,
+          status: data.status
+        });
+        toast.success("Conexão bem sucedida!");
         setConfig(prev => ({ ...prev, is_active: true }));
       } else {
         const error = await response.json();
-        toast.error(`Erro: ${error.error?.message || 'Credenciais inválidas'}`);
+        setTestResult({
+          success: false,
+          error: error.error?.message || 'Credenciais inválidas',
+          code: error.error?.code
+        });
+        toast.error("Falha na conexão");
         setConfig(prev => ({ ...prev, is_active: false }));
       }
     } catch (error) {
+      setTestResult({
+        success: false,
+        error: "Erro de rede ao testar conexão"
+      });
       toast.error("Erro ao testar conexão");
     }
     setTesting(false);
@@ -221,6 +239,57 @@ export default function WhatsAppAgentConfig() {
               />
             </div>
           </div>
+
+          {/* Test Result */}
+          {testResult && (
+            <div className={`p-4 rounded-lg border ${testResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+              <div className="flex items-start gap-3">
+                {testResult.success ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <h4 className={`font-semibold ${testResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                    {testResult.success ? 'Conexão Bem Sucedida!' : 'Falha na Conexão'}
+                  </h4>
+                  {testResult.success ? (
+                    <div className="mt-2 space-y-1 text-sm text-green-800">
+                      {testResult.phone && (
+                        <p className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span>Número: <strong>{testResult.phone}</strong></span>
+                        </p>
+                      )}
+                      {testResult.name && (
+                        <p className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4" />
+                          <span>Nome: <strong>{testResult.name}</strong></span>
+                        </p>
+                      )}
+                      {testResult.quality && (
+                        <p className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Qualidade: <strong>{testResult.quality}</strong></span>
+                        </p>
+                      )}
+                      {testResult.status && (
+                        <p className="flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4" />
+                          <span>Estado: <strong>{testResult.status}</strong></span>
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{testResult.error}</p>
+                      {testResult.code && <p className="text-xs mt-1">Código: {testResult.code}</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button
