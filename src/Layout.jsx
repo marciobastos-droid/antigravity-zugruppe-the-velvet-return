@@ -22,10 +22,11 @@ export default function Layout({ children, currentPageName }) {
     return <>{children}</>;
   }
 
-  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
-  const isGestor = user && user.user_type === 'gestor';
-  const isAgente = user && user.user_type === 'agente';
-  const userType = user?.user_type || user?.role || 'user';
+  const userTypeNormalized = user?.user_type?.toLowerCase() || '';
+  const isAdmin = user && (user.role === 'admin' || userTypeNormalized === 'admin' || userTypeNormalized === 'gestor');
+  const isGestor = user && userTypeNormalized === 'gestor';
+  const isAgente = user && userTypeNormalized === 'agente';
+  const userType = userTypeNormalized || user?.role || 'user';
 
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
   const allNavItems = [
