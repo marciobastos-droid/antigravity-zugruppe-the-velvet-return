@@ -85,25 +85,20 @@ export default function ContactRequirements({ contact, onUpdate }) {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      console.log('Mutation data:', data);
-      const result = await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
-      console.log('Update result:', result);
-      return result;
+      await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
+      return data;
     },
-    onSuccess: (updatedContact) => {
+    onSuccess: (savedRequirements) => {
       toast.success("Requisitos atualizados");
-      // Atualizar o estado local com os dados guardados
-      if (updatedContact?.property_requirements) {
-        setRequirements(updatedContact.property_requirements);
-      }
-      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
-      queryClient.invalidateQueries({ queryKey: ['clientContact', contact.id] });
+      setRequirements(savedRequirements);
       setEditing(false);
-      if (onUpdate) onUpdate(updatedContact);
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      if (onUpdate) {
+        onUpdate({ ...contact, property_requirements: savedRequirements });
+      }
     },
     onError: (error) => {
-      console.error('Update error:', error);
-      toast.error("Erro ao guardar requisitos: " + (error.message || "Tente novamente"));
+      toast.error("Erro ao guardar requisitos");
     }
   });
 
