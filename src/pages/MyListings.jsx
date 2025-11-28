@@ -62,13 +62,18 @@ export default function MyListings() {
       if (!user) return [];
       const allProperties = await base44.entities.Property.list('-updated_date');
       
+      const userType = user.user_type?.toLowerCase() || '';
+      
       // Admin/Gestor vê todos os imóveis
-      if (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor') {
+      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
         return allProperties;
       }
       
-      // Outros utilizadores vêem apenas os seus
-      return allProperties.filter(p => p.created_by === user.email);
+      // Agentes vêem imóveis que criaram OU que lhes estão atribuídos
+      return allProperties.filter(p => 
+        p.created_by === user.email || 
+        p.assigned_consultant === user.email
+      );
     },
     enabled: !!user
   });
