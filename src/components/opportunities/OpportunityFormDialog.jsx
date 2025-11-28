@@ -60,7 +60,10 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
     queryKey: ['users'],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.role === 'admin' || u.user_type === 'admin' || u.user_type === 'gestor' || u.user_type === 'agente');
+      return allUsers.filter(u => {
+        const userType = u.user_type?.toLowerCase() || '';
+        return u.role === 'admin' || userType === 'admin' || userType === 'gestor' || userType === 'agente';
+      });
     }
   });
 
