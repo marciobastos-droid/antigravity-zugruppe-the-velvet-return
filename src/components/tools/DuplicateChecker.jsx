@@ -471,9 +471,14 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
   };
 
   const selectAllExceptFirst = (group) => {
+    // Get all IDs except the first property (the "original")
     const idsToSelect = group.properties.slice(1).map(p => p.id);
+    // Also remove the first property from selection if it was selected
+    const firstPropertyId = group.properties[0]?.id;
+    
     setSelectedForDeletion(prev => {
-      const newSelection = [...prev];
+      // Remove first property if selected, add all others
+      let newSelection = prev.filter(id => id !== firstPropertyId);
       idsToSelect.forEach(id => {
         if (!newSelection.includes(id)) {
           newSelection.push(id);
@@ -803,9 +808,14 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
   };
 
   const selectAllContactsExceptFirst = (group) => {
+    // Get all IDs except the first contact (the "original")
     const idsToSelect = group.contacts.slice(1).map(c => c.id);
+    // Also remove the first contact from selection if it was selected
+    const firstContactId = group.contacts[0]?.id;
+    
     setSelectedContactsForDeletion(prev => {
-      const newSelection = [...prev];
+      // Remove first contact if selected, add all others
+      let newSelection = prev.filter(id => id !== firstContactId);
       idsToSelect.forEach(id => {
         if (!newSelection.includes(id)) {
           newSelection.push(id);
