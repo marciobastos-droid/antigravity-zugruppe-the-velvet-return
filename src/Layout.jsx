@@ -109,6 +109,12 @@ export default function Layout({ children, currentPageName }) {
                       {user.full_name?.[0]?.toUpperCase() || "U"}
                     </span>
                   </div>
+                  <button
+                    onClick={() => base44.auth.logout()}
+                    className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    Sair
+                  </button>
                 </div>
               ) : (
                 <button
@@ -150,20 +156,28 @@ export default function Layout({ children, currentPageName }) {
               
               {user && (
                 <div className="px-4 py-3 border-t border-slate-200 mt-2 pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
-                      <span className="text-white font-semibold text-sm">
-                        {user.full_name?.[0]?.toUpperCase() || "U"}
-                      </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {user.full_name?.[0]?.toUpperCase() || "U"}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
+                        <p className="text-xs text-slate-500">
+                          {user.user_type === 'admin' ? 'Administrador' : 
+                           user.user_type === 'gestor' ? 'Gestor' : 
+                           user.user_type === 'agente' ? 'Agente' : user.email}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
-                      <p className="text-xs text-slate-500">
-                        {user.user_type === 'admin' ? 'Administrador' : 
-                         user.user_type === 'gestor' ? 'Gestor' : 
-                         user.user_type === 'agente' ? 'Agente' : user.email}
-                      </p>
-                    </div>
+                    <button
+                      onClick={() => base44.auth.logout()}
+                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      Sair
+                    </button>
                   </div>
                 </div>
               )}
