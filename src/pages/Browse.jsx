@@ -134,8 +134,14 @@ export default function Browse() {
   };
 
   const countries = ["Portugal", "United Arab Emirates", "United Kingdom", "Angola"];
-  const districts = ["Porto", "Lisboa", "Aveiro"];
-  const municipalities = ["Ílhavo", "Aveiro", "Porto", "Vila Nova de Gaia", "Maia", "Matosinhos", "Lisboa", "Alcochete", "Seixal"];
+  const municipalitiesForDistrict = getMunicipalitiesByDistrict(district);
+
+  // Reset city when district changes
+  React.useEffect(() => {
+    if (district !== "all" && city !== "all" && !municipalitiesForDistrict.includes(city)) {
+      setCity("all");
+    }
+  }, [district]);
 
   if (isLoading) {
     return (
