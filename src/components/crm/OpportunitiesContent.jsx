@@ -18,7 +18,7 @@ import SendEmailDialog from "../email/SendEmailDialog";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = React.useState("kanban");
+  const [viewMode, setViewMode] = React.useState("table");
   const [selectedLead, setSelectedLead] = React.useState(null);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
