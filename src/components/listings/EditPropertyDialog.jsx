@@ -621,8 +621,52 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             </div>
           </div>
 
-          {/* Years */}
+          {/* Garage & Sun Exposure */}
           <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Garagem</Label>
+              <Select 
+                value={formData.garage} 
+                onValueChange={(v) => setFormData({...formData, garage: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem garagem</SelectItem>
+                  <SelectItem value="1">1 lugar</SelectItem>
+                  <SelectItem value="2">2 lugares</SelectItem>
+                  <SelectItem value="3">3 lugares</SelectItem>
+                  <SelectItem value="4+">4+ lugares</SelectItem>
+                  <SelectItem value="box">Box</SelectItem>
+                  <SelectItem value="exterior">Exterior</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Exposição Solar</Label>
+              <Select 
+                value={formData.sun_exposure} 
+                onValueChange={(v) => setFormData({...formData, sun_exposure: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="north">Norte</SelectItem>
+                  <SelectItem value="south">Sul</SelectItem>
+                  <SelectItem value="east">Nascente</SelectItem>
+                  <SelectItem value="west">Poente</SelectItem>
+                  <SelectItem value="north_south">Norte/Sul</SelectItem>
+                  <SelectItem value="east_west">Nascente/Poente</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Years & Dates */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <Label>Ano de Construção</Label>
               <Input
@@ -639,6 +683,22 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                 value={formData.year_renovated}
                 onChange={(e) => setFormData({...formData, year_renovated: e.target.value})}
                 placeholder="2023"
+              />
+            </div>
+            <div>
+              <Label>Data de Construção</Label>
+              <Input
+                type="date"
+                value={formData.construction_date}
+                onChange={(e) => setFormData({...formData, construction_date: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Data de Conclusão</Label>
+              <Input
+                type="date"
+                value={formData.completion_date}
+                onChange={(e) => setFormData({...formData, completion_date: e.target.value})}
               />
             </div>
           </div>
