@@ -470,22 +470,31 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     );
   };
 
-  const selectAllExceptFirst = (group) => {
+  const selectAllExceptFirst = async (group) => {
     // Get all IDs except the first property (the "original")
-    const idsToSelect = group.properties.slice(1).map(p => p.id);
-    // Also remove the first property from selection if it was selected
-    const firstPropertyId = group.properties[0]?.id;
+    const idsToDelete = group.properties.slice(1).map(p => p.id);
     
-    setSelectedForDeletion(prev => {
-      // Remove first property if selected, add all others
-      let newSelection = prev.filter(id => id !== firstPropertyId);
-      idsToSelect.forEach(id => {
-        if (!newSelection.includes(id)) {
-          newSelection.push(id);
-        }
-      });
-      return newSelection;
-    });
+    if (idsToDelete.length === 0) {
+      toast.info("Nenhum duplicado para eliminar");
+      return;
+    }
+
+    if (!window.confirm(`Manter "${group.properties[0]?.title}" e eliminar ${idsToDelete.length} duplicado(s)?`)) {
+      return;
+    }
+
+    try {
+      for (const id of idsToDelete) {
+        await base44.entities.Property.delete(id);
+      }
+      toast.success(`${idsToDelete.length} imóvel(is) duplicado(s) eliminado(s)!`);
+      refetchProperties();
+      // Remove this group from the list
+      setDuplicateGroups(prev => prev.filter((_, idx) => prev.indexOf(group) !== idx));
+    } catch (error) {
+      toast.error("Erro ao eliminar imóveis");
+      console.error(error);
+    }
   };
 
   const deleteSelected = async () => {
@@ -807,22 +816,31 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     );
   };
 
-  const selectAllContactsExceptFirst = (group) => {
+  const selectAllContactsExceptFirst = async (group) => {
     // Get all IDs except the first contact (the "original")
-    const idsToSelect = group.contacts.slice(1).map(c => c.id);
-    // Also remove the first contact from selection if it was selected
-    const firstContactId = group.contacts[0]?.id;
+    const idsToDelete = group.contacts.slice(1).map(c => c.id);
     
-    setSelectedContactsForDeletion(prev => {
-      // Remove first contact if selected, add all others
-      let newSelection = prev.filter(id => id !== firstContactId);
-      idsToSelect.forEach(id => {
-        if (!newSelection.includes(id)) {
-          newSelection.push(id);
-        }
-      });
-      return newSelection;
-    });
+    if (idsToDelete.length === 0) {
+      toast.info("Nenhum duplicado para eliminar");
+      return;
+    }
+
+    if (!window.confirm(`Manter "${group.contacts[0]?.full_name}" e eliminar ${idsToDelete.length} duplicado(s)?`)) {
+      return;
+    }
+
+    try {
+      for (const id of idsToDelete) {
+        await base44.entities.ClientContact.delete(id);
+      }
+      toast.success(`${idsToDelete.length} contacto(s) duplicado(s) eliminado(s)!`);
+      refetchContacts();
+      // Remove this group from the list
+      setContactDuplicateGroups(prev => prev.filter((_, idx) => prev.indexOf(group) !== idx));
+    } catch (error) {
+      toast.error("Erro ao eliminar contactos");
+      console.error(error);
+    }
   };
 
   const deleteSelectedContacts = async () => {
