@@ -58,13 +58,7 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => {
-        const userType = u.user_type?.toLowerCase() || '';
-        return u.role === 'admin' || userType === 'admin' || userType === 'gestor' || userType === 'agente';
-      });
-    }
+    queryFn: () => base44.entities.User.list()
   });
 
   const { data: contacts = [] } = useQuery({
