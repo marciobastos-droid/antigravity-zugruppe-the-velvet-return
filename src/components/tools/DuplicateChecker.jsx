@@ -470,7 +470,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     );
   };
 
-  const selectAllExceptFirst = async (group) => {
+  const selectAllExceptFirst = async (group, groupIndex) => {
     // Get all IDs except the first property (the "original")
     const idsToDelete = group.properties.slice(1).map(p => p.id);
     
@@ -487,10 +487,11 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       for (const id of idsToDelete) {
         await base44.entities.Property.delete(id);
       }
-      toast.success(`${idsToDelete.length} imóvel(is) duplicado(s) eliminado(s)!`);
+      toast.success(`Eliminados ${idsToDelete.length} duplicado(s). Mantido: "${group.properties[0]?.title}"`);
+      // Remove this group from the list immediately
+      setDuplicateGroups(prev => prev.filter((_, idx) => idx !== groupIndex));
+      // Refresh data
       refetchProperties();
-      // Remove this group from the list
-      setDuplicateGroups(prev => prev.filter((_, idx) => prev.indexOf(group) !== idx));
     } catch (error) {
       toast.error("Erro ao eliminar imóveis");
       console.error(error);
@@ -816,7 +817,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
     );
   };
 
-  const selectAllContactsExceptFirst = async (group) => {
+  const selectAllContactsExceptFirst = async (group, groupIndex) => {
     // Get all IDs except the first contact (the "original")
     const idsToDelete = group.contacts.slice(1).map(c => c.id);
     
@@ -833,10 +834,11 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
       for (const id of idsToDelete) {
         await base44.entities.ClientContact.delete(id);
       }
-      toast.success(`${idsToDelete.length} contacto(s) duplicado(s) eliminado(s)!`);
+      toast.success(`Eliminados ${idsToDelete.length} duplicado(s). Mantido: "${group.contacts[0]?.full_name}"`);
+      // Remove this group from the list immediately
+      setContactDuplicateGroups(prev => prev.filter((_, idx) => idx !== groupIndex));
+      // Refresh data
       refetchContacts();
-      // Remove this group from the list
-      setContactDuplicateGroups(prev => prev.filter((_, idx) => prev.indexOf(group) !== idx));
     } catch (error) {
       toast.error("Erro ao eliminar contactos");
       console.error(error);
@@ -1145,7 +1147,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={(e) => { e.stopPropagation(); selectAllExceptFirst(group); }}
+                      onClick={(e) => { e.stopPropagation(); selectAllExceptFirst(group, index); }}
                     >
                       <Merge className="w-4 h-4 mr-1" />
                       Manter 1º
@@ -1483,7 +1485,7 @@ Responde com confidence >= 85 APENAS se tens certeza que é o mesmo imóvel fís
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={(e) => { e.stopPropagation(); selectAllContactsExceptFirst(group); }}
+                          onClick={(e) => { e.stopPropagation(); selectAllContactsExceptFirst(group, index); }}
                         >
                           <Merge className="w-4 h-4 mr-1" />
                           Manter 1º
