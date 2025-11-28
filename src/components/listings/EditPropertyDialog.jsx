@@ -318,6 +318,10 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value="building">Prédio</SelectItem>
                   <SelectItem value="land">Terreno</SelectItem>
                   <SelectItem value="commercial">Comercial</SelectItem>
+                  <SelectItem value="warehouse">Armazém</SelectItem>
+                  <SelectItem value="office">Escritório</SelectItem>
+                  <SelectItem value="store">Loja</SelectItem>
+                  <SelectItem value="farm">Quinta</SelectItem>
                   <SelectItem value="development">Empreendimento</SelectItem>
                 </SelectContent>
               </Select>
