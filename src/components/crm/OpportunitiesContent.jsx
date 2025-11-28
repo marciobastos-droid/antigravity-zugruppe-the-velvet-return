@@ -45,7 +45,15 @@ export default function OpportunitiesContent() {
       if (!user) return [];
       const allOpportunities = await base44.entities.Opportunity.list('-updated_date');
       
-      if (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor') {
+      const userType = user.user_type?.toLowerCase() || '';
+      const permissions = user.permissions || {};
+      
+      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
+        return allOpportunities;
+      }
+      
+      // Verifica permissão canViewAllLeads
+      if (permissions.canViewAllLeads === true) {
         return allOpportunities;
       }
       
