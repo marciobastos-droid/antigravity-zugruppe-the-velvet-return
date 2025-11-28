@@ -309,9 +309,24 @@ Retorna análise detalhada em JSON.`,
       // Merge AI results with basic matches
       const enhancedMatches = topCandidates.map(match => {
         const aiData = aiResult.rankings?.find(r => r.property_id === match.property.id);
+        // Garantir que aiScore é um número inteiro entre 0-100
+        let aiScore = aiData?.ai_score ?? match.score;
+        if (typeof aiScore === 'number') {
+          // Se for decimal entre 0-1, converter para percentual
+          if (aiScore > 0 && aiScore <= 1) {
+            aiScore = Math.round(aiScore * 100);
+          } else {
+            aiScore = Math.round(aiScore);
+          }
+          // Limitar entre 0-100
+          aiScore = Math.max(0, Math.min(100, aiScore));
+        } else {
+          aiScore = match.score;
+        }
+        
         return {
           ...match,
-          aiScore: aiData?.ai_score || match.score,
+          aiScore,
           compatibilityLevel: aiData?.compatibility_level || 'moderate',
           keyStrengths: aiData?.key_strengths || [],
           potentialConcerns: aiData?.potential_concerns || [],
