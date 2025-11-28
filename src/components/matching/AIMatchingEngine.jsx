@@ -383,6 +383,9 @@ Retorna análise detalhada em JSON.`,
         return;
       }
 
+      const user = await base44.auth.me();
+      const now = new Date().toISOString();
+
       // Create sent match record
       await base44.entities.SentMatch.create({
         contact_id: profile.id,
@@ -397,7 +400,8 @@ Retorna análise detalhada em JSON.`,
         compatibility_level: match.compatibilityLevel,
         sales_pitch: match.salesPitch,
         key_strengths: match.keyStrengths,
-        sent_date: new Date().toISOString(),
+        sent_date: now,
+        sent_by: user?.email,
         client_response: 'pending'
       });
       
@@ -412,6 +416,23 @@ Retorna análise detalhada em JSON.`,
           price: match.property.price,
           city: match.property.city
         }
+      });
+
+      // Register in CommunicationLog for the contact
+      await base44.entities.CommunicationLog.create({
+        contact_id: profile.id,
+        contact_name: profile.buyer_name,
+        type: 'property_match',
+        direction: 'outbound',
+        subject: `Imóvel sugerido: ${match.property.title}`,
+        content: `Imóvel enviado via matching IA:\n\n📍 ${match.property.title}\n💰 €${match.property.price?.toLocaleString()}\n📌 ${match.property.city}\n\n🎯 Score de compatibilidade: ${Math.round(match.aiScore)}%\n\n${match.salesPitch || ''}`,
+        property_id: match.property.id,
+        property_title: match.property.title,
+        property_image: match.property.images?.[0] || null,
+        agent_email: user?.email,
+        agent_name: user?.full_name,
+        status: 'sent',
+        logged_at: now
       });
 
       // Update profile last match date
