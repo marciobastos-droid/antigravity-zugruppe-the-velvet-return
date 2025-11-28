@@ -17,7 +17,7 @@ import {
   Heart, Star, Filter, ChevronDown, ChevronUp, 
   Bell, BellOff, Save, Trash2, X, ThumbsDown,
   Eye, Clock, Bookmark, AlertCircle, Target, Zap,
-  TrendingUp, RefreshCw, Loader2
+  TrendingUp, RefreshCw, Loader2, MessageCircle, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -42,11 +42,13 @@ export default function ContactMatching({ contact }) {
   const [selectedProperties, setSelectedProperties] = React.useState([]);
   const [sortBy, setSortBy] = React.useState("score");
   const [sendingEmail, setSendingEmail] = React.useState(false);
+  const [sendingWhatsApp, setSendingWhatsApp] = React.useState(false);
   const [saveSearchDialogOpen, setSaveSearchDialogOpen] = React.useState(false);
   const [searchName, setSearchName] = React.useState("");
   const [alertsEnabled, setAlertsEnabled] = React.useState(false);
   const [alertFrequency, setAlertFrequency] = React.useState("daily");
   const [savingForLater, setSavingForLater] = React.useState(null);
+  const [sendMethod, setSendMethod] = React.useState("email");
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -417,63 +419,157 @@ export default function ContactMatching({ contact }) {
       return;
     }
 
-    if (!contact.email) {
-      toast.error("Contacto não tem email");
-      return;
-    }
+    const selectedProps = matchResults.filter(p => selectedProperties.includes(p.id));
+    const user = await base44.auth.me();
 
-    setSendingEmail(true);
-    try {
-      const selectedProps = matchResults.filter(p => selectedProperties.includes(p.id));
-      
-      const propertyList = selectedProps.map(p => `
+    if (sendMethod === 'email') {
+      if (!contact.email) {
+        toast.error("Contacto não tem email");
+        return;
+      }
+
+      setSendingEmail(true);
+      try {
+        const propertyList = selectedProps.map((p, idx) => `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 ${p.title}
+#${idx + 1} - ${p.title} (Match: ${p.matchScore}%)
 
-• Localização: ${p.city}${p.address ? `, ${p.address}` : ''}
-• Preço: €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
-• Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
-• Área: ${p.useful_area || p.square_feet || 'N/A'}m²
-${p.amenities?.length ? `• Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
-      `).join('\n');
+📍 Localização: ${p.city}${p.address ? `, ${p.address}` : ''}
+💰 Preço: €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
+📏 Área: ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.amenities?.length ? `✨ Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
+${p.aiReason ? `\n🎯 Porque é ideal: ${p.aiReason}` : ''}
+        `).join('\n');
 
-      await base44.integrations.Core.SendEmail({
-        to: contact.email,
-        subject: `🏠 ${selectedProps.length} Imóveis Selecionados Para Si`,
-        body: `
+        await base44.integrations.Core.SendEmail({
+          to: contact.email,
+          subject: `🏠 ${selectedProps.length} Imóveis Selecionados Para Si`,
+          body: `
 Olá ${contact.full_name},
 
-Temos ${selectedProps.length} imóvel(is) cuidadosamente selecionados:
+Encontrámos ${selectedProps.length} imóvel(is) que correspondem perfeitamente aos seus critérios:
 
 ${propertyList}
 
-Entre em contacto connosco para mais informações.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Entre em contacto connosco para agendar visitas ou obter mais informações.
 
 Cumprimentos,
-Zugruppe
-        `
-      });
+Zugruppe - Privileged Approach
+          `
+        });
 
-      toast.success(`Email enviado para ${contact.email}`);
-      setSelectedProperties([]);
+        // Create SentMatch records
+        for (const prop of selectedProps) {
+          await base44.entities.SentMatch.create({
+            contact_id: contact.id,
+            contact_name: contact.full_name,
+            contact_email: contact.email,
+            property_id: prop.id,
+            property_title: prop.title,
+            property_price: prop.price,
+            property_city: prop.city,
+            property_image: prop.images?.[0] || null,
+            match_score: prop.matchScore || 50,
+            compatibility_level: prop.matchScore >= 80 ? 'excellent' : prop.matchScore >= 60 ? 'good' : 'moderate',
+            sales_pitch: prop.aiReason || '',
+            sent_date: new Date().toISOString(),
+            sent_by: user?.email,
+            client_response: 'pending'
+          });
+        }
 
-      await base44.entities.CommunicationLog.create({
-        contact_id: contact.id,
-        contact_name: contact.full_name,
-        communication_type: 'email',
-        direction: 'outbound',
-        subject: `Envio de ${selectedProps.length} imóveis`,
-        summary: `Enviados ${selectedProps.length} imóveis por email`,
-        outcome: 'sent',
-        communication_date: new Date().toISOString()
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
+        toast.success(`Email enviado para ${contact.email}`);
+        setSelectedProperties([]);
 
-    } catch (error) {
-      toast.error("Erro ao enviar email");
+        await base44.entities.CommunicationLog.create({
+          contact_id: contact.id,
+          contact_name: contact.full_name,
+          communication_type: 'email',
+          direction: 'outbound',
+          subject: `Envio de ${selectedProps.length} imóveis por matching IA`,
+          summary: `Enviados ${selectedProps.length} imóveis por email com scores de ${selectedProps[0].matchScore}% a ${selectedProps[selectedProps.length - 1].matchScore}%`,
+          outcome: 'successful',
+          communication_date: new Date().toISOString()
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ['communicationLogs', 'sentMatches'] });
+
+      } catch (error) {
+        toast.error("Erro ao enviar email");
+      }
+      setSendingEmail(false);
+
+    } else if (sendMethod === 'whatsapp') {
+      if (!contact.phone) {
+        toast.error("Contacto não tem telefone");
+        return;
+      }
+
+      setSendingWhatsApp(true);
+      try {
+        const propertyText = selectedProps.map((p, idx) => `
+*#${idx + 1} - ${p.title}* (${p.matchScore}% compatível)
+
+📍 ${p.city}
+💰 €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 T${p.bedrooms || 0} | ${p.bathrooms || 0} WC | ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.aiReason ? `\n🎯 _${p.aiReason}_` : ''}
+        `).join('\n---\n');
+
+        const message = `Olá ${contact.full_name}! 👋
+
+Encontrei ${selectedProps.length} imóvel(is) perfeitos para si:
+
+${propertyText}
+
+Quer agendar visitas? Responda aqui! 😊`;
+
+        const whatsappUrl = `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+
+        // Create SentMatch records
+        for (const prop of selectedProps) {
+          await base44.entities.SentMatch.create({
+            contact_id: contact.id,
+            contact_name: contact.full_name,
+            contact_email: contact.email,
+            property_id: prop.id,
+            property_title: prop.title,
+            property_price: prop.price,
+            property_city: prop.city,
+            property_image: prop.images?.[0] || null,
+            match_score: prop.matchScore || 50,
+            compatibility_level: prop.matchScore >= 80 ? 'excellent' : prop.matchScore >= 60 ? 'good' : 'moderate',
+            sales_pitch: prop.aiReason || '',
+            sent_date: new Date().toISOString(),
+            sent_by: user?.email,
+            client_response: 'pending'
+          });
+        }
+
+        await base44.entities.CommunicationLog.create({
+          contact_id: contact.id,
+          contact_name: contact.full_name,
+          communication_type: 'whatsapp',
+          direction: 'outbound',
+          subject: `Envio de ${selectedProps.length} imóveis via WhatsApp`,
+          summary: `Enviados ${selectedProps.length} imóveis por WhatsApp`,
+          outcome: 'successful',
+          communication_date: new Date().toISOString()
+        });
+
+        toast.success("WhatsApp aberto com mensagem!");
+        setSelectedProperties([]);
+        queryClient.invalidateQueries({ queryKey: ['communicationLogs', 'sentMatches'] });
+
+      } catch (error) {
+        toast.error("Erro ao preparar WhatsApp");
+      }
+      setSendingWhatsApp(false);
     }
-    setSendingEmail(false);
   };
 
   const getScoreColor = (score) => {
@@ -581,22 +677,54 @@ Zugruppe
           {selectedProperties.length > 0 && (
             <Card className="border-green-300 bg-green-50">
               <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-green-800">
-                    {selectedProperties.length} selecionado(s)
-                  </span>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleSendMatches}
-                      disabled={sendingEmail}
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Send className="w-4 h-4 mr-1" />
-                      {sendingEmail ? "..." : "Enviar Email"}
-                    </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-green-800">
+                      {selectedProperties.length} selecionado(s)
+                    </span>
                     <Button variant="outline" size="sm" onClick={() => setSelectedProperties([])}>
                       Limpar
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Select value={sendMethod} onValueChange={setSendMethod}>
+                      <SelectTrigger className="w-32 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">
+                          <Mail className="w-4 h-4 inline mr-2" />
+                          Email
+                        </SelectItem>
+                        <SelectItem value="whatsapp">
+                          <MessageCircle className="w-4 h-4 inline mr-2" />
+                          WhatsApp
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button 
+                      onClick={handleSendMatches}
+                      disabled={sendingEmail || sendingWhatsApp}
+                      size="sm"
+                      className={`flex-1 ${sendMethod === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                    >
+                      {sendingEmail || sendingWhatsApp ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                          A enviar...
+                        </>
+                      ) : (
+                        <>
+                          {sendMethod === 'whatsapp' ? (
+                            <MessageCircle className="w-4 h-4 mr-1" />
+                          ) : (
+                            <Mail className="w-4 h-4 mr-1" />
+                          )}
+                          Enviar via {sendMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
