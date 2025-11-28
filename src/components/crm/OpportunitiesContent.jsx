@@ -547,6 +547,7 @@ export default function OpportunitiesContent() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="unassigned">Sem agente</SelectItem>
                     {users.map((u) => (
                       <SelectItem key={u.id} value={u.email}>
                         {u.full_name}
