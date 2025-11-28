@@ -109,6 +109,14 @@ export default function Tools() {
                   Integrações API
                 </Button>
                 <Button
+                  variant={activeTab === "portalIntegrations" ? "default" : "outline"}
+                  onClick={() => setActiveTab("portalIntegrations")}
+                  className="flex items-center gap-2 bg-indigo-50 border-indigo-300 hover:bg-indigo-100"
+                >
+                  <Globe className="w-4 h-4 text-indigo-600" />
+                  Portais Imobiliários
+                </Button>
+                <Button
                   variant={activeTab === "whatsapp" ? "default" : "outline"}
                   onClick={() => setActiveTab("whatsapp")}
                   className="flex items-center gap-2 bg-green-50 border-green-300 hover:bg-green-100"
@@ -409,6 +417,7 @@ export default function Tools() {
         {activeTab === "creditSimulator" && <CreditSimulator />}
         {activeTab === "reportsExporter" && <ReportsExporter />}
         {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
+        {activeTab === "portalIntegrations" && <PortalIntegrations />}
       </div>
     </div>
   );
