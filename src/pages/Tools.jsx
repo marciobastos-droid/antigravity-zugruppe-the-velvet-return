@@ -30,6 +30,7 @@ import EmailHub from "../components/email/EmailHub";
 import CreditSimulator from "../components/tools/CreditSimulator";
 import ReportsExporter from "../components/tools/ReportsExporter";
 import WhatsAppIntegration from "../components/tools/WhatsAppIntegration";
+import WhatsAppAgentConfig from "../components/settings/WhatsAppAgentConfig";
 import LeadManagementHub from "../components/leads/LeadManagementHub";
 
 export default function Tools() {
