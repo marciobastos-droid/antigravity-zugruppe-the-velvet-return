@@ -32,6 +32,7 @@ import ReportsExporter from "../components/tools/ReportsExporter";
 import WhatsAppIntegration from "../components/tools/WhatsAppIntegration";
 import WhatsAppAgentConfig from "../components/settings/WhatsAppAgentConfig";
 import LeadManagementHub from "../components/leads/LeadManagementHub";
+import PortalIntegrations from "../components/tools/PortalIntegrations";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
