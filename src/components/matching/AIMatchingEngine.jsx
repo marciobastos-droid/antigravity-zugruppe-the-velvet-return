@@ -422,17 +422,17 @@ Retorna análise detalhada em JSON.`,
       await base44.entities.CommunicationLog.create({
         contact_id: profile.id,
         contact_name: profile.buyer_name,
-        type: 'property_match',
+        communication_type: 'property_match',
         direction: 'outbound',
         subject: `Imóvel sugerido: ${match.property.title}`,
-        content: `Imóvel enviado via matching IA:\n\n📍 ${match.property.title}\n💰 €${match.property.price?.toLocaleString()}\n📌 ${match.property.city}\n\n🎯 Score de compatibilidade: ${Math.round(match.aiScore)}%\n\n${match.salesPitch || ''}`,
+        summary: `Imóvel enviado via matching IA:\n\n📍 ${match.property.title}\n💰 €${match.property.price?.toLocaleString()}\n📌 ${match.property.city}\n\n🎯 Score de compatibilidade: ${Math.round(match.aiScore)}%`,
+        detailed_notes: match.salesPitch || '',
         property_id: match.property.id,
         property_title: match.property.title,
         property_image: match.property.images?.[0] || null,
         agent_email: user?.email,
         agent_name: user?.full_name,
-        status: 'sent',
-        logged_at: now
+        communication_date: now
       });
 
       // Update profile last match date
