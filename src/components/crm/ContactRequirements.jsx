@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Home, MapPin, Euro, Bed, Bath, Square, 
-  Edit, Save, X, Plus, Sparkles, Target, Loader2, Wand2
+  Edit, Save, X, Plus, Sparkles, Target, Loader2, Wand2, Car, Sun, Calendar
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -465,6 +465,74 @@ INSTRUÇÕES:
                 type="number"
                 value={requirements.bathrooms_min ?? ""}
                 onChange={(e) => setRequirements(prev => ({...prev, bathrooms_min: e.target.value !== "" ? Number(e.target.value) : null}))}
+              />
+            </div>
+          </div>
+
+          {/* Garage */}
+          <div>
+            <Label>Garagem</Label>
+            <Select 
+              value={requirements.garage || ""} 
+              onValueChange={(v) => setRequirements({...requirements, garage: v})}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="any">Indiferente</SelectItem>
+                <SelectItem value="required">Obrigatório</SelectItem>
+                <SelectItem value="not_required">Não necessário</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sun Exposure */}
+          <div>
+            <Label className="mb-2 block">Exposição Solar</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: "north", label: "Norte" },
+                { key: "south", label: "Sul" },
+                { key: "east", label: "Nascente" },
+                { key: "west", label: "Poente" }
+              ].map(({ key, label }) => (
+                <Badge
+                  key={key}
+                  variant={(requirements.sun_exposure || []).includes(key) ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    const current = requirements.sun_exposure || [];
+                    setRequirements({
+                      ...requirements,
+                      sun_exposure: current.includes(key) 
+                        ? current.filter(s => s !== key)
+                        : [...current, key]
+                    });
+                  }}
+                >
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Data Máx. Construção</Label>
+              <Input
+                type="date"
+                value={requirements.max_construction_date || ""}
+                onChange={(e) => setRequirements({...requirements, max_construction_date: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Data Máx. Conclusão</Label>
+              <Input
+                type="date"
+                value={requirements.max_completion_date || ""}
+                onChange={(e) => setRequirements({...requirements, max_completion_date: e.target.value})}
               />
             </div>
           </div>
