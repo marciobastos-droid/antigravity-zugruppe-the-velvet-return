@@ -289,6 +289,10 @@ export default function MyListings() {
     building: "Prédio",
     land: "Terreno",
     commercial: "Comercial",
+    warehouse: "Armazém",
+    office: "Escritório",
+    store: "Loja",
+    farm: "Quinta",
     development: "Empreendimento"
   };
 
@@ -400,6 +404,10 @@ export default function MyListings() {
                     <SelectItem value="building">Prédio</SelectItem>
                     <SelectItem value="land">Terreno</SelectItem>
                     <SelectItem value="commercial">Comercial</SelectItem>
+                    <SelectItem value="warehouse">Armazém</SelectItem>
+                    <SelectItem value="office">Escritório</SelectItem>
+                    <SelectItem value="store">Loja</SelectItem>
+                    <SelectItem value="farm">Quinta</SelectItem>
                     <SelectItem value="development">Empreendimento</SelectItem>
                   </SelectContent>
                 </Select>
