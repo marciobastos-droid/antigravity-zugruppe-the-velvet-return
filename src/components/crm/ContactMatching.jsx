@@ -17,7 +17,7 @@ import {
   Heart, Star, Filter, ChevronDown, ChevronUp, 
   Bell, BellOff, Save, Trash2, X, ThumbsDown,
   Eye, Clock, Bookmark, AlertCircle, Target, Zap,
-  TrendingUp, RefreshCw
+  TrendingUp, RefreshCw, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -46,6 +46,7 @@ export default function ContactMatching({ contact }) {
   const [searchName, setSearchName] = React.useState("");
   const [alertsEnabled, setAlertsEnabled] = React.useState(false);
   const [alertFrequency, setAlertFrequency] = React.useState("daily");
+  const [savingForLater, setSavingForLater] = React.useState(null);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -66,6 +67,15 @@ export default function ContactMatching({ contact }) {
     queryFn: async () => {
       if (!contact?.id) return [];
       return await base44.entities.PropertyFeedback.filter({ contact_id: contact.id });
+    },
+    enabled: !!contact?.id
+  });
+
+  const { data: sentMatches = [], refetch: refetchSentMatches } = useQuery({
+    queryKey: ['sentMatches', contact?.id],
+    queryFn: async () => {
+      if (!contact?.id) return [];
+      return await base44.entities.SentMatch.filter({ contact_id: contact.id });
     },
     enabled: !!contact?.id
   });
@@ -112,6 +122,8 @@ export default function ContactMatching({ contact }) {
   const activeProperties = properties.filter(p => p.status === 'active');
   const favoriteIds = propertyFeedback.filter(f => f.feedback_type === 'favorite').map(f => f.property_id);
   const rejectedIds = propertyFeedback.filter(f => f.feedback_type === 'rejected').map(f => f.property_id);
+  const savedForLaterIds = sentMatches.filter(sm => sm.client_response === 'saved').map(sm => sm.property_id);
+  const alreadySentIds = sentMatches.filter(sm => sm.client_response !== 'saved').map(sm => sm.property_id);
 
   // Get requirements from contact
   const req = contact?.property_requirements || {};
@@ -351,6 +363,34 @@ export default function ContactMatching({ contact }) {
         }
       }
     });
+  };
+
+  const handleSaveForLater = async (property) => {
+    setSavingForLater(property.id);
+    try {
+      const user = await base44.auth.me();
+      await base44.entities.SentMatch.create({
+        contact_id: contact.id,
+        contact_name: contact.full_name,
+        contact_email: contact.email,
+        property_id: property.id,
+        property_title: property.title,
+        property_price: property.price,
+        property_city: property.city,
+        property_image: property.images?.[0] || null,
+        match_score: property.matchScore || 50,
+        compatibility_level: property.matchScore >= 80 ? 'excellent' : property.matchScore >= 60 ? 'good' : 'moderate',
+        sent_date: new Date().toISOString(),
+        sent_by: user?.email,
+        client_response: 'saved',
+        notes: 'Guardado para enviar mais tarde'
+      });
+      toast.success("Imóvel guardado para enviar mais tarde!");
+      refetchSentMatches();
+    } catch (error) {
+      toast.error("Erro ao guardar");
+    }
+    setSavingForLater(null);
   };
 
   const handleSaveSearch = () => {
@@ -716,6 +756,35 @@ Zugruppe
                               </Link>
 
                               <div className="flex items-center gap-1 ml-auto">
+                                {/* Save for later */}
+                                {savedForLaterIds.includes(property.id) ? (
+                                  <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 h-7">
+                                    <Bookmark className="w-3 h-3 mr-1 fill-amber-500" />
+                                    Guardado
+                                  </Badge>
+                                ) : alreadySentIds.includes(property.id) ? (
+                                  <Badge variant="outline" className="text-xs text-green-600 border-green-300 h-7">
+                                    <Check className="w-3 h-3 mr-1" />
+                                    Enviado
+                                  </Badge>
+                                ) : (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-7 px-2 text-amber-600 hover:bg-amber-50"
+                                    onClick={() => handleSaveForLater(property)}
+                                    disabled={savingForLater === property.id}
+                                  >
+                                    {savingForLater === property.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Bookmark className="w-4 h-4 mr-1" />
+                                        <span className="text-xs">Guardar</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
                                 {!property.isFavorite && (
                                   <Button 
                                     variant="ghost" 
