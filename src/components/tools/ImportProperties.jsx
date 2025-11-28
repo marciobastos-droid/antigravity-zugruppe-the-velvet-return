@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
 
 const propertySchema = {
@@ -240,8 +240,15 @@ export default function ImportProperties() {
   const [columnMapping, setColumnMapping] = React.useState({});
   const [previewData, setPreviewData] = React.useState([]);
   const [selectedRows, setSelectedRows] = React.useState([]);
-  const [editingRow, setEditingRow] = React.useState(null); // Not used in this version but kept for consistency with outline
+  const [editingRow, setEditingRow] = React.useState(null);
   const [showPreview, setShowPreview] = React.useState(false);
+  
+  // Text Import State
+  const [textInput, setTextInput] = React.useState("");
+  const [textImporting, setTextImporting] = React.useState(false);
+  const [textProgress, setTextProgress] = React.useState("");
+  const [extractedProperties, setExtractedProperties] = React.useState([]);
+  const [showTextPreview, setShowTextPreview] = React.useState(false);
 
   const detectPortal = (url) => {
     for (const portal of supportedPortals) {
@@ -846,6 +853,200 @@ export default function ImportProperties() {
 
   const detectedPortal = url ? detectPortal(url) : null;
 
+  // Import from Text with AI
+  const analyzeTextWithAI = async () => {
+    if (!textInput.trim()) {
+      toast.error("Por favor, cole o texto com informações do imóvel");
+      return;
+    }
+
+    setTextImporting(true);
+    setTextProgress("A analisar texto com IA...");
+    setExtractedProperties([]);
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `És um especialista em extração de dados imobiliários. Analisa o seguinte texto e extrai TODOS os imóveis mencionados.
+
+TEXTO A ANALISAR:
+${textInput}
+
+INSTRUÇÕES:
+1. Extrai CADA imóvel mencionado no texto
+2. Para cada imóvel, extrai:
+   - title: título descritivo (se não existir, cria um baseado nas características)
+   - description: descrição completa
+   - property_type: "apartment", "house", "land", "building", "farm", "store", "warehouse", "office"
+   - listing_type: "sale" ou "rent" (detecta pelo contexto/preço)
+   - price: número (converte formato português: 495.000 € = 495000)
+   - bedrooms: número de quartos (T2 = 2, T3 = 3, etc.)
+   - bathrooms: número de WCs
+   - square_feet: área útil em m²
+   - gross_area: área bruta em m² (se diferente)
+   - address: morada completa
+   - city: cidade/concelho
+   - state: distrito
+   - zip_code: código postal
+   - year_built: ano de construção
+   - energy_certificate: certificado energético (A+, A, B, B-, C, D, E, F, isento)
+   - amenities: array de comodidades (garagem, piscina, varanda, etc.)
+   - floor: andar (se apartamento)
+   - parking_spaces: lugares de estacionamento
+
+3. IMPORTANTE sobre preços portugueses:
+   - "495.000 €" ou "495 000€" = 495000
+   - "1.200 €/mês" = 1200 (arrendamento)
+   - Se preço mensal < 5000€, é provavelmente arrendamento
+
+4. Se o texto menciona vários imóveis, extrai TODOS
+
+Retorna um array de objetos, mesmo que seja só um imóvel.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            properties: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  property_type: { type: "string", enum: ["apartment", "house", "land", "building", "farm", "store", "warehouse", "office"] },
+                  listing_type: { type: "string", enum: ["sale", "rent"] },
+                  price: { type: "number" },
+                  bedrooms: { type: "number" },
+                  bathrooms: { type: "number" },
+                  square_feet: { type: "number" },
+                  gross_area: { type: "number" },
+                  address: { type: "string" },
+                  city: { type: "string" },
+                  state: { type: "string" },
+                  zip_code: { type: "string" },
+                  year_built: { type: "number" },
+                  energy_certificate: { type: "string" },
+                  amenities: { type: "array", items: { type: "string" } },
+                  floor: { type: "number" },
+                  parking_spaces: { type: "number" }
+                }
+              }
+            },
+            extraction_notes: { type: "string" }
+          }
+        }
+      });
+
+      if (!result?.properties || result.properties.length === 0) {
+        toast.error("Não foi possível extrair nenhum imóvel do texto");
+        setTextImporting(false);
+        return;
+      }
+
+      setTextProgress(`Encontrados ${result.properties.length} imóvel(is). A validar...`);
+
+      // Validate and enhance
+      const validatedProperties = result.properties.map(p => ({
+        ...p,
+        property_type: p.property_type || 'apartment',
+        listing_type: p.listing_type || 'sale',
+        title: p.title || `${p.property_type === 'apartment' ? 'Apartamento' : 'Imóvel'} em ${p.city || 'Portugal'}`,
+        city: p.city || '',
+        price: p.price || 0
+      }));
+
+      setExtractedProperties(validatedProperties);
+      setShowTextPreview(true);
+      
+      if (result.extraction_notes) {
+        toast.info(result.extraction_notes);
+      }
+
+      toast.success(`${validatedProperties.length} imóvel(is) extraído(s) do texto!`);
+
+    } catch (error) {
+      console.error("Error analyzing text:", error);
+      toast.error("Erro ao analisar texto com IA");
+    }
+
+    setTextImporting(false);
+  };
+
+  const importExtractedProperties = async () => {
+    if (extractedProperties.length === 0) {
+      toast.error("Nenhum imóvel para importar");
+      return;
+    }
+
+    setTextImporting(true);
+    setTextProgress("A gerar tags com IA...");
+
+    try {
+      // Generate tags for each property
+      const propertiesWithTags = await Promise.all(
+        extractedProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
+      setTextProgress("A guardar imóveis...");
+
+      // Generate ref_ids
+      const { data: refData } = await base44.functions.invoke('generateRefId', { 
+        entity_type: 'Property', 
+        count: propertiesWithTags.length 
+      });
+      const refIds = refData.ref_ids || [refData.ref_id];
+
+      const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+        ...p,
+        ref_id: refIds[index],
+        status: "active",
+        address: p.address || p.city,
+        state: p.state || p.city,
+        source_url: 'Importação por Texto',
+        is_partner_property: propertyOwnership === "partner",
+        partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+        partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                      propertyOwnership === "private" ? privateOwnerName : undefined,
+        internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                       `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+      }));
+
+      const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+
+      setResults({
+        success: true,
+        count: created.length,
+        properties: created,
+        message: `✅ ${created.length} imóveis importados de texto!`
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+      toast.success(`${created.length} imóveis importados!`);
+      
+      setShowTextPreview(false);
+      setTextInput("");
+      setExtractedProperties([]);
+
+    } catch (error) {
+      console.error("Error importing:", error);
+      toast.error("Erro ao importar imóveis");
+      setResults({ success: false, message: error.message });
+    }
+
+    setTextImporting(false);
+  };
+
+  const removeExtractedProperty = (index) => {
+    setExtractedProperties(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const updateExtractedProperty = (index, field, value) => {
+    setExtractedProperties(prev => prev.map((p, i) => 
+      i === index ? { ...p, [field]: value } : p
+    ));
+  };
+
   return (
     <div className="grid gap-6">
       {/* Property Ownership Selection */}
@@ -971,6 +1172,258 @@ export default function ImportProperties() {
       </Card>
 
 
+
+      {/* Text Import Card */}
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquareText className="w-5 h-5 text-purple-600" />
+            Importar de Texto com IA
+          </CardTitle>
+          <p className="text-sm text-slate-500">Cole texto de emails, anúncios ou descrições - a IA extrai os dados automaticamente</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder={`Cole aqui o texto com informações do(s) imóvel(is)...
+
+Exemplos de texto que a IA consegue processar:
+
+"Apartamento T3 em Lisboa, Parque das Nações, 120m², 3 quartos, 2 WCs, varanda, garagem box. Preço: 485.000€. Certificado energético B. Ano 2015."
+
+"Moradia V4 para venda em Cascais, 250m² de área útil, 4 quartos, 3 casas de banho, piscina, jardim, garagem para 2 carros. 1.250.000 €"
+
+"Arrendamento T2 renovado no Porto, 75m², 2 quartos, cozinha equipada. 850€/mês"
+
+A IA extrai automaticamente todos os dados estruturados!`}
+            rows={8}
+            className="font-mono text-sm"
+          />
+
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              {textInput.length > 0 ? `${textInput.length} caracteres` : "Cole texto de qualquer fonte"}
+            </p>
+            <Button
+              onClick={analyzeTextWithAI}
+              disabled={textImporting || !textInput.trim()}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {textImporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {textProgress}
+                </>
+              ) : (
+                <>
+                  <MessageSquareText className="w-4 h-4 mr-2" />
+                  Analisar com IA
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="bg-purple-100 border border-purple-200 rounded-lg p-3">
+            <p className="text-xs text-purple-900 font-medium mb-1">🤖 A IA extrai automaticamente:</p>
+            <p className="text-xs text-purple-700">
+              ✓ Tipologia (T1, T2, V3...) → quartos
+              <br />
+              ✓ Preço português (495.000 € → 495000)
+              <br />
+              ✓ Área, localização, comodidades
+              <br />
+              ✓ Tipo de negócio (venda/arrendamento)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Text Preview Dialog */}
+      <Dialog open={showTextPreview} onOpenChange={setShowTextPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquareText className="w-5 h-5 text-purple-600" />
+              Imóveis Extraídos do Texto ({extractedProperties.length})
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 overflow-y-auto pr-2 flex-1">
+            {extractedProperties.map((property, idx) => (
+              <Card key={idx} className="border-purple-200">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <Input
+                        value={property.title}
+                        onChange={(e) => updateExtractedProperty(idx, 'title', e.target.value)}
+                        className="font-semibold text-lg border-0 p-0 h-auto focus-visible:ring-0"
+                        placeholder="Título do imóvel"
+                      />
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeExtractedProperty(idx)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                    <div>
+                      <Label className="text-xs text-slate-500">Tipo</Label>
+                      <Select
+                        value={property.property_type}
+                        onValueChange={(v) => updateExtractedProperty(idx, 'property_type', v)}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="apartment">Apartamento</SelectItem>
+                          <SelectItem value="house">Moradia</SelectItem>
+                          <SelectItem value="land">Terreno</SelectItem>
+                          <SelectItem value="building">Prédio</SelectItem>
+                          <SelectItem value="store">Loja</SelectItem>
+                          <SelectItem value="office">Escritório</SelectItem>
+                          <SelectItem value="warehouse">Armazém</SelectItem>
+                          <SelectItem value="farm">Quinta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">Negócio</Label>
+                      <Select
+                        value={property.listing_type}
+                        onValueChange={(v) => updateExtractedProperty(idx, 'listing_type', v)}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="sale">Venda</SelectItem>
+                          <SelectItem value="rent">Arrendamento</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">Preço (€)</Label>
+                      <Input
+                        type="number"
+                        value={property.price || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'price', parseFloat(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">Área (m²)</Label>
+                      <Input
+                        type="number"
+                        value={property.square_feet || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'square_feet', parseFloat(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                    <div>
+                      <Label className="text-xs text-slate-500">Quartos</Label>
+                      <Input
+                        type="number"
+                        value={property.bedrooms || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'bedrooms', parseInt(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">WCs</Label>
+                      <Input
+                        type="number"
+                        value={property.bathrooms || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'bathrooms', parseInt(e.target.value) || 0)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">Cidade</Label>
+                      <Input
+                        value={property.city || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'city', e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-slate-500">Distrito</Label>
+                      <Input
+                        value={property.state || ''}
+                        onChange={(e) => updateExtractedProperty(idx, 'state', e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-slate-500">Morada</Label>
+                    <Input
+                      value={property.address || ''}
+                      onChange={(e) => updateExtractedProperty(idx, 'address', e.target.value)}
+                      className="h-8"
+                      placeholder="Morada completa"
+                    />
+                  </div>
+
+                  {property.amenities?.length > 0 && (
+                    <div className="mt-2">
+                      <Label className="text-xs text-slate-500">Comodidades</Label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {property.amenities.map((amenity, aIdx) => (
+                          <Badge key={aIdx} variant="outline" className="text-xs">
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {property.description && (
+                    <div className="mt-2">
+                      <Label className="text-xs text-slate-500">Descrição</Label>
+                      <p className="text-sm text-slate-600 line-clamp-2">{property.description}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowTextPreview(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={importExtractedProperties}
+              disabled={textImporting || extractedProperties.length === 0}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              {textImporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {textProgress}
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Importar {extractedProperties.length} Imóvel(is)
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
