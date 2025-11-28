@@ -194,9 +194,21 @@ export default function ClientDatabase() {
     }
   };
 
-  const handleDelete = (id, name) => {
-    if (window.confirm(`Eliminar contacto "${name}"?`)) {
-      deleteMutation.mutate(id);
+  const [deleteConfirm, setDeleteConfirm] = React.useState(null);
+
+  const handleDelete = (id, name, e) => {
+    // Prevent event propagation issues on mobile
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setDeleteConfirm({ id, name });
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      deleteMutation.mutate(deleteConfirm.id);
+      setDeleteConfirm(null);
     }
   };
 
