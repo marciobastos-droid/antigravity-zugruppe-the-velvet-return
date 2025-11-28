@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sparkles, Loader2, Building2, MapPin, Euro, Bed, Bath,
   Maximize, FileText, Download, Send, Check, Star,
-  Target, Brain, Save, Printer, Mail, Settings
+  Target, Brain, Save, Printer, Mail, Settings, Home, TrendingUp
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend } from "recharts";
 import ReportCustomizer, { DEFAULT_CONFIG } from "./ReportCustomizer";
 
 export default function MatchingReport({ contact, open, onOpenChange }) {
