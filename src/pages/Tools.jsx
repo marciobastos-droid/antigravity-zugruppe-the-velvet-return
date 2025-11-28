@@ -407,7 +407,7 @@ export default function Tools() {
         {activeTab === "devNotes" && <DevelopmentNotes />}
         {activeTab === "creditSimulator" && <CreditSimulator />}
         {activeTab === "reportsExporter" && <ReportsExporter />}
-        {activeTab === "whatsapp" && <WhatsAppIntegration />}
+        {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
       </div>
     </div>
   );

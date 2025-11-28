@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import CommunicationHistory from "./CommunicationHistory";
+import WhatsAppConversation from "./WhatsAppConversation";
 import AddCommunicationDialog from "./AddCommunicationDialog";
 import ContactMatching from "./ContactMatching";
 import MatchingReport from "../matching/MatchingReport";
