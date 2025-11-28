@@ -934,7 +934,7 @@ export default function ClientDatabase() {
                                                     <Button 
                                                       variant="outline" 
                                                       size="sm" 
-                                                      onClick={() => handleDelete(client.id, client.full_name)}
+                                                      onClick={(e) => handleDelete(client.id, client.full_name, e)}
                                                       className="text-red-600 hover:bg-red-50 h-9 w-9 p-0"
                                                     >
                                                       <Trash2 className="w-4 h-4" />
