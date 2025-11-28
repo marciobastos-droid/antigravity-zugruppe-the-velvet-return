@@ -263,7 +263,11 @@ export default function ClientsTable({
             variant="ghost" 
             size="sm" 
             className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => onDelete?.(client.id, client.full_name)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete?.(client.id, client.full_name, e);
+            }}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
