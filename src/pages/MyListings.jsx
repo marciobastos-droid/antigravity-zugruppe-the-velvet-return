@@ -95,8 +95,13 @@ export default function MyListings() {
   const updatePropertyMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Property.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myProperties', 'properties'] });
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
+    onError: (error) => {
+      console.error("Erro ao atualizar:", error);
+      toast.error("Erro ao atualizar estado");
+    }
   });
 
   const duplicatePropertyMutation = useMutation({
@@ -127,15 +132,24 @@ export default function MyListings() {
     }
   };
 
-  const handleStatusChange = (propertyId, newStatus) => {
-    updatePropertyMutation.mutate(
-      { id: propertyId, data: { status: newStatus } },
-      {
-        onSuccess: () => {
-          toast.success("Estado atualizado");
-        }
-      }
-    );
+  const handleStatusChange = async (propertyId, newStatus) => {
+    const statusLabelsMap = {
+      active: "Ativo",
+      pending: "Pendente", 
+      sold: "Vendido",
+      rented: "Arrendado",
+      off_market: "Desativado"
+    };
+    
+    try {
+      await base44.entities.Property.update(propertyId, { status: newStatus });
+      toast.success(`Estado alterado para "${statusLabelsMap[newStatus]}"`);
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    } catch (error) {
+      console.error("Erro ao alterar estado:", error);
+      toast.error("Erro ao alterar estado do imóvel");
+    }
   };
 
   const handleToggleFeatured = (property) => {
