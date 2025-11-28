@@ -54,6 +54,11 @@ export default function AIMatchingEngine() {
     queryFn: () => base44.entities.PropertyInteraction.list('-created_date')
   });
 
+  const { data: sentMatches = [] } = useQuery({
+    queryKey: ['sentMatches'],
+    queryFn: () => base44.entities.SentMatch.list('-sent_date')
+  });
+
   const activeProperties = properties.filter(p => p.status === 'active' && p.availability_status === 'available');
 
   // Filter profiles
@@ -357,12 +362,44 @@ Retorna análise detalhada em JSON.`,
     setMatching(false);
   };
 
+  // Check if match was already sent
+  const isMatchAlreadySent = (profileId, propertyId) => {
+    return sentMatches.some(sm => 
+      sm.contact_id === profileId && sm.property_id === propertyId
+    );
+  };
+
   // Send match to client
   const sendMatchToClient = async (match) => {
     setSendingMatch(match.property.id);
     
     try {
       const profile = selectedProfile;
+      
+      // Check if already sent
+      if (isMatchAlreadySent(profile.id, match.property.id)) {
+        toast.info("Este imóvel já foi enviado a este cliente");
+        setSendingMatch(null);
+        return;
+      }
+
+      // Create sent match record
+      await base44.entities.SentMatch.create({
+        contact_id: profile.id,
+        contact_name: profile.buyer_name,
+        contact_email: profile.buyer_email,
+        property_id: match.property.id,
+        property_title: match.property.title,
+        property_price: match.property.price,
+        property_city: match.property.city,
+        property_image: match.property.images?.[0] || null,
+        match_score: match.aiScore,
+        compatibility_level: match.compatibilityLevel,
+        sales_pitch: match.salesPitch,
+        key_strengths: match.keyStrengths,
+        sent_date: new Date().toISOString(),
+        client_response: 'pending'
+      });
       
       // Create communication log
       await base44.entities.PropertyInteraction.create({
@@ -382,8 +419,8 @@ Retorna análise detalhada em JSON.`,
         last_match_date: new Date().toISOString()
       });
 
-      toast.success("Match enviado ao cliente!");
-      queryClient.invalidateQueries({ queryKey: ['propertyInteractions'] });
+      toast.success("Match enviado e registado no histórico!");
+      queryClient.invalidateQueries({ queryKey: ['propertyInteractions', 'sentMatches'] });
 
     } catch (error) {
       toast.error("Erro ao enviar match");
@@ -761,21 +798,28 @@ Retorna análise detalhada em JSON.`,
                               <Eye className="w-4 h-4 mr-1" />
                               Detalhes
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => sendMatchToClient(match)}
-                              disabled={sendingMatch === match.property.id}
-                            >
-                              {sendingMatch === match.property.id ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <>
-                                  <Send className="w-4 h-4 mr-1" />
-                                  Enviar
-                                </>
-                              )}
-                            </Button>
+                            {isMatchAlreadySent(selectedProfile?.id, match.property.id) ? (
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-300 justify-center py-1">
+                                <Check className="w-3 h-3 mr-1" />
+                                Enviado
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => sendMatchToClient(match)}
+                                disabled={sendingMatch === match.property.id}
+                              >
+                                {sendingMatch === match.property.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Send className="w-4 h-4 mr-1" />
+                                    Enviar
+                                  </>
+                                )}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
