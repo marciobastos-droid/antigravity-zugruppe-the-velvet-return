@@ -979,9 +979,13 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="matching">Matching</TabsTrigger>
+                <TabsTrigger value="whatsapp" className="flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3 text-green-600" />
+                  WhatsApp
+                </TabsTrigger>
                 <TabsTrigger value="communications">Comunicações</TabsTrigger>
                 <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
                 <TabsTrigger value="portal" className="flex items-center gap-1">
@@ -1166,6 +1170,13 @@ export default function ClientDatabase() {
 
               <TabsContent value="matching" className="mt-4">
                 <ContactMatching contact={selectedClient} />
+              </TabsContent>
+
+              <TabsContent value="whatsapp" className="mt-4">
+                <WhatsAppConversation 
+                  contact={selectedClient} 
+                  onMessageSent={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
+                />
               </TabsContent>
 
               <TabsContent value="communications" className="mt-4">
