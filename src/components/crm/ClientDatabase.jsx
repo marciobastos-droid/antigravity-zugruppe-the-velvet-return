@@ -706,246 +706,240 @@ export default function ClientDatabase() {
             
             return (
               <Card key={client.id} className="hover:shadow-md transition-shadow">
-                                    <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Left: Main Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                    <h3 className="text-xl font-bold text-slate-900 truncate">{client.full_name}</h3>
-                                    <Badge className={typeColors[client.contact_type]}>
-                                      {typeLabels[client.contact_type]}
-                                    </Badge>
-                                    <Badge className={statusColors[client.status]}>
-                                      {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Prospect'}
-                                    </Badge>
-
-                                    {/* Priority/VIP Badges */}
-                                    {clientOpps.some(o => o.priority === 'high') && (
-                                      <Badge className="bg-red-100 text-red-700 border-red-200">
-                                        <Flame className="w-3 h-3 mr-1" />
-                                        Prioritário
-                                      </Badge>
-                                    )}
-                                    {clientOpps.some(o => o.qualification_status === 'hot') && (
-                                      <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                                        <ThermometerSun className="w-3 h-3 mr-1" />
-                                        Quente
-                                      </Badge>
-                                    )}
-                                    {clientOpps.some(o => o.qualification_status === 'warm') && !clientOpps.some(o => o.qualification_status === 'hot') && (
-                                      <Badge className="bg-amber-100 text-amber-700 border-amber-200">
-                                        <Zap className="w-3 h-3 mr-1" />
-                                        Morno
-                                      </Badge>
-                                    )}
-                                    {clientOpps.some(o => o.qualification_status === 'cold') && (
-                                      <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                                        <Snowflake className="w-3 h-3 mr-1" />
-                                        Frio
-                                      </Badge>
-                                    )}
-
-                                    {/* Engagement Badges */}
-                                    {clientComms.length >= 5 && (
-                                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                                        <MessageSquare className="w-3 h-3 mr-1" />
-                                        Engajado
-                                      </Badge>
-                                    )}
-                                    {clientOpps.some(o => o.status === 'scheduled') && (
-                                      <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">
-                                        <Calendar className="w-3 h-3 mr-1" />
-                                        Visita Agendada
-                                      </Badge>
-                                    )}
-                                    {clientOpps.some(o => o.status === 'closed') && (
-                                      <Badge className="bg-green-100 text-green-700 border-green-200">
-                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                        Negócio Fechado
-                                      </Badge>
-                                    )}
-
-                                    {/* Special Badges */}
-                                    {client.contact_type === 'investor' && (
-                                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                                        <Award className="w-3 h-3 mr-1" />
-                                        Investidor
-                                      </Badge>
-                                    )}
-                                    {client.company_name && client.contact_type === 'partner' && (
-                                      <Badge className="bg-violet-100 text-violet-700 border-violet-200">
-                                        <Briefcase className="w-3 h-3 mr-1" />
-                                        Empresa
-                                      </Badge>
-                                    )}
-
-                                    {/* New Contact Badge */}
-                                    {new Date(client.created_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-                                      <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200">
-                                        <Star className="w-3 h-3 mr-1" />
-                                        Novo
-                                      </Badge>
-                                    )}
-
-                                    {/* No Recent Contact Warning */}
-                                    {client.last_contact_date && new Date(client.last_contact_date) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && (
-                                      <Badge className="bg-rose-100 text-rose-700 border-rose-200">
-                                        <AlertCircle className="w-3 h-3 mr-1" />
-                                        Sem Contacto 30d+
-                                      </Badge>
-                                    )}
-
-                                    {/* Custom Tags */}
-                                    {client.tags?.map(tag => (
-                                      <Badge key={tag} variant="outline" className="text-xs">
-                                        <Tag className="w-3 h-3 mr-1" />
-                                        {tag}
-                                      </Badge>
-                                    ))}
-                                  </div>
-
-                      <div className="grid md:grid-cols-4 gap-3 text-sm text-slate-600 mb-4 mt-3">
-                        {client.email && (
-                          <div className="flex items-center gap-1 truncate">
-                            <Mail className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{client.email}</span>
-                          </div>
-                        )}
-                        {client.phone && (
-                          <div className="flex items-center gap-1">
-                            <Phone className="w-4 h-4 flex-shrink-0" />
-                            {client.phone}
-                          </div>
-                        )}
-                        {client.city && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4 flex-shrink-0" />
-                            {client.city}
-                          </div>
-                        )}
-                        {client.company_name && (
-                          <div className="flex items-center gap-1 truncate">
-                            <Building2 className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{client.company_name}</span>
-                          </div>
-                        )}
+                <CardContent className="p-4 md:p-6">
+                  {/* Mobile Header with Avatar and Actions */}
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Avatar */}
+                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm md:text-base">
+                          {client.full_name?.[0]?.toUpperCase() || '?'}
+                        </span>
                       </div>
-
-                      {/* Requirements Summary */}
-                                                  {hasRequirements && (
-                                                    <div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg text-sm">
-                          <Target className="w-3 h-3 text-blue-600" />
-                          {req.budget_max > 0 && (
-                            <span className="flex items-center gap-1 text-blue-700">
-                              <Euro className="w-3 h-3" />
-                              {req.budget_min > 0 ? `${(req.budget_min/1000).toFixed(0)}k-` : ''}
-                              {(req.budget_max/1000).toFixed(0)}k
-                            </span>
-                          )}
-                          {req.bedrooms_min > 0 && (
-                            <span className="flex items-center gap-1 text-blue-700">
-                              <Bed className="w-3 h-3" />
-                              T{req.bedrooms_min}{req.bedrooms_max && req.bedrooms_max !== req.bedrooms_min ? `-${req.bedrooms_max}` : '+'}
-                            </span>
-                          )}
-                          {req.area_min > 0 && (
-                            <span className="flex items-center gap-1 text-blue-700">
-                              <Square className="w-3 h-3" />
-                              {req.area_min}m²+
-                            </span>
-                          )}
-                          {req.locations?.length > 0 && (
-                            <span className="flex items-center gap-1 text-blue-700">
-                              <MapPin className="w-3 h-3" />
-                              {req.locations.slice(0, 2).join(", ")}
-                              {req.locations.length > 2 && `+${req.locations.length - 2}`}
-                            </span>
-                          )}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base md:text-xl font-bold text-slate-900 truncate">{client.full_name}</h3>
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                          <Badge className={`${typeColors[client.contact_type]} text-xs`}>
+                            {typeLabels[client.contact_type]}
+                          </Badge>
+                          <Badge className={`${statusColors[client.status]} text-xs`}>
+                            {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : 'Prospect'}
+                          </Badge>
                         </div>
-                      )}
-
-                      {/* Stats Row */}
-                                                  <div className="flex items-center gap-5 text-sm">
-                        {client.source && (
-                          <div className="flex items-center gap-1 text-slate-600">
-                            {client.source === 'facebook_ads' ? <Facebook className="w-3 h-3 text-blue-600" /> :
-                             client.source === 'website' ? <Globe className="w-3 h-3 text-green-600" /> :
-                             client.source === 'referral' ? <Users2 className="w-3 h-3 text-purple-600" /> :
-                             client.source === 'networking' ? <Megaphone className="w-3 h-3 text-orange-600" /> :
-                             <Tag className="w-3 h-3" />}
-                            {client.source === 'facebook_ads' ? 'Facebook' : 
-                             client.source === 'website' ? 'Website' :
-                             client.source === 'referral' ? 'Indicação' :
-                             client.source === 'direct_contact' ? 'Direto' :
-                             client.source === 'networking' ? 'Networking' : 'Outro'}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1 text-slate-500">
-                          <MessageSquare className="w-3 h-3" />
-                          {clientComms.length} comunicações
-                        </div>
-                        <div className={`flex items-center gap-1 ${clientOpps.length > 0 ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
-                          <TrendingUp className="w-3 h-3" />
-                          {clientOpps.length} oportunidade{clientOpps.length !== 1 ? 's' : ''}
-                        </div>
-                        {client.last_contact_date && (
-                          <div className="flex items-center gap-1 text-slate-500">
-                            <Clock className="w-3 h-3" />
-                            {format(new Date(client.last_contact_date), "dd/MM")}
-                          </div>
-                        )}
                       </div>
                     </div>
-
-                    {/* Right: Matching Score & Actions */}
-                                              <div className="flex flex-col items-end gap-3">
-                                                {hasRequirements && (
-                                                  <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-100 min-w-[100px]">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Sparkles className="w-3 h-3 text-purple-500" />
-                            <span className="text-xs text-purple-600">Match</span>
-                          </div>
-                          <div className={`text-lg font-bold ${
-                            matchScore >= 70 ? 'text-green-600' : 
-                            matchScore >= 40 ? 'text-amber-600' : 'text-slate-500'
-                          }`}>
-                            {matchScore}%
-                          </div>
-                          <Progress value={matchScore} className="h-1 mt-1" />
+                    
+                    {/* Match Score - Compact on Mobile */}
+                    {hasRequirements && (
+                      <div className="text-center p-2 md:p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg md:rounded-xl border border-purple-100 flex-shrink-0">
+                        <div className="flex items-center justify-center gap-1 mb-0.5">
+                          <Sparkles className="w-3 h-3 text-purple-500" />
+                          <span className="text-xs text-purple-600 hidden md:inline">Match</span>
                         </div>
-                      )}
+                        <div className={`text-base md:text-lg font-bold ${
+                          matchScore >= 70 ? 'text-green-600' : 
+                          matchScore >= 40 ? 'text-amber-600' : 'text-slate-500'
+                        }`}>
+                          {matchScore}%
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
-                      <div className="flex gap-2">
-                                                    <Button 
-                                                      variant="outline" 
-                                                      size="sm" 
-                                                      onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
-                                                      className="text-purple-600 hover:bg-purple-50 h-9 w-9 p-0"
-                                                      title="Matching de Imóveis"
-                                                    >
-                                                      <Home className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button variant="outline" size="sm" onClick={() => { setActiveTab("details"); setSelectedClient(client); }} className="h-9 w-9 p-0">
-                                                      <Eye className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(client)} className="h-9 w-9 p-0">
-                                                      <Edit className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button 
-                                                      variant="outline" 
-                                                      size="sm" 
-                                                      onClick={(e) => handleDelete(client.id, client.full_name, e)}
-                                                      className="text-red-600 hover:bg-red-50 h-9 w-9 p-0"
-                                                    >
-                                                      <Trash2 className="w-4 h-4" />
-                                                    </Button>
-                                                  </div>
+                  {/* Contact Info - Stacked on Mobile */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm text-slate-600 mb-3">
+                    {client.phone && (
+                      <a href={`tel:${client.phone}`} className="flex items-center gap-2 p-2 md:p-0 bg-slate-50 md:bg-transparent rounded-lg hover:bg-slate-100 transition-colors">
+                        <Phone className="w-4 h-4 flex-shrink-0 text-green-600" />
+                        <span className="truncate">{client.phone}</span>
+                      </a>
+                    )}
+                    {client.email && (
+                      <a href={`mailto:${client.email}`} className="flex items-center gap-2 p-2 md:p-0 bg-slate-50 md:bg-transparent rounded-lg hover:bg-slate-100 transition-colors">
+                        <Mail className="w-4 h-4 flex-shrink-0 text-blue-600" />
+                        <span className="truncate">{client.email}</span>
+                      </a>
+                    )}
+                    {client.city && (
+                      <div className="flex items-center gap-2 p-2 md:p-0 bg-slate-50 md:bg-transparent rounded-lg">
+                        <MapPin className="w-4 h-4 flex-shrink-0 text-red-500" />
+                        <span>{client.city}</span>
+                      </div>
+                    )}
+                    {client.company_name && (
+                      <div className="flex items-center gap-2 p-2 md:p-0 bg-slate-50 md:bg-transparent rounded-lg truncate">
+                        <Building2 className="w-4 h-4 flex-shrink-0 text-purple-600" />
+                        <span className="truncate">{client.company_name}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Status Badges - Scrollable on Mobile */}
+                  <div className="flex gap-1.5 flex-wrap mb-3 max-h-16 overflow-y-auto md:max-h-none">
+                    {clientOpps.some(o => o.priority === 'high') && (
+                      <Badge className="bg-red-100 text-red-700 border-red-200 text-xs">
+                        <Flame className="w-3 h-3 mr-1" />
+                        Prioritário
+                      </Badge>
+                    )}
+                    {clientOpps.some(o => o.qualification_status === 'hot') && (
+                      <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs">
+                        <ThermometerSun className="w-3 h-3 mr-1" />
+                        Quente
+                      </Badge>
+                    )}
+                    {clientOpps.some(o => o.qualification_status === 'warm') && !clientOpps.some(o => o.qualification_status === 'hot') && (
+                      <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-xs">
+                        <Zap className="w-3 h-3 mr-1" />
+                        Morno
+                      </Badge>
+                    )}
+                    {clientOpps.some(o => o.qualification_status === 'cold') && (
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                        <Snowflake className="w-3 h-3 mr-1" />
+                        Frio
+                      </Badge>
+                    )}
+                    {clientComms.length >= 5 && (
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 text-xs">
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        Engajado
+                      </Badge>
+                    )}
+                    {clientOpps.some(o => o.status === 'scheduled') && (
+                      <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200 text-xs">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Visita
+                      </Badge>
+                    )}
+                    {clientOpps.some(o => o.status === 'closed') && (
+                      <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Fechado
+                      </Badge>
+                    )}
+                    {new Date(client.created_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
+                      <Badge className="bg-cyan-100 text-cyan-700 border-cyan-200 text-xs">
+                        <Star className="w-3 h-3 mr-1" />
+                        Novo
+                      </Badge>
+                    )}
+                    {client.last_contact_date && new Date(client.last_contact_date) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && (
+                      <Badge className="bg-rose-100 text-rose-700 border-rose-200 text-xs">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        30d+
+                      </Badge>
+                    )}
+                    {client.tags?.slice(0, 2).map(tag => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {client.tags?.length > 2 && (
+                      <Badge variant="outline" className="text-xs">+{client.tags.length - 2}</Badge>
+                    )}
+                  </div>
+
+                  {/* Requirements Summary - Compact on Mobile */}
+                  {hasRequirements && (
+                    <div className="flex flex-wrap items-center gap-2 mb-3 p-2 md:p-3 bg-blue-50 rounded-lg text-xs md:text-sm">
+                      <Target className="w-3 h-3 text-blue-600" />
+                      {req.budget_max > 0 && (
+                        <span className="flex items-center gap-1 text-blue-700">
+                          <Euro className="w-3 h-3" />
+                          {req.budget_min > 0 ? `${(req.budget_min/1000).toFixed(0)}k-` : ''}
+                          {(req.budget_max/1000).toFixed(0)}k
+                        </span>
+                      )}
+                      {req.bedrooms_min > 0 && (
+                        <span className="flex items-center gap-1 text-blue-700">
+                          <Bed className="w-3 h-3" />
+                          T{req.bedrooms_min}+
+                        </span>
+                      )}
+                      {req.locations?.length > 0 && (
+                        <span className="flex items-center gap-1 text-blue-700">
+                          <MapPin className="w-3 h-3" />
+                          {req.locations[0]}{req.locations.length > 1 && ` +${req.locations.length - 1}`}
+                        </span>
+                      )}
                     </div>
+                  )}
+
+                  {/* Stats Row - Compact */}
+                  <div className="flex items-center gap-3 md:gap-5 text-xs md:text-sm flex-wrap mb-3">
+                    {client.source && (
+                      <div className="flex items-center gap-1 text-slate-600">
+                        {client.source === 'facebook_ads' ? <Facebook className="w-3 h-3 text-blue-600" /> :
+                         client.source === 'website' ? <Globe className="w-3 h-3 text-green-600" /> :
+                         client.source === 'referral' ? <Users2 className="w-3 h-3 text-purple-600" /> :
+                         <Tag className="w-3 h-3" />}
+                        <span className="hidden md:inline">
+                          {client.source === 'facebook_ads' ? 'Facebook' : 
+                           client.source === 'website' ? 'Website' :
+                           client.source === 'referral' ? 'Indicação' :
+                           client.source === 'direct_contact' ? 'Direto' : 'Outro'}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 text-slate-500">
+                      <MessageSquare className="w-3 h-3" />
+                      {clientComms.length}
+                    </div>
+                    <div className={`flex items-center gap-1 ${clientOpps.length > 0 ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
+                      <TrendingUp className="w-3 h-3" />
+                      {clientOpps.length}
+                    </div>
+                    {client.last_contact_date && (
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <Clock className="w-3 h-3" />
+                        {format(new Date(client.last_contact_date), "dd/MM")}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons - Full Width on Mobile */}
+                  <div className="flex gap-2 pt-3 border-t">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
+                      className="flex-1 md:flex-none text-purple-600 hover:bg-purple-50"
+                    >
+                      <Home className="w-4 h-4 md:mr-1" />
+                      <span className="hidden md:inline">Match</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => { setActiveTab("details"); setSelectedClient(client); }}
+                      className="flex-1 md:flex-none"
+                    >
+                      <Eye className="w-4 h-4 md:mr-1" />
+                      <span className="hidden md:inline">Ver</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEdit(client)}
+                      className="flex-1 md:flex-none"
+                    >
+                      <Edit className="w-4 h-4 md:mr-1" />
+                      <span className="hidden md:inline">Editar</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => handleDelete(client.id, client.full_name, e)}
+                      className="flex-1 md:flex-none text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
 
                   {/* Opportunities Preview */}
-                                          {clientOpps.length > 0 && (
-                                            <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
+                  {clientOpps.length > 0 && (
+                    <div className="mt-3 pt-3 border-t flex flex-wrap gap-1.5">
                       {clientOpps.slice(0, 3).map(opp => (
                         <Badge 
                           key={opp.id} 
@@ -958,13 +952,13 @@ export default function ClientDatabase() {
                           }`}
                         >
                           {opp.lead_type === 'comprador' ? '🏠' : opp.lead_type === 'vendedor' ? '🏷️' : '🤝'}
-                          {opp.property_title?.substring(0, 20) || opp.lead_type}
-                          {opp.property_title?.length > 20 && '...'}
+                          <span className="hidden md:inline ml-1">{opp.property_title?.substring(0, 15) || opp.lead_type}</span>
+                          <span className="md:hidden ml-1">{opp.property_title?.substring(0, 8) || opp.lead_type?.substring(0, 4)}</span>
                         </Badge>
                       ))}
                       {clientOpps.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{clientOpps.length - 3} mais
+                          +{clientOpps.length - 3}
                         </Badge>
                       )}
                     </div>
