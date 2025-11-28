@@ -702,9 +702,14 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
             </div>
           )}
 
+          {/* Visual Summary - Metrics and Top 3 Chart */}
+          {!analyzing && matches.length > 0 && !showCustomizer && (
+            <MatchingSummary matches={matches} contact={contact} properties={activeProperties} />
+          )}
+
           {/* Results */}
           {!analyzing && matches.length > 0 && !showCustomizer && (
-            <ScrollArea className="flex-1 mt-4">
+            <ScrollArea className="flex-1 mt-4 max-h-[400px]">
               <div className="space-y-4 pr-4">
                 {matches.map((match, idx) => (
                   <div
