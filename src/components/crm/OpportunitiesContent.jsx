@@ -50,7 +50,7 @@ export default function OpportunitiesContent() {
       }
       
       return allOpportunities.filter(i => 
-        i.seller_email === user.email || i.assigned_to === user.email
+        i.seller_email === user.email || i.assigned_to === user.email || i.created_by === user.email
       );
     },
     enabled: !!user
