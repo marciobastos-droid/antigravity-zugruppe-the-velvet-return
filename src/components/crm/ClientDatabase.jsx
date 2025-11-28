@@ -1299,6 +1299,37 @@ export default function ClientDatabase() {
         onOpenChange={setEmailDialogOpen}
         recipient={emailRecipient}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmar Eliminação</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-600">
+              Tem a certeza que deseja eliminar o contacto <strong>"{deleteConfirm?.name}"</strong>?
+            </p>
+            <p className="text-sm text-slate-500 mt-2">Esta ação não pode ser revertida.</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirm(null)}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={confirmDelete}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Eliminar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
