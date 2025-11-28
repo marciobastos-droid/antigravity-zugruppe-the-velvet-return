@@ -820,36 +820,136 @@ export default function ImportProperties() {
       setShowPreview(false); // Reset preview state
       
       const extension = selectedFile.name.split('.').pop().toLowerCase();
-      if (extension === 'json') {
-        setFileType('json');
-      } else if (['csv', 'xlsx', 'xls'].includes(extension)) {
-        setFileType(extension === 'csv' ? 'csv' : 'excel'); // Differentiate CSV from Excel
-        if (extension === 'csv') {
-          handleCSVPreview(selectedFile); // Directly show preview for CSV
+              if (extension === 'json') {
+                setFileType('json');
+              } else if (['csv', 'xlsx', 'xls'].includes(extension)) {
+                setFileType(extension === 'csv' ? 'csv' : 'excel');
+                if (extension === 'csv') {
+                  handleCSVPreview(selectedFile);
+                }
+              } else if (extension === 'pdf') {
+                setFileType('pdf');
+              } else {
+                setFileType(null);
+                toast.error("Formato de ficheiro não suportado.");
+              }
+    }
+  };
+
+  const importFromPDF = async (file) => {
+        setImporting(true);
+        setProgress("A carregar PDF...");
+
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          setProgress("A extrair dados do PDF com IA...");
+
+          const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+            file_url,
+            json_schema: {
+              type: "object",
+              properties: { 
+                properties: { 
+                  type: "array", 
+                  items: propertySchema 
+                } 
+              }
+            }
+          });
+
+          if (result.status === "success" && result.output?.properties) {
+            const properties = result.output.properties;
+
+            if (properties.length === 0) {
+              throw new Error("Nenhum imóvel encontrado no PDF");
+            }
+
+            setProgress(`A classificar ${properties.length} imóveis com IA...`);
+            const processedProperties = await Promise.all(
+              properties.map(async (p) => {
+                const detected = await detectPropertyTypes(p.title, p.description, p.price);
+                if (detected) {
+                  return { 
+                    ...p, 
+                    property_type: detected.property_type || p.property_type || 'apartment', 
+                    listing_type: detected.listing_type || p.listing_type || 'sale' 
+                  };
+                }
+                return {
+                  ...p,
+                  property_type: p.property_type || 'apartment',
+                  listing_type: p.listing_type || 'sale'
+                };
+              })
+            );
+
+            setProgress(`A gerar tags com IA para ${processedProperties.length} imóveis...`);
+            const propertiesWithTags = await Promise.all(
+              processedProperties.map(async (p) => {
+                const tags = await generatePropertyTags(p);
+                return { ...p, tags };
+              })
+            );
+
+            const { data: refData } = await base44.functions.invoke('generateRefId', { 
+              entity_type: 'Property', 
+              count: propertiesWithTags.length 
+            });
+            const refIds = refData.ref_ids || [refData.ref_id];
+
+            const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+              ...p,
+              ref_id: refIds[index],
+              status: "active",
+              address: p.address || p.city,
+              state: p.state || p.city,
+              source_url: 'PDF Import',
+              is_partner_property: propertyOwnership === "partner",
+              partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+              partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                            propertyOwnership === "private" ? privateOwnerName : undefined,
+              internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                             `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+            }));
+
+            const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+
+            setResults({
+              success: true,
+              count: created.length,
+              properties: created,
+              message: `${created.length} imóveis importados de PDF!`
+            });
+
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+            toast.success(`${created.length} imóveis importados!`);
+          } else {
+            throw new Error(result.details || "Erro ao extrair dados do PDF");
+          }
+        } catch (error) {
+          setResults({ success: false, message: error.message || "Erro ao processar PDF" });
+          toast.error("Erro no PDF");
         }
-      } else {
-        setFileType(null);
-        toast.error("Formato de ficheiro não suportado.");
-      }
-    }
-  };
 
-  const handleFileImport = () => {
-    if (!file) {
-      toast.error("Nenhum ficheiro selecionado.");
-      return;
-    }
+        setImporting(false);
+      };
 
-    if (fileType === 'json') {
-      importFromJSON(file);
-    } else if (fileType === 'csv') {
-      // If the preview is already open, the actual import button is inside the dialog
-      // This button is for initiating the preview if it wasn't opened automatically
-      handleCSVPreview(file); 
-    } else if (fileType === 'excel') { // Fallback for XLSX/XLS using LLM extraction
-      importFromCSV(file);
-    }
-  };
+      const handleFileImport = () => {
+        if (!file) {
+          toast.error("Nenhum ficheiro selecionado.");
+          return;
+        }
+
+        if (fileType === 'json') {
+          importFromJSON(file);
+        } else if (fileType === 'csv') {
+          handleCSVPreview(file); 
+        } else if (fileType === 'excel') {
+          importFromCSV(file);
+        } else if (fileType === 'pdf') {
+          importFromPDF(file);
+        }
+      };
 
   const detectedPortal = url ? detectPortal(url) : null;
 
@@ -1515,7 +1615,7 @@ A IA extrai automaticamente todos os dados estruturados!`}
           <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors">
             <input
               type="file"
-              accept=".csv,.xlsx,.xls,.json"
+              accept=".csv,.xlsx,.xls,.json,.pdf"
               onChange={handleFileChange}
               className="hidden"
               id="file-upload-import"
@@ -1526,7 +1626,7 @@ A IA extrai automaticamente todos os dados estruturados!`}
               <p className="text-slate-700 font-medium mb-1">
                 {file ? `${file.name} (${fileType?.toUpperCase()})` : "Clique para carregar"}
               </p>
-              <p className="text-sm text-slate-500">CSV, Excel ou JSON</p>
+              <p className="text-sm text-slate-500">CSV, Excel, JSON ou PDF</p>
             </label>
           </div>
 
@@ -1540,7 +1640,7 @@ A IA extrai automaticamente todos os dados estruturados!`}
               ) : (
                 <>
                   {fileType === 'csv' ? <Eye className="w-4 h-4 mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                  {fileType === 'csv' ? `Pré-visualizar CSV` : `Processar ${fileType?.toUpperCase()}`}
+                  {fileType === 'csv' ? 'Pré-visualizar CSV' : fileType === 'pdf' ? 'Extrair de PDF' : `Processar ${fileType?.toUpperCase()}`}
                 </>
               )}
             </Button>
