@@ -1,4 +1,6 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClient } from 'npm:@base44/sdk@0.8.4';
+
+const BASE44_APP_ID = Deno.env.get("BASE44_APP_ID");
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -33,7 +35,7 @@ Deno.serve(async (req) => {
         return Response.json({ status: 'no_messages' });
       }
 
-      const base44 = createClientFromRequest(req);
+      const base44 = createClient({ appId: BASE44_APP_ID });
 
       for (const message of value.messages) {
         const from = message.from; // Número do remetente
