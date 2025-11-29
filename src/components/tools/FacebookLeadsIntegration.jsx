@@ -193,6 +193,10 @@ export default function FacebookLeadsIntegration() {
 
   const convertToOpportunityMutation = useMutation({
     mutationFn: async ({ lead, propertyId, agentEmail }) => {
+      // Get the campaign's assigned agent if no agent was explicitly selected
+      const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
+      const finalAgentEmail = agentEmail || campaign?.assigned_to || undefined;
+
       // First, create or find the contact
       let contactId = null;
       try {
@@ -201,15 +205,22 @@ export default function FacebookLeadsIntegration() {
         
         if (existingContacts && existingContacts.length > 0) {
           contactId = existingContacts[0].id;
+          // Update the contact's assigned_agent if an agent is selected
+          if (finalAgentEmail) {
+            await base44.entities.ClientContact.update(contactId, { 
+              assigned_agent: finalAgentEmail 
+            });
+          }
         } else {
-          // Create new contact
+          // Create new contact with assigned_agent
           const newContact = await base44.entities.ClientContact.create({
             full_name: lead.full_name,
             email: lead.email,
             phone: lead.phone,
             location: lead.location,
             contact_type: "client",
-            lead_source: "facebook_ads",
+            source: "facebook_ads",
+            assigned_agent: finalAgentEmail,
             notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
           });
           contactId = newContact.id;
@@ -217,10 +228,6 @@ export default function FacebookLeadsIntegration() {
       } catch (err) {
         console.error("Error creating contact:", err);
       }
-
-      // Get the campaign's assigned agent if no agent was explicitly selected
-      const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
-      const finalAgentEmail = agentEmail || campaign?.assigned_to || undefined;
 
       const opportunity = await base44.entities.Opportunity.create({
         lead_type: "comprador",
