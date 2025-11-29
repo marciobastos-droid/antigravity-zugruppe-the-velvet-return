@@ -25,21 +25,27 @@ import { useAdvancedFilters } from "../components/filters/useAdvancedFilters";
 export default function MyListings() {
   const queryClient = useQueryClient();
   const [selectedProperties, setSelectedProperties] = React.useState([]);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [statusFilter, setStatusFilter] = React.useState("all");
-  const [typeFilter, setTypeFilter] = React.useState("all");
-  const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
-  const [priceMin, setPriceMin] = React.useState("");
-  const [priceMax, setPriceMax] = React.useState("");
-  const [selectedTags, setSelectedTags] = React.useState([]);
-  const [stateFilter, setStateFilter] = React.useState("all");
-  const [cityFilter, setCityFilter] = React.useState("all");
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
   const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
+  const [filterLogic, setFilterLogic] = React.useState("AND");
+  
+  // Estado dos filtros avançados
+  const [filters, setFilters] = React.useState({
+    search: "",
+    status: "all",
+    property_type: "all",
+    listing_type: "all",
+    price: {},
+    tags: [],
+    state: "all",
+    city: "all",
+    created_date: {},
+    updated_date: {},
+    featured: null
+  });
   
   const ITEMS_PER_PAGE = 10;
 
