@@ -727,31 +727,29 @@ export default function ImportProperties() {
       
       // Enhanced prompt for listing detection
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `És um especialista em web scraping de portais imobiliários portugueses.
+        prompt: `Extrai TODOS os imóveis desta página de portal imobiliário português.
 
 URL: ${url}
 
-PRIMEIRO, analisa a página e determina:
-1. Se é uma LISTAGEM (página com múltiplos imóveis) ou uma página de DETALHE (um só imóvel)
-2. Se for LISTAGEM, extrai TODOS os imóveis visíveis na página (tipicamente 10-30 imóveis)
+EXTRAI cada imóvel com:
+- title: título do anúncio
+- price: preço em número (875.000€ = 875000)
+- bedrooms: número de quartos (T4 = 4, T5 = 5)
+- square_feet: área em m² 
+- city: cidade (ex: Aveiro, Lisboa)
+- state: distrito
+- address: morada se disponível
+- property_type: "apartment" para apartamento/penthouse/duplex, "house" para moradia
+- listing_type: "sale" para venda, "rent" para arrendamento
+- external_id: ID do anúncio (extrair do link, ex: 34231937)
+- detail_url: link completo do anúncio
+- description: descrição curta
 
-INSTRUÇÕES CRÍTICAS:
-- Se for uma página de pesquisa/listagem (ex: idealista.pt/comprar-casas/lisboa/), extrai TODOS os imóveis listados
-- Para cada imóvel na listagem, extrai: título, preço, localização, tipologia (T1, T2...), área, link individual se disponível
-- PREÇO formato português: 495.000 € = 495000, 1.200 €/mês = 1200 (arrendamento)
-- Se o preço for mensal < 5000€, é arrendamento (listing_type: "rent")
-- Extrai URLs das imagens se visíveis
-- O external_id pode ser extraído do link ou código do anúncio
-
-SINAIS DE LISTAGEM:
-- Múltiplos cards/boxes de imóveis
-- Paginação (página 1 de X)
-- Filtros de pesquisa visíveis
-- Contador de resultados (ex: "1.234 imóveis encontrados")
-
-Extrai O MÁXIMO de imóveis possível da página.
-
-IMPORTANTE: Se um campo não existir, omite-o em vez de enviar string vazia ou null.`,
+IMPORTANTE:
+- Extrai TODOS os imóveis listados na página
+- Preços portugueses: 875.000€ = 875000, 1.450.000€ = 1450000
+- Se URL contém "comprar" é venda, se contém "arrendar" é arrendamento
+- Apenas inclui campos que consegues extrair`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
@@ -774,14 +772,10 @@ IMPORTANTE: Se um campo não existir, omite-o em vez de enviar string vazia ou n
                   address: { type: "string" },
                   city: { type: "string" },
                   state: { type: "string" },
-                  zip_code: { type: "string" },
-                  year_built: { type: "number" },
                   external_id: { type: "string" },
-                  detail_url: { type: "string" },
-                  amenities: { type: "array", items: { type: "string" } },
-                  images: { type: "array", items: { type: "string" } }
+                  detail_url: { type: "string" }
                 },
-                required: ["title"]
+                required: ["title", "price"]
               }
             }
           },
