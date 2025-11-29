@@ -56,6 +56,17 @@ export default function MyListings() {
     queryFn: () => base44.auth.me(),
   });
 
+  // Buscar tags criadas nas ferramentas
+  const { data: systemTags = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => base44.entities.Tag.list('name')
+  });
+
+  // Filtrar apenas tags de imóveis ou gerais
+  const propertyTags = React.useMemo(() => {
+    return systemTags.filter(t => t.category === 'property' || t.category === 'general');
+  }, [systemTags]);
+
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['myProperties', user?.email],
     queryFn: async () => {
