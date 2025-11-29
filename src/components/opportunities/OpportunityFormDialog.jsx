@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function OpportunityFormDialog({ opportunity, open, onOpenChange, onSaved }) {
+export default function OpportunityFormDialog({ opportunity, open, onOpenChange, onSaved, prefillContact }) {
   const queryClient = useQueryClient();
   const isEditing = !!opportunity;
 
@@ -94,33 +94,37 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
         partnership_type: opportunity.partnership_type || ""
       });
     } else {
+      // Pre-fill from contact if provided
+      const req = prefillContact?.property_requirements || {};
       setFormData({
-        lead_type: "comprador",
-        buyer_name: "",
-        buyer_email: "",
-        buyer_phone: "",
-        location: "",
-        budget: "",
+        lead_type: prefillContact?.contact_type === 'partner' ? 'parceiro_comprador' : 'comprador',
+        buyer_name: prefillContact?.full_name || "",
+        buyer_email: prefillContact?.email || "",
+        buyer_phone: prefillContact?.phone || "",
+        location: prefillContact?.city || req.locations?.[0] || "",
+        budget: req.budget_max || "",
         estimated_value: "",
         probability: 50,
         expected_close_date: "",
         status: "new",
         priority: "medium",
         qualification_status: "",
-        lead_source: "",
+        lead_source: prefillContact?.source || "",
         message: "",
         property_id: "",
         property_title: "",
         associated_properties: [],
-        assigned_to: "",
+        assigned_to: prefillContact?.assigned_agent || "",
         reminder_enabled: true,
         followup_reminder_days: 7,
         next_followup_date: "",
-        company_name: "",
-        partnership_type: ""
+        company_name: prefillContact?.company_name || "",
+        partnership_type: "",
+        contact_id: prefillContact?.id || "",
+        profile_id: prefillContact?.id || ""
       });
     }
-  }, [opportunity, open]);
+  }, [opportunity, open, prefillContact]);
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {

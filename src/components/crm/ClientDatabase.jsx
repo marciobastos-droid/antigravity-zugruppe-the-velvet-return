@@ -29,6 +29,7 @@ import MatchingReport from "../matching/MatchingReport";
 import ClientsTable from "./ClientsTable";
 import SendEmailDialog from "../email/SendEmailDialog";
 import ClientPortalManager from "./ClientPortalManager";
+import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
@@ -49,6 +50,7 @@ export default function ClientDatabase() {
   const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
+  const [opportunityDialogOpen, setOpportunityDialogOpen] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     full_name: "",
@@ -1213,6 +1215,13 @@ export default function ClientDatabase() {
                     <Sparkles className="w-4 h-4 mr-2" />
                     Relatório de Matching
                   </Button>
+                  <Button 
+                    onClick={() => setOpportunityDialogOpen(true)}
+                    className="bg-amber-600 hover:bg-amber-700"
+                  >
+                    <Target className="w-4 h-4 mr-2" />
+                    Nova Oportunidade
+                  </Button>
                   <Button variant="outline" onClick={() => handleEdit(selectedClient)}>
                     <Edit className="w-4 h-4 mr-2" />
                     Editar
@@ -1339,6 +1348,18 @@ export default function ClientDatabase() {
         onOpenChange={setEmailDialogOpen}
         recipient={emailRecipient}
       />
+
+      {/* Opportunity Form Dialog */}
+      {selectedClient && (
+        <OpportunityFormDialog
+          open={opportunityDialogOpen}
+          onOpenChange={setOpportunityDialogOpen}
+          prefillContact={selectedClient}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
