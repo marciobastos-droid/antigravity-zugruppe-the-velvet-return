@@ -1,11 +1,12 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, MessageSquare, BarChart3, Brain, PieChart } from "lucide-react";
+import { Users, Calendar, MessageSquare, BarChart3, Brain, PieChart, Target } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";
 import MatchingTab from "@/components/crm/MatchingTab";
 import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
+import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 
 export default function CRMAdvanced() {
   const [activeTab, setActiveTab] = React.useState("clients");
