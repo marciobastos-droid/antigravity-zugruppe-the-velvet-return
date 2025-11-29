@@ -244,15 +244,17 @@ export default function ClientsTable({
       alwaysVisible: true,
       render: (_, client) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 text-purple-600 hover:bg-purple-50"
-            onClick={() => onMatching?.(client)}
-            title="Matching"
-          >
-            <Home className="w-4 h-4" />
-          </Button>
+          {client.contact_type === 'client' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 text-purple-600 hover:bg-purple-50"
+              onClick={() => onMatching?.(client)}
+              title="Matching"
+            >
+              <Home className="w-4 h-4" />
+            </Button>
+          )}
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onClientClick?.(client)}>
             <Eye className="w-4 h-4" />
           </Button>
