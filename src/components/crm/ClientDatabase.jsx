@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   UserPlus, Search, Phone, Mail, MapPin, Building2, 
   Calendar, MessageSquare, Edit, Trash2, Eye, X, 
-  Tag, DollarSign, Clock, User, Filter, Home, Target,
+  Tag as TagIcon, DollarSign, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
   Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
   LayoutGrid, List, Link2
