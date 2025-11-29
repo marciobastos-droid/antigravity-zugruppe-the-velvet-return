@@ -129,6 +129,24 @@ export default function MyListings() {
     }
   });
 
+  const bulkAddTagMutation = useMutation({
+    mutationFn: async ({ ids, tagName }) => {
+      const propertiesToUpdate = properties.filter(p => ids.includes(p.id));
+      await Promise.all(propertiesToUpdate.map(property => {
+        const currentTags = property.tags || [];
+        if (!currentTags.includes(tagName)) {
+          return base44.entities.Property.update(property.id, { tags: [...currentTags, tagName] });
+        }
+        return Promise.resolve();
+      }));
+    },
+    onSuccess: (_, { ids, tagName }) => {
+      toast.success(`Etiqueta "${tagName}" adicionada a ${ids.length} imóveis`);
+      setSelectedProperties([]);
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
   const duplicatePropertyMutation = useMutation({
     mutationFn: async (property) => {
       const { id, created_date, updated_date, created_by, ...propertyData } = property;
