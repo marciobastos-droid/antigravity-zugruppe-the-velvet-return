@@ -193,6 +193,17 @@ export default function ClientDatabase() {
     }
   });
 
+  const bulkUpdateTypeMutation = useMutation({
+    mutationFn: async ({ ids, type }) => {
+      await Promise.all(ids.map(id => base44.entities.ClientContact.update(id, { contact_type: type })));
+    },
+    onSuccess: (_, { ids, type }) => {
+      toast.success(`${ids.length} contactos atualizados para "${typeLabels[type]}"`);
+      setSelectedContacts([]);
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    }
+  });
+
   const resetForm = () => {
     setFormData({
       full_name: "",
@@ -734,23 +745,35 @@ export default function ClientDatabase() {
 
       {/* Bulk Actions */}
       {selectedContacts.length > 0 && (
-        <Card className="border-red-300 bg-red-50">
+        <Card className="border-blue-300 bg-blue-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
-                <Trash2 className="w-5 h-5 text-red-600" />
-                <span className="font-medium text-red-900">
+                <Users2 className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-900">
                   {selectedContacts.length} contacto{selectedContacts.length > 1 ? 's' : ''} selecionado{selectedContacts.length > 1 ? 's' : ''}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Select onValueChange={(value) => bulkUpdateTypeMutation.mutate({ ids: selectedContacts, type: value })}>
+                  <SelectTrigger className="w-40 h-8 text-sm">
+                    <SelectValue placeholder="Alterar tipo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="client">Cliente</SelectItem>
+                    <SelectItem value="partner">Parceiro</SelectItem>
+                    <SelectItem value="investor">Investidor</SelectItem>
+                    <SelectItem value="vendor">Fornecedor</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={() => setBulkDeleteConfirm(true)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Eliminar Selecionados
+                  Eliminar
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setSelectedContacts([])}>
                   Cancelar
