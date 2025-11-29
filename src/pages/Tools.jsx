@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
+import ImportContactsDialog from "../components/crm/ImportContactsDialog";
 import VideoMaker from "../components/tools/VideoMaker";
 import CalendarTool from "../components/tools/CalendarTool";
 import PropertyDescriptionGenerator from "../components/tools/PropertyDescriptionGenerator";
@@ -36,6 +37,7 @@ import PortalIntegrations from "../components/tools/PortalIntegrations";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
+  const [importContactsOpen, setImportContactsOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
@@ -134,7 +136,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Target className="w-5 h-5 text-emerald-600" />
                 <h3 className="font-bold text-emerald-900 text-lg">Gestão de Leads</h3>
-                <span className="text-sm text-emerald-600">(3 ferramentas)</span>
+                <span className="text-sm text-emerald-600">(2 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -154,14 +156,6 @@ export default function Tools() {
                   <Zap className="w-4 h-4" />
                   Nurturing Automático
                 </Button>
-                <Button
-                  variant={activeTab === "importLeads" ? "default" : "outline"}
-                  onClick={() => setActiveTab("importLeads")}
-                  className="flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Importar Leads
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -172,7 +166,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Download className="w-5 h-5 text-blue-600" />
                 <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(3 ferramentas)</span>
+                <span className="text-sm text-blue-600">(5 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -183,6 +177,22 @@ export default function Tools() {
                 >
                   <Download className="w-4 h-4" />
                   Importar Imóveis
+                </Button>
+                <Button
+                  variant={activeTab === "importLeads" ? "default" : "outline"}
+                  onClick={() => setActiveTab("importLeads")}
+                  className="flex items-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Importar Leads
+                </Button>
+                <Button
+                  variant={activeTab === "importContacts" ? "default" : "outline"}
+                  onClick={() => setActiveTab("importContacts")}
+                  className="flex items-center gap-2"
+                >
+                  <Users className="w-4 h-4" />
+                  Importar Contactos
                 </Button>
                 <Button
                   variant={activeTab === "exportProperties" ? "default" : "outline"}
@@ -418,6 +428,30 @@ export default function Tools() {
         {activeTab === "reportsExporter" && <ReportsExporter />}
         {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
         {activeTab === "portalIntegrations" && <PortalIntegrations />}
+        {activeTab === "importContacts" && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center py-8">
+                <Users className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Importar Contactos</h3>
+                <p className="text-slate-600 mb-6">Importe contactos de ficheiros CSV, VCF (vCard) ou XML</p>
+                <Button 
+                  onClick={() => setImportContactsOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Abrir Importador
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Import Contacts Dialog */}
+        <ImportContactsDialog
+          open={importContactsOpen}
+          onOpenChange={setImportContactsOpen}
+        />
       </div>
     </div>
   );
