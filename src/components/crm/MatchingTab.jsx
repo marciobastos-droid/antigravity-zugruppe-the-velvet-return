@@ -252,7 +252,7 @@ export default function MatchingTab() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="clients" className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
-                    Todos ({contacts.length})
+                    Todos ({clientContacts.length})
                   </TabsTrigger>
                   <TabsTrigger value="with_requirements" className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
