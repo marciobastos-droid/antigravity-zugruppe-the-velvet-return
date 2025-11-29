@@ -493,7 +493,20 @@ export default function MyListings() {
             {/* Tags Filter */}
             {allTags.length > 0 && (
               <div className="pt-4 border-t border-slate-200">
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Filtrar por Tags</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-slate-700">Filtrar por Tags</label>
+                  {selectedTags.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedTags([])}
+                      className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Limpar Tags ({selectedTags.length})
+                    </Button>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {allTags.map((tag) => (
                     <Badge
