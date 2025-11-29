@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ArrowRight, Target, Users, Euro, MapPin } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 const fieldLabels = {
@@ -80,6 +81,7 @@ export default function ImportOpportunities() {
   const [importing, setImporting] = React.useState(false);
   const [progress, setProgress] = React.useState("");
   const [results, setResults] = React.useState(null);
+  const [importProgress, setImportProgress] = React.useState({ current: 0, total: 0, isRunning: false });
   
   const [csvPreview, setCsvPreview] = React.useState(null);
   const [columnMapping, setColumnMapping] = React.useState({});
@@ -250,6 +252,7 @@ export default function ImportOpportunities() {
   const handleImport = async () => {
     setImporting(true);
     setProgress("A processar dados...");
+    setImportProgress({ current: 0, total: 100, isRunning: true });
     
     try {
       const opportunities = processMappedData();
@@ -257,6 +260,8 @@ export default function ImportOpportunities() {
       if (opportunities.length === 0) {
         throw new Error("Nenhum dado válido para importar");
       }
+
+      setImportProgress({ current: 20, total: 100, isRunning: true });
 
       // Validate - must have at least buyer_name
       const validOpportunities = opportunities.filter(o => o.buyer_name && o.buyer_name.trim().length > 0);
@@ -266,6 +271,7 @@ export default function ImportOpportunities() {
         throw new Error("Nenhuma oportunidade tem nome de contacto válido");
       }
 
+      setImportProgress({ current: 40, total: 100, isRunning: true });
       setProgress(`A gerar referências para ${validOpportunities.length} oportunidades...`);
 
       // Generate ref_ids
@@ -281,25 +287,29 @@ export default function ImportOpportunities() {
         assigned_to: user?.email
       }));
 
+      setImportProgress({ current: 70, total: 100, isRunning: true });
       setProgress(`A guardar ${opportunitiesWithRefIds.length} oportunidades...`);
 
       const created = await base44.entities.Opportunity.bulkCreate(opportunitiesWithRefIds);
+      
+      setImportProgress({ current: 100, total: 100, isRunning: false });
       
       setResults({
         success: true,
         count: created.length,
         opportunities: created,
         invalidCount,
-        message: `✅ ${created.length} oportunidades importadas!${invalidCount > 0 ? `\n⚠️ ${invalidCount} rejeitadas (sem nome)` : ''}`
+        message: `✅ ${created.length} oportunidades importadas com sucesso!${invalidCount > 0 ? `\n⚠️ ${invalidCount} rejeitadas (sem nome)` : ''}`
       });
       
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      toast.success(`${created.length} oportunidades importadas!`);
+      toast.success(`${created.length} oportunidades importadas com sucesso!`);
       setShowPreview(false);
 
     } catch (error) {
       setResults({ success: false, message: error.message || "Erro ao processar CSV" });
       toast.error("Erro na importação");
+      setImportProgress({ current: 0, total: 0, isRunning: false });
     }
     
     setImporting(false);
@@ -458,20 +468,36 @@ export default function ImportOpportunities() {
                 </CardContent>
               </Card>
 
+              {/* Progress Bar */}
+              {importProgress.isRunning && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-700">A importar oportunidades...</span>
+                    <span className="text-sm font-bold text-blue-700">
+                      {importProgress.current}%
+                    </span>
+                  </div>
+                  <Progress value={importProgress.current} className="h-2" />
+                  <p className="text-xs text-blue-600 mt-1">
+                    {progress}
+                  </p>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex gap-2 justify-end pt-2">
-                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                <Button variant="outline" onClick={() => setShowPreview(false)} disabled={importProgress.isRunning}>
                   Cancelar
                 </Button>
                 <Button 
                   onClick={handleImport}
-                  disabled={importing || selectedRows.length === 0 || !columnMapping['buyer_name']}
+                  disabled={importing || selectedRows.length === 0 || !columnMapping['buyer_name'] || importProgress.isRunning}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {importing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {progress}
+                      {importProgress.isRunning ? `${importProgress.current}%` : progress}
                     </>
                   ) : (
                     <>

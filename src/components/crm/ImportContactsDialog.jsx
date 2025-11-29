@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Users, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 const fieldLabels = {
@@ -42,6 +43,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
   const [headers, setHeaders] = React.useState([]);
   const [selectedRows, setSelectedRows] = React.useState([]);
   const [showPreview, setShowPreview] = React.useState(false);
+  const [importProgress, setImportProgress] = React.useState({ current: 0, total: 0, isRunning: false });
 
   const resetState = () => {
     setFile(null);
@@ -268,6 +270,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
   const handleImport = async () => {
     setImporting(true);
     setProgress("A processar contactos...");
+    setImportProgress({ current: 0, total: 0, isRunning: true });
 
     try {
       let contactsToImport = [];
@@ -282,6 +285,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
         throw new Error("Nenhum contacto válido para importar");
       }
 
+      const total = contactsToImport.length;
+      setImportProgress({ current: 0, total, isRunning: true });
       setProgress(`A verificar duplicados...`);
 
       // Check for duplicates
@@ -301,10 +306,12 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
           message: `Todos os ${contactsToImport.length} contactos já existem na base de dados.`
         });
         setImporting(false);
+        setImportProgress({ current: 0, total: 0, isRunning: false });
         return;
       }
 
-      setProgress(`A importar ${newContacts.length} contactos...`);
+      setImportProgress({ current: Math.round(total * 0.2), total, isRunning: true });
+      setProgress(`A preparar ${newContacts.length} contactos...`);
 
       // Add default values and process tags
       const contactsWithDefaults = newContacts.map(c => {
@@ -329,22 +336,28 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
         };
       });
 
+      setImportProgress({ current: Math.round(total * 0.5), total, isRunning: true });
+      setProgress(`A guardar ${newContacts.length} contactos...`);
+
       const created = await base44.entities.ClientContact.bulkCreate(contactsWithDefaults);
+
+      setImportProgress({ current: total, total, isRunning: false });
 
       setResults({
         success: true,
         count: created.length,
         duplicates,
-        message: `✅ ${created.length} contactos importados!${duplicates > 0 ? `\n⚠️ ${duplicates} duplicados ignorados` : ''}`
+        message: `✅ ${created.length} contactos importados com sucesso!${duplicates > 0 ? `\n⚠️ ${duplicates} duplicados ignorados` : ''}`
       });
 
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
-      toast.success(`${created.length} contactos importados!`);
+      toast.success(`${created.length} contactos importados com sucesso!`);
 
     } catch (error) {
       console.error("Import error:", error);
       setResults({ success: false, message: error.message || "Erro ao importar" });
       toast.error("Erro na importação");
+      setImportProgress({ current: 0, total: 0, isRunning: false });
     }
 
     setImporting(false);
@@ -551,21 +564,37 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
           )}
         </div>
 
+        {/* Progress Bar */}
+        {importProgress.isRunning && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-blue-700">A importar contactos...</span>
+              <span className="text-sm font-bold text-blue-700">
+                {Math.round((importProgress.current / importProgress.total) * 100)}%
+              </span>
+            </div>
+            <Progress value={(importProgress.current / importProgress.total) * 100} className="h-2" />
+            <p className="text-xs text-blue-600 mt-1">
+              {importProgress.current} de {importProgress.total} processados
+            </p>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-2 justify-end pt-4 border-t">
-          <Button variant="outline" onClick={handleClose}>
+          <Button variant="outline" onClick={handleClose} disabled={importProgress.isRunning}>
             {results?.success ? "Fechar" : "Cancelar"}
           </Button>
           {showPreview && !results?.success && (
             <Button
               onClick={handleImport}
-              disabled={importing || selectedRows.length === 0}
+              disabled={importing || selectedRows.length === 0 || importProgress.isRunning}
               className="bg-green-600 hover:bg-green-700"
             >
               {importing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {progress}
+                  {importProgress.isRunning ? `${Math.round((importProgress.current / importProgress.total) * 100)}%` : progress}
                 </>
               ) : (
                 <>

@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText, Sparkles, Search } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 const propertySchema = {
@@ -191,6 +192,7 @@ export default function ImportProperties() {
   const [importing, setImporting] = React.useState(false);
   const [progress, setProgress] = React.useState("");
   const [results, setResults] = React.useState(null);
+  const [importProgress, setImportProgress] = React.useState({ current: 0, total: 0, isRunning: false });
   const [validationDetails, setValidationDetails] = React.useState(null);
   const [propertyOwnership, setPropertyOwnership] = React.useState("own"); // "own", "partner", "private"
   const [selectedPartner, setSelectedPartner] = React.useState(null);
@@ -374,6 +376,7 @@ export default function ImportProperties() {
   const handleImportFromPreview = async () => {
     setImporting(true);
     setProgress("A processar dados...");
+    setImportProgress({ current: 0, total: 100, isRunning: true });
     
     try {
       const properties = processMappedData();
@@ -382,6 +385,7 @@ export default function ImportProperties() {
         throw new Error("Nenhum dado válido para importar");
       }
 
+      setImportProgress({ current: 10, total: 100, isRunning: true });
       setProgress(`A classificar ${properties.length} imóveis com IA...`);
 
       // Always use AI to detect/confirm property and listing type
@@ -403,6 +407,7 @@ export default function ImportProperties() {
         })
       );
 
+      setImportProgress({ current: 30, total: 100, isRunning: true });
       setProgress(`A validar ${processedProperties.length} imóveis...`);
 
       const validationResults = processedProperties.map(prop => ({
@@ -425,9 +430,7 @@ export default function ImportProperties() {
         throw new Error("Nenhum imóvel passou na validação. Verifica os dados mapeados e selecionados.");
       }
 
-      setProgress(`A guardar ${validProperties.length} imóveis...`);
-
-      // Gerar tags com IA para cada imóvel válido
+      setImportProgress({ current: 50, total: 100, isRunning: true });
       setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
       const propertiesWithTags = await Promise.all(
         validProperties.map(async (p) => {
@@ -436,6 +439,7 @@ export default function ImportProperties() {
         })
       );
 
+      setImportProgress({ current: 70, total: 100, isRunning: true });
       setProgress(`A guardar ${propertiesWithTags.length} imóveis...`);
 
       // Generate sequential ref_ids for all properties in batch
@@ -461,20 +465,23 @@ export default function ImportProperties() {
       }));
       const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
       
+      setImportProgress({ current: 100, total: 100, isRunning: false });
+      
       setResults({
         success: true,
         count: created.length,
         properties: created,
-        message: `✅ ${created.length} imóveis importados de CSV!\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
+        message: `✅ ${created.length} imóveis importados de CSV com sucesso!\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
       });
       
       queryClient.invalidateQueries({ queryKey: ['properties'] });
-      toast.success(`${created.length} imóveis importados!`);
+      toast.success(`${created.length} imóveis importados com sucesso!`);
       setShowPreview(false); // Close the dialog on success
 
     } catch (error) {
       setResults({ success: false, message: error.message || "Erro ao processar CSV" });
       toast.error("Erro na importação");
+      setImportProgress({ current: 0, total: 0, isRunning: false });
     }
     
     setImporting(false);
@@ -1968,20 +1975,36 @@ A IA extrai automaticamente todos os dados estruturados!`}
                 </CardContent>
               </Card>
 
+              {/* Progress Bar */}
+              {importProgress.isRunning && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-700">A importar imóveis...</span>
+                    <span className="text-sm font-bold text-blue-700">
+                      {importProgress.current}%
+                    </span>
+                  </div>
+                  <Progress value={importProgress.current} className="h-2" />
+                  <p className="text-xs text-blue-600 mt-1">
+                    {progress}
+                  </p>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowPreview(false)}>
+                <Button variant="outline" onClick={() => setShowPreview(false)} disabled={importProgress.isRunning}>
                   Cancelar
                 </Button>
                 <Button 
                   onClick={handleImportFromPreview}
-                  disabled={importing || selectedRows.length === 0}
+                  disabled={importing || selectedRows.length === 0 || importProgress.isRunning}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   {importing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {progress}
+                      {importProgress.isRunning ? `${importProgress.current}%` : progress}
                     </>
                   ) : (
                     <>
