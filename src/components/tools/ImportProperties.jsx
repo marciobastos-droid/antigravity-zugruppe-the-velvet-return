@@ -749,7 +749,9 @@ SINAIS DE LISTAGEM:
 - Filtros de pesquisa visíveis
 - Contador de resultados (ex: "1.234 imóveis encontrados")
 
-Extrai O MÁXIMO de imóveis possível da página.`,
+Extrai O MÁXIMO de imóveis possível da página.
+
+IMPORTANTE: Se um campo não existir, omite-o em vez de enviar string vazia ou null.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
