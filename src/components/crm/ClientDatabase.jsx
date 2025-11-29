@@ -1906,40 +1906,56 @@ export default function ClientDatabase() {
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setBulkEditDialogOpen(false);
-                setBulkEditData({
-                  contact_type: "",
-                  status: "",
-                  source: "",
-                  city: "",
-                  assigned_agent: "",
-                  add_tags: [],
-                  remove_tags: []
-                });
-              }}
-              className="flex-1"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={() => {
-                const dataToSend = {...bulkEditData};
-                if (dataToSend.assigned_agent === "__remove__") {
-                  dataToSend.assigned_agent = "";
-                }
-                bulkEditMutation.mutate({ ids: selectedContacts, data: dataToSend });
-              }}
-              disabled={bulkEditMutation.isPending}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              {bulkEditMutation.isPending ? "A atualizar..." : `Atualizar ${selectedContacts.length} Contactos`}
-            </Button>
-          </div>
+          {bulkProgress.isRunning && (
+                          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-blue-700">A atualizar contactos...</span>
+                              <span className="text-sm font-bold text-blue-700">
+                                {Math.round((bulkProgress.current / bulkProgress.total) * 100)}%
+                              </span>
+                            </div>
+                            <Progress value={(bulkProgress.current / bulkProgress.total) * 100} className="h-2" />
+                            <p className="text-xs text-blue-600 mt-1">
+                              {bulkProgress.current} de {bulkProgress.total} contactos processados
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 pt-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setBulkEditDialogOpen(false);
+                              setBulkEditData({
+                                contact_type: "",
+                                status: "",
+                                source: "",
+                                city: "",
+                                assigned_agent: "",
+                                add_tags: [],
+                                remove_tags: []
+                              });
+                            }}
+                            className="flex-1"
+                            disabled={bulkProgress.isRunning}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              const dataToSend = {...bulkEditData};
+                              if (dataToSend.assigned_agent === "__remove__") {
+                                dataToSend.assigned_agent = "";
+                              }
+                              bulkEditMutation.mutate({ ids: selectedContacts, data: dataToSend });
+                            }}
+                            disabled={bulkEditMutation.isPending || bulkProgress.isRunning}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            {bulkProgress.isRunning ? `${Math.round((bulkProgress.current / bulkProgress.total) * 100)}%` : `Atualizar ${selectedContacts.length} Contactos`}
+                          </Button>
+                        </div>
         </DialogContent>
       </Dialog>
     </div>
