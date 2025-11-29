@@ -1016,59 +1016,138 @@ Quer agendar visitas? Responda aqui! 😊`;
 
         {/* Saved Searches Tab */}
         <TabsContent value="searches" className="mt-4 space-y-3">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => setSaveSearchDialogOpen(true)}
-            disabled={!hasRequirements}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Guardar Pesquisa Atual
-          </Button>
-
-          {savedSearches.length > 0 ? (
+          {/* Saved Properties for Later */}
+          {savedForLaterIds.length > 0 && (
             <div className="space-y-2">
-              {savedSearches.map(search => (
-                <Card key={search.id} className="border-purple-200">
-                  <CardContent className="p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium text-slate-900">{search.name}</h4>
-                        <p className="text-xs text-slate-500">
-                          Criado em {new Date(search.created_date).toLocaleDateString('pt-PT')}
-                        </p>
+              <h4 className="font-semibold text-amber-800 flex items-center gap-2">
+                <Bookmark className="w-4 h-4" />
+                Imóveis Guardados para Enviar ({savedForLaterIds.length})
+              </h4>
+              {sentMatches.filter(sm => sm.client_response === 'saved').map(match => {
+                const property = activeProperties.find(p => p.id === match.property_id);
+                return (
+                  <Card key={match.id} className="border-amber-200 bg-amber-50/30">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        {match.property_image ? (
+                          <img 
+                            src={match.property_image} 
+                            alt={match.property_title}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center">
+                            <Home className="w-6 h-6 text-slate-300" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-slate-900 truncate">{match.property_title}</h4>
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <MapPin className="w-3 h-3" />
+                            {match.property_city}
+                            <span className="font-medium">€{match.property_price?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge className={`${getScoreColor(match.match_score)} border text-xs`}>
+                              {match.match_score}%
+                            </Badge>
+                            <span className="text-xs text-slate-500">
+                              Guardado em {new Date(match.sent_date).toLocaleDateString('pt-PT')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Link 
+                            to={`${createPageUrl("PropertyDetails")}?id=${match.property_id}`}
+                            target="_blank"
+                          >
+                            <Button variant="outline" size="sm" className="h-8">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          {property && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 text-green-600 hover:bg-green-50"
+                              onClick={() => {
+                                setSelectedProperties([match.property_id]);
+                                setMatchResults([{ ...property, matchScore: match.match_score }]);
+                                setActiveTab("results");
+                              }}
+                            >
+                              <Send className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`h-8 w-8 p-0 ${search.alerts_enabled ? 'text-amber-500' : 'text-slate-400'}`}
-                          onClick={() => toggleAlertMutation.mutate({ id: search.id, enabled: !search.alerts_enabled })}
-                        >
-                          {search.alerts_enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-400 hover:text-red-600"
-                          onClick={() => deleteSearchMutation.mutate(search.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
-          ) : (
-            <Card className="text-center py-6">
-              <CardContent>
-                <Bookmark className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-600">Nenhuma pesquisa guardada</p>
-              </CardContent>
-            </Card>
           )}
+
+          {/* Saved Searches Section */}
+          <div className="pt-4 border-t">
+            <Button 
+              variant="outline" 
+              className="w-full mb-3"
+              onClick={() => setSaveSearchDialogOpen(true)}
+              disabled={!hasRequirements}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Guardar Pesquisa Atual
+            </Button>
+
+            {savedSearches.length > 0 ? (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-purple-800 flex items-center gap-2">
+                  <Search className="w-4 h-4" />
+                  Pesquisas Guardadas ({savedSearches.length})
+                </h4>
+                {savedSearches.map(search => (
+                  <Card key={search.id} className="border-purple-200">
+                    <CardContent className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-slate-900">{search.name}</h4>
+                          <p className="text-xs text-slate-500">
+                            Criado em {new Date(search.created_date).toLocaleDateString('pt-PT')}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={`h-8 w-8 p-0 ${search.alerts_enabled ? 'text-amber-500' : 'text-slate-400'}`}
+                            onClick={() => toggleAlertMutation.mutate({ id: search.id, enabled: !search.alerts_enabled })}
+                          >
+                            {search.alerts_enabled ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-400 hover:text-red-600"
+                            onClick={() => deleteSearchMutation.mutate(search.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : savedForLaterIds.length === 0 && (
+              <Card className="text-center py-6">
+                <CardContent>
+                  <Bookmark className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm text-slate-600">Nenhum item guardado</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
