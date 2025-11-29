@@ -34,7 +34,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all' },
-    { name: "Matching", path: createPageUrl("Matching"), icon: Sparkles, id: "nav-matching", visibility: 'all' },
+    { name: "Matching", path: createPageUrl("Matching"), icon: Brain, id: "nav-matching", visibility: 'all' },
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
     { name: "Relatórios", path: createPageUrl("Reports"), icon: FileBarChart, id: "nav-reports", visibility: ['admin', 'gestor', 'agente'] },
     { name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users, id: "nav-users", visibility: ['admin'] },
