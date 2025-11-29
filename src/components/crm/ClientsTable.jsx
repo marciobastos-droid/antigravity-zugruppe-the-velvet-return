@@ -48,7 +48,9 @@ export default function ClientsTable({
   onClientClick,
   onEdit,
   onDelete,
-  onMatching
+  onMatching,
+  selectedContacts = [],
+  onSelectionChange
 }) {
   const getClientCommunications = (clientId) => {
     return communications.filter(c => c.contact_id === clientId);
