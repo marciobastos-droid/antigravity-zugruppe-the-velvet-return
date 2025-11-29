@@ -128,15 +128,31 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
+      let result;
       if (isEditing) {
-        return base44.entities.Opportunity.update(opportunity.id, data);
+        result = await base44.entities.Opportunity.update(opportunity.id, data);
       } else {
         const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
-        return base44.entities.Opportunity.create({ ...data, ref_id: refData.ref_id });
+        result = await base44.entities.Opportunity.create({ ...data, ref_id: refData.ref_id });
       }
+      
+      // Atualizar o assigned_agent do contacto se estiver definido assigned_to
+      if (data.assigned_to && (data.profile_id || data.contact_id || prefillContact?.id)) {
+        const contactId = data.profile_id || data.contact_id || prefillContact?.id;
+        try {
+          await base44.entities.ClientContact.update(contactId, { 
+            assigned_agent: data.assigned_to 
+          });
+        } catch (err) {
+          console.error("Erro ao atualizar contacto com assigned_agent:", err);
+        }
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       toast.success(isEditing ? "Oportunidade atualizada!" : "Oportunidade criada!");
       onOpenChange(false);
       onSaved?.();
