@@ -15,7 +15,7 @@ import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
 import SendEmailDialog from "../email/SendEmailDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
-import LeadScoringEngine from "../leads/LeadScoringEngine";
+import AILeadScoring from "../opportunities/AILeadScoring";
 
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
@@ -347,8 +347,8 @@ Extrai:
           </Card>
         )}
 
-        {/* Lead Scoring */}
-        <LeadScoringEngine lead={lead} showDetails={true} />
+        {/* AI Lead Scoring */}
+        <AILeadScoring opportunity={lead} />
 
         {/* Quick Notes */}
         <Card>
