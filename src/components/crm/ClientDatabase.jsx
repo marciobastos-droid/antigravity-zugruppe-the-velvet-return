@@ -424,7 +424,9 @@ export default function ClientDatabase() {
       c.phone?.includes(searchTerm) ||
       c.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = typeFilter === "all" || c.contact_type === typeFilter;
+    const matchesType = typeFilter === "all" || 
+      (typeFilter === "empty" && !c.contact_type) || 
+      c.contact_type === typeFilter;
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
     const matchesCity = cityFilter === "all" || c.city === cityFilter;
@@ -739,6 +741,7 @@ export default function ClientDatabase() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="empty">Sem Tipo</SelectItem>
                   <SelectItem value="client">Clientes</SelectItem>
                   <SelectItem value="partner">Parceiros</SelectItem>
                   <SelectItem value="investor">Investidores</SelectItem>
