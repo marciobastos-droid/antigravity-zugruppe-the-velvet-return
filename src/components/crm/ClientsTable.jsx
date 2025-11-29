@@ -1,6 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Mail, Phone, MapPin, Building2, Eye, Edit, Trash2, 
   MessageSquare, TrendingUp, Home, Clock, Euro, Bed, 
