@@ -809,7 +809,7 @@ export default function ClientDatabase() {
             </div>
 
             {showAdvancedFilters && (
-              <div className="grid md:grid-cols-5 gap-3 pt-3 border-t">
+              <div className="grid md:grid-cols-6 gap-3 pt-3 border-t">
                 <Select value={sourceFilter} onValueChange={setSourceFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Origem" />
