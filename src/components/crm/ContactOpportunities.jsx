@@ -23,10 +23,13 @@ export default function ContactOpportunities({ contact }) {
     queryFn: async () => {
       if (!contact?.id) return [];
       const allOpps = await base44.entities.Opportunity.list('-updated_date');
+      
+      // Filtrar apenas oportunidades vinculadas a este contacto
       return allOpps.filter(o => 
-        o.profile_id === contact.id || 
         o.contact_id === contact.id ||
-        o.buyer_email === contact.email
+        o.profile_id === contact.id ||
+        (contact.email && o.buyer_email === contact.email) ||
+        (contact.linked_opportunity_ids && contact.linked_opportunity_ids.includes(o.id))
       );
     },
     enabled: !!contact?.id
