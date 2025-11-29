@@ -124,13 +124,20 @@ export default function ClientDatabase() {
     birthday: "",
     preferred_contact_method: "phone",
     tags: [],
-    notes: "",
-    property_requirements: null
-  });
+        notes: "",
+        property_requirements: null,
+        assigned_agent: ""
+      });
 
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me()
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list('full_name'),
+    enabled: !!user && (user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor')
   });
 
   const { data: clients = [], isLoading } = useQuery({
@@ -322,8 +329,9 @@ export default function ClientDatabase() {
       birthday: client.birthday || "",
       preferred_contact_method: client.preferred_contact_method || "phone",
       tags: client.tags || [],
-      notes: client.notes || "",
-      property_requirements: client.property_requirements || null
+              notes: client.notes || "",
+              property_requirements: client.property_requirements || null,
+              assigned_agent: client.assigned_agent || ""
     });
     setDialogOpen(true);
   };
@@ -677,14 +685,35 @@ export default function ClientDatabase() {
                 </div>
               </div>
 
-              <div>
-                <Label>Data de Nascimento</Label>
-                <Input
-                  type="date"
-                  value={formData.birthday}
-                  onChange={(e) => setFormData({...formData, birthday: e.target.value})}
-                />
-              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Data de Nascimento</Label>
+                      <Input
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) => setFormData({...formData, birthday: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label>Responsável</Label>
+                      <Select 
+                        value={formData.assigned_agent || ""} 
+                        onValueChange={(v) => setFormData({...formData, assigned_agent: v})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar responsável..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>Sem responsável</SelectItem>
+                          {users.map((u) => (
+                            <SelectItem key={u.id} value={u.email}>
+                              {u.full_name} ({u.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
               <div>
                 <Label>Etiquetas</Label>
