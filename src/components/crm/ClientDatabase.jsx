@@ -953,8 +953,21 @@ export default function ClientDatabase() {
 
       {/* View Mode Toggle */}
       <div className="flex justify-between items-center mb-4">
-        <div className="text-sm text-slate-600">
-          {selectedContacts.length > 0 && `${selectedContacts.length} selecionado(s)`}
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={toggleSelectAll}
+          >
+            {selectedContacts.length === filteredClients.length && filteredClients.length > 0 
+              ? 'Desselecionar Todos' 
+              : 'Selecionar Todos'}
+          </Button>
+          {selectedContacts.length > 0 && (
+            <span className="text-sm text-slate-600">
+              {selectedContacts.length} de {filteredClients.length} selecionado(s)
+            </span>
+          )}
         </div>
         <div className="flex border rounded-lg overflow-hidden">
           <Button
@@ -1008,11 +1021,23 @@ export default function ClientDatabase() {
             const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
             
             return (
-              <Card key={client.id} className="hover:shadow-md transition-shadow">
+              <Card key={client.id} className={`hover:shadow-md transition-shadow ${selectedContacts.includes(client.id) ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''}`}>
                 <CardContent className="p-4 md:p-6">
                   {/* Mobile Header with Avatar and Actions */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {/* Checkbox for selection */}
+                      <div 
+                        className="flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedContacts.includes(client.id)}
+                          onChange={() => toggleSelectContact(client.id)}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                      </div>
                       {/* Avatar */}
                       <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-bold text-sm md:text-base">
