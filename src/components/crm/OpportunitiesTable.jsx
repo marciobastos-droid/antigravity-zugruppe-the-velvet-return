@@ -48,7 +48,8 @@ const leadTypeIcons = {
 const qualificationConfig = {
   hot: { icon: Flame, color: "text-red-600", bg: "bg-red-100", label: "Hot" },
   warm: { icon: ThermometerSun, color: "text-amber-600", bg: "bg-amber-100", label: "Warm" },
-  cold: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-100", label: "Cold" }
+  cold: { icon: Snowflake, color: "text-blue-600", bg: "bg-blue-100", label: "Cold" },
+  unqualified: { icon: Target, color: "text-slate-500", bg: "bg-slate-100", label: "N/Q" }
 };
 
 export default function OpportunitiesTable({
@@ -122,17 +123,22 @@ export default function OpportunitiesTable({
     {
       key: "qualification_status",
       label: "Qualificação",
-      minWidth: "100px",
-      render: (val) => {
-        if (!val) return '-';
-        const config = qualificationConfig[val];
-        if (!config) return val;
+      minWidth: "110px",
+      sortValue: (row) => row.qualification_score || 0,
+      render: (val, opp) => {
+        const config = qualificationConfig[val] || qualificationConfig.unqualified;
         const Icon = config.icon;
+        const score = opp.qualification_score;
         return (
-          <Badge className={`${config.bg} ${config.color}`}>
-            <Icon className="w-3 h-3 mr-1" />
-            {config.label}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge className={`${config.bg} ${config.color}`}>
+              <Icon className="w-3 h-3 mr-1" />
+              {config.label}
+            </Badge>
+            {score > 0 && (
+              <span className="text-xs text-slate-500 font-medium">{score}</span>
+            )}
+          </div>
         );
       }
     },
