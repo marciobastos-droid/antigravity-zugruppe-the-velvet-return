@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Loader2, Upload, X, Image as ImageIcon, Sparkles } from "lucide-react";
 import PropertyTagger from "../property/PropertyTagger";
+import AIPropertyTools from "../property/AIPropertyTools";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
@@ -585,6 +586,17 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             property={formData}
             onTagsUpdate={handleTagsUpdate}
           />
+
+          {/* AI Property Tools */}
+          {property?.id && (
+            <AIPropertyTools 
+              property={{...property, ...formData}}
+              onUpdate={(id, data) => {
+                setFormData(prev => ({ ...prev, ...data }));
+                return Promise.resolve();
+              }}
+            />
+          )}
 
           {/* Location */}
           <div className="grid md:grid-cols-2 gap-4">
