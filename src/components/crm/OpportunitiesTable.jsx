@@ -63,6 +63,23 @@ export default function OpportunitiesTable({
   onToggleImportant,
   onAssign
 }) {
+  // Buscar contactos para verificar quais oportunidades foram convertidas
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  // Criar mapa de oportunidades convertidas
+  const convertedOpportunities = React.useMemo(() => {
+    const converted = new Set();
+    contacts.forEach(contact => {
+      if (contact.linked_opportunity_ids && contact.linked_opportunity_ids.length > 0) {
+        contact.linked_opportunity_ids.forEach(id => converted.add(id));
+      }
+    });
+    return converted;
+  }, [contacts]);
+
   const columns = [
     {
       key: "buyer_name",
