@@ -77,18 +77,64 @@ export default function ClientDatabase() {
   });
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ['clientContacts'],
-    queryFn: () => base44.entities.ClientContact.list('-created_date')
+    queryKey: ['clientContacts', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      const allClients = await base44.entities.ClientContact.list('-created_date');
+      
+      const userType = user.user_type?.toLowerCase() || '';
+      const permissions = user.permissions || {};
+      
+      // Admins e gestores veem todos
+      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
+        return allClients;
+      }
+      
+      // Verifica permissão canViewAllLeads
+      if (permissions.canViewAllLeads === true) {
+        return allClients;
+      }
+      
+      // Agentes veem apenas os seus contactos
+      return allClients.filter(c => 
+        c.assigned_agent === user.email || c.created_by === user.email
+      );
+    },
+    enabled: !!user
   });
 
   const { data: communications = [] } = useQuery({
-    queryKey: ['communicationLogs'],
-    queryFn: () => base44.entities.CommunicationLog.list('-communication_date')
+    queryKey: ['communicationLogs', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      const allComms = await base44.entities.CommunicationLog.list('-communication_date');
+      
+      const userType = user.user_type?.toLowerCase() || '';
+      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
+        return allComms;
+      }
+      
+      return allComms.filter(c => c.agent_email === user.email || c.created_by === user.email);
+    },
+    enabled: !!user
   });
 
   const { data: opportunities = [] } = useQuery({
-    queryKey: ['opportunities'],
-    queryFn: () => base44.entities.Opportunity.list()
+    queryKey: ['opportunities', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      const allOpps = await base44.entities.Opportunity.list();
+      
+      const userType = user.user_type?.toLowerCase() || '';
+      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
+        return allOpps;
+      }
+      
+      return allOpps.filter(o => 
+        o.seller_email === user.email || o.assigned_to === user.email || o.created_by === user.email
+      );
+    },
+    enabled: !!user
   });
 
   const { data: properties = [] } = useQuery({
