@@ -811,7 +811,7 @@ export default function ClientDatabase() {
                     className="cursor-pointer hover:bg-slate-100"
                     onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
                   >
-                    <Tag className="w-3 h-3 mr-1" />
+                    <TagIcon className="w-3 h-3 mr-1" />
                     {tag}
                   </Badge>
                 ))}
@@ -1088,7 +1088,7 @@ export default function ClientDatabase() {
                         {client.source === 'facebook_ads' ? <Facebook className="w-3 h-3 text-blue-600" /> :
                          client.source === 'website' ? <Globe className="w-3 h-3 text-green-600" /> :
                          client.source === 'referral' ? <Users2 className="w-3 h-3 text-purple-600" /> :
-                         <Tag className="w-3 h-3" />}
+                         <TagIcon className="w-3 h-3" />}
                         <span className="hidden md:inline">
                           {client.source === 'facebook_ads' ? 'Facebook' : 
                            client.source === 'website' ? 'Website' :
@@ -1321,7 +1321,7 @@ export default function ClientDatabase() {
                       )}
                       {selectedClient.nif && (
                         <div className="flex items-center gap-2">
-                          <Tag className="w-4 h-4 text-slate-500" />
+                          <TagIcon className="w-4 h-4 text-slate-500" />
                           NIF: {selectedClient.nif}
                         </div>
                       )}
