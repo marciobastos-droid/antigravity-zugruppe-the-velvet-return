@@ -34,6 +34,7 @@ import WhatsAppIntegration from "../components/tools/WhatsAppIntegration";
 import WhatsAppAgentConfig from "../components/settings/WhatsAppAgentConfig";
 import LeadManagementHub from "../components/leads/LeadManagementHub";
 import PortalIntegrations from "../components/tools/PortalIntegrations";
+import TagManager from "../components/tags/TagManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -394,6 +395,14 @@ export default function Tools() {
                   <StickyNote className="w-4 h-4" />
                   Notas & Sugestões
                 </Button>
+                <Button
+                  variant={activeTab === "tagManager" ? "default" : "outline"}
+                  onClick={() => setActiveTab("tagManager")}
+                  className="flex items-center gap-2"
+                >
+                  <Target className="w-4 h-4" />
+                  Etiquetas
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -428,6 +437,7 @@ export default function Tools() {
         {activeTab === "reportsExporter" && <ReportsExporter />}
         {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
         {activeTab === "portalIntegrations" && <PortalIntegrations />}
+        {activeTab === "tagManager" && <TagManager />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
