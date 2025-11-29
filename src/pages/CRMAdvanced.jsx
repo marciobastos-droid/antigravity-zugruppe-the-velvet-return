@@ -20,7 +20,7 @@ export default function CRMAdvanced() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="metrics" className="flex items-center gap-2">
               <PieChart className="w-4 h-4" />
               <span className="hidden sm:inline">Métricas</span>
@@ -32,6 +32,10 @@ export default function CRMAdvanced() {
             <TabsTrigger value="clients" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Contactos</span>
+            </TabsTrigger>
+            <TabsTrigger value="opportunities" className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              <span className="hidden sm:inline">Oportunidades</span>
             </TabsTrigger>
             <TabsTrigger value="matching" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
