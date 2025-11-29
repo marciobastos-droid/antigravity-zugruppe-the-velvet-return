@@ -41,8 +41,11 @@ export default function MatchingTab() {
 
   const activeProperties = properties.filter(p => p.status === 'active' && p.availability_status === 'available');
 
+  // Only consider contacts of type "client" for matching
+  const clientContacts = contacts.filter(c => c.contact_type === 'client');
+
   // Clients with requirements defined
-  const clientsWithRequirements = contacts.filter(c => 
+  const clientsWithRequirements = clientContacts.filter(c => 
     c.property_requirements && 
     (c.property_requirements.locations?.length > 0 || 
      c.property_requirements.budget_max || 
@@ -50,7 +53,7 @@ export default function MatchingTab() {
   );
 
   // Clients without requirements
-  const clientsWithoutRequirements = contacts.filter(c => 
+  const clientsWithoutRequirements = clientContacts.filter(c => 
     !c.property_requirements || 
     (!c.property_requirements.locations?.length && 
      !c.property_requirements.budget_max && 
