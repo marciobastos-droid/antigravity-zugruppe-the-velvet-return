@@ -786,7 +786,7 @@ export default function MyListings() {
                           {property.description}
                         </p>
 
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
                           <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
                             <Button variant="outline" size="sm">
                               <Eye className="w-4 h-4 mr-2" />
