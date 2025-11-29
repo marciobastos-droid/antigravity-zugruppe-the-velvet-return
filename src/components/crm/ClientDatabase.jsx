@@ -1337,6 +1337,12 @@ export default function ClientDatabase() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Import Contacts Dialog */}
+      <ImportContactsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+      />
     </div>
   );
 }
