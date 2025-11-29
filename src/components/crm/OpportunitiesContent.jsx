@@ -377,7 +377,8 @@ export default function OpportunitiesContent() {
           contact_type: contactTypeMap[lead.lead_type] || 'client',
           source: lead.lead_source || "other",
           notes: `Tipo original: ${lead.lead_type === 'comprador' ? 'Comprador' : lead.lead_type === 'vendedor' ? 'Vendedor' : lead.lead_type === 'parceiro_comprador' ? 'Parceiro Comprador' : 'Parceiro Vendedor'}\n\n${lead.message || ""}`,
-          linked_opportunity_ids: [lead.id]
+          linked_opportunity_ids: [lead.id],
+          assigned_agent: lead.assigned_to || ""
         });
       }));
     },
