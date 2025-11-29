@@ -604,24 +604,25 @@ Equipa Zugruppe`
                   Cancelar
                 </Button>
                 <Button 
-                  onClick={() => {
+                  onClick={async () => {
                     if (selectedUser && editingUserName.trim()) {
-                      updateUserMutation.mutate(
-                        { userId: selectedUser.id, data: { full_name: editingUserName.trim() } },
-                        {
-                          onSuccess: () => {
-                            setEditNameDialogOpen(false);
-                            setSelectedUser(null);
-                            setEditingUserName("");
-                          }
-                        }
-                      );
+                      try {
+                        await base44.entities.User.update(selectedUser.id, { display_name: editingUserName.trim() });
+                        toast.success("Nome atualizado com sucesso");
+                        queryClient.invalidateQueries({ queryKey: ['users'] });
+                        setEditNameDialogOpen(false);
+                        setSelectedUser(null);
+                        setEditingUserName("");
+                      } catch (error) {
+                        console.error("Erro ao atualizar nome:", error);
+                        toast.error("Não foi possível atualizar o nome. O campo full_name é gerido pelo sistema de autenticação.");
+                      }
                     }
                   }}
                   disabled={!editingUserName.trim() || updateUserMutation.isPending}
                   className="flex-1"
                 >
-                  {updateUserMutation.isPending ? "A guardar..." : "Guardar"}
+                  Guardar
                 </Button>
               </div>
             </div>
