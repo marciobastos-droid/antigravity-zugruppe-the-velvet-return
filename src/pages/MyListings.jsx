@@ -19,35 +19,38 @@ import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
 import { debounce } from "lodash";
 import DevelopmentsTab from "../components/developments/DevelopmentsTab";
-import AdvancedFilters, { FILTER_TYPES } from "../components/filters/AdvancedFilters";
-import { useAdvancedFilters } from "../components/filters/useAdvancedFilters";
 
 export default function MyListings() {
   const queryClient = useQueryClient();
   const [selectedProperties, setSelectedProperties] = React.useState([]);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [typeFilter, setTypeFilter] = React.useState("all");
+  const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
+  const [priceMin, setPriceMin] = React.useState("");
+  const [priceMax, setPriceMax] = React.useState("");
+  const [selectedTags, setSelectedTags] = React.useState([]);
+  const [stateFilter, setStateFilter] = React.useState("all");
+  const [cityFilter, setCityFilter] = React.useState("all");
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
   const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
-  const [filterLogic, setFilterLogic] = React.useState("AND");
-  
-  // Estado dos filtros avançados
-  const [filters, setFilters] = React.useState({
-    search: "",
-    status: "all",
-    property_type: "all",
-    listing_type: "all",
-    price: {},
-    tags: [],
-    state: "all",
-    city: "all",
-    created_date: {},
-    updated_date: {},
-    featured: null
-  });
   
   const ITEMS_PER_PAGE = 10;
+
+  // Debounced search
+  React.useEffect(() => {
+    const debouncedUpdate = debounce(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+    
+    debouncedUpdate();
+    return () => debouncedUpdate.cancel();
+  }, [searchTerm]);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -214,6 +217,30 @@ export default function MyListings() {
     );
   };
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setListingTypeFilter("all");
+    setPriceMin("");
+    setPriceMax("");
+    setSelectedTags([]);
+    setStateFilter("all");
+    setCityFilter("all");
+    setCurrentPage(1);
+  };
+
+  // Extrair todas as tags únicas dos imóveis
+  const allTags = React.useMemo(() => {
+    const tagsSet = new Set();
+    properties.forEach(p => {
+      if (p.tags?.length) {
+        p.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  }, [properties]);
+
   // Extrair todos os distritos e concelhos únicos
   const allStates = React.useMemo(() => {
     const statesSet = new Set();
@@ -226,112 +253,38 @@ export default function MyListings() {
   const allCities = React.useMemo(() => {
     const citiesSet = new Set();
     properties.forEach(p => {
-      if (p.city && (filters.state === "all" || p.state === filters.state)) {
+      if (p.city && (stateFilter === "all" || p.state === stateFilter)) {
         citiesSet.add(p.city);
       }
     });
     return Array.from(citiesSet).sort();
-  }, [properties, filters.state]);
+  }, [properties, stateFilter]);
 
-  // Configuração dos filtros avançados
-  const filterConfig = React.useMemo(() => ({
-    search: {
-      type: FILTER_TYPES.text,
-      label: "Pesquisar",
-      placeholder: "Título, cidade, morada...",
-      searchFields: ["title", "city", "address", "ref_id"]
-    },
-    status: {
-      type: FILTER_TYPES.select,
-      label: "Estado",
-      field: "status",
-      options: [
-        { value: "active", label: "Ativo" },
-        { value: "pending", label: "Pendente" },
-        { value: "sold", label: "Vendido" },
-        { value: "rented", label: "Arrendado" },
-        { value: "off_market", label: "Desativado" }
-      ]
-    },
-    property_type: {
-      type: FILTER_TYPES.select,
-      label: "Tipo de Imóvel",
-      field: "property_type",
-      options: [
-        { value: "house", label: "Moradia" },
-        { value: "apartment", label: "Apartamento" },
-        { value: "condo", label: "Condomínio" },
-        { value: "townhouse", label: "Casa Geminada" },
-        { value: "building", label: "Prédio" },
-        { value: "land", label: "Terreno" },
-        { value: "commercial", label: "Comercial" },
-        { value: "warehouse", label: "Armazém" },
-        { value: "office", label: "Escritório" },
-        { value: "store", label: "Loja" },
-        { value: "farm", label: "Quinta" },
-        { value: "development", label: "Empreendimento" }
-      ]
-    },
-    listing_type: {
-      type: FILTER_TYPES.select,
-      label: "Tipo de Anúncio",
-      field: "listing_type",
-      options: [
-        { value: "sale", label: "Venda" },
-        { value: "rent", label: "Arrendamento" }
-      ]
-    },
-    price: {
-      type: FILTER_TYPES.numberRange,
-      label: "Preço (€)",
-      field: "price",
-      prefix: "€"
-    },
-    state: {
-      type: FILTER_TYPES.select,
-      label: "Distrito",
-      field: "state",
-      options: allStates.map(s => ({ value: s, label: s })),
-      advanced: true
-    },
-    city: {
-      type: FILTER_TYPES.select,
-      label: "Concelho",
-      field: "city",
-      options: allCities.map(c => ({ value: c, label: c })),
-      advanced: true
-    },
-    tags: {
-      type: FILTER_TYPES.multiSelect,
-      label: "Etiquetas",
-      field: "tags",
-      options: propertyTags.map(t => ({ value: t.name, label: t.name })),
-      advanced: true
-    },
-    created_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Criação",
-      field: "created_date",
-      advanced: true
-    },
-    updated_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Atualização",
-      field: "updated_date",
-      advanced: true
-    },
-    featured: {
-      type: FILTER_TYPES.boolean,
-      label: "Destaque",
-      field: "featured",
-      trueLabel: "Sim",
-      falseLabel: "Não",
-      advanced: true
-    }
-  }), [allStates, allCities, propertyTags]);
+  const toggleTag = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+    setCurrentPage(1);
+  };
 
-  // Aplicar filtros avançados
-  const filteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
+  const filteredProperties = properties.filter(p => {
+    const matchesSearch = debouncedSearch === "" || 
+      p.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      p.address?.toLowerCase().includes(debouncedSearch.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || p.status === statusFilter;
+    const matchesType = typeFilter === "all" || p.property_type === typeFilter;
+    const matchesListingType = listingTypeFilter === "all" || p.listing_type === listingTypeFilter;
+    
+    const matchesPriceMin = priceMin === "" || p.price >= parseFloat(priceMin);
+    const matchesPriceMax = priceMax === "" || p.price <= parseFloat(priceMax);
+    const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => p.tags?.includes(tag));
+    const matchesState = stateFilter === "all" || p.state === stateFilter;
+    const matchesCity = cityFilter === "all" || p.city === cityFilter;
+    
+    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax && matchesTags && matchesState && matchesCity;
+  });
 
   const toggleSelectAll = () => {
     setSelectedProperties(prev =>
@@ -347,14 +300,12 @@ export default function MyListings() {
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax, selectedTags, stateFilter, cityFilter]);
 
   // Reset city filter when state changes
   React.useEffect(() => {
-    if (filters.state !== "all") {
-      setFilters(prev => ({ ...prev, city: "all" }));
-    }
-  }, [filters.state]);
+    setCityFilter("all");
+  }, [stateFilter]);
 
   const statusLabels = {
     active: "Ativo",
@@ -387,13 +338,9 @@ export default function MyListings() {
     development: "Empreendimento"
   };
 
-  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
-    if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'object' && value !== null) {
-      return Object.values(value).some(v => v !== null && v !== "" && v !== undefined);
-    }
-    return value !== "" && value !== "all" && value !== null && value !== undefined;
-  });
+  const hasActiveFilters = searchTerm || statusFilter !== "all" || typeFilter !== "all" || 
+                          listingTypeFilter !== "all" || priceMin || priceMax || selectedTags.length > 0 ||
+                          stateFilter !== "all" || cityFilter !== "all";
 
   if (isLoading) {
     return (
@@ -439,17 +386,196 @@ export default function MyListings() {
         ) : (
         <>
         {/* Advanced Filters */}
-        <AdvancedFilters
-          filterConfig={filterConfig}
-          filters={filters}
-          onFiltersChange={setFilters}
-          savedFiltersKey="properties"
-          totalCount={properties.length}
-          filteredCount={filteredProperties.length}
-          showSavedFilters={true}
-          showLogicToggle={true}
-          className="mb-6"
-        />
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Filter className="w-5 h-5 text-slate-700" />
+              <h3 className="font-semibold text-slate-900">Filtros Avançados</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Pesquisar</label>
+                <div className="relative">
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Título, cidade, morada..."
+                    className="pr-8"
+                  />
+                  {searchTerm && (
+                    <button 
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Estado</label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Estados</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="sold">Vendido</SelectItem>
+                    <SelectItem value="rented">Arrendado</SelectItem>
+                    <SelectItem value="off_market">Desativado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Imóvel</label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="house">Moradia</SelectItem>
+                    <SelectItem value="apartment">Apartamento</SelectItem>
+                    <SelectItem value="condo">Condomínio</SelectItem>
+                    <SelectItem value="townhouse">Casa Geminada</SelectItem>
+                    <SelectItem value="building">Prédio</SelectItem>
+                    <SelectItem value="land">Terreno</SelectItem>
+                    <SelectItem value="commercial">Comercial</SelectItem>
+                    <SelectItem value="warehouse">Armazém</SelectItem>
+                    <SelectItem value="office">Escritório</SelectItem>
+                    <SelectItem value="store">Loja</SelectItem>
+                    <SelectItem value="farm">Quinta</SelectItem>
+                    <SelectItem value="development">Empreendimento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Anúncio</label>
+                <Select value={listingTypeFilter} onValueChange={setListingTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="sale">Venda</SelectItem>
+                    <SelectItem value="rent">Arrendamento</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Preço Mínimo (€)</label>
+                <Input
+                  type="number"
+                  value={priceMin}
+                  onChange={(e) => setPriceMin(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Preço Máximo (€)</label>
+                <Input
+                  type="number"
+                  value={priceMax}
+                  onChange={(e) => setPriceMax(e.target.value)}
+                  placeholder="5000000"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Distrito</label>
+                <Select value={stateFilter} onValueChange={setStateFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Distritos</SelectItem>
+                    {allStates.map((state) => (
+                      <SelectItem key={state} value={state}>{state}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Concelho</label>
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Concelhos</SelectItem>
+                    {allCities.map((city) => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Tags Filter - usando etiquetas do sistema */}
+            {propertyTags.length > 0 && (
+              <div className="pt-4 border-t border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-slate-700">Filtrar por Etiquetas</label>
+                  {selectedTags.length > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedTags([])}
+                      className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Limpar ({selectedTags.length})
+                    </Button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {propertyTags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                      className="cursor-pointer transition-colors"
+                      style={selectedTags.includes(tag.name) ? {
+                        backgroundColor: tag.color,
+                        color: 'white',
+                        borderColor: tag.color
+                      } : {
+                        backgroundColor: `${tag.color}15`,
+                        color: tag.color,
+                        borderColor: tag.color
+                      }}
+                      onClick={() => toggleTag(tag.name)}
+                    >
+                      {tag.name}
+                      {selectedTags.includes(tag.name) && (
+                        <X className="w-3 h-3 ml-1" />
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+              <p className="text-sm text-slate-600">
+                A mostrar <strong>{filteredProperties.length}</strong> de <strong>{properties.length}</strong> imóveis
+              </p>
+              {hasActiveFilters && (
+                <Button variant="link" size="sm" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {selectedProperties.length > 0 && (
           <Card className="mb-6 border-blue-500 bg-blue-50">

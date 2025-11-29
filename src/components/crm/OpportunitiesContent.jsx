@@ -15,35 +15,24 @@ import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
 import OpportunitiesTable from "./OpportunitiesTable";
 import SendEmailDialog from "../email/SendEmailDialog";
-import AdvancedFilters, { FILTER_TYPES } from "../filters/AdvancedFilters";
-import { useAdvancedFilters } from "../filters/useAdvancedFilters";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = React.useState("table");
   const [selectedLead, setSelectedLead] = React.useState(null);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState("all");
+  const [leadTypeFilter, setLeadTypeFilter] = React.useState("all");
+  const [qualificationFilter, setQualificationFilter] = React.useState("all");
+  const [sourceFilter, setSourceFilter] = React.useState("all");
+  const [agentFilter, setAgentFilter] = React.useState("all");
+  const [campaignFilter, setCampaignFilter] = React.useState("all");
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
   const [formDialogOpen, setFormDialogOpen] = React.useState(false);
   const [editingOpportunity, setEditingOpportunity] = React.useState(null);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
-  const [filterLogic, setFilterLogic] = React.useState("AND");
-  
-  // Estado dos filtros avançados
-  const [filters, setFilters] = React.useState({
-    search: "",
-    status: "all",
-    lead_type: "all",
-    qualification_status: "all",
-    lead_source: "all",
-    assigned_to: "all",
-    priority: "all",
-    created_date: {},
-    updated_date: {},
-    budget: {},
-    estimated_value: {}
-  });
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -106,185 +95,13 @@ export default function OpportunitiesContent() {
     });
     opportunities.forEach(opp => {
       if (opp.source_url?.includes('facebook') && opp.message) {
+        // Try to extract campaign from message if stored there
         const campaignMatch = opp.message.match(/Campanha:\s*(.+?)(?:\n|$)/i);
         if (campaignMatch) campaignsSet.add(campaignMatch[1].trim());
       }
     });
     return Array.from(campaignsSet).sort();
   }, [facebookLeads, opportunities]);
-
-  // Configuração dos filtros avançados para oportunidades
-  const filterConfig = React.useMemo(() => ({
-    search: {
-      type: FILTER_TYPES.text,
-      label: "Pesquisar",
-      placeholder: "Nome ou email...",
-      searchFields: ["buyer_name", "buyer_email", "buyer_phone", "location"]
-    },
-    status: {
-      type: FILTER_TYPES.select,
-      label: "Estado",
-      field: "status",
-      options: [
-        { value: "new", label: "Novo" },
-        { value: "contacted", label: "Contactado" },
-        { value: "qualified", label: "Qualificado" },
-        { value: "proposal", label: "Proposta" },
-        { value: "negotiation", label: "Negociação" },
-        { value: "won", label: "Ganho" },
-        { value: "lost", label: "Perdido" }
-      ]
-    },
-    lead_type: {
-      type: FILTER_TYPES.select,
-      label: "Tipo",
-      field: "lead_type",
-      options: [
-        { value: "comprador", label: "Comprador" },
-        { value: "vendedor", label: "Vendedor" },
-        { value: "parceiro_comprador", label: "Parceiro Comprador" },
-        { value: "parceiro_vendedor", label: "Parceiro Vendedor" }
-      ]
-    },
-    qualification_status: {
-      type: FILTER_TYPES.select,
-      label: "Qualificação",
-      field: "qualification_status",
-      options: [
-        { value: "hot", label: "🔥 Hot" },
-        { value: "warm", label: "🌡️ Warm" },
-        { value: "cold", label: "❄️ Cold" },
-        { value: "unqualified", label: "Não Qualificado" }
-      ]
-    },
-    lead_source: {
-      type: FILTER_TYPES.select,
-      label: "Origem",
-      field: "lead_source",
-      options: [
-        { value: "facebook_ads", label: "Facebook Ads" },
-        { value: "website", label: "Website" },
-        { value: "referral", label: "Referência" },
-        { value: "direct_contact", label: "Contacto Direto" },
-        { value: "real_estate_portal", label: "Portal Imobiliário" },
-        { value: "networking", label: "Networking" },
-        { value: "other", label: "Outro" }
-      ]
-    },
-    assigned_to: {
-      type: FILTER_TYPES.select,
-      label: "Agente",
-      field: "assigned_to",
-      options: [
-        { value: "unassigned", label: "Sem agente" },
-        ...users.map(u => ({ value: u.email, label: u.full_name }))
-      ]
-    },
-    priority: {
-      type: FILTER_TYPES.select,
-      label: "Prioridade",
-      field: "priority",
-      options: [
-        { value: "high", label: "Alta" },
-        { value: "medium", label: "Média" },
-        { value: "low", label: "Baixa" }
-      ],
-      advanced: true
-    },
-    created_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Criação",
-      field: "created_date",
-      advanced: true
-    },
-    updated_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Atualização",
-      field: "updated_date",
-      advanced: true
-    },
-    budget: {
-      type: FILTER_TYPES.numberRange,
-      label: "Orçamento",
-      field: "budget",
-      prefix: "€",
-      advanced: true
-    },
-    estimated_value: {
-      type: FILTER_TYPES.numberRange,
-      label: "Valor Estimado",
-      field: "estimated_value",
-      prefix: "€",
-      advanced: true
-    }
-  }), [users]);
-
-  // Aplicar filtros avançados - com tratamento especial para "unassigned"
-  const filteredOpportunities = React.useMemo(() => {
-    return opportunities.filter(opp => {
-      const results = Object.entries(filters).map(([key, value]) => {
-        const config = filterConfig[key];
-        if (!config) return true;
-        
-        if (value === "" || value === "all" || value === null || value === undefined) return true;
-        if (Array.isArray(value) && value.length === 0) return true;
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          const hasValue = Object.values(value).some(v => v !== null && v !== "" && v !== undefined);
-          if (!hasValue) return true;
-        }
-
-        // Tratamento especial para assigned_to com "unassigned"
-        if (key === "assigned_to" && value === "unassigned") {
-          return !opp.assigned_to;
-        }
-
-        // Pesquisa de texto
-        if (config.type === "text" && config.searchFields) {
-          const searchValue = String(value).toLowerCase();
-          return config.searchFields.some(field => {
-            const fieldValue = opp[field];
-            return fieldValue && String(fieldValue).toLowerCase().includes(searchValue);
-          });
-        }
-
-        // Select simples
-        if (config.type === "select") {
-          return opp[config.field] === value;
-        }
-
-        // Date range
-        if (config.type === "dateRange") {
-          const dateValue = opp[config.field];
-          if (!dateValue) return true;
-          const date = new Date(dateValue);
-          if (value.from) {
-            const fromDate = new Date(value.from);
-            fromDate.setHours(0, 0, 0, 0);
-            if (date < fromDate) return false;
-          }
-          if (value.to) {
-            const toDate = new Date(value.to);
-            toDate.setHours(23, 59, 59, 999);
-            if (date > toDate) return false;
-          }
-          return true;
-        }
-
-        // Number range
-        if (config.type === "numberRange") {
-          const numValue = opp[config.field];
-          if (numValue === null || numValue === undefined) return true;
-          if (value.min !== null && value.min !== undefined && numValue < value.min) return false;
-          if (value.max !== null && value.max !== undefined && numValue > value.max) return false;
-          return true;
-        }
-
-        return true;
-      });
-
-      return filterLogic === "OR" ? results.some(r => r) : results.every(r => r);
-    });
-  }, [opportunities, filters, filterConfig, filterLogic]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Opportunity.update(id, data),
@@ -422,6 +239,43 @@ export default function OpportunitiesContent() {
       setSelectedLeads(filteredOpportunities.map(o => o.id));
     }
   };
+
+  const filteredOpportunities = opportunities.filter(opp => {
+    const matchesSearch = searchTerm === "" || 
+      opp.buyer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      opp.buyer_email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || opp.status === statusFilter;
+    const matchesLeadType = leadTypeFilter === "all" || opp.lead_type === leadTypeFilter;
+    const matchesQualification = qualificationFilter === "all" || opp.qualification_status === qualificationFilter;
+    const matchesAgent = agentFilter === "all" || 
+      (agentFilter === "unassigned" ? !opp.assigned_to : opp.assigned_to === agentFilter);
+    
+    let matchesSource = true;
+    if (sourceFilter !== "all") {
+      if (sourceFilter === "facebook") {
+        matchesSource = opp.source_url?.includes('facebook') || opp.message?.includes('Facebook');
+      } else if (sourceFilter === "website") {
+        matchesSource = !opp.source_url || opp.source_url === 'website';
+      } else if (sourceFilter === "manual") {
+        matchesSource = opp.source_url === 'manual' || !opp.source_url;
+      }
+    }
+
+    let matchesCampaign = true;
+    if (campaignFilter !== "all") {
+      // Check if opportunity came from this campaign
+      const fbLead = facebookLeads.find(fl => fl.converted_to_opportunity_id === opp.id);
+      if (fbLead) {
+        matchesCampaign = fbLead.campaign_name === campaignFilter;
+      } else {
+        // Check message for campaign reference
+        matchesCampaign = opp.message?.includes(campaignFilter);
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesLeadType && matchesQualification && matchesSource && matchesAgent && matchesCampaign;
+  });
 
   const stats = React.useMemo(() => {
     const totalValue = opportunities.reduce((sum, o) => sum + (o.estimated_value || 0), 0);
@@ -607,16 +461,124 @@ export default function OpportunitiesContent() {
 
       {/* Filters */}
       {viewMode !== "dashboard" && (
-        <AdvancedFilters
-          filterConfig={filterConfig}
-          filters={filters}
-          onFiltersChange={setFilters}
-          savedFiltersKey="opportunities"
-          totalCount={opportunities.length}
-          filteredCount={filteredOpportunities.length}
-          showSavedFilters={true}
-          showLogicToggle={true}
-        />
+        <Card>
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
+              <div className="md:col-span-2">
+                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Pesquisar</label>
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Nome ou email..."
+                />
+              </div>
+              
+              {viewMode === "table" && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">Estado</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="new">Novos</SelectItem>
+                      <SelectItem value="contacted">Contactados</SelectItem>
+                      <SelectItem value="qualified">Qualificados</SelectItem>
+                      <SelectItem value="proposal">Proposta</SelectItem>
+                      <SelectItem value="negotiation">Negociação</SelectItem>
+                      <SelectItem value="won">Ganhos</SelectItem>
+                      <SelectItem value="lost">Perdidos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipo</label>
+                <Select value={leadTypeFilter} onValueChange={setLeadTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="comprador">Comprador</SelectItem>
+                    <SelectItem value="vendedor">Vendedor</SelectItem>
+                    <SelectItem value="parceiro_comprador">Parceiro Comprador</SelectItem>
+                    <SelectItem value="parceiro_vendedor">Parceiro Vendedor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Qualificação</label>
+                <Select value={qualificationFilter} onValueChange={setQualificationFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Qualificação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="hot">🔥 Hot</SelectItem>
+                    <SelectItem value="warm">🌡️ Warm</SelectItem>
+                    <SelectItem value="cold">❄️ Cold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Origem</label>
+                <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="facebook">Facebook</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Agente</label>
+                <Select value={agentFilter} onValueChange={setAgentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Agente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="unassigned">Sem agente</SelectItem>
+                    {users.map((u) => (
+                      <SelectItem key={u.id} value={u.email}>
+                        {u.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {allCampaigns.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">Campanha</label>
+                  <Select value={campaignFilter} onValueChange={setCampaignFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Campanha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {allCampaigns.map((campaign) => (
+                        <SelectItem key={campaign} value={campaign}>
+                          {campaign}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Content */}
