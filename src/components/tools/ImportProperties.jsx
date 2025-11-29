@@ -780,10 +780,12 @@ IMPORTANTE: Se um campo não existir, omite-o em vez de enviar string vazia ou n
                   detail_url: { type: "string" },
                   amenities: { type: "array", items: { type: "string" } },
                   images: { type: "array", items: { type: "string" } }
-                }
+                },
+                required: ["title"]
               }
             }
-          }
+          },
+          required: ["properties"]
         }
       });
 
