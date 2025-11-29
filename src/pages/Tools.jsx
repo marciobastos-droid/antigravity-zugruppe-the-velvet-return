@@ -197,6 +197,14 @@ export default function Tools() {
                   Importar Contactos
                 </Button>
                 <Button
+                  variant={activeTab === "importOpportunities" ? "default" : "outline"}
+                  onClick={() => setActiveTab("importOpportunities")}
+                  className="flex items-center gap-2"
+                >
+                  <Target className="w-4 h-4" />
+                  Importar Oportunidades
+                </Button>
+                <Button
                   variant={activeTab === "exportProperties" ? "default" : "outline"}
                   onClick={() => setActiveTab("exportProperties")}
                   className="flex items-center gap-2"
