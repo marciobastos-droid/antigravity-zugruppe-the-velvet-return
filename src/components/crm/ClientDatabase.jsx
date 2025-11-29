@@ -33,6 +33,7 @@ import ClientPortalManager from "./ClientPortalManager";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import ContactOpportunities from "./ContactOpportunities";
 import TagSelector from "../tags/TagSelector";
+import QuickContactActions from "./QuickContactActions";
 
 function BulkTagSelector({ onTagSelect }) {
   const [open, setOpen] = React.useState(false);
@@ -1483,7 +1484,18 @@ export default function ClientDatabase() {
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-2 mt-6">
+                {/* Quick Contact Actions */}
+                <div className="flex flex-wrap gap-2 mt-6 mb-4 p-3 bg-slate-50 rounded-lg border">
+                  <div className="w-full mb-2">
+                    <span className="text-xs font-medium text-slate-500 uppercase">Ações Rápidas</span>
+                  </div>
+                  <QuickContactActions 
+                    contact={selectedClient} 
+                    onCommunicationLogged={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2">
                   <Button 
                     onClick={() => { 
                       setEmailRecipient({
