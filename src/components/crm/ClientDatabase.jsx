@@ -181,6 +181,18 @@ export default function ClientDatabase() {
     }
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids) => {
+      await Promise.all(ids.map(id => base44.entities.ClientContact.delete(id)));
+    },
+    onSuccess: (_, ids) => {
+      toast.success(`${ids.length} contactos eliminados`);
+      setSelectedContacts([]);
+      setBulkDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    }
+  });
+
   const resetForm = () => {
     setFormData({
       full_name: "",
@@ -246,6 +258,8 @@ export default function ClientDatabase() {
   };
 
   const [deleteConfirm, setDeleteConfirm] = React.useState(null);
+  const [selectedContacts, setSelectedContacts] = React.useState([]);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = React.useState(false);
 
   const handleDelete = (id, name, e) => {
     // Prevent event propagation issues on mobile
@@ -261,6 +275,18 @@ export default function ClientDatabase() {
       deleteMutation.mutate(deleteConfirm.id);
       setDeleteConfirm(null);
     }
+  };
+
+  const toggleSelectContact = (id) => {
+    setSelectedContacts(prev =>
+      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedContacts(prev =>
+      prev.length === filteredClients.length ? [] : filteredClients.map(c => c.id)
+    );
   };
 
   const getClientCommunications = (clientId) => {
@@ -706,8 +732,40 @@ export default function ClientDatabase() {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions */}
+      {selectedContacts.length > 0 && (
+        <Card className="border-red-300 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Trash2 className="w-5 h-5 text-red-600" />
+                <span className="font-medium text-red-900">
+                  {selectedContacts.length} contacto{selectedContacts.length > 1 ? 's' : ''} selecionado{selectedContacts.length > 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setBulkDeleteConfirm(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar Selecionados
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSelectedContacts([])}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* View Mode Toggle */}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-between items-center mb-4">
+        <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+          {selectedContacts.length === filteredClients.length && filteredClients.length > 0 ? 'Desselecionar' : 'Selecionar'} Todos
+        </Button>
         <div className="flex border rounded-lg overflow-hidden">
           <Button
             variant={viewMode === "table" ? "default" : "ghost"}
