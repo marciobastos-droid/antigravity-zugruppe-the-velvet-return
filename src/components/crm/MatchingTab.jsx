@@ -110,7 +110,7 @@ export default function MatchingTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-indigo-100 text-sm">Clientes Ativos</p>
-                <p className="text-3xl font-bold">{contacts.length}</p>
+                <p className="text-3xl font-bold">{clientContacts.length}</p>
               </div>
               <Users className="w-10 h-10 text-indigo-200" />
             </div>
