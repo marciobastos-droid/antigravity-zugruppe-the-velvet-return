@@ -635,7 +635,11 @@ export default function MyListings() {
             <>
             <div className="grid grid-cols-1 gap-6">
               {paginatedProperties.map((property) => (
-                <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                <Card 
+                  key={property.id} 
+                  className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                  onClick={() => setEditingProperty(property)}
+                >
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
                       {/* Checkbox */}
