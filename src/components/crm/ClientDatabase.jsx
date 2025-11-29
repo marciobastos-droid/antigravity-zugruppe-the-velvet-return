@@ -575,6 +575,7 @@ export default function ClientDatabase() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
