@@ -469,6 +469,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                           <TableHead>Email</TableHead>
                           <TableHead>Telefone</TableHead>
                           <TableHead>Empresa</TableHead>
+                          <TableHead>Etiquetas</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -501,6 +502,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                               <TableCell>{mappedContact.email || '-'}</TableCell>
                               <TableCell>{mappedContact.phone || '-'}</TableCell>
                               <TableCell>{mappedContact.company || '-'}</TableCell>
+                              <TableCell>{mappedContact.tags || '-'}</TableCell>
                             </TableRow>
                           );
                         })}
