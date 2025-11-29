@@ -221,12 +221,16 @@ export default function ClientDatabase() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.ClientContact.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       toast.success("Contacto atualizado");
-      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
-      // Update selectedClient if it was the one being edited
-      if (selectedClient && editingClient && selectedClient.id === editingClient.id) {
-        setSelectedClient(prev => prev ? { ...prev, ...formData } : null);
+      await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      
+      // Refresh selectedClient with updated data from the server
+      if (selectedClient && selectedClient.id === variables.id) {
+        const updatedClients = await base44.entities.ClientContact.filter({ id: variables.id });
+        if (updatedClients.length > 0) {
+          setSelectedClient(updatedClients[0]);
+        }
       }
       resetForm();
     }
