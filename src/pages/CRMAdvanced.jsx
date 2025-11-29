@@ -63,6 +63,10 @@ export default function CRMAdvanced() {
             <ClientDatabase />
           </TabsContent>
 
+          <TabsContent value="opportunities">
+            <OpportunitiesContent />
+          </TabsContent>
+
           <TabsContent value="matching">
             <MatchingTab />
           </TabsContent>
