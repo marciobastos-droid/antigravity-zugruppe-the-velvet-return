@@ -1721,11 +1721,18 @@ A IA extrai automaticamente todos os dados estruturados!`}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-900 font-medium mb-1">🔒 Sistema Melhorado</p>
             <p className="text-xs text-blue-700">
+              ✓ <strong>Deteta automaticamente listagens</strong> e importa todos os imóveis
+              <br />
               ✓ Extração precisa de preços formato português (495.000 € = 495000)
               <br />
-              ✓ Validação rigorosa antes de importar
-              <br />
               ✓ Suporte para Idealista, Imovirtual, Casa Sapo e mais
+            </p>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-900 font-medium mb-1">💡 Dica: Importar múltiplos imóveis</p>
+            <p className="text-xs text-amber-700">
+              Cole o link de uma <strong>página de pesquisa/listagem</strong> (ex: idealista.pt/comprar-casas/lisboa/) para importar todos os imóveis de uma vez!
             </p>
           </div>
         </CardContent>
