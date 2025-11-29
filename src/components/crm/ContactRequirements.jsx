@@ -88,13 +88,16 @@ export default function ContactRequirements({ contact, onUpdate }) {
       await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
       return data;
     },
-    onSuccess: (savedRequirements) => {
+    onSuccess: async (savedRequirements) => {
       toast.success("Requisitos atualizados");
       setRequirements(savedRequirements);
       setEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
-      if (onUpdate) {
-        onUpdate({ ...contact, property_requirements: savedRequirements });
+      await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      
+      // Fetch the updated contact from server
+      const updatedContacts = await base44.entities.ClientContact.filter({ id: contact.id });
+      if (updatedContacts.length > 0 && onUpdate) {
+        onUpdate(updatedContacts[0]);
       }
     },
     onError: (error) => {
