@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2 } from "lucide-react";
+import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UserManagement() {
@@ -18,6 +18,8 @@ export default function UserManagement() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+  const [editingUserName, setEditingUserName] = useState("");
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -396,6 +398,20 @@ Equipa Zugruppe`
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-xl font-bold text-slate-900">{user.full_name}</h3>
+                          {isFullAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-slate-400 hover:text-slate-700"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setEditingUserName(user.full_name || "");
+                                setEditNameDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
                           {isCurrentUser && (
                             <Badge variant="outline" className="bg-blue-50 text-blue-700">Você</Badge>
                           )}
@@ -550,6 +566,67 @@ Equipa Zugruppe`
             </CardContent>
           </Card>
         )}
+
+        {/* Edit Name Dialog */}
+        <Dialog open={editNameDialogOpen} onOpenChange={(open) => {
+          setEditNameDialogOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+            setEditingUserName("");
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-blue-600" />
+                Editar Nome do Utilizador
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Nome Completo</Label>
+                <Input
+                  value={editingUserName}
+                  onChange={(e) => setEditingUserName(e.target.value)}
+                  placeholder="Nome do utilizador"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setEditNameDialogOpen(false);
+                    setSelectedUser(null);
+                    setEditingUserName("");
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (selectedUser && editingUserName.trim()) {
+                      updateUserMutation.mutate(
+                        { userId: selectedUser.id, data: { full_name: editingUserName.trim() } },
+                        {
+                          onSuccess: () => {
+                            setEditNameDialogOpen(false);
+                            setSelectedUser(null);
+                            setEditingUserName("");
+                          }
+                        }
+                      );
+                    }
+                  }}
+                  disabled={!editingUserName.trim() || updateUserMutation.isPending}
+                  className="flex-1"
+                >
+                  {updateUserMutation.isPending ? "A guardar..." : "Guardar"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Permissions Dialog */}
         <Dialog open={permissionsDialogOpen} onOpenChange={(open) => {
