@@ -307,6 +307,73 @@ export default function ClientDatabase() {
     }
   });
 
+  const bulkEditMutation = useMutation({
+    mutationFn: async ({ ids, data }) => {
+      const contactsToUpdate = clients.filter(c => ids.includes(c.id));
+      let updated = 0;
+      let failed = 0;
+
+      for (const contact of contactsToUpdate) {
+        try {
+          const updateData = {};
+          
+          // Only update non-empty fields
+          if (data.contact_type) updateData.contact_type = data.contact_type;
+          if (data.status) updateData.status = data.status;
+          if (data.source) updateData.source = data.source;
+          if (data.city) updateData.city = data.city;
+          if (data.assigned_agent) updateData.assigned_agent = data.assigned_agent;
+          
+          // Handle tags
+          let currentTags = [...(contact.tags || [])];
+          if (data.add_tags?.length > 0) {
+            data.add_tags.forEach(tag => {
+              if (!currentTags.includes(tag)) currentTags.push(tag);
+            });
+          }
+          if (data.remove_tags?.length > 0) {
+            currentTags = currentTags.filter(t => !data.remove_tags.includes(t));
+          }
+          if (data.add_tags?.length > 0 || data.remove_tags?.length > 0) {
+            updateData.tags = currentTags;
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await base44.entities.ClientContact.update(contact.id, updateData);
+            updated++;
+          }
+        } catch (error) {
+          console.error(`Erro ao atualizar contacto ${contact.id}:`, error);
+          failed++;
+        }
+      }
+      return { updated, failed };
+    },
+    onSuccess: (result) => {
+      if (result.failed > 0) {
+        toast.warning(`${result.updated} contactos atualizados, ${result.failed} falharam`);
+      } else {
+        toast.success(`${result.updated} contactos atualizados com sucesso!`);
+      }
+      setSelectedContacts([]);
+      setBulkEditDialogOpen(false);
+      setBulkEditData({
+        contact_type: "",
+        status: "",
+        source: "",
+        city: "",
+        assigned_agent: "",
+        add_tags: [],
+        remove_tags: []
+      });
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    },
+    onError: (error) => {
+      console.error("Erro na edição em massa:", error);
+      toast.error("Erro ao atualizar contactos");
+    }
+  });
+
   const resetForm = () => {
     setFormData({
       first_name: "",
@@ -379,6 +446,16 @@ export default function ClientDatabase() {
   const [deleteConfirm, setDeleteConfirm] = React.useState(null);
   const [selectedContacts, setSelectedContacts] = React.useState([]);
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = React.useState(false);
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = React.useState(false);
+  const [bulkEditData, setBulkEditData] = React.useState({
+    contact_type: "",
+    status: "",
+    source: "",
+    city: "",
+    assigned_agent: "",
+    add_tags: [],
+    remove_tags: []
+  });
 
   const handleDelete = (id, name, e) => {
     // Prevent event propagation issues on mobile
@@ -944,8 +1021,17 @@ export default function ClientDatabase() {
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBulkEditDialogOpen(true)}
+                  className="bg-white"
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Editar em Massa
+                </Button>
                 <Select onValueChange={(value) => bulkUpdateTypeMutation.mutate({ ids: selectedContacts, type: value })}>
-                  <SelectTrigger className="w-40 h-8 text-sm">
+                  <SelectTrigger className="w-40 h-8 text-sm bg-white">
                     <SelectValue placeholder="Alterar tipo..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -967,7 +1053,7 @@ export default function ClientDatabase() {
                   <Trash2 className="w-4 h-4 mr-2" />
                   Eliminar
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setSelectedContacts([])}>
+                <Button variant="outline" size="sm" onClick={() => setSelectedContacts([])} className="bg-white">
                   Cancelar
                 </Button>
               </div>
@@ -1670,6 +1756,180 @@ export default function ClientDatabase() {
             >
               <Trash2 className="w-4 h-4 mr-2" />
               {bulkDeleteMutation.isPending ? "A eliminar..." : "Eliminar Todos"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={bulkEditDialogOpen} onOpenChange={setBulkEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="w-5 h-5 text-blue-600" />
+              Editar {selectedContacts.length} Contactos em Massa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-slate-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              ⚠️ Apenas os campos preenchidos serão alterados. Campos vazios serão ignorados.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Tipo de Contacto</Label>
+                <Select 
+                  value={bulkEditData.contact_type} 
+                  onValueChange={(v) => setBulkEditData({...bulkEditData, contact_type: v})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Não alterar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Não alterar</SelectItem>
+                    <SelectItem value="client">Cliente</SelectItem>
+                    <SelectItem value="partner">Parceiro</SelectItem>
+                    <SelectItem value="investor">Investidor</SelectItem>
+                    <SelectItem value="vendor">Fornecedor</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Estado</Label>
+                <Select 
+                  value={bulkEditData.status} 
+                  onValueChange={(v) => setBulkEditData({...bulkEditData, status: v})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Não alterar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Não alterar</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="prospect">Prospect</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Origem</Label>
+                <Select 
+                  value={bulkEditData.source} 
+                  onValueChange={(v) => setBulkEditData({...bulkEditData, source: v})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Não alterar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Não alterar</SelectItem>
+                    <SelectItem value="facebook_ads">Facebook Ads</SelectItem>
+                    <SelectItem value="website">Website</SelectItem>
+                    <SelectItem value="referral">Indicação</SelectItem>
+                    <SelectItem value="direct_contact">Contacto Direto</SelectItem>
+                    <SelectItem value="networking">Networking</SelectItem>
+                    <SelectItem value="other">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Cidade</Label>
+                <Select 
+                  value={bulkEditData.city} 
+                  onValueChange={(v) => setBulkEditData({...bulkEditData, city: v})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Não alterar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Não alterar</SelectItem>
+                    {allCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="md:col-span-2">
+                <Label>Responsável</Label>
+                <Select 
+                  value={bulkEditData.assigned_agent} 
+                  onValueChange={(v) => setBulkEditData({...bulkEditData, assigned_agent: v})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Não alterar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Não alterar</SelectItem>
+                    <SelectItem value="__remove__">Remover responsável</SelectItem>
+                    {users.map((u) => (
+                      <SelectItem key={u.id} value={u.email}>
+                        {u.full_name} ({u.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <Label className="mb-2 block">Adicionar Etiquetas</Label>
+              <TagSelector
+                selectedTags={bulkEditData.add_tags}
+                onTagsChange={(tags) => setBulkEditData({...bulkEditData, add_tags: tags})}
+                category="contact"
+                placeholder="Etiquetas a adicionar..."
+                allowCreate={false}
+              />
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Remover Etiquetas</Label>
+              <TagSelector
+                selectedTags={bulkEditData.remove_tags}
+                onTagsChange={(tags) => setBulkEditData({...bulkEditData, remove_tags: tags})}
+                category="contact"
+                placeholder="Etiquetas a remover..."
+                allowCreate={false}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setBulkEditDialogOpen(false);
+                setBulkEditData({
+                  contact_type: "",
+                  status: "",
+                  source: "",
+                  city: "",
+                  assigned_agent: "",
+                  add_tags: [],
+                  remove_tags: []
+                });
+              }}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                const dataToSend = {...bulkEditData};
+                if (dataToSend.assigned_agent === "__remove__") {
+                  dataToSend.assigned_agent = "";
+                }
+                bulkEditMutation.mutate({ ids: selectedContacts, data: dataToSend });
+              }}
+              disabled={bulkEditMutation.isPending}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              {bulkEditMutation.isPending ? "A atualizar..." : `Atualizar ${selectedContacts.length} Contactos`}
             </Button>
           </div>
         </DialogContent>
