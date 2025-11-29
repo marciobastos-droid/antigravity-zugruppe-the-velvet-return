@@ -743,11 +743,12 @@ export default function ClientDatabase() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Tipos</SelectItem>
-                  <SelectItem value="empty">Sem Tipo</SelectItem>
-                  <SelectItem value="client">Clientes</SelectItem>
-                  <SelectItem value="partner">Parceiros</SelectItem>
-                  <SelectItem value="investor">Investidores</SelectItem>
-                  <SelectItem value="vendor">Fornecedores</SelectItem>
+                                          <SelectItem value="empty">Sem Tipo</SelectItem>
+                                          <SelectItem value="client">Clientes</SelectItem>
+                                          <SelectItem value="partner">Parceiros</SelectItem>
+                                          <SelectItem value="investor">Investidores</SelectItem>
+                                          <SelectItem value="vendor">Fornecedores</SelectItem>
+                                          <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
