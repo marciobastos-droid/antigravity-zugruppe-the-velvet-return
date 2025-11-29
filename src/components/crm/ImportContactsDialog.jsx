@@ -22,7 +22,8 @@ const fieldLabels = {
   notes: "Notas",
   address: "Morada",
   city: "Cidade",
-  country: "País"
+  country: "País",
+  tags: "Etiquetas"
 };
 
 export default function ImportContactsDialog({ open, onOpenChange }) {
@@ -203,7 +204,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
           notes: ['notas', 'notes', 'observações', 'comments'],
           address: ['morada', 'address', 'endereço'],
           city: ['cidade', 'city'],
-          country: ['país', 'country', 'pais']
+          country: ['país', 'country', 'pais'],
+          tags: ['tags', 'etiquetas', 'labels', 'categorias', 'categoria']
         };
         
         csvHeaders.forEach(header => {
@@ -300,12 +302,20 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
 
       setProgress(`A importar ${newContacts.length} contactos...`);
 
-      // Add default values
-      const contactsWithDefaults = newContacts.map(c => ({
-        ...c,
-        contact_type: c.contact_type || 'lead',
-        status: 'active'
-      }));
+      // Add default values and process tags
+      const contactsWithDefaults = newContacts.map(c => {
+        let tags = [];
+        if (c.tags) {
+          // Parse tags - can be comma or semicolon separated
+          tags = c.tags.split(/[,;]/).map(t => t.trim()).filter(Boolean);
+        }
+        return {
+          ...c,
+          tags,
+          contact_type: c.contact_type || 'client',
+          status: 'active'
+        };
+      });
 
       const created = await base44.entities.ClientContact.bulkCreate(contactsWithDefaults);
 
