@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Phone, Mail, MessageCircle, Clock, CheckCircle2, Send, Eye, Reply } from "lucide-react";
 
 export default function AddCommunicationDialog({ open, onOpenChange, contactId, contactName }) {
   const queryClient = useQueryClient();
@@ -24,7 +26,20 @@ export default function AddCommunicationDialog({ open, onOpenChange, contactId, 
     communication_date: new Date().toISOString().slice(0, 16),
     follow_up_required: false,
     follow_up_date: "",
-    follow_up_notes: ""
+    follow_up_notes: "",
+    // Email specific
+    email_status: "",
+    email_opened_at: "",
+    email_replied_at: "",
+    // Phone specific
+    call_outcome: "",
+    call_duration_seconds: "",
+    call_quality_rating: "",
+    // WhatsApp specific
+    whatsapp_status: "",
+    whatsapp_delivered_at: "",
+    whatsapp_read_at: "",
+    whatsapp_replied_at: ""
   });
 
   const createMutation = useMutation({
