@@ -19,8 +19,8 @@ import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
 import { debounce } from "lodash";
 import DevelopmentsTab from "../components/developments/DevelopmentsTab";
-import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
-import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
+import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters.jsx";
+import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters.js";
 
 export default function MyListings() {
   const queryClient = useQueryClient();

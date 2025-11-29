@@ -15,8 +15,8 @@ import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
 import OpportunitiesTable from "./OpportunitiesTable";
 import SendEmailDialog from "../email/SendEmailDialog";
-import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
-import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
+import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters.jsx";
+import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters.js";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
