@@ -501,11 +501,11 @@ export default function MyListings() {
               </div>
             </div>
 
-            {/* Tags Filter */}
-            {allTags.length > 0 && (
+            {/* Tags Filter - usando etiquetas do sistema */}
+            {propertyTags.length > 0 && (
               <div className="pt-4 border-t border-slate-200">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-slate-700">Filtrar por Tags</label>
+                  <label className="text-sm font-medium text-slate-700">Filtrar por Etiquetas</label>
                   {selectedTags.length > 0 && (
                     <Button 
                       variant="ghost" 
@@ -514,24 +514,29 @@ export default function MyListings() {
                       className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="w-3 h-3 mr-1" />
-                      Limpar Tags ({selectedTags.length})
+                      Limpar ({selectedTags.length})
                     </Button>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {allTags.map((tag) => (
+                  {propertyTags.map((tag) => (
                     <Badge
-                      key={tag}
-                      variant={selectedTags.includes(tag) ? "default" : "outline"}
-                      className={`cursor-pointer transition-colors ${
-                        selectedTags.includes(tag) 
-                          ? "bg-slate-900 hover:bg-slate-800" 
-                          : "hover:bg-slate-100"
-                      }`}
-                      onClick={() => toggleTag(tag)}
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                      className="cursor-pointer transition-colors"
+                      style={selectedTags.includes(tag.name) ? {
+                        backgroundColor: tag.color,
+                        color: 'white',
+                        borderColor: tag.color
+                      } : {
+                        backgroundColor: `${tag.color}15`,
+                        color: tag.color,
+                        borderColor: tag.color
+                      }}
+                      onClick={() => toggleTag(tag.name)}
                     >
-                      {tag}
-                      {selectedTags.includes(tag) && (
+                      {tag.name}
+                      {selectedTags.includes(tag.name) && (
                         <X className="w-3 h-3 ml-1" />
                       )}
                     </Badge>
