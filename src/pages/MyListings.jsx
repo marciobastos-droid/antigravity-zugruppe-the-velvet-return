@@ -387,9 +387,13 @@ export default function MyListings() {
     development: "Empreendimento"
   };
 
-  const hasActiveFilters = searchTerm || statusFilter !== "all" || typeFilter !== "all" || 
-                          listingTypeFilter !== "all" || priceMin || priceMax || selectedTags.length > 0 ||
-                          stateFilter !== "all" || cityFilter !== "all";
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object' && value !== null) {
+      return Object.values(value).some(v => v !== null && v !== "" && v !== undefined);
+    }
+    return value !== "" && value !== "all" && value !== null && value !== undefined;
+  });
 
   if (isLoading) {
     return (
