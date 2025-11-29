@@ -369,13 +369,22 @@ export default function ClientDatabase() {
           <h2 className="text-2xl font-bold text-slate-900">Base de Dados de Contactos</h2>
           <p className="text-slate-600">{clients.length} contactos registados</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 hover:bg-slate-800">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Novo Contacto
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setImportDialogOpen(true)}
+            className="border-green-300 text-green-700 hover:bg-green-50"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Importar
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-slate-900 hover:bg-slate-800">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Novo Contacto
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingClient ? "Editar Contacto" : "Novo Contacto"}</DialogTitle>
