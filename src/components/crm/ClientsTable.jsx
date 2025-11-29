@@ -268,6 +268,29 @@ export default function ClientsTable({
       ) : '-'
     },
     {
+      key: "tags",
+      label: "Etiquetas",
+      minWidth: "150px",
+      render: (val) => {
+        if (!val || val.length === 0) return '-';
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[140px]">
+            {val.slice(0, 2).map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0">
+                <Tag className="w-2.5 h-2.5 mr-0.5" />
+                {tag}
+              </Badge>
+            ))}
+            {val.length > 2 && (
+              <Badge variant="outline" className="text-xs px-1.5 py-0">
+                +{val.length - 2}
+              </Badge>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       key: "assigned_agent",
       label: "Responsável",
       minWidth: "140px",
@@ -329,7 +352,7 @@ export default function ClientsTable({
 
   const defaultVisibleColumns = [
     "full_name", "contact_type", "status", "email", "phone", 
-    "city", "assigned_agent", "communications_count", "opportunities_count", "actions"
+    "city", "tags", "assigned_agent", "communications_count", "opportunities_count", "actions"
   ];
 
   return (
