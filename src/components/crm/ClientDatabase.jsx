@@ -106,6 +106,8 @@ export default function ClientDatabase() {
 
 
   const [formData, setFormData] = React.useState({
+    first_name: "",
+    last_name: "",
     full_name: "",
     email: "",
     phone: "",
@@ -274,6 +276,8 @@ export default function ClientDatabase() {
 
   const resetForm = () => {
     setFormData({
+      first_name: "",
+      last_name: "",
       full_name: "",
       email: "",
       phone: "",
@@ -300,6 +304,8 @@ export default function ClientDatabase() {
   const handleEdit = (client) => {
     setEditingClient(client);
     setFormData({
+      first_name: client.first_name || "",
+      last_name: client.last_name || "",
       full_name: client.full_name || "",
       email: client.email || "",
       phone: client.phone || "",
@@ -487,7 +493,31 @@ export default function ClientDatabase() {
               <DialogTitle>{editingClient ? "Editar Contacto" : "Novo Contacto"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Primeiro Nome</Label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => {
+                      const firstName = e.target.value;
+                      const fullName = `${firstName} ${formData.last_name}`.trim();
+                      setFormData({...formData, first_name: firstName, full_name: fullName});
+                    }}
+                    placeholder="João"
+                  />
+                </div>
+                <div>
+                  <Label>Último Nome</Label>
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) => {
+                      const lastName = e.target.value;
+                      const fullName = `${formData.first_name} ${lastName}`.trim();
+                      setFormData({...formData, last_name: lastName, full_name: fullName});
+                    }}
+                    placeholder="Silva"
+                  />
+                </div>
                 <div>
                   <Label>Nome Completo *</Label>
                   <Input
@@ -497,6 +527,8 @@ export default function ClientDatabase() {
                     placeholder="João Silva"
                   />
                 </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Email</Label>
                   <Input
