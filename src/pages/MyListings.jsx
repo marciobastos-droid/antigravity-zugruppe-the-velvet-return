@@ -581,14 +581,49 @@ export default function MyListings() {
         {selectedProperties.length > 0 && (
           <Card className="mb-6 border-blue-500 bg-blue-50">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <CheckSquare className="w-5 h-5 text-blue-600" />
                   <span className="font-medium text-blue-900">
                     {selectedProperties.length} anúncio{selectedProperties.length > 1 ? 's' : ''} selecionado{selectedProperties.length > 1 ? 's' : ''}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <Tag className="w-4 h-4 mr-2" />
+                        Adicionar Etiqueta
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-2" align="end">
+                      <div className="max-h-64 overflow-y-auto space-y-1">
+                        {propertyTags.length === 0 ? (
+                          <p className="text-sm text-slate-500 text-center py-2">Sem etiquetas disponíveis</p>
+                        ) : (
+                          propertyTags.map((tag) => (
+                            <button
+                              key={tag.id}
+                              onClick={() => bulkAddTagMutation.mutate({ ids: selectedProperties, tagName: tag.name })}
+                              className="w-full flex items-center p-2 rounded-lg text-left hover:bg-slate-50 transition-colors"
+                            >
+                              <Badge
+                                style={{
+                                  backgroundColor: `${tag.color}20`,
+                                  color: tag.color,
+                                  borderColor: tag.color
+                                }}
+                                className="border"
+                              >
+                                <Tag className="w-3 h-3 mr-1" />
+                                {tag.name}
+                              </Badge>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button
                     variant="destructive"
                     size="sm"
@@ -596,7 +631,7 @@ export default function MyListings() {
                     disabled={bulkDeleteMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Eliminar Selecionados
+                    Eliminar
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setSelectedProperties([])}>
                     Cancelar
