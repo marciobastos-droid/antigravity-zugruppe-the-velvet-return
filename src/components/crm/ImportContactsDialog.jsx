@@ -400,22 +400,17 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                         <div key={header}>
                           <Label className="text-xs mb-1 block truncate" title={header}>{header}</Label>
                           <Select
-                            value={columnMapping[header] || "_ignore"}
-                            onValueChange={(value) => {
-                              const newMapping = { ...columnMapping };
-                              if (value === '_ignore') {
-                                delete newMapping[header];
-                              } else {
-                                newMapping[header] = value;
-                              }
-                              setColumnMapping(newMapping);
-                            }}
+                            value={columnMapping[header] || ""}
+                            onValueChange={(value) => setColumnMapping({
+                              ...columnMapping, 
+                              [header]: value === 'null' ? null : value
+                            })}
                           >
                             <SelectTrigger className="h-8 text-sm">
                               <SelectValue placeholder="Ignorar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="_ignore">Ignorar</SelectItem>
+                              <SelectItem value="null">Ignorar</SelectItem>
                               {Object.entries(fieldLabels).map(([field, label]) => (
                                 <SelectItem key={field} value={field}>{label}</SelectItem>
                               ))}
@@ -469,7 +464,6 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                           <TableHead>Email</TableHead>
                           <TableHead>Telefone</TableHead>
                           <TableHead>Empresa</TableHead>
-                          <TableHead>Etiquetas</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -502,7 +496,6 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                               <TableCell>{mappedContact.email || '-'}</TableCell>
                               <TableCell>{mappedContact.phone || '-'}</TableCell>
                               <TableCell>{mappedContact.company || '-'}</TableCell>
-                              <TableCell>{mappedContact.tags || '-'}</TableCell>
                             </TableRow>
                           );
                         })}
