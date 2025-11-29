@@ -868,8 +868,6 @@ export default function ClientDatabase() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="flex justify-end pt-2">
                 <Button 
                   variant="ghost" 
                   onClick={() => {
@@ -886,7 +884,6 @@ export default function ClientDatabase() {
                 >
                   Limpar Filtros
                 </Button>
-              </div>
               </div>
             )}
 
