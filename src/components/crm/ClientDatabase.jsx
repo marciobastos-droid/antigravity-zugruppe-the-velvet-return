@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   UserPlus, Search, Phone, Mail, MapPin, Building2, 
@@ -31,6 +32,55 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import ClientPortalManager from "./ClientPortalManager";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import ContactOpportunities from "./ContactOpportunities";
+import TagSelector from "../tags/TagSelector";
+
+function BulkTagSelector({ onTagSelect }) {
+  const [open, setOpen] = React.useState(false);
+  const { data: tags = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => base44.entities.Tag.list('name')
+  });
+
+  const contactTags = tags.filter(t => t.category === 'contact' || t.category === 'general');
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8">
+          <TagIcon className="w-4 h-4 mr-1" />
+          Etiqueta
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-48 p-2" align="start">
+        <div className="max-h-48 overflow-y-auto space-y-1">
+          {contactTags.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-2">Sem etiquetas</p>
+          ) : (
+            contactTags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => { onTagSelect(tag.name); setOpen(false); }}
+                className="w-full flex items-center p-2 rounded-lg text-left hover:bg-slate-50"
+              >
+                <Badge
+                  style={{
+                    backgroundColor: `${tag.color}20`,
+                    color: tag.color,
+                    borderColor: tag.color
+                  }}
+                  className="border"
+                >
+                  <TagIcon className="w-3 h-3 mr-1" />
+                  {tag.name}
+                </Badge>
+              </button>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 
 export default function ClientDatabase() {
@@ -199,6 +249,24 @@ export default function ClientDatabase() {
     },
     onSuccess: (_, { ids, type }) => {
       toast.success(`${ids.length} contactos atualizados para "${typeLabels[type]}"`);
+      setSelectedContacts([]);
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    }
+  });
+
+  const bulkAddTagMutation = useMutation({
+    mutationFn: async ({ ids, tag }) => {
+      const contactsToUpdate = clients.filter(c => ids.includes(c.id));
+      await Promise.all(contactsToUpdate.map(contact => {
+        const currentTags = contact.tags || [];
+        if (!currentTags.includes(tag)) {
+          return base44.entities.ClientContact.update(contact.id, { tags: [...currentTags, tag] });
+        }
+        return Promise.resolve();
+      }));
+    },
+    onSuccess: (_, { ids, tag }) => {
+      toast.success(`Etiqueta "${tag}" adicionada a ${ids.length} contactos`);
       setSelectedContacts([]);
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
     }
@@ -584,6 +652,16 @@ export default function ClientDatabase() {
               </div>
 
               <div>
+                <Label>Etiquetas</Label>
+                <TagSelector
+                  selectedTags={formData.tags}
+                  onTagsChange={(tags) => setFormData({...formData, tags})}
+                  category="contact"
+                  placeholder="Adicionar etiquetas..."
+                />
+              </div>
+
+              <div>
                 <Label>Notas</Label>
                 <Textarea
                   value={formData.notes}
@@ -767,6 +845,9 @@ export default function ClientDatabase() {
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
+                <BulkTagSelector 
+                  onTagSelect={(tag) => bulkAddTagMutation.mutate({ ids: selectedContacts, tag })}
+                />
                 <Button
                   variant="destructive"
                   size="sm"
