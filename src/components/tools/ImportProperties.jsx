@@ -834,7 +834,12 @@ Extrai O MÁXIMO de imóveis possível da página.`,
           })
           .filter((img, idx, arr) => arr.indexOf(img) === idx)
           .slice(0, 20);
-        return { ...p, images, source_url: url };
+        
+        // Use detail_url if available, otherwise use main URL
+        const sourceUrl = p.detail_url && p.detail_url.startsWith('http') ? p.detail_url : 
+                         p.detail_url ? baseUrl + p.detail_url : url;
+        
+        return { ...p, images, source_url: sourceUrl };
       });
 
       // Always use AI to detect/confirm property and listing type
