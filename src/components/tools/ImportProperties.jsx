@@ -710,21 +710,52 @@ export default function ImportProperties() {
     setImporting(true);
     setValidationDetails(null);
     const portal = detectPortal(url);
-    setProgress(`A aceder a ${portal.name}...`);
+    setProgress(`A analisar página de ${portal.name}...`);
     
     try {
       const urlObj = new URL(url);
       const baseUrl = urlObj.origin;
-      const isDetailPage = url.match(/\/imovel\/|\/anuncio\/|\/propriedade\/|\/property\//);
       
-      setProgress(isDetailPage ? "A extrair imóvel..." : "A extrair listagem...");
+      // Detect if it's a listing page or detail page
+      const detailPatterns = /\/imovel\/|\/anuncio\/|\/propriedade\/|\/property\/|\/detalhe\/|\/ficha\/|\?id=|\/[0-9]{6,}\/?$/;
+      const listingPatterns = /\/comprar|\/arrendar|\/venda|\/aluguer|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|\?/;
       
+      const isDetailPage = detailPatterns.test(url) && !listingPatterns.test(url);
+      const isListingPage = listingPatterns.test(url) || url.match(/\/[a-z-]+\/[a-z-]+\/?$/);
+      
+      setProgress(isDetailPage ? "A extrair imóvel único..." : "🔍 A detetar listagem de imóveis...");
+      
+      // Enhanced prompt for listing detection
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `És um especialista em web scraping de portais imobiliários portugueses. Extrai TODOS os dados do imóvel em ${url}. PREÇO é CRÍTICO - formato português usa ponto como separador de milhares (495.000 € = 495000).`,
+        prompt: `És um especialista em web scraping de portais imobiliários portugueses.
+
+URL: ${url}
+
+PRIMEIRO, analisa a página e determina:
+1. Se é uma LISTAGEM (página com múltiplos imóveis) ou uma página de DETALHE (um só imóvel)
+2. Se for LISTAGEM, extrai TODOS os imóveis visíveis na página (tipicamente 10-30 imóveis)
+
+INSTRUÇÕES CRÍTICAS:
+- Se for uma página de pesquisa/listagem (ex: idealista.pt/comprar-casas/lisboa/), extrai TODOS os imóveis listados
+- Para cada imóvel na listagem, extrai: título, preço, localização, tipologia (T1, T2...), área, link individual se disponível
+- PREÇO formato português: 495.000 € = 495000, 1.200 €/mês = 1200 (arrendamento)
+- Se o preço for mensal < 5000€, é arrendamento (listing_type: "rent")
+- Extrai URLs das imagens se visíveis
+- O external_id pode ser extraído do link ou código do anúncio
+
+SINAIS DE LISTAGEM:
+- Múltiplos cards/boxes de imóveis
+- Paginação (página 1 de X)
+- Filtros de pesquisa visíveis
+- Contador de resultados (ex: "1.234 imóveis encontrados")
+
+Extrai O MÁXIMO de imóveis possível da página.`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
           properties: {
+            is_listing_page: { type: "boolean" },
+            total_found: { type: "number" },
             properties: {
               type: "array",
               items: {
@@ -744,6 +775,7 @@ export default function ImportProperties() {
                   zip_code: { type: "string" },
                   year_built: { type: "number" },
                   external_id: { type: "string" },
+                  detail_url: { type: "string" },
                   amenities: { type: "array", items: { type: "string" } },
                   images: { type: "array", items: { type: "string" } }
                 },
@@ -756,6 +788,12 @@ export default function ImportProperties() {
 
       if (!result?.properties || result.properties.length === 0) {
         throw new Error(`Nenhum imóvel encontrado em ${portal.name}. Verifica o link.`);
+      }
+      
+      // Show listing detection result
+      if (result.is_listing_page) {
+        setProgress(`📋 Listagem detetada! Encontrados ${result.properties.length} imóveis${result.total_found ? ` de ${result.total_found} total` : ''}`);
+        toast.info(`Página de listagem detetada com ${result.properties.length} imóveis`);
       }
 
       setProgress("A validar dados...");
