@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import OpportunitiesTable from "./OpportunitiesTable";
 import SendEmailDialog from "../email/SendEmailDialog";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
+import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
@@ -29,6 +30,7 @@ export default function OpportunitiesContent() {
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
   const [filterLogic, setFilterLogic] = React.useState("AND");
+  const [isBulkScoring, setIsBulkScoring] = React.useState(false);
   
   // Estado dos filtros avançados
   const [filters, setFilters] = React.useState({
@@ -410,6 +412,49 @@ export default function OpportunitiesContent() {
     });
   };
 
+  const handleBulkScore = async () => {
+    if (selectedLeads.length === 0) {
+      toast.error("Selecione pelo menos um lead");
+      return;
+    }
+    
+    setIsBulkScoring(true);
+    try {
+      const leadsToScore = opportunities.filter(o => selectedLeads.includes(o.id));
+      await bulkScoreLeads(leadsToScore, (update) => 
+        base44.entities.Opportunity.update(update.id, update.data)
+      );
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`${selectedLeads.length} leads qualificados com sucesso!`);
+      setSelectedLeads([]);
+    } catch (error) {
+      toast.error("Erro ao qualificar leads");
+    }
+    setIsBulkScoring(false);
+  };
+
+  const handleScoreAllUnqualified = async () => {
+    const unqualifiedLeads = opportunities.filter(o => !o.qualification_status || !o.qualification_score);
+    if (unqualifiedLeads.length === 0) {
+      toast.info("Todos os leads já estão qualificados");
+      return;
+    }
+    
+    if (!window.confirm(`Qualificar ${unqualifiedLeads.length} leads sem score?`)) return;
+    
+    setIsBulkScoring(true);
+    try {
+      await bulkScoreLeads(unqualifiedLeads, (update) => 
+        base44.entities.Opportunity.update(update.id, update.data)
+      );
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`${unqualifiedLeads.length} leads qualificados!`);
+    } catch (error) {
+      toast.error("Erro ao qualificar leads");
+    }
+    setIsBulkScoring(false);
+  };
+
   const toggleSelectLead = (leadId) => {
     setSelectedLeads(prev =>
       prev.includes(leadId) ? prev.filter(id => id !== leadId) : [...prev, leadId]
@@ -458,6 +503,19 @@ export default function OpportunitiesContent() {
           <p className="text-slate-600">Gerir oportunidades de negócio</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={handleScoreAllUnqualified}
+            disabled={isBulkScoring}
+            variant="outline"
+            className="border-purple-300 text-purple-700 hover:bg-purple-50"
+          >
+            {isBulkScoring ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            AI Scoring
+          </Button>
           <Button
             onClick={() => { setEditingOpportunity(null); setFormDialogOpen(true); }}
             className="bg-green-600 hover:bg-green-700"
@@ -590,12 +648,24 @@ export default function OpportunitiesContent() {
                   Atribuir
                 </Button>
                 <Button 
+                  onClick={handleBulkScore}
+                  disabled={isBulkScoring}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {isBulkScoring ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-1" />
+                  )}
+                  Qualificar
+                </Button>
+                <Button 
                   onClick={handleBulkConvert}
                   disabled={bulkConvertMutation.isPending}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <UserPlus className="w-4 h-4 mr-1" />
-                  {bulkConvertMutation.isPending ? "A converter..." : "Converter em Contactos"}
+                  {bulkConvertMutation.isPending ? "A converter..." : "Converter"}
                 </Button>
                 <Button variant="outline" onClick={() => setSelectedLeads([])}>
                   Cancelar
