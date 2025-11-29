@@ -641,7 +641,7 @@ export default function ImportProperties() {
     setImporting(false);
   };
 
-  // Nova função usando Gemini API
+  // Nova função usando Gemini API - suporta listagens e páginas individuais
   const importFromURLWithGemini = async () => {
     setImporting(true);
     setValidationDetails(null);
@@ -655,48 +655,124 @@ export default function ImportProperties() {
         throw new Error(data.error || 'Erro ao extrair dados');
       }
 
-      const property = data.property;
-      setProgress("A gerar tags com IA...");
+      // Check if it's a listing page with multiple properties
+      if (data.is_listing_page && data.properties && data.properties.length > 0) {
+        const properties = data.properties;
+        setProgress(`📋 Listagem detetada! ${properties.length} imóveis encontrados...`);
+        
+        // Validate properties
+        const validationResults = properties.map(prop => ({
+          property: prop,
+          validation: validateProperty(prop, portal.name)
+        }));
 
-      // Generate tags
-      const tags = await generatePropertyTags(property);
-      property.tags = tags;
+        const validProperties = validationResults.filter(v => v.validation.isValid).map(v => v.property);
+        const invalidProperties = validationResults.filter(v => !v.validation.isValid);
 
-      setProgress("A guardar imóvel...");
+        setValidationDetails({
+          total: properties.length,
+          valid: validProperties.length,
+          invalid: invalidProperties.length,
+          details: validationResults
+        });
 
-      // Generate ref_id
-      const { data: refData } = await base44.functions.invoke('generateRefId', { 
-        entity_type: 'Property', 
-        count: 1 
-      });
+        if (validProperties.length === 0) {
+          throw new Error(`Nenhum imóvel passou na validação. Verifica os dados extraídos.`);
+        }
 
-      const propertyToCreate = {
-        ...property,
-        ref_id: refData.ref_id || refData.ref_ids?.[0],
-        status: "active",
-        address: property.address || property.city,
-        state: property.state || property.city,
-        is_partner_property: propertyOwnership === "partner",
-        partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-        partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
-                      propertyOwnership === "private" ? privateOwnerName : undefined,
-        internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
-                       `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-      };
+        setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
+        const propertiesWithTags = await Promise.all(
+          validProperties.map(async (p) => {
+            const tags = await generatePropertyTags(p);
+            return { ...p, tags };
+          })
+        );
 
-      const created = await base44.entities.Property.create(propertyToCreate);
+        setProgress("A guardar imóveis...");
 
-      setResults({
-        success: true,
-        count: 1,
-        properties: [created],
-        portal: portal,
-        stats: { withImages: created.images?.length > 0 ? 1 : 0, totalImages: created.images?.length || 0 },
-        message: `✅ Imóvel importado com Gemini AI!\n📸 ${created.images?.length || 0} imagens encontradas`
-      });
+        // Generate ref_ids for all properties
+        const { data: refData } = await base44.functions.invoke('generateRefId', { 
+          entity_type: 'Property', 
+          count: propertiesWithTags.length 
+        });
+        const refIds = refData.ref_ids || [refData.ref_id];
 
-      queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
-      toast.success("Imóvel importado com sucesso!");
+        const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+          ...p,
+          ref_id: refIds[index],
+          status: "active",
+          address: p.address || p.city,
+          state: p.state || p.city,
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+        }));
+
+        const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+
+        const countWithImages = created.filter(p => p.images?.length > 0).length;
+        const totalImages = created.reduce((sum, p) => sum + (p.images?.length || 0), 0);
+
+        setResults({
+          success: true,
+          count: created.length,
+          properties: created,
+          portal: portal,
+          stats: { withImages: countWithImages, totalImages },
+          message: `✅ ${created.length} imóveis importados com Gemini AI!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados` : ''}`
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+        toast.success(`${created.length} imóveis importados!`);
+
+      } else {
+        // Single property import
+        const property = data.property;
+        setProgress("A gerar tags com IA...");
+
+        // Generate tags
+        const tags = await generatePropertyTags(property);
+        property.tags = tags;
+
+        setProgress("A guardar imóvel...");
+
+        // Generate ref_id
+        const { data: refData } = await base44.functions.invoke('generateRefId', { 
+          entity_type: 'Property', 
+          count: 1 
+        });
+
+        const propertyToCreate = {
+          ...property,
+          ref_id: refData.ref_id || refData.ref_ids?.[0],
+          status: "active",
+          address: property.address || property.city,
+          state: property.state || property.city,
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+        };
+
+        const created = await base44.entities.Property.create(propertyToCreate);
+
+        setResults({
+          success: true,
+          count: 1,
+          properties: [created],
+          portal: portal,
+          stats: { withImages: created.images?.length > 0 ? 1 : 0, totalImages: created.images?.length || 0 },
+          message: `✅ Imóvel importado com Gemini AI!\n📸 ${created.images?.length || 0} imagens encontradas`
+        });
+
+        queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+        toast.success("Imóvel importado com sucesso!");
+      }
 
     } catch (error) {
       setResults({ success: false, message: error.message || "Erro ao importar com Gemini" });
