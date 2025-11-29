@@ -693,6 +693,7 @@ export default function ClientDatabase() {
                   onTagsChange={(tags) => setFormData({...formData, tags})}
                   category="contact"
                   placeholder="Adicionar etiquetas..."
+                  allowCreate={true}
                 />
               </div>
 
