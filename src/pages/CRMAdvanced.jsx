@@ -1,10 +1,9 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, MessageSquare, BarChart3, Target, Brain, PieChart } from "lucide-react";
+import { Users, Calendar, MessageSquare, BarChart3, Brain, PieChart } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";
-import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 import MatchingTab from "@/components/crm/MatchingTab";
 import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
 
@@ -16,11 +15,11 @@ export default function CRMAdvanced() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM</h1>
-          <p className="text-slate-600">Gestão completa de contactos, oportunidades e comunicações</p>
+          <p className="text-slate-600">Gestão completa de contactos e comunicações</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="metrics" className="flex items-center gap-2">
               <PieChart className="w-4 h-4" />
               <span className="hidden sm:inline">Métricas</span>
@@ -32,10 +31,6 @@ export default function CRMAdvanced() {
             <TabsTrigger value="clients" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Contactos</span>
-            </TabsTrigger>
-            <TabsTrigger value="opportunities" className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              <span className="hidden sm:inline">Oportunidades</span>
             </TabsTrigger>
             <TabsTrigger value="matching" className="flex items-center gap-2">
               <Brain className="w-4 h-4" />
@@ -61,10 +56,6 @@ export default function CRMAdvanced() {
 
           <TabsContent value="clients">
             <ClientDatabase />
-          </TabsContent>
-
-          <TabsContent value="opportunities">
-            <OpportunitiesContent />
           </TabsContent>
 
           <TabsContent value="matching">

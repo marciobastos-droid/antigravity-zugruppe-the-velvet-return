@@ -2,7 +2,6 @@ import Browse from './pages/Browse';
 import PropertyDetails from './pages/PropertyDetails';
 import AddListing from './pages/AddListing';
 import MyListings from './pages/MyListings';
-import Opportunities from './pages/Opportunities';
 import UserManagement from './pages/UserManagement';
 import ClientPreferences from './pages/ClientPreferences';
 import VideoMaker from './pages/VideoMaker';
@@ -23,7 +22,6 @@ export const PAGES = {
     "PropertyDetails": PropertyDetails,
     "AddListing": AddListing,
     "MyListings": MyListings,
-    "Opportunities": Opportunities,
     "UserManagement": UserManagement,
     "ClientPreferences": ClientPreferences,
     "VideoMaker": VideoMaker,
