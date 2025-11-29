@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { toast } from "sonner";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
 import { debounce } from "lodash";
