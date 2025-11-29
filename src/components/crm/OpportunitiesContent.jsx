@@ -423,43 +423,6 @@ export default function OpportunitiesContent() {
     }
   };
 
-  const filteredOpportunities = opportunities.filter(opp => {
-    const matchesSearch = searchTerm === "" || 
-      opp.buyer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      opp.buyer_email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || opp.status === statusFilter;
-    const matchesLeadType = leadTypeFilter === "all" || opp.lead_type === leadTypeFilter;
-    const matchesQualification = qualificationFilter === "all" || opp.qualification_status === qualificationFilter;
-    const matchesAgent = agentFilter === "all" || 
-      (agentFilter === "unassigned" ? !opp.assigned_to : opp.assigned_to === agentFilter);
-    
-    let matchesSource = true;
-    if (sourceFilter !== "all") {
-      if (sourceFilter === "facebook") {
-        matchesSource = opp.source_url?.includes('facebook') || opp.message?.includes('Facebook');
-      } else if (sourceFilter === "website") {
-        matchesSource = !opp.source_url || opp.source_url === 'website';
-      } else if (sourceFilter === "manual") {
-        matchesSource = opp.source_url === 'manual' || !opp.source_url;
-      }
-    }
-
-    let matchesCampaign = true;
-    if (campaignFilter !== "all") {
-      // Check if opportunity came from this campaign
-      const fbLead = facebookLeads.find(fl => fl.converted_to_opportunity_id === opp.id);
-      if (fbLead) {
-        matchesCampaign = fbLead.campaign_name === campaignFilter;
-      } else {
-        // Check message for campaign reference
-        matchesCampaign = opp.message?.includes(campaignFilter);
-      }
-    }
-    
-    return matchesSearch && matchesStatus && matchesLeadType && matchesQualification && matchesSource && matchesAgent && matchesCampaign;
-  });
-
   const stats = React.useMemo(() => {
     const totalValue = opportunities.reduce((sum, o) => sum + (o.estimated_value || 0), 0);
     const weightedValue = opportunities.reduce((sum, o) => {
