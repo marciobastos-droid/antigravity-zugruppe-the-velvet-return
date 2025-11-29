@@ -49,17 +49,6 @@ export default function MyListings() {
   
   const ITEMS_PER_PAGE = 10;
 
-  // Debounced search
-  React.useEffect(() => {
-    const debouncedUpdate = debounce(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 500);
-    
-    debouncedUpdate();
-    return () => debouncedUpdate.cancel();
-  }, [searchTerm]);
-
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
