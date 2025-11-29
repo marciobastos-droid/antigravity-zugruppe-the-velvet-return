@@ -13,6 +13,8 @@ import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Users, X } from "
 import { toast } from "sonner";
 
 const fieldLabels = {
+  first_name: "Primeiro Nome",
+  last_name: "Último Nome",
   full_name: "Nome Completo",
   email: "Email",
   phone: "Telefone",
@@ -196,6 +198,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
         // Auto-map columns
         const autoMapping = {};
         const commonMappings = {
+          first_name: ['primeiro nome', 'first_name', 'firstname', 'first name', 'nome próprio', 'primeiro'],
+          last_name: ['último nome', 'last_name', 'lastname', 'last name', 'apelido', 'sobrenome', 'surname'],
           full_name: ['nome', 'name', 'full_name', 'fullname', 'nome completo'],
           email: ['email', 'e-mail', 'mail', 'correio'],
           phone: ['telefone', 'phone', 'tel', 'mobile', 'celular', 'telemóvel'],
@@ -309,8 +313,16 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
           // Parse tags - can be comma or semicolon separated
           tags = c.tags.split(/[,;]/).map(t => t.trim()).filter(Boolean);
         }
+        
+        // Auto-generate full_name from first_name and last_name if not provided
+        let fullName = c.full_name;
+        if (!fullName && (c.first_name || c.last_name)) {
+          fullName = `${c.first_name || ''} ${c.last_name || ''}`.trim();
+        }
+        
         return {
           ...c,
+          full_name: fullName,
           tags,
           contact_type: c.contact_type || 'client',
           status: 'active'
