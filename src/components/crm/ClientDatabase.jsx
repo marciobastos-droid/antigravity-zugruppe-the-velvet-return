@@ -16,7 +16,7 @@ import {
   Tag, DollarSign, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
   Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
-  LayoutGrid, List, Link2
+  LayoutGrid, List, Link2, Upload
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import ClientPortalManager from "./ClientPortalManager";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import ContactOpportunities from "./ContactOpportunities";
+import ImportContactsDialog from "./ImportContactsDialog";
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
