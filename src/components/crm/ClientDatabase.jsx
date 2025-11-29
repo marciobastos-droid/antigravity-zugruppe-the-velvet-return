@@ -16,7 +16,7 @@ import {
   Tag, DollarSign, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
   Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
-  LayoutGrid, List, Link2, Upload
+  LayoutGrid, List, Link2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import ClientPortalManager from "./ClientPortalManager";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import ContactOpportunities from "./ContactOpportunities";
-import ImportContactsDialog from "./ImportContactsDialog";
+
 
 export default function ClientDatabase() {
   const queryClient = useQueryClient();
@@ -53,7 +53,7 @@ export default function ClientDatabase() {
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
   const [opportunityDialogOpen, setOpportunityDialogOpen] = React.useState(false);
-  const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+
 
   const [formData, setFormData] = React.useState({
     full_name: "",
@@ -370,14 +370,6 @@ export default function ClientDatabase() {
           <p className="text-slate-600">{clients.length} contactos registados</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setImportDialogOpen(true)}
-            className="border-green-300 text-green-700 hover:bg-green-50"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Importar
-          </Button>
           <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
             <DialogTrigger asChild>
               <Button className="bg-slate-900 hover:bg-slate-800">
@@ -1338,11 +1330,6 @@ export default function ClientDatabase() {
         </DialogContent>
       </Dialog>
 
-      {/* Import Contacts Dialog */}
-      <ImportContactsDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-      />
     </div>
   );
 }
