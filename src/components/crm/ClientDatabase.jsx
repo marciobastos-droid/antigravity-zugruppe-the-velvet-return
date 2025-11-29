@@ -986,6 +986,8 @@ export default function ClientDatabase() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onMatching={(client) => { setActiveTab("matching"); setSelectedClient(client); }}
+          selectedContacts={selectedContacts}
+          onSelectionChange={setSelectedContacts}
         />
       ) : (
       <div className="grid gap-4">
