@@ -778,8 +778,7 @@ Extrai O MÁXIMO de imóveis possível da página.`,
                   detail_url: { type: "string" },
                   amenities: { type: "array", items: { type: "string" } },
                   images: { type: "array", items: { type: "string" } }
-                },
-                required: ["title", "price", "city"]
+                }
               }
             }
           }
