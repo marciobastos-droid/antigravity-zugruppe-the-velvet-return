@@ -643,7 +643,7 @@ export default function MyListings() {
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
                       {/* Checkbox */}
-                      <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50">
+                      <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50" onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedProperties.includes(property.id)}
                           onCheckedChange={() => toggleSelect(property.id)}
