@@ -276,6 +276,45 @@ export default function TagManager() {
         </CardContent>
       </Card>
 
+      {/* Active Filters Display */}
+      {(searchTerm || categoryFilter !== "all") && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-slate-500">Filtros ativos:</span>
+          {searchTerm && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Search className="w-3 h-3" />
+              "{searchTerm}"
+              <button 
+                onClick={() => setSearchTerm("")}
+                className="ml-1 hover:text-red-600"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
+          {categoryFilter !== "all" && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Tag className="w-3 h-3" />
+              {CATEGORY_LABELS[categoryFilter]}
+              <button 
+                onClick={() => setCategoryFilter("all")}
+                className="ml-1 hover:text-red-600"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => { setSearchTerm(""); setCategoryFilter("all"); }}
+            className="text-slate-500 hover:text-slate-700"
+          >
+            Limpar todos
+          </Button>
+        </div>
+      )}
+
       {/* Tags by Category */}
       {Object.keys(groupedTags).length === 0 ? (
         <Card className="text-center py-12">
