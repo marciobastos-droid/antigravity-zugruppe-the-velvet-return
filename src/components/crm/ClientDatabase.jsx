@@ -53,6 +53,7 @@ export default function ClientDatabase() {
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
   const [opportunityDialogOpen, setOpportunityDialogOpen] = React.useState(false);
+  const [importDialogOpen, setImportDialogOpen] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     full_name: "",
