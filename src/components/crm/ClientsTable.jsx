@@ -102,7 +102,7 @@ export default function ClientsTable({
     {
       key: "full_name",
       label: "Nome",
-      minWidth: "150px",
+      minWidth: "120px",
       alwaysVisible: true,
       render: (val, client) => (
         <div>
