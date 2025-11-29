@@ -425,7 +425,7 @@ export default function ClientDatabase() {
       c.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = typeFilter === "all" || 
-      (typeFilter === "empty" && (!c.contact_type || c.contact_type === "" || c.contact_type === "--" || c.contact_type === "other")) || 
+      (typeFilter === "empty" && (!c.contact_type || c.contact_type === "" || c.contact_type === "--")) || 
       c.contact_type === typeFilter;
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
