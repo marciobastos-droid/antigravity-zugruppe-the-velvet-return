@@ -197,7 +197,7 @@ export default function Layout({ children, currentPageName }) {
 
       <main className="pb-8">{children}</main>
 
-      <footer className="bg-slate-900 text-white mt-12 md:mt-20">
+      <footer className="bg-[#27251f] text-white mt-12 md:mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div>
@@ -206,18 +206,18 @@ export default function Layout({ children, currentPageName }) {
                 alt="Zugruppe Logo"
                 className="h-8 md:h-10 w-auto object-contain mb-3 md:mb-4 brightness-0 invert"
               />
-              <p className="text-slate-400 text-sm">
+              <p className="text-white/70 text-sm">
                 Privileged Approach Unipessoal Lda
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-3 md:mb-4 text-amber-400 text-base">Links Rápidos</h3>
+              <h3 className="font-semibold mb-3 md:mb-4 text-[#4cb5f5] text-base">Links Rápidos</h3>
               <div className="space-y-2">
                 {navItems.slice(0, 5).map((item) => (
                   <Link
                     key={item.name}
                     to={item.path}
-                    className="block text-slate-400 hover:text-white text-sm transition-colors duration-200"
+                    className="block text-white/70 hover:text-[#4cb5f5] text-sm transition-colors duration-200"
                   >
                     {item.name}
                   </Link>
@@ -225,15 +225,15 @@ export default function Layout({ children, currentPageName }) {
               </div>
             </div>
             <div>
-              <h3 className="font-semibold mb-3 md:mb-4 text-amber-400 text-base">Contacto</h3>
-              <p className="text-slate-400 text-sm">
+              <h3 className="font-semibold mb-3 md:mb-4 text-[#4cb5f5] text-base">Contacto</h3>
+              <p className="text-white/70 text-sm">
                 Marketplace imobiliário premium
                 <br />
                 para uma vida moderna
               </p>
             </div>
           </div>
-          <div className="border-t border-slate-800 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-slate-500 text-xs md:text-sm">
+          <div className="border-t border-white/20 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-white/50 text-xs md:text-sm">
             © 2025 Zugruppe. Todos os direitos reservados.
           </div>
         </div>
