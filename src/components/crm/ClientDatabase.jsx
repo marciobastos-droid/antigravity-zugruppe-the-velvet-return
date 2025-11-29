@@ -243,13 +243,33 @@ export default function ClientDatabase() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids) => {
-      await Promise.all(ids.map(id => base44.entities.ClientContact.delete(id)));
+      let deleted = 0;
+      let failed = 0;
+      for (const id of ids) {
+        try {
+          await base44.entities.ClientContact.delete(id);
+          deleted++;
+        } catch (error) {
+          console.error(`Erro ao eliminar contacto ${id}:`, error);
+          failed++;
+        }
+      }
+      return { deleted, failed };
     },
-    onSuccess: (_, ids) => {
-      toast.success(`${ids.length} contactos eliminados`);
+    onSuccess: (result) => {
+      if (result.failed > 0) {
+        toast.warning(`${result.deleted} contactos eliminados, ${result.failed} falharam`);
+      } else {
+        toast.success(`${result.deleted} contactos eliminados com sucesso!`);
+      }
       setSelectedContacts([]);
       setBulkDeleteConfirm(false);
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    },
+    onError: (error) => {
+      console.error("Erro na eliminação em massa:", error);
+      toast.error("Erro ao eliminar contactos");
+      setBulkDeleteConfirm(false);
     }
   });
 
