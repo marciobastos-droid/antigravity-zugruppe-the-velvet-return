@@ -424,8 +424,9 @@ export default function ClientDatabase() {
       c.phone?.includes(searchTerm) ||
       c.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
+    const validContactTypes = ["client", "partner", "investor", "vendor", "other"];
     const matchesType = typeFilter === "all" || 
-      (typeFilter === "empty" && (!c.contact_type || c.contact_type === "" || c.contact_type === "--")) || 
+      (typeFilter === "empty" && (!c.contact_type || c.contact_type === "" || c.contact_type === "--" || !validContactTypes.includes(c.contact_type))) || 
       c.contact_type === typeFilter;
     const matchesStatus = statusFilter === "all" || c.status === statusFilter;
     const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
