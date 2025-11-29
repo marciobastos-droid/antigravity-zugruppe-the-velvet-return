@@ -1388,6 +1388,37 @@ export default function ClientDatabase() {
         </DialogContent>
       </Dialog>
 
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteConfirm} onOpenChange={setBulkDeleteConfirm}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Eliminar {selectedContacts.length} Contactos</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-600">
+              Tem a certeza que deseja eliminar <strong>{selectedContacts.length} contactos</strong>?
+            </p>
+            <p className="text-sm text-red-600 mt-2">Esta ação não pode ser revertida!</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setBulkDeleteConfirm(false)}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => bulkDeleteMutation.mutate(selectedContacts)}
+              disabled={bulkDeleteMutation.isPending}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {bulkDeleteMutation.isPending ? "A eliminar..." : "Eliminar Todos"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
