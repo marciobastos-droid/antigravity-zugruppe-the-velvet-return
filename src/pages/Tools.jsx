@@ -35,6 +35,7 @@ import WhatsAppAgentConfig from "../components/settings/WhatsAppAgentConfig";
 import LeadManagementHub from "../components/leads/LeadManagementHub";
 import PortalIntegrations from "../components/tools/PortalIntegrations";
 import TagManager from "../components/tags/TagManager";
+import ImportOpportunities from "../components/tools/ImportOpportunities";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
