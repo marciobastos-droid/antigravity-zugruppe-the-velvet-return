@@ -1,10 +1,12 @@
 import React from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Eye, Edit, Trash2, Star, Phone, Mail, MapPin, Euro, 
-  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake
+  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake, UserCheck
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
