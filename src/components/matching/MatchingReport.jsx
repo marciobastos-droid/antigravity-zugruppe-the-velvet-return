@@ -756,7 +756,7 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-indigo-600" />
@@ -868,8 +868,8 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
 
           {/* Results */}
           {!analyzing && matches.length > 0 && !showCustomizer && (
-            <ScrollArea className="flex-1 mt-4 max-h-[400px]">
-              <div className="space-y-4 pr-4">
+            <div className="flex-1 mt-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 450px)', minHeight: '300px' }}>
+              <div className="space-y-4 pr-2">
                 {matches.map((match, idx) => (
                   <div
                     key={match.property.id}
@@ -1013,7 +1013,7 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           )}
 
           {/* Empty State */}
