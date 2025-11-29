@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
 import { debounce } from "lodash";
