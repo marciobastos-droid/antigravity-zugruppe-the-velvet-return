@@ -397,7 +397,7 @@ Equipa Zugruppe`
                       
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-slate-900">{user.full_name}</h3>
+                          <h3 className="text-xl font-bold text-slate-900">{user.display_name || user.full_name}</h3>
                           {isFullAdmin && (
                             <Button
                               variant="ghost"
@@ -405,7 +405,7 @@ Equipa Zugruppe`
                               className="h-7 w-7 p-0 text-slate-400 hover:text-slate-700"
                               onClick={() => {
                                 setSelectedUser(user);
-                                setEditingUserName(user.full_name || "");
+                                setEditingUserName(user.display_name || user.full_name || "");
                                 setEditNameDialogOpen(true);
                               }}
                             >
