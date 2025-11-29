@@ -856,6 +856,20 @@ export default function ClientDatabase() {
                     <SelectItem value="no">Sem Requisitos</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={assignedAgentFilter} onValueChange={setAssignedAgentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Responsável" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Responsáveis</SelectItem>
+                    <SelectItem value="none">Sem Responsável</SelectItem>
+                    {allAssignedAgents.map(agent => (
+                      <SelectItem key={agent} value={agent}>{agent.split('@')[0]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end pt-2">
                 <Button 
                   variant="ghost" 
                   onClick={() => {
@@ -863,15 +877,16 @@ export default function ClientDatabase() {
                     setStatusFilter("all");
                     setSourceFilter("all");
                     setCityFilter("all");
-                      setTagFilter("all");
-                      setHasRequirementsFilter("all");
-                      setAssignedAgentFilter("all");
-                      setSearchTerm("");
+                    setTagFilter("all");
+                    setHasRequirementsFilter("all");
+                    setAssignedAgentFilter("all");
+                    setSearchTerm("");
                   }}
                   className="text-slate-600"
                 >
                   Limpar Filtros
                 </Button>
+              </div>
               </div>
             )}
 
