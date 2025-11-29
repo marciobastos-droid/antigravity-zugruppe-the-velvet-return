@@ -607,124 +607,16 @@ export default function OpportunitiesContent() {
 
       {/* Filters */}
       {viewMode !== "dashboard" && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
-              <div className="md:col-span-2">
-                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Pesquisar</label>
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nome ou email..."
-                />
-              </div>
-              
-              {viewMode === "table" && (
-                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">Estado</label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="new">Novos</SelectItem>
-                      <SelectItem value="contacted">Contactados</SelectItem>
-                      <SelectItem value="qualified">Qualificados</SelectItem>
-                      <SelectItem value="proposal">Proposta</SelectItem>
-                      <SelectItem value="negotiation">Negociação</SelectItem>
-                      <SelectItem value="won">Ganhos</SelectItem>
-                      <SelectItem value="lost">Perdidos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Tipo</label>
-                <Select value={leadTypeFilter} onValueChange={setLeadTypeFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="comprador">Comprador</SelectItem>
-                    <SelectItem value="vendedor">Vendedor</SelectItem>
-                    <SelectItem value="parceiro_comprador">Parceiro Comprador</SelectItem>
-                    <SelectItem value="parceiro_vendedor">Parceiro Vendedor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Qualificação</label>
-                <Select value={qualificationFilter} onValueChange={setQualificationFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Qualificação" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="hot">🔥 Hot</SelectItem>
-                    <SelectItem value="warm">🌡️ Warm</SelectItem>
-                    <SelectItem value="cold">❄️ Cold</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Origem</label>
-                <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Origem" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="facebook">Facebook</SelectItem>
-                    <SelectItem value="website">Website</SelectItem>
-                    <SelectItem value="manual">Manual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-600 mb-1.5 block">Agente</label>
-                <Select value={agentFilter} onValueChange={setAgentFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Agente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="unassigned">Sem agente</SelectItem>
-                    {users.map((u) => (
-                      <SelectItem key={u.id} value={u.email}>
-                        {u.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {allCampaigns.length > 0 && (
-                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1.5 block">Campanha</label>
-                  <Select value={campaignFilter} onValueChange={setCampaignFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Campanha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {allCampaigns.map((campaign) => (
-                        <SelectItem key={campaign} value={campaign}>
-                          {campaign}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <AdvancedFilters
+          filterConfig={filterConfig}
+          filters={filters}
+          onFiltersChange={setFilters}
+          savedFiltersKey="opportunities"
+          totalCount={opportunities.length}
+          filteredCount={filteredOpportunities.length}
+          showSavedFilters={true}
+          showLogicToggle={true}
+        />
       )}
 
       {/* Content */}
