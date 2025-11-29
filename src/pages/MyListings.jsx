@@ -734,6 +734,7 @@ export default function MyListings() {
                             <Select 
                               value={property.status} 
                               onValueChange={(value) => handleStatusChange(property.id, value)}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <SelectTrigger className="w-40">
                                 <SelectValue />
