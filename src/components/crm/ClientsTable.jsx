@@ -63,7 +63,42 @@ export default function ClientsTable({
     );
   };
 
+  const toggleSelectContact = (id) => {
+    if (!onSelectionChange) return;
+    const newSelection = selectedContacts.includes(id) 
+      ? selectedContacts.filter(cid => cid !== id) 
+      : [...selectedContacts, id];
+    onSelectionChange(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (!onSelectionChange) return;
+    const newSelection = selectedContacts.length === clients.length ? [] : clients.map(c => c.id);
+    onSelectionChange(newSelection);
+  };
+
   const columns = [
+    ...(onSelectionChange ? [{
+      key: "select",
+      label: "",
+      sortable: false,
+      minWidth: "40px",
+      alwaysVisible: true,
+      headerRender: () => (
+        <Checkbox
+          checked={selectedContacts.length === clients.length && clients.length > 0}
+          onCheckedChange={toggleSelectAll}
+        />
+      ),
+      render: (_, client) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selectedContacts.includes(client.id)}
+            onCheckedChange={() => toggleSelectContact(client.id)}
+          />
+        </div>
+      )
+    }] : []),
     {
       key: "full_name",
       label: "Nome",
