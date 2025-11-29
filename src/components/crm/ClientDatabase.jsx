@@ -92,6 +92,7 @@ export default function ClientDatabase() {
   const [cityFilter, setCityFilter] = React.useState("all");
   const [tagFilter, setTagFilter] = React.useState("all");
   const [hasRequirementsFilter, setHasRequirementsFilter] = React.useState("all");
+  const [assignedAgentFilter, setAssignedAgentFilter] = React.useState("all");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingClient, setEditingClient] = React.useState(null);
   const [selectedClient, setSelectedClient] = React.useState(null);
@@ -421,9 +422,10 @@ export default function ClientDatabase() {
     return Math.min(100, Math.round((matchCount / Math.min(activeProperties.length, 10)) * 100));
   };
 
-  // Get all unique cities and tags
+  // Get all unique cities, tags and assigned agents
   const allCities = [...new Set(clients.map(c => c.city).filter(Boolean))].sort();
   const allTags = [...new Set(clients.flatMap(c => c.tags || []))].sort();
+  const allAssignedAgents = [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort();
 
   const filteredClients = clients.filter(c => {
     const matchesSearch = searchTerm === "" ||
@@ -448,10 +450,14 @@ export default function ClientDatabase() {
     const matchesHasRequirements = hasRequirementsFilter === "all" || 
       (hasRequirementsFilter === "yes" && hasReqs) ||
       (hasRequirementsFilter === "no" && !hasReqs);
-    
+
+    const matchesAssignedAgent = assignedAgentFilter === "all" || 
+      (assignedAgentFilter === "none" && !c.assigned_agent) ||
+      c.assigned_agent === assignedAgentFilter;
+
     return matchesSearch && matchesType && matchesStatus && matchesSource && 
-           matchesCity && matchesTag && matchesHasRequirements;
-  });
+           matchesCity && matchesTag && matchesHasRequirements && matchesAssignedAgent;
+    });
 
   const typeLabels = {
     client: "Cliente",
@@ -857,9 +863,10 @@ export default function ClientDatabase() {
                     setStatusFilter("all");
                     setSourceFilter("all");
                     setCityFilter("all");
-                    setTagFilter("all");
-                    setHasRequirementsFilter("all");
-                    setSearchTerm("");
+                      setTagFilter("all");
+                      setHasRequirementsFilter("all");
+                      setAssignedAgentFilter("all");
+                      setSearchTerm("");
                   }}
                   className="text-slate-600"
                 >

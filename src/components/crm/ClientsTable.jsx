@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { 
   Mail, Phone, MapPin, Building2, Eye, Edit, Trash2, 
   MessageSquare, TrendingUp, Home, Clock, Euro, Bed, 
-  Facebook, Globe, Users2, Megaphone, Tag
+  Facebook, Globe, Users2, Megaphone, Tag, User
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
@@ -230,6 +230,17 @@ export default function ClientsTable({
       ) : '-'
     },
     {
+      key: "assigned_agent",
+      label: "Responsável",
+      minWidth: "140px",
+      render: (val) => val ? (
+        <span className="flex items-center gap-1 text-slate-600">
+          <User className="w-3.5 h-3.5" />
+          <span className="truncate max-w-[120px]">{val.split('@')[0]}</span>
+        </span>
+      ) : '-'
+    },
+    {
       key: "created_date",
       label: "Criado",
       minWidth: "100px",
@@ -280,7 +291,7 @@ export default function ClientsTable({
 
   const defaultVisibleColumns = [
     "full_name", "contact_type", "status", "email", "phone", 
-    "city", "communications_count", "opportunities_count", "actions"
+    "city", "assigned_agent", "communications_count", "opportunities_count", "actions"
   ];
 
   return (
