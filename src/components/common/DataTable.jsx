@@ -33,6 +33,39 @@ export default function DataTable({
   );
   const [sortColumn, setSortColumn] = React.useState(defaultSortColumn);
   const [sortDirection, setSortDirection] = React.useState(defaultSortDirection);
+  const [columnWidths, setColumnWidths] = React.useState({});
+  const [resizing, setResizing] = React.useState(null);
+  const tableRef = React.useRef(null);
+
+  // Handle column resize
+  const handleMouseDown = (e, columnKey) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setResizing({ columnKey, startX: e.clientX });
+  };
+
+  React.useEffect(() => {
+    if (!resizing) return;
+
+    const handleMouseMove = (e) => {
+      const diff = e.clientX - resizing.startX;
+      const currentWidth = columnWidths[resizing.columnKey] || 120;
+      const newWidth = Math.max(50, currentWidth + diff);
+      setColumnWidths(prev => ({ ...prev, [resizing.columnKey]: newWidth }));
+      setResizing(prev => ({ ...prev, startX: e.clientX }));
+    };
+
+    const handleMouseUp = () => {
+      setResizing(null);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing, columnWidths]);
 
   const handleSort = (columnKey) => {
     if (sortColumn === columnKey) {
