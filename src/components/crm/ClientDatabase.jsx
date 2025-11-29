@@ -307,48 +307,56 @@ export default function ClientDatabase() {
     }
   });
 
-  const bulkEditMutation = useMutation({
-    mutationFn: async ({ ids, data }) => {
-      const contactsToUpdate = clients.filter(c => ids.includes(c.id));
-      let updated = 0;
-      let failed = 0;
+  const [bulkProgress, setBulkProgress] = React.useState({ current: 0, total: 0, isRunning: false });
 
-      for (const contact of contactsToUpdate) {
-        try {
-          const updateData = {};
-          
-          // Only update non-empty fields
-          if (data.contact_type) updateData.contact_type = data.contact_type;
-          if (data.status) updateData.status = data.status;
-          if (data.source) updateData.source = data.source;
-          if (data.city) updateData.city = data.city;
-          if (data.assigned_agent) updateData.assigned_agent = data.assigned_agent;
-          
-          // Handle tags
-          let currentTags = [...(contact.tags || [])];
-          if (data.add_tags?.length > 0) {
-            data.add_tags.forEach(tag => {
-              if (!currentTags.includes(tag)) currentTags.push(tag);
-            });
-          }
-          if (data.remove_tags?.length > 0) {
-            currentTags = currentTags.filter(t => !data.remove_tags.includes(t));
-          }
-          if (data.add_tags?.length > 0 || data.remove_tags?.length > 0) {
-            updateData.tags = currentTags;
-          }
+      const bulkEditMutation = useMutation({
+        mutationFn: async ({ ids, data }) => {
+          const contactsToUpdate = clients.filter(c => ids.includes(c.id));
+          let updated = 0;
+          let failed = 0;
+          const total = contactsToUpdate.length;
 
-          if (Object.keys(updateData).length > 0) {
-            await base44.entities.ClientContact.update(contact.id, updateData);
-            updated++;
+          setBulkProgress({ current: 0, total, isRunning: true });
+
+          for (let i = 0; i < contactsToUpdate.length; i++) {
+            const contact = contactsToUpdate[i];
+            try {
+              const updateData = {};
+
+              // Only update non-empty fields
+              if (data.contact_type) updateData.contact_type = data.contact_type;
+              if (data.status) updateData.status = data.status;
+              if (data.source) updateData.source = data.source;
+              if (data.city) updateData.city = data.city;
+              if (data.assigned_agent) updateData.assigned_agent = data.assigned_agent;
+
+              // Handle tags
+              let currentTags = [...(contact.tags || [])];
+              if (data.add_tags?.length > 0) {
+                data.add_tags.forEach(tag => {
+                  if (!currentTags.includes(tag)) currentTags.push(tag);
+                });
+              }
+              if (data.remove_tags?.length > 0) {
+                currentTags = currentTags.filter(t => !data.remove_tags.includes(t));
+              }
+              if (data.add_tags?.length > 0 || data.remove_tags?.length > 0) {
+                updateData.tags = currentTags;
+              }
+
+              if (Object.keys(updateData).length > 0) {
+                await base44.entities.ClientContact.update(contact.id, updateData);
+                updated++;
+              }
+            } catch (error) {
+              console.error(`Erro ao atualizar contacto ${contact.id}:`, error);
+              failed++;
+            }
+            setBulkProgress({ current: i + 1, total, isRunning: true });
           }
-        } catch (error) {
-          console.error(`Erro ao atualizar contacto ${contact.id}:`, error);
-          failed++;
-        }
-      }
-      return { updated, failed };
-    },
+          setBulkProgress({ current: total, total, isRunning: false });
+          return { updated, failed };
+        },
     onSuccess: (result) => {
       if (result.failed > 0) {
         toast.warning(`${result.updated} contactos atualizados, ${result.failed} falharam`);
