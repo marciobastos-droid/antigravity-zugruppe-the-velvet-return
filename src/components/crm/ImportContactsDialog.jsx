@@ -412,17 +412,22 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                         <div key={header}>
                           <Label className="text-xs mb-1 block truncate" title={header}>{header}</Label>
                           <Select
-                            value={columnMapping[header] || ""}
-                            onValueChange={(value) => setColumnMapping({
-                              ...columnMapping, 
-                              [header]: value === 'null' ? null : value
-                            })}
+                            value={columnMapping[header] || "ignore"}
+                            onValueChange={(value) => {
+                              const newMapping = { ...columnMapping };
+                              if (value === 'ignore') {
+                                delete newMapping[header];
+                              } else {
+                                newMapping[header] = value;
+                              }
+                              setColumnMapping(newMapping);
+                            }}
                           >
                             <SelectTrigger className="h-8 text-sm">
                               <SelectValue placeholder="Ignorar" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="null">Ignorar</SelectItem>
+                              <SelectItem value="ignore">Ignorar</SelectItem>
                               {Object.entries(fieldLabels).map(([field, label]) => (
                                 <SelectItem key={field} value={field}>{label}</SelectItem>
                               ))}
