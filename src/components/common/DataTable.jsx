@@ -177,8 +177,8 @@ export default function DataTable({
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto" style={{ cursor: resizing ? 'col-resize' : undefined }}>
+          <table ref={tableRef} className="w-full" style={{ tableLayout: 'fixed' }}>
             <thead className="bg-slate-50 border-b">
               <tr>
                 {showCheckboxes && (
