@@ -22,19 +22,28 @@ export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = React.useState("table");
   const [selectedLead, setSelectedLead] = React.useState(null);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState("all");
-  const [leadTypeFilter, setLeadTypeFilter] = React.useState("all");
-  const [qualificationFilter, setQualificationFilter] = React.useState("all");
-  const [sourceFilter, setSourceFilter] = React.useState("all");
-  const [agentFilter, setAgentFilter] = React.useState("all");
-  const [campaignFilter, setCampaignFilter] = React.useState("all");
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
   const [formDialogOpen, setFormDialogOpen] = React.useState(false);
   const [editingOpportunity, setEditingOpportunity] = React.useState(null);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
+  const [filterLogic, setFilterLogic] = React.useState("AND");
+  
+  // Estado dos filtros avançados
+  const [filters, setFilters] = React.useState({
+    search: "",
+    status: "all",
+    lead_type: "all",
+    qualification_status: "all",
+    lead_source: "all",
+    assigned_to: "all",
+    priority: "all",
+    created_date: {},
+    updated_date: {},
+    budget: {},
+    estimated_value: {}
+  });
 
   const { data: user } = useQuery({
     queryKey: ['user'],
