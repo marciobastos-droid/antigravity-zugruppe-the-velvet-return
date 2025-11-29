@@ -2,6 +2,76 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
+// Detect if URL is a listing page or a single property detail page
+function detectPageType(url) {
+  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos/i;
+  const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$/;
+  
+  // Check for listing page patterns first (more specific)
+  if (listingPatterns.test(url)) {
+    return 'listing';
+  }
+  
+  // Check for detail page patterns
+  if (detailPatterns.test(url)) {
+    return 'detail';
+  }
+  
+  // Default to listing if contains typical listing URL structure
+  if (url.includes('comprar') || url.includes('arrendar')) {
+    return 'listing';
+  }
+  
+  return 'detail';
+}
+
+// Extract all property links from Idealista listing page
+function extractPropertyLinks(html, baseUrl) {
+  const links = [];
+  const urlObj = new URL(baseUrl);
+  const origin = urlObj.origin;
+  
+  // Idealista specific patterns
+  const idealistaPattern = /href=["']([^"']*\/imovel\/\d+[^"']*)["']/gi;
+  const matches = html.matchAll(idealistaPattern);
+  
+  for (const match of matches) {
+    let link = match[1];
+    if (link.startsWith('/')) {
+      link = origin + link;
+    } else if (!link.startsWith('http')) {
+      link = origin + '/' + link;
+    }
+    if (!links.includes(link)) {
+      links.push(link);
+    }
+  }
+  
+  // Generic property link patterns
+  const genericPatterns = [
+    /href=["']([^"']*\/anuncio\/[^"']+)["']/gi,
+    /href=["']([^"']*\/propriedade\/[^"']+)["']/gi,
+    /href=["']([^"']*\/property\/[^"']+)["']/gi,
+  ];
+  
+  for (const pattern of genericPatterns) {
+    const genericMatches = html.matchAll(pattern);
+    for (const match of genericMatches) {
+      let link = match[1];
+      if (link.startsWith('/')) {
+        link = origin + link;
+      } else if (!link.startsWith('http')) {
+        link = origin + '/' + link;
+      }
+      if (!links.includes(link)) {
+        links.push(link);
+      }
+    }
+  }
+  
+  return links;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -17,6 +87,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'URL é obrigatório' }, { status: 400 });
     }
 
+    const pageType = detectPageType(url);
+    
     // Fetch the webpage content
     let pageContent = '';
     try {
@@ -35,14 +107,138 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Extract text content and image URLs from HTML
+    // If it's a listing page, extract multiple properties
+    if (pageType === 'listing') {
+      // Extract property links from listing page
+      const propertyLinks = extractPropertyLinks(pageContent, url);
+      
+      // Also try to extract property data directly from the listing page HTML
+      const textContent = pageContent
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 30000); // Larger limit for listing pages
+
+      // Use Gemini to extract ALL properties from the listing page
+      const geminiResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: `És um especialista em extração de dados imobiliários. Esta é uma PÁGINA DE LISTAGEM de um portal imobiliário português.
+Extrai TODOS os imóveis listados nesta página.
+
+URL: ${url}
+
+CONTEÚDO DA PÁGINA:
+${textContent}
+
+INSTRUÇÕES CRÍTICAS:
+1. Esta é uma página de LISTAGEM - extrai TODOS os imóveis que aparecem
+2. Cada item da listagem tem: título, preço, quartos, área, localização
+3. PREÇO PORTUGUÊS: "875.000 €" = 875000, "1.450.000€" = 1450000 (ponto é separador de milhares!)
+4. TIPOLOGIA: "T4" = 4 quartos, "T5" = 5 quartos, "Moradia" = house
+5. Se URL contém "comprar" = sale, se contém "arrendar" = rent
+6. Extrai o ID do imóvel do link se visível (ex: 34231937)
+7. property_type: "apartment" para apartamentos/pisos, "house" para moradias/vivendas
+8. Extrai TODOS os imóveis visíveis, não apenas o primeiro
+
+Responde APENAS com JSON válido (sem markdown):
+{
+  "is_listing_page": true,
+  "total_found": number,
+  "properties": [
+    {
+      "title": "string",
+      "price": number,
+      "bedrooms": number,
+      "bathrooms": number,
+      "square_feet": number,
+      "city": "string",
+      "state": "string",
+      "address": "string",
+      "property_type": "apartment|house",
+      "listing_type": "sale|rent",
+      "external_id": "string",
+      "detail_url": "string"
+    }
+  ]
+}`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 8192
+            }
+          })
+        }
+      );
+
+      if (!geminiResponse.ok) {
+        const errorText = await geminiResponse.text();
+        return Response.json({ 
+          error: 'Erro na API Gemini',
+          details: errorText 
+        }, { status: 500 });
+      }
+
+      const geminiData = await geminiResponse.json();
+      let responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
+      responseText = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      let listingData;
+      try {
+        listingData = JSON.parse(responseText);
+      } catch (parseError) {
+        return Response.json({ 
+          error: 'Não foi possível extrair dados da listagem',
+          rawResponse: responseText.substring(0, 1000)
+        }, { status: 400 });
+      }
+
+      // Process each property
+      const properties = (listingData.properties || []).map((p, idx) => {
+        const urlObj = new URL(url);
+        let detailUrl = p.detail_url || '';
+        if (detailUrl && !detailUrl.startsWith('http')) {
+          detailUrl = urlObj.origin + (detailUrl.startsWith('/') ? '' : '/') + detailUrl;
+        }
+        
+        return {
+          ...p,
+          source_url: detailUrl || url,
+          images: [],
+          property_type: p.property_type || 'apartment',
+          listing_type: p.listing_type || (url.includes('arrendar') ? 'rent' : 'sale')
+        };
+      });
+
+      return Response.json({
+        success: true,
+        is_listing_page: true,
+        total_found: listingData.total_found || properties.length,
+        properties: properties,
+        property_links: propertyLinks.slice(0, 30)
+      });
+    }
+
+    // Single property detail page (original logic)
     const textContent = pageContent
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 15000); // Limit for API
+      .substring(0, 15000);
 
     // Extract image URLs
     const imageMatches = pageContent.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi);
@@ -61,7 +257,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Also extract from data-src, data-lazy-src attributes (common in lazy loading)
+    // Also extract from data-src, data-lazy-src attributes
     const lazySrcMatches = pageContent.matchAll(/data-(?:lazy-)?src=["']([^"']+)["']/gi);
     for (const match of lazySrcMatches) {
       let imgUrl = match[1];
@@ -77,7 +273,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Use Gemini to extract property data
+    // Use Gemini to extract single property data
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -145,10 +341,8 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
 
     const geminiData = await geminiResponse.json();
     
-    // Extract the text response
     let responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
-    // Clean up the response (remove markdown code blocks if present)
     responseText = responseText
       .replace(/```json\n?/g, '')
       .replace(/```\n?/g, '')
@@ -164,17 +358,16 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
       }, { status: 400 });
     }
 
-    // Add source URL and images
     propertyData.source_url = url;
-    propertyData.images = images.slice(0, 20); // Limit to 20 images
+    propertyData.images = images.slice(0, 20);
 
-    // Validate minimum required fields
     if (!propertyData.title || propertyData.title.length < 3) {
       propertyData.title = `Imóvel em ${propertyData.city || 'Portugal'}`;
     }
 
     return Response.json({
       success: true,
+      is_listing_page: false,
       property: propertyData,
       imageCount: images.length
     });
