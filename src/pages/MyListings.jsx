@@ -214,30 +214,6 @@ export default function MyListings() {
     );
   };
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setTypeFilter("all");
-    setListingTypeFilter("all");
-    setPriceMin("");
-    setPriceMax("");
-    setSelectedTags([]);
-    setStateFilter("all");
-    setCityFilter("all");
-    setCurrentPage(1);
-  };
-
-  // Extrair todas as tags únicas dos imóveis
-  const allTags = React.useMemo(() => {
-    const tagsSet = new Set();
-    properties.forEach(p => {
-      if (p.tags?.length) {
-        p.tags.forEach(tag => tagsSet.add(tag));
-      }
-    });
-    return Array.from(tagsSet).sort();
-  }, [properties]);
-
   // Extrair todos os distritos e concelhos únicos
   const allStates = React.useMemo(() => {
     const statesSet = new Set();
@@ -250,38 +226,112 @@ export default function MyListings() {
   const allCities = React.useMemo(() => {
     const citiesSet = new Set();
     properties.forEach(p => {
-      if (p.city && (stateFilter === "all" || p.state === stateFilter)) {
+      if (p.city && (filters.state === "all" || p.state === filters.state)) {
         citiesSet.add(p.city);
       }
     });
     return Array.from(citiesSet).sort();
-  }, [properties, stateFilter]);
+  }, [properties, filters.state]);
 
-  const toggleTag = (tag) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-    setCurrentPage(1);
-  };
+  // Configuração dos filtros avançados
+  const filterConfig = React.useMemo(() => ({
+    search: {
+      type: FILTER_TYPES.text,
+      label: "Pesquisar",
+      placeholder: "Título, cidade, morada...",
+      searchFields: ["title", "city", "address", "ref_id"]
+    },
+    status: {
+      type: FILTER_TYPES.select,
+      label: "Estado",
+      field: "status",
+      options: [
+        { value: "active", label: "Ativo" },
+        { value: "pending", label: "Pendente" },
+        { value: "sold", label: "Vendido" },
+        { value: "rented", label: "Arrendado" },
+        { value: "off_market", label: "Desativado" }
+      ]
+    },
+    property_type: {
+      type: FILTER_TYPES.select,
+      label: "Tipo de Imóvel",
+      field: "property_type",
+      options: [
+        { value: "house", label: "Moradia" },
+        { value: "apartment", label: "Apartamento" },
+        { value: "condo", label: "Condomínio" },
+        { value: "townhouse", label: "Casa Geminada" },
+        { value: "building", label: "Prédio" },
+        { value: "land", label: "Terreno" },
+        { value: "commercial", label: "Comercial" },
+        { value: "warehouse", label: "Armazém" },
+        { value: "office", label: "Escritório" },
+        { value: "store", label: "Loja" },
+        { value: "farm", label: "Quinta" },
+        { value: "development", label: "Empreendimento" }
+      ]
+    },
+    listing_type: {
+      type: FILTER_TYPES.select,
+      label: "Tipo de Anúncio",
+      field: "listing_type",
+      options: [
+        { value: "sale", label: "Venda" },
+        { value: "rent", label: "Arrendamento" }
+      ]
+    },
+    price: {
+      type: FILTER_TYPES.numberRange,
+      label: "Preço (€)",
+      field: "price",
+      prefix: "€"
+    },
+    state: {
+      type: FILTER_TYPES.select,
+      label: "Distrito",
+      field: "state",
+      options: allStates.map(s => ({ value: s, label: s })),
+      advanced: true
+    },
+    city: {
+      type: FILTER_TYPES.select,
+      label: "Concelho",
+      field: "city",
+      options: allCities.map(c => ({ value: c, label: c })),
+      advanced: true
+    },
+    tags: {
+      type: FILTER_TYPES.multiSelect,
+      label: "Etiquetas",
+      field: "tags",
+      options: propertyTags.map(t => ({ value: t.name, label: t.name })),
+      advanced: true
+    },
+    created_date: {
+      type: FILTER_TYPES.dateRange,
+      label: "Data de Criação",
+      field: "created_date",
+      advanced: true
+    },
+    updated_date: {
+      type: FILTER_TYPES.dateRange,
+      label: "Data de Atualização",
+      field: "updated_date",
+      advanced: true
+    },
+    featured: {
+      type: FILTER_TYPES.boolean,
+      label: "Destaque",
+      field: "featured",
+      trueLabel: "Sim",
+      falseLabel: "Não",
+      advanced: true
+    }
+  }), [allStates, allCities, propertyTags]);
 
-  const filteredProperties = properties.filter(p => {
-    const matchesSearch = debouncedSearch === "" || 
-      p.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      p.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      p.address?.toLowerCase().includes(debouncedSearch.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || p.status === statusFilter;
-    const matchesType = typeFilter === "all" || p.property_type === typeFilter;
-    const matchesListingType = listingTypeFilter === "all" || p.listing_type === listingTypeFilter;
-    
-    const matchesPriceMin = priceMin === "" || p.price >= parseFloat(priceMin);
-    const matchesPriceMax = priceMax === "" || p.price <= parseFloat(priceMax);
-    const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => p.tags?.includes(tag));
-    const matchesState = stateFilter === "all" || p.state === stateFilter;
-    const matchesCity = cityFilter === "all" || p.city === cityFilter;
-    
-    return matchesSearch && matchesStatus && matchesType && matchesListingType && matchesPriceMin && matchesPriceMax && matchesTags && matchesState && matchesCity;
-  });
+  // Aplicar filtros avançados
+  const filteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
 
   const toggleSelectAll = () => {
     setSelectedProperties(prev =>
@@ -297,12 +347,14 @@ export default function MyListings() {
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [statusFilter, typeFilter, listingTypeFilter, priceMin, priceMax, selectedTags, stateFilter, cityFilter]);
+  }, [filters]);
 
   // Reset city filter when state changes
   React.useEffect(() => {
-    setCityFilter("all");
-  }, [stateFilter]);
+    if (filters.state !== "all") {
+      setFilters(prev => ({ ...prev, city: "all" }));
+    }
+  }, [filters.state]);
 
   const statusLabels = {
     active: "Ativo",
