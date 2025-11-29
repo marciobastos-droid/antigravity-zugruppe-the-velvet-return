@@ -192,15 +192,26 @@ export default function DataTable({
                 {visibleColumnObjects.map((column) => (
                   <th
                     key={column.key}
-                    className={`px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
+                    className={`px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider relative ${
                       column.sortable !== false ? 'cursor-pointer hover:bg-slate-100 select-none' : ''
                     } ${column.className || ''}`}
-                    style={{ minWidth: column.minWidth, width: column.width }}
+                    style={{ 
+                      minWidth: columnWidths[column.key] ? undefined : column.minWidth, 
+                      width: columnWidths[column.key] || column.width 
+                    }}
                     onClick={() => column.sortable !== false && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-1.5">
-                      <span>{column.label}</span>
+                      <span className="truncate">{column.label}</span>
                       {column.sortable !== false && <SortIcon columnKey={column.key} />}
+                    </div>
+                    {/* Resize handle */}
+                    <div
+                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 group"
+                      onMouseDown={(e) => handleMouseDown(e, column.key)}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-slate-300 group-hover:bg-blue-500" />
                     </div>
                   </th>
                 ))}
