@@ -641,7 +641,8 @@ export default function PropertyDetails() {
 
           {/* Sidebar - Right Column */}
           <div className="space-y-6">
-            {/* Agent Card */}
+            {/* Agent Card - Only show if property is published on portals */}
+            {property.published_portals && property.published_portals.length > 0 && (
             <Card className="sticky top-24">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg">Agente Responsável</CardTitle>
@@ -797,6 +798,7 @@ export default function PropertyDetails() {
                 </div>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
         
