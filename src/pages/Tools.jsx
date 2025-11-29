@@ -447,6 +447,7 @@ export default function Tools() {
         {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
         {activeTab === "portalIntegrations" && <PortalIntegrations />}
         {activeTab === "tagManager" && <TagManager />}
+        {activeTab === "importOpportunities" && <ImportOpportunities />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
