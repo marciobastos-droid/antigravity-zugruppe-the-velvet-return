@@ -953,9 +953,9 @@ export default function ClientDatabase() {
 
       {/* View Mode Toggle */}
       <div className="flex justify-between items-center mb-4">
-        <Button variant="outline" size="sm" onClick={toggleSelectAll}>
-          {selectedContacts.length === filteredClients.length && filteredClients.length > 0 ? 'Desselecionar' : 'Selecionar'} Todos
-        </Button>
+        <div className="text-sm text-slate-600">
+          {selectedContacts.length > 0 && `${selectedContacts.length} selecionado(s)`}
+        </div>
         <div className="flex border rounded-lg overflow-hidden">
           <Button
             variant={viewMode === "table" ? "default" : "ghost"}
