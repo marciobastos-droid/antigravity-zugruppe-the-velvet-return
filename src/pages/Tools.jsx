@@ -168,7 +168,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Download className="w-5 h-5 text-blue-600" />
                 <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(5 ferramentas)</span>
+                <span className="text-sm text-blue-600">(6 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
