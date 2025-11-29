@@ -65,7 +65,7 @@ export default function MatchingTab() {
 
   // Filter contacts based on search
   const filteredContacts = (activeTab === 'with_requirements' ? clientsWithRequirements : 
-    activeTab === 'without_requirements' ? clientsWithoutRequirements : contacts)
+    activeTab === 'without_requirements' ? clientsWithoutRequirements : clientContacts)
     .filter(c => {
       if (!searchTerm) return true;
       const search = searchTerm.toLowerCase();
