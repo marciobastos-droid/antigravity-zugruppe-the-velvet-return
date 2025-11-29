@@ -247,6 +247,19 @@ export default function OpportunitiesTable({
       render: (val) => val ? format(new Date(val), "dd/MM/yy") : '-'
     },
     {
+      key: "converted",
+      label: "Convertido",
+      minWidth: "100px",
+      render: (_, opp) => convertedOpportunities.has(opp.id) ? (
+        <Badge className="bg-green-100 text-green-800 border-green-300">
+          <UserCheck className="w-3 h-3 mr-1" />
+          Sim
+        </Badge>
+      ) : (
+        <span className="text-slate-400 text-sm">Não</span>
+      )
+    },
+    {
       key: "actions",
       label: "Ações",
       sortable: false,
