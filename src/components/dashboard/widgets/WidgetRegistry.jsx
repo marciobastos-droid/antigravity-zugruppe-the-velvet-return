@@ -181,6 +181,70 @@ export const widgetTypes = {
         { value: "chart", label: "Gráfico comparativo" }
       ]}
     }
+  },
+  sales_by_month: {
+    id: "sales_by_month",
+    name: "Resumo de Vendas por Mês",
+    description: "Volume e valor de vendas mensais",
+    icon: "TrendingUp",
+    category: "charts",
+    defaultSize: { w: 6, h: 4 },
+    minSize: { w: 4, h: 3 },
+    configSchema: {
+      show_value: { type: "boolean", label: "Mostrar valores (€)", default: true },
+      show_count: { type: "boolean", label: "Mostrar quantidade", default: true },
+      months: { type: "select", label: "Período", options: [
+        { value: "6", label: "Últimos 6 meses" },
+        { value: "12", label: "Últimos 12 meses" }
+      ]}
+    }
+  },
+  leads_by_source: {
+    id: "leads_by_source",
+    name: "Novos Leads por Origem",
+    description: "Distribuição de leads por fonte de aquisição",
+    icon: "PieChart",
+    category: "crm",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      chart_type: { type: "select", label: "Tipo de gráfico", options: [
+        { value: "pie", label: "Circular" },
+        { value: "bar", label: "Barras" }
+      ]},
+      show_percentage: { type: "boolean", label: "Mostrar percentagem", default: true }
+    }
+  },
+  top_agents: {
+    id: "top_agents",
+    name: "Performance de Agentes Chave",
+    description: "Ranking dos melhores agentes",
+    icon: "Users",
+    category: "crm",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      metric: { type: "select", label: "Ordenar por", options: [
+        { value: "leads", label: "Total de Leads" },
+        { value: "conversions", label: "Conversões" },
+        { value: "value", label: "Valor Total" }
+      ]},
+      limit: { type: "number", label: "Nº de agentes", default: 5, min: 3, max: 10 }
+    }
+  },
+  upcoming_tasks: {
+    id: "upcoming_tasks",
+    name: "Próximas Tarefas/Compromissos",
+    description: "Tarefas e visitas agendadas",
+    icon: "Bell",
+    category: "crm",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      show_tasks: { type: "boolean", label: "Mostrar tarefas", default: true },
+      show_appointments: { type: "boolean", label: "Mostrar visitas", default: true },
+      days_ahead: { type: "number", label: "Dias à frente", default: 7, min: 1, max: 30 }
+    }
   }
 };
 
