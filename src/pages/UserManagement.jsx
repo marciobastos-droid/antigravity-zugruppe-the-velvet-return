@@ -141,7 +141,8 @@ Equipa Zugruppe`
       }
     } catch (error) {
       console.error("Erro ao definir senha:", error);
-      toast.error("Erro ao definir senha");
+      const errorMsg = error.response?.data?.error || error.message || "Erro ao definir senha";
+      toast.error(errorMsg);
     }
     setSettingPassword(false);
   };
