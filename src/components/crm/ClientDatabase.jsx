@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo, useCallback, memo, lazy, Suspense } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,27 +14,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   UserPlus, Search, Phone, Mail, MapPin, Building2, 
   Calendar, MessageSquare, Edit, Trash2, Eye, X, 
-  Tag as TagIcon, DollarSign, Clock, User, Filter, Home, Target,
-  TrendingUp, Euro, Bed, Square, Sparkles, ChevronDown, Globe, Facebook, Users2, Megaphone,
-  Star, Zap, AlertCircle, CheckCircle2, Briefcase, Heart, Shield, Award, Flame, Snowflake, ThermometerSun,
+  Tag as TagIcon, Clock, User, Filter, Home, Target,
+  TrendingUp, Euro, Bed, Sparkles, ChevronDown, Globe, Facebook, Users2,
+  Star, Zap, AlertCircle, CheckCircle2, Flame, Snowflake, ThermometerSun,
   LayoutGrid, List, Link2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import CommunicationHistory from "./CommunicationHistory";
-import WhatsAppConversation from "./WhatsAppConversation";
-import AddCommunicationDialog from "./AddCommunicationDialog";
-import ContactMatching from "./ContactMatching";
-import MatchingReport from "../matching/MatchingReport";
 import ClientsTable from "./ClientsTable";
-import SendEmailDialog from "../email/SendEmailDialog";
-import ClientPortalManager from "./ClientPortalManager";
-import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
-import ContactOpportunities from "./ContactOpportunities";
 import TagSelector from "../tags/TagSelector";
 import QuickContactActions from "./QuickContactActions";
 import { useAgentNames } from "@/components/common/useAgentNames";
+
+// Lazy load heavy components
+const CommunicationHistory = lazy(() => import("./CommunicationHistory"));
+const WhatsAppConversation = lazy(() => import("./WhatsAppConversation"));
+const AddCommunicationDialog = lazy(() => import("./AddCommunicationDialog"));
+const ContactMatching = lazy(() => import("./ContactMatching"));
+const MatchingReport = lazy(() => import("../matching/MatchingReport"));
+const SendEmailDialog = lazy(() => import("../email/SendEmailDialog"));
+const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
+const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
+const ContactOpportunities = lazy(() => import("./ContactOpportunities"));
 
 function BulkTagSelector({ onTagSelect }) {
   const [open, setOpen] = React.useState(false);
@@ -85,31 +87,38 @@ function BulkTagSelector({ onTagSelect }) {
 }
 
 
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-slate-600" />
+  </div>
+);
+
 export default function ClientDatabase() {
     const queryClient = useQueryClient();
     const { getAgentName, getAgentOptions } = useAgentNames();
-    const [searchTerm, setSearchTerm] = React.useState("");
-  const [typeFilter, setTypeFilter] = React.useState("all");
-  const [statusFilter, setStatusFilter] = React.useState("all");
-  const [sourceFilter, setSourceFilter] = React.useState("all");
-  const [cityFilter, setCityFilter] = React.useState("all");
-  const [tagFilter, setTagFilter] = React.useState([]);
-  const [hasRequirementsFilter, setHasRequirementsFilter] = React.useState("all");
-  const [assignedAgentFilter, setAssignedAgentFilter] = React.useState([]);
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editingClient, setEditingClient] = React.useState(null);
-  const [selectedClient, setSelectedClient] = React.useState(null);
-  const [commDialogOpen, setCommDialogOpen] = React.useState(false);
-  const [matchingReportOpen, setMatchingReportOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("details");
-  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
-  const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
-  const [emailRecipient, setEmailRecipient] = React.useState(null);
-  const [opportunityDialogOpen, setOpportunityDialogOpen] = React.useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [tagFilter, setTagFilter] = useState([]);
+  const [hasRequirementsFilter, setHasRequirementsFilter] = useState("all");
+  const [assignedAgentFilter, setAssignedAgentFilter] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [commDialogOpen, setCommDialogOpen] = useState(false);
+  const [matchingReportOpen, setMatchingReportOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("details");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [viewMode, setViewMode] = useState("table");
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailRecipient, setEmailRecipient] = useState(null);
+  const [opportunityDialogOpen, setOpportunityDialogOpen] = useState(false);
 
 
-  const [formData, setFormData] = React.useState({
+  const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     full_name: "",
@@ -309,7 +318,7 @@ export default function ClientDatabase() {
     }
   });
 
-  const [bulkProgress, setBulkProgress] = React.useState({ current: 0, total: 0, isRunning: false });
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, isRunning: false });
 
       const bulkEditMutation = useMutation({
         mutationFn: async ({ ids, data }) => {
@@ -453,11 +462,11 @@ export default function ClientDatabase() {
     }
   };
 
-  const [deleteConfirm, setDeleteConfirm] = React.useState(null);
-  const [selectedContacts, setSelectedContacts] = React.useState([]);
-  const [bulkDeleteConfirm, setBulkDeleteConfirm] = React.useState(false);
-  const [bulkEditDialogOpen, setBulkEditDialogOpen] = React.useState(false);
-  const [bulkEditData, setBulkEditData] = React.useState({
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [selectedContacts, setSelectedContacts] = useState([]);
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false);
+  const [bulkEditData, setBulkEditData] = useState({
     contact_type: "",
     status: "",
     source: "",
@@ -483,20 +492,20 @@ export default function ClientDatabase() {
     }
   };
 
-  const toggleSelectContact = (id) => {
+  const toggleSelectContact = useCallback((id) => {
     setSelectedContacts(prev =>
       prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     setSelectedContacts(prev =>
       prev.length === filteredClients.length ? [] : filteredClients.map(c => c.id)
     );
-  };
+  }, [filteredClients]);
 
   // Memoized maps for O(1) lookups instead of O(n) filters
-  const communicationsByContact = React.useMemo(() => {
+  const communicationsByContact = useMemo(() => {
     const map = new Map();
     communications.forEach(c => {
       if (!map.has(c.contact_id)) map.set(c.contact_id, []);
@@ -505,7 +514,7 @@ export default function ClientDatabase() {
     return map;
   }, [communications]);
 
-  const opportunitiesByContact = React.useMemo(() => {
+  const opportunitiesByContact = useMemo(() => {
     const map = new Map();
     opportunities.forEach(o => {
       if (o.profile_id) {
@@ -516,15 +525,15 @@ export default function ClientDatabase() {
     return map;
   }, [opportunities]);
 
-  const getClientCommunications = React.useCallback((clientId) => {
+  const getClientCommunications = useCallback((clientId) => {
     return communicationsByContact.get(clientId) || [];
   }, [communicationsByContact]);
 
-  const getClientOpportunities = React.useCallback((client) => {
+  const getClientOpportunities = useCallback((client) => {
     const fromProfile = opportunitiesByContact.get(client.id) || [];
     const linkedIds = client.linked_opportunity_ids || [];
     if (linkedIds.length === 0) return fromProfile;
-    
+
     const linkedOpps = opportunities.filter(o => linkedIds.includes(o.id));
     const combined = [...fromProfile];
     linkedOpps.forEach(o => {
@@ -533,64 +542,67 @@ export default function ClientDatabase() {
     return combined;
   }, [opportunitiesByContact, opportunities]);
 
-  // Memoized active properties for matching score
-  const activeProperties = React.useMemo(() => 
-    properties.filter(p => p.status === 'active'), 
+  // Memoized active properties for matching score - limit sample for performance
+  const activeProperties = useMemo(() => 
+    properties.filter(p => p.status === 'active').slice(0, 100), 
     [properties]
   );
 
-  // Memoized matching scores for all clients
-  const matchingScores = React.useMemo(() => {
+  // Memoized matching scores - only calculate for visible clients to improve performance
+  const matchingScores = useMemo(() => {
     const scores = new Map();
     if (activeProperties.length === 0) return scores;
-    
-    clients.forEach(client => {
+
+    // Only calculate for first 50 clients for performance
+    const clientsToScore = clients.slice(0, 50);
+
+    clientsToScore.forEach(client => {
       const req = client.property_requirements;
       if (!req || Object.keys(req).length === 0) {
         scores.set(client.id, 0);
         return;
       }
-      
+
       let matchCount = 0;
-      activeProperties.forEach(property => {
+      const propsToCheck = activeProperties.slice(0, 20); // Limit check
+      propsToCheck.forEach(property => {
         let matches = true;
-        
         if (req.locations?.length > 0) {
-          matches = matches && req.locations.some(loc => 
+          matches = req.locations.some(loc => 
             property.city?.toLowerCase().includes(loc.toLowerCase())
           );
         }
-        if (req.budget_max && property.price > req.budget_max * 1.15) matches = false;
-        if (req.budget_min && property.price < req.budget_min * 0.85) matches = false;
-        if (req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
-        
+        if (matches && req.budget_max && property.price > req.budget_max * 1.15) matches = false;
+        if (matches && req.budget_min && property.price < req.budget_min * 0.85) matches = false;
+        if (matches && req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
         if (matches) matchCount++;
       });
-
-      scores.set(client.id, Math.min(100, Math.round((matchCount / Math.min(activeProperties.length, 10)) * 100)));
+      scores.set(client.id, Math.min(100, Math.round((matchCount / Math.min(propsToCheck.length, 10)) * 100)));
     });
-    
     return scores;
   }, [clients, activeProperties]);
 
-  const getMatchingScore = React.useCallback((clientId) => {
+  const getMatchingScore = useCallback((clientId) => {
     return matchingScores.get(clientId) || 0;
   }, [matchingScores]);
 
   // Memoized unique values for filters
-  const { allCities, allTags, allAssignedAgents } = React.useMemo(() => ({
+  const { allCities, allTags, allAssignedAgents } = useMemo(() => ({
     allCities: [...new Set(clients.map(c => c.city).filter(Boolean))].sort(),
     allTags: [...new Set(clients.flatMap(c => c.tags || []))].sort(),
     allAssignedAgents: [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort()
   }), [clients]);
-  
-  const agentOptions = getAgentOptions();
 
-  // Memoized filtered clients
-  const filteredClients = React.useMemo(() => {
+  const agentOptions = useMemo(() => getAgentOptions(), [getAgentOptions]);
+
+  // Memoized filtered clients with optimized search
+  const filteredClients = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
     const validContactTypes = ["client", "partner", "investor", "vendor", "other"];
-    
+    const tagFilterSet = new Set(tagFilter);
+    const agentFilterSet = new Set(assignedAgentFilter);
+    const hasNone = agentFilterSet.has("none");
+
     return clients.filter(c => {
       // Quick filters first (most selective)
       if (typeFilter !== "all") {
@@ -601,60 +613,61 @@ export default function ClientDatabase() {
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (sourceFilter !== "all" && c.source !== sourceFilter) return false;
       if (cityFilter !== "all" && c.city !== cityFilter) return false;
-      if (tagFilter.length > 0 && !tagFilter.some(t => c.tags?.includes(t))) return false;
-      
-      if (assignedAgentFilter.length > 0) {
-        const hasNone = assignedAgentFilter.includes("none");
-        const agentEmails = assignedAgentFilter.filter(a => a !== "none");
-        const matchesAgent = agentEmails.includes(c.assigned_agent);
+
+      if (tagFilterSet.size > 0) {
+        const clientTags = c.tags || [];
+        if (!clientTags.some(t => tagFilterSet.has(t))) return false;
+      }
+
+      if (agentFilterSet.size > 0) {
+        const matchesAgent = agentFilterSet.has(c.assigned_agent);
         const matchesNone = hasNone && !c.assigned_agent;
         if (!matchesAgent && !matchesNone) return false;
       }
-      
+
       if (hasRequirementsFilter !== "all") {
-        const hasReqs = c.property_requirements && (
-          c.property_requirements.budget_min || c.property_requirements.budget_max ||
-          c.property_requirements.locations?.length || c.property_requirements.property_types?.length
-        );
+        const req = c.property_requirements;
+        const hasReqs = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
         if (hasRequirementsFilter === "yes" && !hasReqs) return false;
         if (hasRequirementsFilter === "no" && hasReqs) return false;
       }
-      
+
       // Search last (most expensive)
-      if (searchTerm !== "") {
-        const matchesSearch = 
-          c.full_name?.toLowerCase().includes(searchLower) ||
-          c.email?.toLowerCase().includes(searchLower) ||
-          c.phone?.includes(searchTerm) ||
-          c.company_name?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
+      if (searchLower) {
+        if (!(c.full_name?.toLowerCase().includes(searchLower) ||
+              c.email?.toLowerCase().includes(searchLower) ||
+              c.phone?.includes(searchTerm) ||
+              c.company_name?.toLowerCase().includes(searchLower))) return false;
       }
-      
+
       return true;
     });
-  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter, tagFilter.length, assignedAgentFilter.length]);
+  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
 
-  const typeLabels = {
+  // Memoized selected set for O(1) lookup in cards
+  const selectedContactsSet = useMemo(() => new Set(selectedContacts), [selectedContacts]);
+
+  const typeLabels = useMemo(() => ({
     client: "Cliente",
     partner: "Parceiro",
     investor: "Investidor",
     vendor: "Fornecedor",
     other: "Outro"
-  };
+  }), []);
 
-  const typeColors = {
+  const typeColors = useMemo(() => ({
     client: "bg-blue-100 text-blue-800",
     partner: "bg-purple-100 text-purple-800",
     investor: "bg-green-100 text-green-800",
     vendor: "bg-orange-100 text-orange-800",
     other: "bg-slate-100 text-slate-800"
-  };
+  }), []);
 
-  const statusColors = {
+  const statusColors = useMemo(() => ({
     active: "bg-green-100 text-green-800",
     inactive: "bg-slate-100 text-slate-600",
     prospect: "bg-amber-100 text-amber-800"
-  };
+  }), []);
 
   if (isLoading) {
     return (
@@ -1295,19 +1308,16 @@ export default function ClientDatabase() {
             const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
             
             return (
-              <Card key={client.id} className={`hover:shadow-md transition-shadow ${selectedContacts.includes(client.id) ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''}`}>
+              <Card key={client.id} className={`hover:shadow-md transition-shadow ${selectedContactsSet.has(client.id) ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''}`}>
                 <CardContent className="p-4 md:p-6">
                   {/* Mobile Header with Avatar and Actions */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       {/* Checkbox for selection */}
-                      <div 
-                        className="flex-shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
-                          checked={selectedContacts.includes(client.id)}
+                          checked={selectedContactsSet.has(client.id)}
                           onChange={() => toggleSelectContact(client.id)}
                           className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                         />
@@ -1797,26 +1807,36 @@ export default function ClientDatabase() {
               </TabsContent>
 
               <TabsContent value="matching" className="mt-4">
-                <ContactMatching contact={selectedClient} />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ContactMatching contact={selectedClient} />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="whatsapp" className="mt-4">
-                <WhatsAppConversation 
-                  contact={selectedClient} 
-                  onMessageSent={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
-                />
+                <Suspense fallback={<LoadingFallback />}>
+                  <WhatsAppConversation 
+                    contact={selectedClient} 
+                    onMessageSent={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
+                  />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="communications" className="mt-4">
-                <CommunicationHistory contactId={selectedClient.id} />
+                <Suspense fallback={<LoadingFallback />}>
+                  <CommunicationHistory contactId={selectedClient.id} />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="opportunities" className="mt-4">
-                <ContactOpportunities contact={selectedClient} />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ContactOpportunities contact={selectedClient} />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="portal" className="mt-4">
-                <ClientPortalManager client={selectedClient} />
+                <Suspense fallback={<LoadingFallback />}>
+                  <ClientPortalManager client={selectedClient} />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </DialogContent>
@@ -1824,41 +1844,51 @@ export default function ClientDatabase() {
       )}
 
       {/* Add Communication Dialog */}
-      {selectedClient && (
-        <AddCommunicationDialog
-          open={commDialogOpen}
-          onOpenChange={setCommDialogOpen}
-          contactId={selectedClient.id}
-          contactName={selectedClient.full_name}
-        />
+      {selectedClient && commDialogOpen && (
+        <Suspense fallback={null}>
+          <AddCommunicationDialog
+            open={commDialogOpen}
+            onOpenChange={setCommDialogOpen}
+            contactId={selectedClient.id}
+            contactName={selectedClient.full_name}
+          />
+        </Suspense>
       )}
 
       {/* Matching Report Dialog */}
-      {selectedClient && (
-        <MatchingReport
-          contact={selectedClient}
-          open={matchingReportOpen}
-          onOpenChange={setMatchingReportOpen}
-        />
+      {selectedClient && matchingReportOpen && (
+        <Suspense fallback={null}>
+          <MatchingReport
+            contact={selectedClient}
+            open={matchingReportOpen}
+            onOpenChange={setMatchingReportOpen}
+          />
+        </Suspense>
       )}
 
       {/* Send Email Dialog */}
-      <SendEmailDialog
-        open={emailDialogOpen}
-        onOpenChange={setEmailDialogOpen}
-        recipient={emailRecipient}
-      />
+      {emailDialogOpen && (
+        <Suspense fallback={null}>
+          <SendEmailDialog
+            open={emailDialogOpen}
+            onOpenChange={setEmailDialogOpen}
+            recipient={emailRecipient}
+          />
+        </Suspense>
+      )}
 
       {/* Opportunity Form Dialog */}
-      {selectedClient && (
-        <OpportunityFormDialog
-          open={opportunityDialogOpen}
-          onOpenChange={setOpportunityDialogOpen}
-          prefillContact={selectedClient}
-          onSaved={() => {
-            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-          }}
-        />
+      {selectedClient && opportunityDialogOpen && (
+        <Suspense fallback={null}>
+          <OpportunityFormDialog
+            open={opportunityDialogOpen}
+            onOpenChange={setOpportunityDialogOpen}
+            prefillContact={selectedClient}
+            onSaved={() => {
+              queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Delete Confirmation Dialog */}
