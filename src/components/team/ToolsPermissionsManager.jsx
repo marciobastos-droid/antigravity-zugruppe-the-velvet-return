@@ -110,8 +110,13 @@ export default function ToolsPermissionsManager() {
     queryFn: () => base44.entities.UserPermission.list()
   });
 
-  // Filter only agents (not admin/gestor who have full access)
-  const agents = users.filter(u => u.user_type === 'agente');
+  // Filter users who need tool permissions (not admin/gestor who have full access)
+  const agents = users.filter(u => {
+    const userType = u.user_type?.toLowerCase() || '';
+    const role = u.role?.toLowerCase() || '';
+    // Exclude admins and gestores who have full access
+    return userType !== 'admin' && userType !== 'gestor' && role !== 'admin';
+  });
 
   const filteredAgents = agents.filter(a => {
     if (!searchTerm) return true;
