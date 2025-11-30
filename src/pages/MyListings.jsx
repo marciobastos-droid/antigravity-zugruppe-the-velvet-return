@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useCallback, useState, useEffect, memo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -8,35 +8,121 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
-import { debounce } from "lodash";
 import DevelopmentsTab from "../components/developments/DevelopmentsTab";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 
+// Memoized Property Card component for better performance
+const PropertyCard = memo(function PropertyCard({ 
+  property, 
+  isSelected, 
+  onToggleSelect, 
+  onEdit, 
+  onStatusChange,
+  onToggleFeatured,
+  onDuplicate,
+  onDelete,
+  onViewNotes,
+  propertyTypeLabels
+}) {
+  const handleClick = useCallback(() => onEdit(property), [property, onEdit]);
+  const handleSelect = useCallback((e) => {
+    e.stopPropagation();
+    onToggleSelect(property.id);
+  }, [property.id, onToggleSelect]);
+
+  return (
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer" onClick={handleClick}>
+      <CardContent className="p-0">
+        <div className="flex flex-col md:flex-row">
+          <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50" onClick={handleSelect}>
+            <Checkbox checked={isSelected} onCheckedChange={() => onToggleSelect(property.id)} />
+          </div>
+          <div className="md:w-80 h-64 md:h-auto relative">
+            <img
+              src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
+              alt={property.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+            {property.featured && (
+              <div className="absolute top-3 left-3">
+                <Badge className="bg-amber-400 text-slate-900 border-0">
+                  <Star className="w-3 h-3 mr-1 fill-current" />
+                  Destaque
+                </Badge>
+              </div>
+            )}
+          </div>
+          <div className="flex-1 p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">{property.title}</h3>
+                <div className="flex items-center text-slate-600 mb-2">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  <span>{property.city}, {property.state}</span>
+                </div>
+                <div className="text-slate-900 font-bold text-xl mb-3">€{property.price?.toLocaleString()}</div>
+                <div className="flex flex-wrap gap-2 mb-3 text-sm text-slate-600">
+                  {property.bedrooms > 0 && <span>🛏️ {property.bedrooms} quartos</span>}
+                  {property.bathrooms > 0 && <span>🚿 {property.bathrooms} WC</span>}
+                  {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                <Select value={property.status} onValueChange={(v) => onStatusChange(property.id, v)}>
+                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full" />Ativo</span></SelectItem>
+                    <SelectItem value="pending"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-yellow-500 rounded-full" />Pendente</span></SelectItem>
+                    <SelectItem value="sold"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full" />Vendido</span></SelectItem>
+                    <SelectItem value="rented"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-purple-500 rounded-full" />Arrendado</span></SelectItem>
+                    <SelectItem value="off_market"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-slate-500 rounded-full" />Desativado</span></SelectItem>
+                  </SelectContent>
+                </Select>
+                <Badge variant="outline">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
+                <Badge variant="outline">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
+              </div>
+            </div>
+            <p className="text-slate-700 mb-4 line-clamp-2">{property.description}</p>
+            <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+              <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
+                <Button variant="outline" size="sm"><Eye className="w-4 h-4 mr-2" />Ver</Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={() => onEdit(property)}><Edit className="w-4 h-4 mr-2" />Editar</Button>
+              <Button variant="outline" size="sm" onClick={() => onToggleFeatured(property)} className={property.featured ? "border-amber-400 text-amber-600" : ""}>
+                <Star className={`w-4 h-4 mr-2 ${property.featured ? "fill-current" : ""}`} />{property.featured ? "Destaque" : "Destacar"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onDuplicate(property)}><Copy className="w-4 h-4 mr-2" />Duplicar</Button>
+              {property.internal_notes && <Button variant="outline" size="sm" onClick={() => onViewNotes(property)}><FileText className="w-4 h-4 mr-2" />Notas</Button>}
+              <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4 mr-2" />Eliminar</Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
 export default function MyListings() {
   const queryClient = useQueryClient();
-  const [selectedProperties, setSelectedProperties] = React.useState([]);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [viewingNotes, setViewingNotes] = React.useState(null);
-  const [editingProperty, setEditingProperty] = React.useState(null);
-  const [activeTab, setActiveTab] = React.useState("properties");
-  const [viewMode, setViewMode] = React.useState(() => {
-    // Default to cards on mobile
-    return window.innerWidth < 768 ? "cards" : "table";
-  }); // "table" or "cards"
-  const [filterLogic, setFilterLogic] = React.useState("AND");
+  const [selectedProperties, setSelectedProperties] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewingNotes, setViewingNotes] = useState(null);
+  const [editingProperty, setEditingProperty] = useState(null);
+  const [activeTab, setActiveTab] = useState("properties");
+  const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "cards" : "table");
+  const [filterLogic, setFilterLogic] = useState("AND");
   
-  // Estado dos filtros avançados
-  const [filters, setFilters] = React.useState({
+  const [filters, setFilters] = useState({
     search: "",
     status: "all",
     property_type: "all",
@@ -162,27 +248,27 @@ export default function MyListings() {
     },
   });
 
-  const handleDelete = (id) => {
+  const handleDelete = useCallback((id) => {
     if (window.confirm("Tem a certeza que deseja eliminar este anúncio?")) {
       deleteMutation.mutate(id);
     }
-  };
+  }, [deleteMutation]);
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = useCallback(() => {
     if (window.confirm(`Eliminar ${selectedProperties.length} anúncios selecionados?`)) {
       bulkDeleteMutation.mutate(selectedProperties);
     }
-  };
+  }, [selectedProperties, bulkDeleteMutation]);
 
-  const handleStatusChange = async (propertyId, newStatus) => {
-    const statusLabelsMap = {
-      active: "Ativo",
-      pending: "Pendente", 
-      sold: "Vendido",
-      rented: "Arrendado",
-      off_market: "Desativado"
-    };
-    
+  const statusLabelsMap = useMemo(() => ({
+    active: "Ativo",
+    pending: "Pendente", 
+    sold: "Vendido",
+    rented: "Arrendado",
+    off_market: "Desativado"
+  }), []);
+
+  const handleStatusChange = useCallback(async (propertyId, newStatus) => {
     try {
       await base44.entities.Property.update(propertyId, { status: newStatus });
       toast.success(`Estado alterado para "${statusLabelsMap[newStatus]}"`);
@@ -192,41 +278,33 @@ export default function MyListings() {
       console.error("Erro ao alterar estado:", error);
       toast.error("Erro ao alterar estado do imóvel");
     }
-  };
+  }, [queryClient, statusLabelsMap]);
 
-  const handleToggleFeatured = (property) => {
+  const handleToggleFeatured = useCallback((property) => {
     updatePropertyMutation.mutate(
       { id: property.id, data: { featured: !property.featured } },
-      {
-        onSuccess: () => {
-          toast.success(property.featured ? "Removido dos destaques" : "Marcado como destaque");
-        }
-      }
+      { onSuccess: () => toast.success(property.featured ? "Removido dos destaques" : "Marcado como destaque") }
     );
-  };
+  }, [updatePropertyMutation]);
 
-  const handleDuplicate = (property) => {
+  const handleDuplicate = useCallback((property) => {
     if (window.confirm(`Duplicar o imóvel "${property.title}"?`)) {
       duplicatePropertyMutation.mutate(property);
     }
-  };
+  }, [duplicatePropertyMutation]);
 
-  const toggleSelect = (id) => {
-    setSelectedProperties(prev =>
-      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
-    );
-  };
+  const toggleSelect = useCallback((id) => {
+    setSelectedProperties(prev => prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]);
+  }, []);
 
-  // Extrair todos os distritos e concelhos únicos
-  const allStates = React.useMemo(() => {
+  // Extrair todos os distritos e concelhos únicos - memoized
+  const allStates = useMemo(() => {
     const statesSet = new Set();
-    properties.forEach(p => {
-      if (p.state) statesSet.add(p.state);
-    });
+    properties.forEach(p => { if (p.state) statesSet.add(p.state); });
     return Array.from(statesSet).sort();
   }, [properties]);
 
-  const allCities = React.useMemo(() => {
+  const allCities = useMemo(() => {
     const citiesSet = new Set();
     properties.forEach(p => {
       if (p.city && (filters.state === "all" || p.state === filters.state)) {
@@ -236,8 +314,8 @@ export default function MyListings() {
     return Array.from(citiesSet).sort();
   }, [properties, filters.state]);
 
-  // Configuração dos filtros avançados
-  const filterConfig = React.useMemo(() => ({
+  // Configuração dos filtros avançados - memoized
+  const filterConfig = useMemo(() => ({
     search: {
       type: FILTER_TYPES.text,
       label: "Pesquisar",
@@ -336,24 +414,24 @@ export default function MyListings() {
   // Aplicar filtros avançados
   const filteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
 
-  const toggleSelectAll = () => {
+  const toggleSelectAll = useCallback(() => {
     setSelectedProperties(prev =>
       prev.length === filteredProperties.length && filteredProperties.length > 0 ? [] : filteredProperties.map(p => p.id)
     );
-  };
+  }, [filteredProperties]);
   
-  // Pagination
-  const totalPages = Math.ceil(filteredProperties.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedProperties = filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  // Pagination - memoized
+  const totalPages = useMemo(() => Math.ceil(filteredProperties.length / ITEMS_PER_PAGE), [filteredProperties.length]);
+  const paginatedProperties = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProperties, currentPage]);
   
   // Reset to page 1 when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
+  useEffect(() => { setCurrentPage(1); }, [filters]);
 
   // Reset city filter when state changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (filters.state !== "all") {
       setFilters(prev => ({ ...prev, city: "all" }));
     }
@@ -375,7 +453,7 @@ export default function MyListings() {
     off_market: "bg-slate-100 text-slate-800"
   };
 
-  const propertyTypeLabels = {
+  const propertyTypeLabels = useMemo(() => ({
     house: "Moradia",
     apartment: "Apartamento",
     condo: "Condomínio",
@@ -388,15 +466,18 @@ export default function MyListings() {
     store: "Loja",
     farm: "Quinta",
     development: "Empreendimento"
-  };
+  }), []);
 
-  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+  const hasActiveFilters = useMemo(() => Object.entries(filters).some(([key, value]) => {
     if (Array.isArray(value)) return value.length > 0;
     if (typeof value === 'object' && value !== null) {
       return Object.values(value).some(v => v !== null && v !== "" && v !== undefined);
     }
     return value !== "" && value !== "all" && value !== null && value !== undefined;
-  });
+  }), [filters]);
+  
+  // Memoized selected set for O(1) lookup
+  const selectedSet = useMemo(() => new Set(selectedProperties), [selectedProperties]);
 
   if (isLoading) {
     return (
@@ -595,214 +676,19 @@ export default function MyListings() {
             <>
             <div className="grid grid-cols-1 gap-6">
               {paginatedProperties.map((property) => (
-                <Card 
-                  key={property.id} 
-                  className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                  onClick={() => setEditingProperty(property)}
-                >
-                  <CardContent className="p-0">
-                    <div className="flex flex-col md:flex-row">
-                      {/* Checkbox */}
-                      <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={selectedProperties.includes(property.id)}
-                          onCheckedChange={() => toggleSelect(property.id)}
-                        />
-                      </div>
-
-                      {/* Image */}
-                      <div className="md:w-80 h-64 md:h-auto relative">
-                        <img
-                          src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
-                          alt={property.title}
-                          className="w-full h-full object-cover"
-                        />
-                        {property.featured && (
-                          <div className="absolute top-3 left-3">
-                            <Badge className="bg-amber-400 text-slate-900 border-0">
-                              <Star className="w-3 h-3 mr-1 fill-current" />
-                              Destaque
-                            </Badge>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                              {property.title}
-                            </h3>
-                            <div className="flex items-center text-slate-600 mb-2">
-                              <MapPin className="w-4 h-4 mr-1" />
-                              <span>{property.city}, {property.state}</span>
-                            </div>
-                            <div className="text-slate-900 font-bold text-xl mb-3">
-                              €{property.price?.toLocaleString()}
-                            </div>
-                            
-                            {/* Additional Details */}
-                            <div className="flex flex-wrap gap-2 mb-3 text-sm text-slate-600">
-                              {property.bedrooms > 0 && <span>🛏️ {property.bedrooms} quartos</span>}
-                              {property.bathrooms > 0 && <span>🚿 {property.bathrooms} WC</span>}
-                              {property.useful_area > 0 && <span>📐 {property.useful_area}m² útil</span>}
-                              {property.gross_area > 0 && <span>📏 {property.gross_area}m² bruto</span>}
-                              {property.front_count > 0 && <span>🏠 {property.front_count} frentes</span>}
-                            </div>
-                            
-                            {/* Empreendimento Info */}
-                            {(property.development_name || property.unit_number) && (
-                              <div className="flex items-center gap-2 mt-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
-                                <Building2 className="w-4 h-4 text-purple-600" />
-                                <span className="text-sm text-purple-900 font-medium">
-                                  {property.development_name}
-                                  {property.unit_number && (
-                                    <span className="text-purple-600 ml-1">• Fração {property.unit_number}</span>
-                                  )}
-                                </span>
-                              </div>
-                            )}
-
-                            {(property.external_id || property.source_url) && (
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                {property.external_id && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    <Hash className="w-3 h-3 mr-1" />
-                                    ID: {property.external_id}
-                                  </Badge>
-                                )}
-                                {property.source_url && (
-                                  <a
-                                    href={property.source_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="inline-flex"
-                                  >
-                                    <Badge variant="secondary" className="text-xs hover:bg-blue-100 cursor-pointer">
-                                      <ExternalLink className="w-3 h-3 mr-1" />
-                                      Ver Original
-                                    </Badge>
-                                  </a>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            {/* Status Selector */}
-                            <Select 
-                              value={property.status} 
-                              onValueChange={(value) => handleStatusChange(property.id, value)}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <SelectTrigger className="w-40">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="active">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                                    Ativo
-                                  </span>
-                                </SelectItem>
-                                <SelectItem value="pending">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                                    Pendente
-                                  </span>
-                                </SelectItem>
-                                <SelectItem value="sold">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                    Vendido
-                                  </span>
-                                </SelectItem>
-                                <SelectItem value="rented">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Arrendado
-                                  </span>
-                                </SelectItem>
-                                <SelectItem value="off_market">
-                                  <span className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-slate-500 rounded-full"></span>
-                                    Desativado
-                                  </span>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            
-                            <Badge variant="outline">
-                              {propertyTypeLabels[property.property_type] || property.property_type}
-                            </Badge>
-                            <Badge variant="outline">
-                              {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <p className="text-slate-700 mb-4 line-clamp-2">
-                          {property.description}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver
-                            </Button>
-                          </Link>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => setEditingProperty(property)}
-                          >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Editar
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleToggleFeatured(property)}
-                            className={property.featured ? "border-amber-400 text-amber-600 hover:bg-amber-50" : ""}
-                          >
-                            <Star className={`w-4 h-4 mr-2 ${property.featured ? "fill-current" : ""}`} />
-                            {property.featured ? "Destaque" : "Destacar"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDuplicate(property)}
-                            disabled={duplicatePropertyMutation.isPending}
-                          >
-                            <Copy className="w-4 h-4 mr-2" />
-                            Duplicar
-                          </Button>
-                          {property.internal_notes && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setViewingNotes(property)}
-                            >
-                              <FileText className="w-4 h-4 mr-2" />
-                              Notas
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(property.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Eliminar
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <PropertyCard
+                  key={property.id}
+                  property={property}
+                  isSelected={selectedSet.has(property.id)}
+                  onToggleSelect={toggleSelect}
+                  onEdit={setEditingProperty}
+                  onStatusChange={handleStatusChange}
+                  onToggleFeatured={handleToggleFeatured}
+                  onDuplicate={handleDuplicate}
+                  onDelete={handleDelete}
+                  onViewNotes={setViewingNotes}
+                  propertyTypeLabels={propertyTypeLabels}
+                />
               ))}
             </div>
             {totalPages > 1 && (
