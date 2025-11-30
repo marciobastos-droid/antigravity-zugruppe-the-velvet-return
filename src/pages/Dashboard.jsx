@@ -596,6 +596,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Onboarding Checklist */}
         {shouldShowChecklist && (
