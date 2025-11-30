@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   TrendingUp, TrendingDown, Users, Building2, FileText, 
-  Download, Calendar, DollarSign, Target, Activity, BarChart3, RefreshCw 
+  Download, Calendar, DollarSign, Target, Activity, BarChart3, RefreshCw,
+  Settings2, Focus, Eye
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
@@ -17,8 +18,12 @@ import OnboardingTour from "../components/onboarding/OnboardingTour";
 import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
 import ContextualTip from "../components/onboarding/ContextualTip";
 import DashboardBuilder from "../components/dashboard/DashboardBuilder";
+import TeamPerformanceSummary from "../components/dashboard/TeamPerformanceSummary";
+import WidgetSelector, { AVAILABLE_WIDGETS } from "../components/dashboard/WidgetSelector";
+import FocusMode from "../components/dashboard/FocusMode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgentNames } from "../components/common/useAgentNames";
+import { toast } from "sonner";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
