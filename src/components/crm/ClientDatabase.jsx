@@ -443,7 +443,7 @@ export default function ClientDatabase() {
     e.preventDefault();
     const data = {
       ...formData,
-      assigned_agent: editingClient ? (editingClient.assigned_agent || user?.email) : user?.email
+      assigned_agent: editingClient ? formData.assigned_agent : (formData.assigned_agent || user?.email)
     };
     
     if (editingClient) {
