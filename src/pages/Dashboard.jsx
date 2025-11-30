@@ -471,6 +471,25 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             {activeTab === "overview" && (
               <>
+                <Button 
+                  onClick={() => setFocusModeOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                >
+                  <Focus className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Modo Foco</span>
+                </Button>
+
+                <Button 
+                  onClick={() => setWidgetSelectorOpen(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Settings2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Personalizar</span>
+                </Button>
+
                 <Select value={dateRange} onValueChange={setDateRange}>
                   <SelectTrigger className="w-full sm:w-40">
                     <SelectValue />
