@@ -24,6 +24,7 @@ import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import MaintenanceManager from "../components/property/MaintenanceManager";
 import LeaseManager from "../components/property/LeaseManager";
 import DocumentManager from "../components/property/DocumentManager";
+import DocumentUploader from "../components/documents/DocumentUploader";
 
 export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -611,9 +612,10 @@ export default function PropertyDetails() {
                     </TabsContent>
                     
                     <TabsContent value="documents" className="mt-6">
-                      <DocumentManager 
+                      <DocumentUploader 
                         propertyId={propertyId} 
                         propertyTitle={property.title}
+                        entityType="property"
                       />
                     </TabsContent>
                   </Tabs>
