@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -37,6 +37,7 @@ import PortalIntegrations from "../components/tools/PortalIntegrations";
 import TagManager from "../components/tags/TagManager";
 import ImportOpportunities from "../components/tools/ImportOpportunities";
 import IntegrationsHub from "../components/integrations/IntegrationsHub";
+import CommissionsManager from "../components/tools/CommissionsManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -379,13 +380,35 @@ export default function Tools() {
             </CardContent>
           </Card>
 
+          {/* Finanças Group */}
+          <Card className="border-green-400 bg-gradient-to-r from-green-50 to-emerald-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                <h3 className="font-bold text-green-900 text-lg">Finanças</h3>
+                <span className="text-sm text-green-600">(1 ferramenta)</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={activeTab === "commissions" ? "default" : "outline"}
+                  onClick={() => setActiveTab("commissions")}
+                  className="flex items-center gap-2"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  Gestão de Comissões
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Definições e Conteúdos Group */}
           <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Folder className="w-5 h-5 text-slate-600" />
                 <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
-                <span className="text-sm text-slate-600">(3 ferramentas)</span>
+                <span className="text-sm text-slate-600">(4 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -458,6 +481,7 @@ export default function Tools() {
         {activeTab === "tagManager" && <TagManager />}
         {activeTab === "importOpportunities" && <ImportOpportunities />}
         {activeTab === "integrations" && <IntegrationsHub />}
+        {activeTab === "commissions" && <CommissionsManager />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
