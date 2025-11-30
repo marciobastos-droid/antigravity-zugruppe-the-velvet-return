@@ -24,7 +24,8 @@ const ROLE_TEMPLATES = {
     tasks: { view_all: true, view_own: true, create: true, assign_others: true, edit_all: true, edit_own: true },
     reports: { view_team: true, view_own: true, export: true },
     team: { view_members: true, manage_members: true, view_performance: true },
-    settings: { manage_templates: true, manage_integrations: true, manage_tags: true }
+    settings: { manage_templates: true, manage_integrations: true, manage_tags: true },
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, tools: true, team: true }
   },
   gestor: {
     properties: { view_all: true, view_own: true, create: true, edit_all: true, edit_own: true, delete: false, export: true },
@@ -33,7 +34,8 @@ const ROLE_TEMPLATES = {
     tasks: { view_all: true, view_own: true, create: true, assign_others: true, edit_all: true, edit_own: true },
     reports: { view_team: true, view_own: true, export: true },
     team: { view_members: true, manage_members: false, view_performance: true },
-    settings: { manage_templates: true, manage_integrations: false, manage_tags: true }
+    settings: { manage_templates: true, manage_integrations: false, manage_tags: true },
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, tools: true, team: true }
   },
   agente: {
     properties: { view_all: true, view_own: true, create: true, edit_all: false, edit_own: true, delete: false, export: false },
@@ -42,7 +44,8 @@ const ROLE_TEMPLATES = {
     tasks: { view_all: false, view_own: true, create: true, assign_others: false, edit_all: false, edit_own: true },
     reports: { view_team: false, view_own: true, export: false },
     team: { view_members: true, manage_members: false, view_performance: false },
-    settings: { manage_templates: false, manage_integrations: false, manage_tags: false }
+    settings: { manage_templates: false, manage_integrations: false, manage_tags: false },
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, tools: false, team: false }
   },
   assistente: {
     properties: { view_all: true, view_own: true, create: false, edit_all: false, edit_own: false, delete: false, export: false },
@@ -51,7 +54,8 @@ const ROLE_TEMPLATES = {
     tasks: { view_all: false, view_own: true, create: true, assign_others: false, edit_all: false, edit_own: true },
     reports: { view_team: false, view_own: true, export: false },
     team: { view_members: true, manage_members: false, view_performance: false },
-    settings: { manage_templates: false, manage_integrations: false, manage_tags: false }
+    settings: { manage_templates: false, manage_integrations: false, manage_tags: false },
+    pages: { dashboard: true, browse: true, my_listings: false, crm: true, tools: false, team: false }
   }
 };
 
@@ -132,6 +136,18 @@ const PERMISSION_LABELS = {
       manage_templates: "Gerir templates",
       manage_integrations: "Gerir integrações",
       manage_tags: "Gerir etiquetas"
+    }
+  },
+  pages: {
+    label: "Páginas",
+    icon: FileText,
+    permissions: {
+      dashboard: "Dashboard",
+      browse: "Navegar",
+      my_listings: "Imóveis",
+      crm: "CRM",
+      tools: "Ferramentas",
+      team: "Equipa"
     }
   }
 };
