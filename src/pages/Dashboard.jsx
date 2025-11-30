@@ -617,9 +617,20 @@ export default function Dashboard() {
 
         {/* Notifications and AI Matching */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          <NotificationBoard user={user} />
-          <AIMatchingSuggestions user={user} />
+          {isWidgetActive('notifications') && <NotificationBoard user={user} />}
+          {isWidgetActive('aiSuggestions') && <AIMatchingSuggestions user={user} />}
         </div>
+
+        {/* Team Performance Summary */}
+        {isWidgetActive('teamPerformance') && isAdmin && (
+          <div className="mb-6">
+            <TeamPerformanceSummary 
+              users={allUsers} 
+              opportunities={opportunities} 
+              properties={properties} 
+            />
+          </div>
+        )}
 
         {/* Charts Row 1 */}
         <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
