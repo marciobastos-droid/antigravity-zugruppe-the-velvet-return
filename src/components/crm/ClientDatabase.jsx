@@ -510,12 +510,6 @@ export default function ClientDatabase() {
     );
   }, []);
 
-  const toggleSelectAll = useCallback(() => {
-    setSelectedContacts(prev =>
-      prev.length === filteredClients.length ? [] : filteredClients.map(c => c.id)
-    );
-  }, [filteredClients]);
-
   // Memoized maps for O(1) lookups instead of O(n) filters
   const communicationsByContact = useMemo(() => {
     const map = new Map();
