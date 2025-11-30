@@ -605,9 +605,9 @@ Equipa Zugruppe`
                 </Button>
                 <Button 
                   onClick={async () => {
-                    if (selectedUser && editingUserName.trim()) {
+                    if (selectedUser) {
                       try {
-                        await base44.entities.User.update(selectedUser.id, { display_name: editingUserName.trim() });
+                        await base44.entities.User.update(selectedUser.id, { display_name: editingUserName.trim() || null });
                         toast.success("Nome atualizado com sucesso");
                         queryClient.invalidateQueries({ queryKey: ['users'] });
                         setEditNameDialogOpen(false);
@@ -615,11 +615,11 @@ Equipa Zugruppe`
                         setEditingUserName("");
                       } catch (error) {
                         console.error("Erro ao atualizar nome:", error);
-                        toast.error("Não foi possível atualizar o nome. O campo full_name é gerido pelo sistema de autenticação.");
+                        toast.error("Não foi possível atualizar o nome.");
                       }
                     }
                   }}
-                  disabled={!editingUserName.trim() || updateUserMutation.isPending}
+                  disabled={updateUserMutation.isPending}
                   className="flex-1"
                 >
                   Guardar
