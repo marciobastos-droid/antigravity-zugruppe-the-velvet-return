@@ -108,6 +108,11 @@ export default function Dashboard() {
       // Ainda não carregou o progresso, não mostrar nada
       return;
     }
+    // Check both onboardingProgress and user.onboarding_completed
+    if (user?.onboarding_completed) {
+      setShowTour(false);
+      return;
+    }
     if (user && !onboardingProgress?.tour_completed && !onboardingProgress?.tour_dismissed && onboardingProgress !== undefined) {
       setShowTour(true);
       setTourStep(onboardingProgress?.current_tour_step || 0);
@@ -117,6 +122,12 @@ export default function Dashboard() {
   }, [user, onboardingProgress]);
 
   React.useEffect(() => {
+    // Skip contextual tips if user has completed onboarding
+    if (user?.onboarding_completed) {
+      setContextualTip(null);
+      return;
+    }
+    
     if (onboardingProgress) {
       const steps = onboardingProgress.steps_completed || {};
       
@@ -136,7 +147,7 @@ export default function Dashboard() {
         setContextualTip(null);
       }
     }
-  }, [onboardingProgress, properties.length, opportunities.length]);
+  }, [onboardingProgress, properties.length, opportunities.length, user?.onboarding_completed]);
 
   const handleTourNext = () => {
     const nextStep = tourStep + 1;
@@ -331,6 +342,7 @@ export default function Dashboard() {
 
   const shouldShowChecklist = onboardingProgress && 
     !onboardingProgress.steps_completed?.checklist_dismissed &&
+    !user?.onboarding_completed &&
     Object.values(onboardingProgress.steps_completed || {}).filter(Boolean).length < 5;
 
   // Load saved widget preferences from user
@@ -633,7 +645,9 @@ export default function Dashboard() {
         )}
 
         {/* Charts Row 1 */}
+        {(isWidgetActive('activity') || isWidgetActive('propertyStatus')) && (
         <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          {isWidgetActive('activity') && (
           <Card>
             <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
               <CardTitle className="text-base sm:text-lg">Atividade Diária</CardTitle>
