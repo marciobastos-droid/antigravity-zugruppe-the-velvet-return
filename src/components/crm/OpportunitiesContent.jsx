@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2 } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,14 @@ import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilt
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
 
+import OpportunitiesGrid from "./OpportunitiesGrid";
+
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = React.useState("table");
+  const [viewMode, setViewMode] = React.useState(() => {
+    // Default to grid on mobile
+    return window.innerWidth < 768 ? "grid" : "table";
+  });
   const [selectedLead, setSelectedLead] = React.useState(null);
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
@@ -536,7 +541,7 @@ export default function OpportunitiesContent() {
               variant={viewMode === "kanban" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("kanban")}
-              className="rounded-none"
+              className="rounded-none hidden sm:flex"
             >
               <Kanban className="w-4 h-4" />
             </Button>
@@ -544,15 +549,23 @@ export default function OpportunitiesContent() {
               variant={viewMode === "pipeline" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("pipeline")}
-              className="rounded-none"
+              className="rounded-none hidden sm:flex"
             >
               <LayoutGrid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="rounded-none"
+            >
+              <Grid3X3 className="w-4 h-4" />
             </Button>
             <Button
               variant={viewMode === "table" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("table")}
-              className="rounded-none"
+              className="rounded-none hidden sm:flex"
             >
               <TableIcon className="w-4 h-4" />
             </Button>
@@ -725,6 +738,19 @@ export default function OpportunitiesContent() {
           onDelete={handleDelete}
           onToggleImportant={handleToggleImportant}
           onAssign={handleAssign}
+        />
+      )}
+
+      {viewMode === "grid" && (
+        <OpportunitiesGrid
+          opportunities={filteredOpportunities}
+          users={users}
+          selectedOpportunities={selectedLeads}
+          onToggleSelect={toggleSelectLead}
+          onOpportunityClick={setSelectedLead}
+          onEdit={handleEditOpportunity}
+          onDelete={handleDelete}
+          onToggleImportant={handleToggleImportant}
         />
       )}
 
