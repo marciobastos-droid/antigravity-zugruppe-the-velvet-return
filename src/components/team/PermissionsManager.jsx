@@ -183,7 +183,8 @@ export default function PermissionsManager() {
       toast.success("Permissões guardadas com sucesso");
       setHasChanges(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao guardar permissões:", error);
       toast.error("Erro ao guardar permissões");
     }
   });
