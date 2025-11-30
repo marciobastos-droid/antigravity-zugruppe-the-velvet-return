@@ -14,6 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { LayoutDashboard, Plus, Settings, Target, Euro, Users, TrendingUp, Clock, Calendar, Building2, Phone, Mail, Zap, Award, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import moment from "moment";
 import { toast } from "sonner";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const ROLE_PRESETS = {
   sales_manager: {
@@ -58,6 +59,7 @@ export default function RoleDashboard() {
   const [selectedRole, setSelectedRole] = useState(null);
   const [customWidgets, setCustomWidgets] = useState([]);
   const [dashboardName, setDashboardName] = useState("");
+  const { getAgentName } = useAgentNames();
 
   const { data: user } = useQuery({
     queryKey: ['current_user'],
@@ -131,7 +133,7 @@ export default function RoleDashboard() {
       const won = userOpps.filter(o => o.status === 'won').length;
       const total = userOpps.length;
       acc.push({
-        name: u.full_name,
+        name: u.display_name || u.full_name,
         email: u.email,
         won,
         total,

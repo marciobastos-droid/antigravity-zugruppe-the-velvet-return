@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, FunnelChart, Funnel, LabelList, Cell, LineChart, Line, AreaChart, Area } from "recharts";
 import { Download, FileText, Clock, TrendingUp, ArrowRight, Target, Zap, AlertTriangle } from "lucide-react";
 import moment from "moment";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const STAGES = [
   { key: 'new', label: 'Novo', color: '#3B82F6' },
@@ -23,6 +24,7 @@ const STAGES = [
 export default function PipelineAnalysisReport() {
   const [period, setPeriod] = useState("90");
   const [selectedAgent, setSelectedAgent] = useState("all");
+  const { getAgentName } = useAgentNames();
 
   const { data: opportunities = [] } = useQuery({
     queryKey: ['opportunities_pipeline'],
@@ -212,7 +214,7 @@ export default function PipelineAnalysisReport() {
             <SelectContent>
               <SelectItem value="all">Todos os Agentes</SelectItem>
               {users.map(u => (
-                <SelectItem key={u.id} value={u.email}>{u.full_name}</SelectItem>
+                <SelectItem key={u.id} value={u.email}>{u.display_name || u.full_name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
