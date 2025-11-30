@@ -208,9 +208,10 @@ export default function PermissionsManager() {
 
   const handleSave = () => {
     if (!selectedUser) return;
+    // Submeter permissões sem validação de campos vazios
     saveMutation.mutate({
       user_email: selectedUser.email,
-      permissions,
+      permissions: permissions || {},
       role_template: 'custom'
     });
   };
@@ -310,7 +311,7 @@ export default function PermissionsManager() {
                 </Select>
                 <Button 
                   onClick={handleSave} 
-                  disabled={!hasChanges || saveMutation.isPending}
+                  disabled={saveMutation.isPending}
                 >
                   <Save className="w-4 h-4 mr-2" />
                   {saveMutation.isPending ? "A guardar..." : "Guardar"}
