@@ -538,6 +538,7 @@ export default function ClientDatabase() {
   const allCities = [...new Set(clients.map(c => c.city).filter(Boolean))].sort();
   const allTags = [...new Set(clients.flatMap(c => c.tags || []))].sort();
   const allAssignedAgents = [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort();
+  const agentOptions = getAgentOptions();
 
   const filteredClients = clients.filter(c => {
     const matchesSearch = searchTerm === "" ||
@@ -975,8 +976,8 @@ export default function ClientDatabase() {
                   <SelectContent>
                     <SelectItem value="all">Todos Responsáveis</SelectItem>
                     <SelectItem value="none">Sem Responsável</SelectItem>
-                    {allAssignedAgents.map(agent => (
-                      <SelectItem key={agent} value={agent}>{agent.split('@')[0]}</SelectItem>
+                    {agentOptions.map(agent => (
+                      <SelectItem key={agent.value} value={agent.value}>{agent.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
