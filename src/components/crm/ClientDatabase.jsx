@@ -93,9 +93,9 @@ export default function ClientDatabase() {
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
   const [cityFilter, setCityFilter] = React.useState("all");
-  const [tagFilter, setTagFilter] = React.useState("all");
+  const [tagFilter, setTagFilter] = React.useState([]);
   const [hasRequirementsFilter, setHasRequirementsFilter] = React.useState("all");
-  const [assignedAgentFilter, setAssignedAgentFilter] = React.useState("all");
+  const [assignedAgentFilter, setAssignedAgentFilter] = React.useState([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingClient, setEditingClient] = React.useState(null);
   const [selectedClient, setSelectedClient] = React.useState(null);
@@ -601,11 +601,14 @@ export default function ClientDatabase() {
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (sourceFilter !== "all" && c.source !== sourceFilter) return false;
       if (cityFilter !== "all" && c.city !== cityFilter) return false;
-      if (tagFilter !== "all" && !c.tags?.includes(tagFilter)) return false;
+      if (tagFilter.length > 0 && !tagFilter.some(t => c.tags?.includes(t))) return false;
       
-      if (assignedAgentFilter !== "all") {
-        if (assignedAgentFilter === "none" && c.assigned_agent) return false;
-        if (assignedAgentFilter !== "none" && c.assigned_agent !== assignedAgentFilter) return false;
+      if (assignedAgentFilter.length > 0) {
+        const hasNone = assignedAgentFilter.includes("none");
+        const agentEmails = assignedAgentFilter.filter(a => a !== "none");
+        const matchesAgent = agentEmails.includes(c.assigned_agent);
+        const matchesNone = hasNone && !c.assigned_agent;
+        if (!matchesAgent && !matchesNone) return false;
       }
       
       if (hasRequirementsFilter !== "all") {
@@ -629,7 +632,7 @@ export default function ClientDatabase() {
       
       return true;
     });
-  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
+  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter, tagFilter.length, assignedAgentFilter.length]);
 
   const typeLabels = {
     client: "Cliente",
@@ -1007,17 +1010,31 @@ export default function ClientDatabase() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Select value={tagFilter} onValueChange={setTagFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas Tags</SelectItem>
-                    {allTags.map(tag => (
-                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="justify-between w-full">
+                      {tagFilter.length === 0 ? "Todas Tags" : `${tagFilter.length} tag(s)`}
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-2" align="start">
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      {allTags.map(tag => (
+                        <label key={tag} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tagFilter.includes(tag)}
+                            onChange={() => setTagFilter(prev => 
+                              prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                            )}
+                            className="rounded border-slate-300"
+                          />
+                          <span className="text-sm">{tag}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Select value={hasRequirementsFilter} onValueChange={setHasRequirementsFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Requisitos" />
@@ -1028,18 +1045,42 @@ export default function ClientDatabase() {
                     <SelectItem value="no">Sem Requisitos</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={assignedAgentFilter} onValueChange={setAssignedAgentFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Responsável" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos Responsáveis</SelectItem>
-                    <SelectItem value="none">Sem Responsável</SelectItem>
-                    {agentOptions.map(agent => (
-                      <SelectItem key={agent.value} value={agent.value}>{agent.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="justify-between w-full">
+                      {assignedAgentFilter.length === 0 ? "Todos Responsáveis" : `${assignedAgentFilter.length} selecionado(s)`}
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="start">
+                    <div className="max-h-48 overflow-y-auto space-y-1">
+                      <label className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={assignedAgentFilter.includes("none")}
+                          onChange={() => setAssignedAgentFilter(prev => 
+                            prev.includes("none") ? prev.filter(a => a !== "none") : [...prev, "none"]
+                          )}
+                          className="rounded border-slate-300"
+                        />
+                        <span className="text-sm text-slate-600">Sem Responsável</span>
+                      </label>
+                      {agentOptions.map(agent => (
+                        <label key={agent.value} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={assignedAgentFilter.includes(agent.value)}
+                            onChange={() => setAssignedAgentFilter(prev => 
+                              prev.includes(agent.value) ? prev.filter(a => a !== agent.value) : [...prev, agent.value]
+                            )}
+                            className="rounded border-slate-300"
+                          />
+                          <span className="text-sm">{agent.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Button 
                   variant="ghost" 
                   onClick={() => {
@@ -1047,9 +1088,9 @@ export default function ClientDatabase() {
                     setStatusFilter("all");
                     setSourceFilter("all");
                     setCityFilter("all");
-                    setTagFilter("all");
+                    setTagFilter([]);
                     setHasRequirementsFilter("all");
-                    setAssignedAgentFilter("all");
+                    setAssignedAgentFilter([]);
                     setSearchTerm("");
                   }}
                   className="text-slate-600"
@@ -1061,44 +1102,70 @@ export default function ClientDatabase() {
 
             {/* Quick Agent Filter Tags */}
             {agentOptions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-xs text-slate-500 flex items-center mr-1">Responsável:</span>
                 {agentOptions.map(agent => (
                   <Badge 
                     key={agent.value}
-                    variant={assignedAgentFilter === agent.value ? "default" : "outline"}
+                    variant={assignedAgentFilter.includes(agent.value) ? "default" : "outline"}
                     className="cursor-pointer hover:bg-slate-100"
-                    onClick={() => setAssignedAgentFilter(assignedAgentFilter === agent.value ? "all" : agent.value)}
+                    onClick={() => setAssignedAgentFilter(prev => 
+                      prev.includes(agent.value) ? prev.filter(a => a !== agent.value) : [...prev, agent.value]
+                    )}
                   >
                     <User className="w-3 h-3 mr-1" />
                     {agent.shortLabel}
                   </Badge>
                 ))}
                 <Badge 
-                  variant={assignedAgentFilter === "none" ? "default" : "outline"}
+                  variant={assignedAgentFilter.includes("none") ? "default" : "outline"}
                   className="cursor-pointer hover:bg-slate-100"
-                  onClick={() => setAssignedAgentFilter(assignedAgentFilter === "none" ? "all" : "none")}
+                  onClick={() => setAssignedAgentFilter(prev => 
+                    prev.includes("none") ? prev.filter(a => a !== "none") : [...prev, "none"]
+                  )}
                 >
                   Sem Responsável
                 </Badge>
+                {assignedAgentFilter.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs text-slate-500"
+                    onClick={() => setAssignedAgentFilter([])}
+                  >
+                    Limpar
+                  </Button>
+                )}
               </div>
             )}
 
             {/* Quick Tags */}
             {allTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <span className="text-xs text-slate-500 flex items-center mr-1">Tags:</span>
                 {allTags.slice(0, 10).map(tag => (
                   <Badge 
                     key={tag}
-                    variant={tagFilter === tag ? "default" : "outline"}
+                    variant={tagFilter.includes(tag) ? "default" : "outline"}
                     className="cursor-pointer hover:bg-slate-100"
-                    onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
+                    onClick={() => setTagFilter(prev => 
+                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                    )}
                   >
                     <TagIcon className="w-3 h-3 mr-1" />
                     {tag}
                   </Badge>
                 ))}
+                {tagFilter.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 px-2 text-xs text-slate-500"
+                    onClick={() => setTagFilter([])}
+                  >
+                    Limpar
+                  </Button>
+                )}
               </div>
             )}
           </div>
