@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -42,6 +44,46 @@ import CommissionsManager from "../components/tools/CommissionsManager";
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: userPermissions = [] } = useQuery({
+    queryKey: ['userPermissions'],
+    queryFn: () => base44.entities.UserPermission.list()
+  });
+
+  // Check if user is admin/gestor (has full access) or needs permission check
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
+  
+  // Get user's tool permissions
+  const userToolPermissions = userPermissions.find(p => p.user_email === currentUser?.email)?.permissions?.tools || {};
+  
+  // Helper to check if tool is allowed
+  const isToolAllowed = (toolId) => {
+    if (isAdmin) return true;
+    return userToolPermissions[toolId] !== false; // Default to true if not explicitly set
+  };
+
+  // Helper to render tool button with permission check
+  const ToolButton = ({ toolId, icon: Icon, label, variant, className }) => {
+    const allowed = isToolAllowed(toolId);
+    return (
+      <Button
+        variant={activeTab === toolId ? "default" : (variant || "outline")}
+        onClick={() => allowed && setActiveTab(toolId)}
+        className={`flex items-center gap-2 ${className || ''} ${!allowed ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={!allowed}
+        title={!allowed ? 'Sem permissão para esta ferramenta' : ''}
+      >
+        <Icon className="w-4 h-4" />
+        {label}
+        {!allowed && <Lock className="w-3 h-3 ml-1" />}
+      </Button>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
