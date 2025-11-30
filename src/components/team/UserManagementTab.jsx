@@ -325,10 +325,36 @@ Equipa Zugruppe`
               <CardContent className="p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold">
-                        {user.full_name?.[0]?.toUpperCase() || "U"}
-                      </span>
+                    <div className="relative group">
+                      {user.photo_url ? (
+                        <img 
+                          src={user.photo_url} 
+                          alt={user.full_name}
+                          className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold">
+                            {user.full_name?.[0]?.toUpperCase() || "U"}
+                          </span>
+                        </div>
+                      )}
+                      {isFullAdmin && (
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            fileInputRef.current?.click();
+                          }}
+                          disabled={uploadingPhoto === user.id}
+                          className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                        >
+                          {uploadingPhoto === user.id ? (
+                            <Loader2 className="w-5 h-5 text-white animate-spin" />
+                          ) : (
+                            <Camera className="w-5 h-5 text-white" />
+                          )}
+                        </button>
+                      )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
