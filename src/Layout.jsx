@@ -38,7 +38,6 @@ export default function Layout({ children, currentPageName }) {
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
     { name: "Relatórios", path: createPageUrl("Reports"), icon: FileBarChart, id: "nav-reports", visibility: ['admin', 'gestor', 'agente'] },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'] },
-    { name: "Utilizadores", path: createPageUrl("UserManagement"), icon: Users, id: "nav-users", visibility: ['admin'] },
   ];
 
   // Filtrar itens baseado na visibilidade

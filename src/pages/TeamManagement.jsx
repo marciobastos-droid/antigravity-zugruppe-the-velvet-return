@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, Shield, BarChart3 } from "lucide-react";
+import { Users, ClipboardList, Shield, BarChart3, UserPlus } from "lucide-react";
 import TaskManager from "../components/team/TaskManager";
 import TeamDashboard from "../components/team/TeamDashboard";
 import PermissionsManager from "../components/team/PermissionsManager";
+import UserManagementTab from "../components/team/UserManagementTab";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -16,6 +17,7 @@ export default function TeamManagement() {
   });
 
   const isAdmin = user?.role === 'admin' || user?.user_type === 'admin' || user?.user_type === 'gestor';
+  const isFullAdmin = user?.role === 'admin' || user?.user_type === 'admin';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
@@ -41,6 +43,12 @@ export default function TeamManagement() {
               Tarefas
             </TabsTrigger>
             {isAdmin && (
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                Utilizadores
+              </TabsTrigger>
+            )}
+            {isAdmin && (
               <TabsTrigger value="permissions" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 Permissões
@@ -55,6 +63,12 @@ export default function TeamManagement() {
           <TabsContent value="tasks">
             <TaskManager user={user} />
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="users">
+              <UserManagementTab currentUser={user} />
+            </TabsContent>
+          )}
 
           {isAdmin && (
             <TabsContent value="permissions">
