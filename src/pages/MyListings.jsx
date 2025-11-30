@@ -29,7 +29,10 @@ export default function MyListings() {
   const [viewingNotes, setViewingNotes] = React.useState(null);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState("properties");
-  const [viewMode, setViewMode] = React.useState("table"); // "table" or "cards"
+  const [viewMode, setViewMode] = React.useState(() => {
+    // Default to cards on mobile
+    return window.innerWidth < 768 ? "cards" : "table";
+  }); // "table" or "cards"
   const [filterLogic, setFilterLogic] = React.useState("AND");
   
   // Estado dos filtros avançados
