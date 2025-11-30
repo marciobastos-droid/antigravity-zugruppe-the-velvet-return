@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, Shield, BarChart3, UserPlus } from "lucide-react";
+import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell } from "lucide-react";
 import TaskManager from "../components/team/TaskManager";
 import TeamDashboard from "../components/team/TeamDashboard";
 import PermissionsManager from "../components/team/PermissionsManager";
 import UserManagementTab from "../components/team/UserManagementTab";
+import NotificationPreferences from "../components/notifications/NotificationPreferences";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -54,6 +55,10 @@ export default function TeamManagement() {
                 Permissões
               </TabsTrigger>
             )}
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              Notificações
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -75,6 +80,10 @@ export default function TeamManagement() {
               <PermissionsManager />
             </TabsContent>
           )}
+
+          <TabsContent value="notifications">
+            <NotificationPreferences user={user} />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
