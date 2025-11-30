@@ -43,19 +43,39 @@ export default function Layout({ children, currentPageName }) {
   const userType = userTypeNormalized || user?.role || 'user';
 
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
+  // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
-    { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all' },
-    { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all' },
-    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all' },
-    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all' },
+    { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
+    { name: "Navegar", path: createPageUrl("Browse"), icon: Building2, id: "nav-browse", visibility: 'all', pagePermKey: 'browse' },
+    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
+    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
-    { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'] },
+    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
+    { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
   ];
 
-  // Filtrar itens baseado na visibilidade
+  // Verificar se utilizador tem permissão para uma página específica
+  const hasPagePermission = (pagePermKey) => {
+    // Admins e gestores têm acesso total
+    if (isAdmin) return true;
+    // Se tem permissões granulares definidas, verificar
+    if (userPermissions?.pages && pagePermKey) {
+      return userPermissions.pages[pagePermKey] === true;
+    }
+    return false;
+  };
+
+  // Filtrar itens baseado na visibilidade e permissões
   const navItems = allNavItems.filter(item => {
+    // Se é página com visibilidade 'all', sempre mostrar
     if (item.visibility === 'all') return true;
+    
+    // Para páginas restritas, verificar permissões granulares primeiro
+    if (item.pagePermKey && hasPagePermission(item.pagePermKey)) {
+      return true;
+    }
+    
+    // Fallback para verificação por tipo de utilizador
     if (Array.isArray(item.visibility)) {
       return item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
     }
