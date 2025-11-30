@@ -31,8 +31,14 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = React.useState("30");
   const [syncingFacebookLeads, setSyncingFacebookLeads] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("overview");
+  const [widgetSelectorOpen, setWidgetSelectorOpen] = React.useState(false);
+  const [focusModeOpen, setFocusModeOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const { getAgentName } = useAgentNames();
+
+  // Load user's widget preferences
+  const defaultWidgets = AVAILABLE_WIDGETS.filter(w => w.default).map(w => w.id);
+  const [activeWidgets, setActiveWidgets] = React.useState(defaultWidgets);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
