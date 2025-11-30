@@ -48,7 +48,7 @@ export default function AgentPerformanceReport() {
 
     // Initialize all users (agents only)
     users.filter(u => u.user_type === 'agente' || u.user_type === 'gestor' || u.user_type === 'admin').forEach(u => {
-      const displayName = u.display_name || u.full_name || u.email?.split('@')[0];
+      const displayName = getAgentName(u.email) || u.display_name || u.full_name || u.email?.split('@')[0];
       agentStats[u.email] = {
         email: u.email,
         name: displayName,
