@@ -244,7 +244,7 @@ export default function ToolsPermissionsManager() {
                   const userPerm = permissions.find(p => p.user_email === agent.email);
                   const toolCount = userPerm?.permissions?.tools 
                     ? Object.values(userPerm.permissions.tools).filter(Boolean).length 
-                    : 0;
+                    : Object.values(ALL_TOOLS.reduce((acc, t) => ({ ...acc, [t]: getDefaultToolPermission(t) }), {})).filter(Boolean).length;
                   
                   return (
                     <button
