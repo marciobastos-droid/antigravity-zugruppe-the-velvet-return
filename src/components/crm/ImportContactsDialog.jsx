@@ -54,7 +54,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
     }
   }, [open]);
 
-  const agents = users.filter(u => u.user_type === 'agente' || u.user_type === 'gestor' || u.user_type === 'admin' || u.role === 'admin');
+  const agents = users;
 
   const resetState = () => {
     setFile(null);
