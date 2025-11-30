@@ -653,6 +653,13 @@ export default function ClientDatabase() {
   // Memoized selected set for O(1) lookup in cards
   const selectedContactsSet = useMemo(() => new Set(selectedContacts), [selectedContacts]);
 
+  // toggleSelectAll needs to be after filteredClients is defined
+  const toggleSelectAll = useCallback(() => {
+    setSelectedContacts(prev =>
+      prev.length === filteredClients.length ? [] : filteredClients.map(c => c.id)
+    );
+  }, [filteredClients]);
+
   const typeLabels = useMemo(() => ({
     client: "Cliente",
     partner: "Parceiro",
