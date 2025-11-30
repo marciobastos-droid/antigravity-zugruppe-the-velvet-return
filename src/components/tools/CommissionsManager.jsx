@@ -9,15 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DollarSign, Plus, Search, Filter, Download, Building2, User, 
   Calendar, CheckCircle2, Clock, AlertCircle, TrendingUp, Pencil, Trash2,
-  Receipt, PieChart
+  Receipt, PieChart, FileBarChart
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import CommissionsReports from "./CommissionsReports";
 
 const STATUS_CONFIG = {
   pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -30,6 +32,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 export default function CommissionsManager() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("list");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCommission, setEditingCommission] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -265,17 +268,19 @@ export default function CommissionsManager() {
           <p className="text-slate-600">Registo e acompanhamento de comissões</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={exportCSV}>
-            <Download className="w-4 h-4 mr-2" />
-            Exportar
-          </Button>
-          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); else setDialogOpen(true); }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Comissão
+          {activeTab === "list" && (
+            <>
+              <Button variant="outline" onClick={exportCSV}>
+                <Download className="w-4 h-4 mr-2" />
+                Exportar
               </Button>
-            </DialogTrigger>
+              <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); else setDialogOpen(true); }}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nova Comissão
+                  </Button>
+                </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingCommission ? 'Editar Comissão' : 'Registar Nova Comissão'}</DialogTitle>
@@ -452,9 +457,26 @@ export default function CommissionsManager() {
                 </div>
               </div>
             </DialogContent>
-          </Dialog>
+              </Dialog>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <Receipt className="w-4 h-4" />
+            Comissões
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileBarChart className="w-4 h-4" />
+            Relatórios
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="space-y-6 mt-6">
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -697,6 +719,13 @@ export default function CommissionsManager() {
           })
         )}
       </div>
+
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-6">
+          <CommissionsReports />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
