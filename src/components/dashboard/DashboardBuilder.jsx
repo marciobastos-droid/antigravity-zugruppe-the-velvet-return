@@ -56,27 +56,57 @@ export default function DashboardBuilder({ onClose }) {
   const { data: dashboardData } = useQuery({
     queryKey: ['dashboardData'],
     queryFn: async () => {
-      const [properties, opportunities, clients] = await Promise.all([
+      const [properties, opportunities, clients, communications, users] = await Promise.all([
         base44.entities.Property.list('-created_date'),
         base44.entities.Opportunity.list('-created_date'),
-        base44.entities.ClientContact.list('-created_date')
+        base44.entities.ClientContact.list('-created_date'),
+        base44.entities.CommunicationLog.list('-created_date', 50),
+        base44.entities.User.list()
       ]);
 
       // Build metrics
       const activeProps = properties.filter(p => p.status === 'active');
       const newLeads = opportunities.filter(o => o.status === 'new');
       const hotLeads = opportunities.filter(o => o.qualification_status === 'hot');
+      const warmLeads = opportunities.filter(o => o.qualification_status === 'warm');
+      const coldLeads = opportunities.filter(o => o.qualification_status === 'cold');
+      const unqualifiedLeads = opportunities.filter(o => !o.qualification_status || o.qualification_status === 'unqualified');
+      const closedLeads = opportunities.filter(o => o.status === 'won' || o.status === 'closed');
 
       const metrics = {
         total_properties: { value: properties.length, label: "Total Imóveis", trend: 5 },
         active_properties: { value: activeProps.length, label: "Imóveis Ativos", trend: 3 },
         total_leads: { value: opportunities.length, label: "Total Leads", trend: 12 },
         new_leads: { value: newLeads.length, label: "Novos Leads", trend: 8 },
-        hot_leads: { value: hotLeads.length, label: "Leads Quentes", trend: -2 },
+        hot_leads: { value: hotLeads.length, label: "Leads Hot", trend: -2 },
+        warm_leads: { value: warmLeads.length, label: "Leads Warm", trend: 0 },
+        cold_leads: { value: coldLeads.length, label: "Leads Cold", trend: 0 },
+        unqualified_leads: { value: unqualifiedLeads.length, label: "Não Qualificados", trend: 0 },
         total_clients: { value: clients.length, label: "Total Clientes", trend: 4 },
         total_value: { value: activeProps.reduce((s, p) => s + (p.price || 0), 0), label: "Valor Portfolio", trend: 7 },
-        avg_price: { value: activeProps.length ? Math.round(activeProps.reduce((s, p) => s + (p.price || 0), 0) / activeProps.length) : 0, label: "Preço Médio", trend: 2 }
+        avg_price: { value: activeProps.length ? Math.round(activeProps.reduce((s, p) => s + (p.price || 0), 0) / activeProps.length) : 0, label: "Preço Médio", trend: 2 },
+        conversion_rate: { value: opportunities.length > 0 ? Math.round((closedLeads.length / opportunities.length) * 100) : 0, label: "Taxa Conversão", trend: 3 },
+        deals_this_month: { value: closedLeads.filter(o => new Date(o.actual_close_date || o.updated_date) >= new Date(new Date().setDate(1))).length, label: "Negócios do Mês", trend: 0 }
       };
+
+      // Agent stats for leaderboard
+      const agentStats = users
+        .filter(u => u.user_type === 'agente' || u.user_type === 'gestor')
+        .map(u => {
+          const agentLeads = opportunities.filter(o => o.assigned_to === u.email);
+          const agentClosed = agentLeads.filter(o => o.status === 'won' || o.status === 'closed');
+          const agentProperties = properties.filter(p => p.assigned_consultant === u.email || p.created_by === u.email);
+          return {
+            email: u.email,
+            name: u.display_name || u.full_name || u.email,
+            shortName: (u.display_name || u.full_name || u.email).split(' ')[0],
+            leads: agentLeads.length,
+            closed: agentClosed.length,
+            properties: agentProperties.length,
+            conversionRate: agentLeads.length > 0 ? Math.round((agentClosed.length / agentLeads.length) * 100) : 0
+          };
+        })
+        .filter(a => a.leads > 0 || a.properties > 0);
 
       // Build chart data
       const propertyTypes = {};
@@ -127,9 +157,17 @@ export default function DashboardBuilder({ onClose }) {
         .map(o => ({ date: o.next_followup_date, client_name: o.buyer_name, type: 'follow-up' }))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      return { metrics, charts, lists, pipeline, followups };
-    }
-  });
+      return { 
+        metrics, 
+        charts, 
+        lists, 
+        pipeline, 
+        followups, 
+        agentStats,
+        recentCommunications: communications.slice(0, 20)
+      };
+      }
+      });
 
   const saveMutation = useMutation({
     mutationFn: (data) => {
