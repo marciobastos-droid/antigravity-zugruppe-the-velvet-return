@@ -495,82 +495,141 @@ export default function ClientDatabase() {
     );
   };
 
-  const getClientCommunications = (clientId) => {
-    return communications.filter(c => c.contact_id === clientId);
-  };
-
-  const getClientOpportunities = (client) => {
-    // Match by profile_id OR by linked_opportunity_ids
-    const linkedIds = client.linked_opportunity_ids || [];
-    return opportunities.filter(o => 
-      o.profile_id === client.id || linkedIds.includes(o.id)
-    );
-  };
-
-  // Calculate matching score for a client
-  const calculateMatchingScore = (client) => {
-    const req = client.property_requirements;
-    if (!req || Object.keys(req).length === 0) return 0;
-    
-    const activeProperties = properties.filter(p => p.status === 'active');
-    if (activeProperties.length === 0) return 0;
-
-    let matchCount = 0;
-    activeProperties.forEach(property => {
-      let matches = true;
-      
-      if (req.locations?.length > 0) {
-        matches = matches && req.locations.some(loc => 
-          property.city?.toLowerCase().includes(loc.toLowerCase())
-        );
-      }
-      if (req.budget_max && property.price > req.budget_max * 1.15) matches = false;
-      if (req.budget_min && property.price < req.budget_min * 0.85) matches = false;
-      if (req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
-      
-      if (matches) matchCount++;
+  // Memoized maps for O(1) lookups instead of O(n) filters
+  const communicationsByContact = React.useMemo(() => {
+    const map = new Map();
+    communications.forEach(c => {
+      if (!map.has(c.contact_id)) map.set(c.contact_id, []);
+      map.get(c.contact_id).push(c);
     });
+    return map;
+  }, [communications]);
 
-    return Math.min(100, Math.round((matchCount / Math.min(activeProperties.length, 10)) * 100));
-  };
+  const opportunitiesByContact = React.useMemo(() => {
+    const map = new Map();
+    opportunities.forEach(o => {
+      if (o.profile_id) {
+        if (!map.has(o.profile_id)) map.set(o.profile_id, []);
+        map.get(o.profile_id).push(o);
+      }
+    });
+    return map;
+  }, [opportunities]);
 
-  // Get all unique cities, tags and assigned agents
-  const allCities = [...new Set(clients.map(c => c.city).filter(Boolean))].sort();
-  const allTags = [...new Set(clients.flatMap(c => c.tags || []))].sort();
-  const allAssignedAgents = [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort();
+  const getClientCommunications = React.useCallback((clientId) => {
+    return communicationsByContact.get(clientId) || [];
+  }, [communicationsByContact]);
+
+  const getClientOpportunities = React.useCallback((client) => {
+    const fromProfile = opportunitiesByContact.get(client.id) || [];
+    const linkedIds = client.linked_opportunity_ids || [];
+    if (linkedIds.length === 0) return fromProfile;
+    
+    const linkedOpps = opportunities.filter(o => linkedIds.includes(o.id));
+    const combined = [...fromProfile];
+    linkedOpps.forEach(o => {
+      if (!combined.find(x => x.id === o.id)) combined.push(o);
+    });
+    return combined;
+  }, [opportunitiesByContact, opportunities]);
+
+  // Memoized active properties for matching score
+  const activeProperties = React.useMemo(() => 
+    properties.filter(p => p.status === 'active'), 
+    [properties]
+  );
+
+  // Memoized matching scores for all clients
+  const matchingScores = React.useMemo(() => {
+    const scores = new Map();
+    if (activeProperties.length === 0) return scores;
+    
+    clients.forEach(client => {
+      const req = client.property_requirements;
+      if (!req || Object.keys(req).length === 0) {
+        scores.set(client.id, 0);
+        return;
+      }
+      
+      let matchCount = 0;
+      activeProperties.forEach(property => {
+        let matches = true;
+        
+        if (req.locations?.length > 0) {
+          matches = matches && req.locations.some(loc => 
+            property.city?.toLowerCase().includes(loc.toLowerCase())
+          );
+        }
+        if (req.budget_max && property.price > req.budget_max * 1.15) matches = false;
+        if (req.budget_min && property.price < req.budget_min * 0.85) matches = false;
+        if (req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
+        
+        if (matches) matchCount++;
+      });
+
+      scores.set(client.id, Math.min(100, Math.round((matchCount / Math.min(activeProperties.length, 10)) * 100)));
+    });
+    
+    return scores;
+  }, [clients, activeProperties]);
+
+  const getMatchingScore = React.useCallback((clientId) => {
+    return matchingScores.get(clientId) || 0;
+  }, [matchingScores]);
+
+  // Memoized unique values for filters
+  const { allCities, allTags, allAssignedAgents } = React.useMemo(() => ({
+    allCities: [...new Set(clients.map(c => c.city).filter(Boolean))].sort(),
+    allTags: [...new Set(clients.flatMap(c => c.tags || []))].sort(),
+    allAssignedAgents: [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort()
+  }), [clients]);
+  
   const agentOptions = getAgentOptions();
 
-  const filteredClients = clients.filter(c => {
-    const matchesSearch = searchTerm === "" ||
-      c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.phone?.includes(searchTerm) ||
-      c.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  // Memoized filtered clients
+  const filteredClients = React.useMemo(() => {
+    const searchLower = searchTerm.toLowerCase();
     const validContactTypes = ["client", "partner", "investor", "vendor", "other"];
-    const matchesType = typeFilter === "all" || 
-      (typeFilter === "empty" && (!c.contact_type || c.contact_type === "" || c.contact_type === "--" || !validContactTypes.includes(c.contact_type))) || 
-      c.contact_type === typeFilter;
-    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-    const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
-    const matchesCity = cityFilter === "all" || c.city === cityFilter;
-    const matchesTag = tagFilter === "all" || c.tags?.includes(tagFilter);
     
-    const hasReqs = c.property_requirements && (
-      c.property_requirements.budget_min || c.property_requirements.budget_max ||
-      c.property_requirements.locations?.length || c.property_requirements.property_types?.length
-    );
-    const matchesHasRequirements = hasRequirementsFilter === "all" || 
-      (hasRequirementsFilter === "yes" && hasReqs) ||
-      (hasRequirementsFilter === "no" && !hasReqs);
-
-    const matchesAssignedAgent = assignedAgentFilter === "all" || 
-      (assignedAgentFilter === "none" && !c.assigned_agent) ||
-      c.assigned_agent === assignedAgentFilter;
-
-    return matchesSearch && matchesType && matchesStatus && matchesSource && 
-           matchesCity && matchesTag && matchesHasRequirements && matchesAssignedAgent;
+    return clients.filter(c => {
+      // Quick filters first (most selective)
+      if (typeFilter !== "all") {
+        if (typeFilter === "empty") {
+          if (c.contact_type && c.contact_type !== "" && c.contact_type !== "--" && validContactTypes.includes(c.contact_type)) return false;
+        } else if (c.contact_type !== typeFilter) return false;
+      }
+      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (sourceFilter !== "all" && c.source !== sourceFilter) return false;
+      if (cityFilter !== "all" && c.city !== cityFilter) return false;
+      if (tagFilter !== "all" && !c.tags?.includes(tagFilter)) return false;
+      
+      if (assignedAgentFilter !== "all") {
+        if (assignedAgentFilter === "none" && c.assigned_agent) return false;
+        if (assignedAgentFilter !== "none" && c.assigned_agent !== assignedAgentFilter) return false;
+      }
+      
+      if (hasRequirementsFilter !== "all") {
+        const hasReqs = c.property_requirements && (
+          c.property_requirements.budget_min || c.property_requirements.budget_max ||
+          c.property_requirements.locations?.length || c.property_requirements.property_types?.length
+        );
+        if (hasRequirementsFilter === "yes" && !hasReqs) return false;
+        if (hasRequirementsFilter === "no" && hasReqs) return false;
+      }
+      
+      // Search last (most expensive)
+      if (searchTerm !== "") {
+        const matchesSearch = 
+          c.full_name?.toLowerCase().includes(searchLower) ||
+          c.email?.toLowerCase().includes(searchLower) ||
+          c.phone?.includes(searchTerm) ||
+          c.company_name?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      
+      return true;
     });
+  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
 
   const typeLabels = {
     client: "Cliente",
@@ -1138,7 +1197,7 @@ export default function ClientDatabase() {
           filteredClients.map((client) => {
             const clientComms = getClientCommunications(client.id);
             const clientOpps = getClientOpportunities(client);
-            const matchScore = calculateMatchingScore(client);
+            const matchScore = getMatchingScore(client.id);
             const req = client.property_requirements;
             const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
             
