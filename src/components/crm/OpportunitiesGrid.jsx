@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const statusConfig = {
   new: { label: "Novo", color: "bg-blue-100 text-blue-800" },
@@ -45,10 +46,7 @@ export default function OpportunitiesGrid({
   onDelete,
   onToggleImportant
 }) {
-  const getAgentName = (email) => {
-    const user = users?.find(u => u.email === email);
-    return user?.full_name?.split(' ')[0] || email?.split('@')[0] || '-';
-  };
+  const { getAgentName } = useAgentNames();
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
@@ -145,7 +143,7 @@ export default function OpportunitiesGrid({
               {/* Footer */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <div className="text-[10px] sm:text-xs text-slate-500">
-                  {opp.assigned_to ? getAgentName(opp.assigned_to) : 'Sem agente'}
+                  {opp.assigned_to ? getAgentName(opp.assigned_to, true) : 'Sem agente'}
                 </div>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <Button
