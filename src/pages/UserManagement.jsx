@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil } from "lucide-react";
+import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function UserManagement() {
@@ -20,6 +20,10 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
   const [editingUserName, setEditingUserName] = useState("");
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [settingPassword, setSettingPassword] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -110,6 +114,36 @@ Equipa Zugruppe`
       return;
     }
     deleteUserMutation.mutate(user.id);
+  };
+
+  const handleSetPassword = async () => {
+    if (!selectedUser || !newPassword) return;
+    
+    if (newPassword.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
+    setSettingPassword(true);
+    try {
+      const response = await base44.functions.invoke('setUserPassword', {
+        user_id: selectedUser.id,
+        password: newPassword
+      });
+      
+      if (response.data?.success) {
+        toast.success("Senha definida com sucesso");
+        setPasswordDialogOpen(false);
+        setNewPassword("");
+        setSelectedUser(null);
+      } else {
+        toast.error(response.data?.error || "Erro ao definir senha");
+      }
+    } catch (error) {
+      console.error("Erro ao definir senha:", error);
+      toast.error("Erro ao definir senha");
+    }
+    setSettingPassword(false);
   };
 
   const handleCreateUser = (e) => {
@@ -518,6 +552,19 @@ Equipa Zugruppe`
                                 size="sm"
                                 onClick={() => {
                                   setSelectedUser(user);
+                                  setNewPassword("");
+                                  setShowPassword(false);
+                                  setPasswordDialogOpen(true);
+                                }}
+                              >
+                                <Key className="w-4 h-4 mr-2" />
+                                Senha
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedUser(user);
                                   setPermissionsDialogOpen(true);
                                 }}
                               >
@@ -566,6 +613,76 @@ Equipa Zugruppe`
             </CardContent>
           </Card>
         )}
+
+        {/* Password Dialog */}
+        <Dialog open={passwordDialogOpen} onOpenChange={(open) => {
+          setPasswordDialogOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+            setNewPassword("");
+            setShowPassword(false);
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-amber-600" />
+                Definir Senha - {selectedUser?.display_name || selectedUser?.full_name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-sm text-amber-800">
+                  <strong>Atenção:</strong> Definir uma nova senha irá substituir a senha atual do utilizador.
+                </p>
+              </div>
+              <div>
+                <Label>Nova Senha</Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4 text-slate-400" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                  </Button>
+                </div>
+                {newPassword && newPassword.length < 6 && (
+                  <p className="text-xs text-red-500 mt-1">A senha deve ter pelo menos 6 caracteres</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setPasswordDialogOpen(false);
+                    setSelectedUser(null);
+                    setNewPassword("");
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleSetPassword}
+                  disabled={settingPassword || newPassword.length < 6}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700"
+                >
+                  {settingPassword ? "A definir..." : "Definir Senha"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Name Dialog */}
         <Dialog open={editNameDialogOpen} onOpenChange={(open) => {
