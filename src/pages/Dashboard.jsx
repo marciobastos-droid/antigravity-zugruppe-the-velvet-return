@@ -534,6 +534,7 @@ export default function Dashboard() {
             <TabsContent value="overview">
 
         {/* Key Metrics */}
+        {isWidgetActive('metrics') && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="border-l-4 border-l-blue-500">
             <CardContent className="p-3 sm:p-6">
