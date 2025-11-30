@@ -9,6 +9,10 @@ import PipelineSummaryWidget from "./PipelineSummaryWidget";
 import FollowupAlertsWidget from "./FollowupAlertsWidget";
 import TextNoteWidget from "./TextNoteWidget";
 import AgentStatsWidget from "./AgentStatsWidget";
+import SalesByMonthWidget from "./SalesByMonthWidget";
+import LeadsBySourceWidget from "./LeadsBySourceWidget";
+import TopAgentsWidget from "./TopAgentsWidget";
+import UpcomingTasksWidget from "./UpcomingTasksWidget";
 
 const widgetComponents = {
   metric_card: MetricCardWidget,
@@ -20,7 +24,11 @@ const widgetComponents = {
   pipeline_summary: PipelineSummaryWidget,
   followup_alerts: FollowupAlertsWidget,
   text_note: TextNoteWidget,
-  agent_stats: AgentStatsWidget
+  agent_stats: AgentStatsWidget,
+  sales_by_month: SalesByMonthWidget,
+  leads_by_source: LeadsBySourceWidget,
+  top_agents: TopAgentsWidget,
+  upcoming_tasks: UpcomingTasksWidget
 };
 
 export default function WidgetRenderer({ widget, data }) {
