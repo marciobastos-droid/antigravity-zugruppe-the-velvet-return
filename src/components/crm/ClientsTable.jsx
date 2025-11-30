@@ -109,10 +109,10 @@ export default function ClientsTable({
       alwaysVisible: true,
       render: (val, client) => (
         <div>
-          <div className="font-medium text-slate-900">{val}</div>
+          <div className="font-medium text-slate-900 text-xs">{val}</div>
           {client.company_name && (
-            <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-              <Building2 className="w-3 h-3" />
+            <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+              <Building2 className="w-2.5 h-2.5" />
               {client.company_name}
             </div>
           )}
@@ -122,9 +122,9 @@ export default function ClientsTable({
     {
       key: "contact_type",
       label: "Tipo",
-      minWidth: "100px",
+      minWidth: "80px",
       render: (val) => (
-        <Badge className={typeColors[val]}>
+        <Badge className={`${typeColors[val]} text-[10px] px-1.5 py-0`}>
           {typeLabels[val]}
         </Badge>
       )
@@ -132,9 +132,9 @@ export default function ClientsTable({
     {
       key: "status",
       label: "Estado",
-      minWidth: "100px",
+      minWidth: "80px",
       render: (val) => (
-        <Badge className={statusColors[val]}>
+        <Badge className={`${statusColors[val]} text-[10px] px-1.5 py-0`}>
           {val === 'active' ? 'Ativo' : val === 'inactive' ? 'Inativo' : 'Prospect'}
         </Badge>
       )
@@ -142,21 +142,21 @@ export default function ClientsTable({
     {
       key: "email",
       label: "Email",
-      minWidth: "180px",
+      minWidth: "150px",
       render: (val) => val ? (
-        <a href={`mailto:${val}`} className="text-blue-600 hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Mail className="w-3.5 h-3.5" />
-          <span className="truncate max-w-[150px]">{val}</span>
+        <a href={`mailto:${val}`} className="text-blue-600 hover:underline flex items-center gap-1 text-xs" onClick={(e) => e.stopPropagation()}>
+          <Mail className="w-3 h-3" />
+          <span className="truncate max-w-[120px]">{val}</span>
         </a>
       ) : '-'
     },
     {
       key: "phone",
       label: "Telefone",
-      minWidth: "130px",
+      minWidth: "110px",
       render: (val) => val ? (
-        <a href={`tel:${val}`} className="text-blue-600 hover:underline flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Phone className="w-3.5 h-3.5" />
+        <a href={`tel:${val}`} className="text-blue-600 hover:underline flex items-center gap-1 text-xs" onClick={(e) => e.stopPropagation()}>
+          <Phone className="w-3 h-3" />
           {val}
         </a>
       ) : '-'
@@ -164,10 +164,10 @@ export default function ClientsTable({
     {
       key: "city",
       label: "Cidade",
-      minWidth: "120px",
+      minWidth: "100px",
       render: (val) => val ? (
-        <span className="flex items-center gap-1">
-          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+        <span className="flex items-center gap-1 text-xs">
+          <MapPin className="w-3 h-3 text-slate-400" />
           {val}
         </span>
       ) : '-'
@@ -175,7 +175,7 @@ export default function ClientsTable({
     {
       key: "source",
       label: "Origem",
-      minWidth: "100px",
+      minWidth: "90px",
       render: (val) => {
         if (!val) return '-';
         const Icon = sourceIcons[val] || Tag;
@@ -188,8 +188,8 @@ export default function ClientsTable({
           other: 'Outro'
         };
         return (
-          <span className="flex items-center gap-1 text-slate-600">
-            <Icon className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1 text-slate-600 text-xs">
+            <Icon className="w-3 h-3" />
             {labels[val]}
           </span>
         );
@@ -198,14 +198,14 @@ export default function ClientsTable({
     {
       key: "budget",
       label: "Orçamento",
-      minWidth: "120px",
+      minWidth: "100px",
       sortValue: (row) => row.property_requirements?.budget_max || 0,
       render: (_, client) => {
         const req = client.property_requirements;
         if (!req?.budget_max) return '-';
         return (
-          <span className="flex items-center gap-1 text-slate-700">
-            <Euro className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1 text-slate-700 text-xs">
+            <Euro className="w-3 h-3" />
             {req.budget_min > 0 ? `${(req.budget_min/1000).toFixed(0)}k-` : ''}
             {(req.budget_max/1000).toFixed(0)}k
           </span>
@@ -215,14 +215,14 @@ export default function ClientsTable({
     {
       key: "bedrooms",
       label: "Quartos",
-      minWidth: "80px",
+      minWidth: "60px",
       sortValue: (row) => row.property_requirements?.bedrooms_min || 0,
       render: (_, client) => {
         const req = client.property_requirements;
         if (!req?.bedrooms_min) return '-';
         return (
-          <span className="flex items-center gap-1 text-slate-700">
-            <Bed className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1 text-slate-700 text-xs">
+            <Bed className="w-3 h-3" />
             T{req.bedrooms_min}+
           </span>
         );
@@ -231,13 +231,13 @@ export default function ClientsTable({
     {
       key: "communications_count",
       label: "Comun.",
-      minWidth: "80px",
+      minWidth: "60px",
       sortValue: (row) => getClientCommunications(row.id).length,
       render: (_, client) => {
         const count = getClientCommunications(client.id).length;
         return (
-          <span className="flex items-center gap-1 text-slate-600">
-            <MessageSquare className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-1 text-slate-600 text-xs">
+            <MessageSquare className="w-3 h-3" />
             {count}
           </span>
         );
@@ -246,13 +246,13 @@ export default function ClientsTable({
     {
       key: "opportunities_count",
       label: "Oport.",
-      minWidth: "80px",
+      minWidth: "60px",
       sortValue: (row) => getClientOpportunities(row).length,
       render: (_, client) => {
         const count = getClientOpportunities(client).length;
         return (
-          <span className={`flex items-center gap-1 ${count > 0 ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
-            <TrendingUp className="w-3.5 h-3.5" />
+          <span className={`flex items-center gap-1 text-xs ${count > 0 ? 'text-green-600 font-medium' : 'text-slate-500'}`}>
+            <TrendingUp className="w-3 h-3" />
             {count}
           </span>
         );
@@ -261,11 +261,11 @@ export default function ClientsTable({
     {
       key: "last_contact_date",
       label: "Último Contacto",
-      minWidth: "120px",
+      minWidth: "100px",
       sortValue: (row) => row.last_contact_date ? new Date(row.last_contact_date) : new Date(0),
       render: (val) => val ? (
-        <span className="flex items-center gap-1 text-slate-600">
-          <Clock className="w-3.5 h-3.5" />
+        <span className="flex items-center gap-1 text-slate-600 text-xs">
+          <Clock className="w-3 h-3" />
           {format(new Date(val), "dd/MM/yy")}
         </span>
       ) : '-'
@@ -273,19 +273,19 @@ export default function ClientsTable({
     {
       key: "tags",
       label: "Etiquetas",
-      minWidth: "150px",
+      minWidth: "120px",
       render: (val) => {
         if (!val || val.length === 0) return '-';
         return (
-          <div className="flex flex-wrap gap-1 max-w-[140px]">
+          <div className="flex flex-wrap gap-0.5 max-w-[110px]">
             {val.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0">
-                <Tag className="w-2.5 h-2.5 mr-0.5" />
+              <Badge key={tag} variant="outline" className="text-[10px] px-1 py-0">
+                <Tag className="w-2 h-2 mr-0.5" />
                 {tag}
               </Badge>
             ))}
             {val.length > 2 && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0">
+              <Badge variant="outline" className="text-[10px] px-1 py-0">
                 +{val.length - 2}
               </Badge>
             )}
@@ -296,57 +296,57 @@ export default function ClientsTable({
     {
       key: "assigned_agent",
       label: "Responsável",
-      minWidth: "140px",
+      minWidth: "110px",
       render: (val) => val ? (
-        <span className="flex items-center gap-1 text-slate-600">
-          <User className="w-3.5 h-3.5" />
-          <span className="truncate max-w-[120px]">{getAgentName(val, true)}</span>
+        <span className="flex items-center gap-1 text-slate-600 text-xs">
+          <User className="w-3 h-3" />
+          <span className="truncate max-w-[90px]">{getAgentName(val, true)}</span>
         </span>
       ) : '-'
     },
     {
       key: "created_date",
       label: "Criado",
-      minWidth: "100px",
+      minWidth: "80px",
       sortValue: (row) => new Date(row.created_date),
-      render: (val) => val ? format(new Date(val), "dd/MM/yy") : '-'
+      render: (val) => val ? <span className="text-xs">{format(new Date(val), "dd/MM/yy")}</span> : '-'
     },
     {
       key: "actions",
       label: "Ações",
       sortable: false,
-      minWidth: "150px",
+      minWidth: "120px",
       alwaysVisible: true,
       render: (_, client) => (
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           {client.contact_type === 'client' && (
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 w-8 p-0 text-purple-600 hover:bg-purple-50"
+              className="h-7 w-7 p-0 text-purple-600 hover:bg-purple-50"
               onClick={() => onMatching?.(client)}
               title="Matching"
             >
-              <Home className="w-4 h-4" />
+              <Home className="w-3.5 h-3.5" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onClientClick?.(client)}>
-            <Eye className="w-4 h-4" />
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onClientClick?.(client)}>
+            <Eye className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit?.(client)}>
-            <Edit className="w-4 h-4" />
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => onEdit?.(client)}>
+            <Edit className="w-3.5 h-3.5" />
           </Button>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               onDelete?.(client.id, client.full_name, e);
             }}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       )
