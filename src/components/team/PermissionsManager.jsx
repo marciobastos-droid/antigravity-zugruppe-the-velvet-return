@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Shield, Building2, Users, FileText, BarChart3, 
-  Settings, Save, RotateCcw, ChevronDown, ChevronRight
+  Settings, Save, RotateCcw, ChevronDown, ChevronRight, Wrench
 } from "lucide-react";
 import { toast } from "sonner";
+import ToolsPermissionsManager from "./ToolsPermissionsManager";
 
 // Permission templates by role
 const ROLE_TEMPLATES = {
@@ -222,6 +223,8 @@ export default function PermissionsManager() {
     );
   };
 
+  const [activeTab, setActiveTab] = useState("general");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -234,6 +237,23 @@ export default function PermissionsManager() {
         </div>
       </div>
 
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Permissões Gerais
+          </TabsTrigger>
+          <TabsTrigger value="tools" className="flex items-center gap-2">
+            <Wrench className="w-4 h-4" />
+            Ferramentas
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tools" className="mt-6">
+          <ToolsPermissionsManager />
+        </TabsContent>
+
+        <TabsContent value="general" className="mt-6">
       <div className="grid lg:grid-cols-4 gap-6">
         {/* User List */}
         <Card className="lg:col-span-1">
@@ -353,6 +373,8 @@ export default function PermissionsManager() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
