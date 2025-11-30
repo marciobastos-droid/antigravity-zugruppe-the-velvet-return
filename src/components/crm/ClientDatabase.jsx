@@ -157,24 +157,36 @@ export default function ClientDatabase() {
     queryKey: ['clientContacts', user?.email],
     queryFn: async () => {
       if (!user) return [];
-      const allClients = await base44.entities.ClientContact.list('-created_date');
       
       const userType = user.user_type?.toLowerCase() || '';
       const permissions = user.permissions || {};
       
       // Admins e gestores veem todos
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
-        return allClients;
+        return await base44.entities.ClientContact.list('-created_date');
       }
       
-      // Verifica permissão canViewAllLeads
-      if (permissions.canViewAllLeads === true) {
-        return allClients;
+      // Verifica permissão canViewAllLeads ou canViewAllContacts
+      if (permissions.canViewAllLeads === true || permissions.canViewAllContacts === true) {
+        return await base44.entities.ClientContact.list('-created_date');
       }
       
-      // Agentes veem apenas os seus contactos
-      return allClients.filter(c => 
-        c.assigned_agent === user.email || c.created_by === user.email
+      // Para agentes: buscar apenas os contactos atribuídos ou criados por eles
+      // Usar queries separadas para melhor performance
+      const [assignedContacts, createdContacts] = await Promise.all([
+        base44.entities.ClientContact.filter({ assigned_agent: user.email }, '-created_date'),
+        base44.entities.ClientContact.filter({ created_by: user.email }, '-created_date')
+      ]);
+      
+      // Combinar e remover duplicados
+      const contactMap = new Map();
+      [...assignedContacts, ...createdContacts].forEach(c => {
+        if (!contactMap.has(c.id)) contactMap.set(c.id, c);
+      });
+      
+      // Ordenar por data de criação decrescente
+      return Array.from(contactMap.values()).sort((a, b) => 
+        new Date(b.created_date) - new Date(a.created_date)
       );
     },
     enabled: !!user
