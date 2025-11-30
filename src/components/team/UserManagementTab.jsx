@@ -536,6 +536,20 @@ Equipa Zugruppe`
           </div>
         </DialogContent>
       </Dialog>
+      {/* Hidden file input for photo upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && selectedUser) {
+            handlePhotoUpload(selectedUser.id, file);
+          }
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 }
