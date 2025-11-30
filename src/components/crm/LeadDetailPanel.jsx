@@ -16,6 +16,7 @@ import CommunicationPanel from "./CommunicationPanel";
 import SendEmailDialog from "../email/SendEmailDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
+import DocumentUploader from "../documents/DocumentUploader";
 
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
@@ -349,6 +350,15 @@ Extrai:
 
         {/* AI Lead Scoring */}
         <AILeadScoring opportunity={lead} />
+
+        {/* Documents */}
+        <DocumentUploader 
+          leadId={lead.id}
+          leadName={lead.buyer_name}
+          propertyId={lead.property_id}
+          propertyTitle={lead.property_title}
+          entityType="lead"
+        />
 
         {/* Quick Notes */}
         <Card>
