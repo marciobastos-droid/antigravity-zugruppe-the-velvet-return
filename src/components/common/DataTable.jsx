@@ -249,7 +249,7 @@ export default function DataTable({
                       {visibleColumnObjects.map((column) => (
                         <td 
                           key={column.key} 
-                          className={`px-4 py-3 text-sm overflow-hidden ${column.cellClassName || ''}`}
+                          className={`px-3 py-2 text-sm overflow-hidden ${column.cellClassName || ''}`}
                           style={{ 
                             width: columnWidths[column.key] || column.width 
                           }}
