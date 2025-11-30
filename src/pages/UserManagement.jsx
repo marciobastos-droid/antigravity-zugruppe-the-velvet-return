@@ -280,10 +280,9 @@ Equipa Zugruppe`
               ) : (
                 <form onSubmit={handleCreateUser} className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="full_name">Nome Completo *</Label>
+                    <Label htmlFor="full_name">Nome Completo</Label>
                     <Input
                       id="full_name"
-                      required
                       value={formData.full_name}
                       onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                       placeholder="João Silva"
@@ -291,11 +290,10 @@ Equipa Zugruppe`
                   </div>
                   
                   <div>
-                    <Label htmlFor="email">Email *</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      required
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="joao.silva@exemplo.com"
@@ -313,7 +311,7 @@ Equipa Zugruppe`
                   </div>
                   
                   <div>
-                    <Label htmlFor="userType">Tipo de Utilizador *</Label>
+                    <Label htmlFor="userType">Tipo de Utilizador</Label>
                     <Select value={formData.user_type} onValueChange={(v) => setFormData({...formData, user_type: v})}>
                       <SelectTrigger>
                         <SelectValue />
