@@ -669,7 +669,9 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+          )}
 
+          {isWidgetActive('propertyStatus') && (
           <Card>
             <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
               <CardTitle className="text-base sm:text-lg">Estado dos Imóveis</CardTitle>
@@ -697,7 +699,9 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+          )}
         </div>
+        )}
 
         {/* Charts Row 2 */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
