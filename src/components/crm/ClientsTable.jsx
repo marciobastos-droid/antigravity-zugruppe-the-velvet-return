@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const typeLabels = {
   client: "Cliente",
@@ -52,6 +53,8 @@ export default function ClientsTable({
   selectedContacts = [],
   onSelectionChange
 }) {
+  const { getAgentName } = useAgentNames();
+
   const getClientCommunications = (clientId) => {
     return communications.filter(c => c.contact_id === clientId);
   };
@@ -297,7 +300,7 @@ export default function ClientsTable({
       render: (val) => val ? (
         <span className="flex items-center gap-1 text-slate-600">
           <User className="w-3.5 h-3.5" />
-          <span className="truncate max-w-[120px]">{val.split('@')[0]}</span>
+          <span className="truncate max-w-[120px]">{getAgentName(val, true)}</span>
         </span>
       ) : '-'
     },
