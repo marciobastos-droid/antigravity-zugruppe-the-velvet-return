@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const statusLabels = {
   new: "Novo",
@@ -64,6 +65,9 @@ export default function OpportunitiesTable({
   onToggleImportant,
   onAssign
 }) {
+  const { getAgentName, getAgentOptions } = useAgentNames();
+  const agentOptions = getAgentOptions();
+
   // Buscar contactos para verificar quais oportunidades foram convertidas
   const { data: contacts = [] } = useQuery({
     queryKey: ['clientContacts'],
@@ -220,13 +224,13 @@ export default function OpportunitiesTable({
         >
           <SelectTrigger className="h-8 text-xs w-32" onClick={(e) => e.stopPropagation()}>
             <SelectValue placeholder="Atribuir...">
-              {val ? users.find(u => u.email === val)?.full_name || val.split('@')[0] : "Atribuir..."}
+              {val ? getAgentName(val, true) : "Atribuir..."}
             </SelectValue>
           </SelectTrigger>
           <SelectContent onClick={(e) => e.stopPropagation()}>
-            {users.map((u) => (
-              <SelectItem key={u.id} value={u.email}>
-                {u.full_name}
+            {agentOptions.map((agent) => (
+              <SelectItem key={agent.value} value={agent.value}>
+                {agent.label}
               </SelectItem>
             ))}
           </SelectContent>

@@ -34,6 +34,7 @@ import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import ContactOpportunities from "./ContactOpportunities";
 import TagSelector from "../tags/TagSelector";
 import QuickContactActions from "./QuickContactActions";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 function BulkTagSelector({ onTagSelect }) {
   const [open, setOpen] = React.useState(false);
@@ -85,8 +86,9 @@ function BulkTagSelector({ onTagSelect }) {
 
 
 export default function ClientDatabase() {
-  const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = React.useState("");
+    const queryClient = useQueryClient();
+    const { getAgentName, getAgentOptions } = useAgentNames();
+    const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [sourceFilter, setSourceFilter] = React.useState("all");
