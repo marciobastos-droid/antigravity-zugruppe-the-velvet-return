@@ -245,6 +245,85 @@ export const widgetTypes = {
       show_appointments: { type: "boolean", label: "Mostrar visitas", default: true },
       days_ahead: { type: "number", label: "Dias à frente", default: 7, min: 1, max: 30 }
     }
+  },
+  leads_by_category: {
+    id: "leads_by_category",
+    name: "Leads por Categoria",
+    description: "Distribuição Hot/Warm/Cold",
+    icon: "Flame",
+    category: "crm",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      showChart: { type: "boolean", label: "Mostrar gráfico", default: true }
+    }
+  },
+  sales_kpi: {
+    id: "sales_kpi",
+    name: "KPIs de Vendas",
+    description: "Métricas chave de vendas",
+    icon: "DollarSign",
+    category: "metrics",
+    defaultSize: { w: 4, h: 3 },
+    minSize: { w: 3, h: 2 },
+    configSchema: {
+      kpis: { type: "multi_select", label: "KPIs", options: [
+        { value: "total_value", label: "Valor Portfolio" },
+        { value: "conversion_rate", label: "Taxa Conversão" },
+        { value: "avg_deal_value", label: "Valor Médio" },
+        { value: "deals_this_month", label: "Negócios do Mês" }
+      ]}
+    }
+  },
+  recent_activity: {
+    id: "recent_activity",
+    name: "Atividades Recentes",
+    description: "Timeline de atividades",
+    icon: "Clock",
+    category: "lists",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      limit: { type: "number", label: "Limite", default: 6, min: 3, max: 15 }
+    }
+  },
+  quick_shortcuts: {
+    id: "quick_shortcuts",
+    name: "Atalhos Rápidos",
+    description: "Acesso rápido às tarefas frequentes",
+    icon: "Zap",
+    category: "actions",
+    defaultSize: { w: 4, h: 3 },
+    minSize: { w: 3, h: 2 },
+    configSchema: {
+      columns: { type: "number", label: "Colunas", default: 3, min: 2, max: 4 },
+      shortcuts: { type: "multi_select", label: "Atalhos", options: [
+        { value: "addProperty", label: "Novo Imóvel" },
+        { value: "addLead", label: "Novo Lead" },
+        { value: "calendar", label: "Calendário" },
+        { value: "matching", label: "AI Matching" },
+        { value: "reports", label: "Relatórios" },
+        { value: "tools", label: "Ferramentas" }
+      ]}
+    }
+  },
+  team_leaderboard: {
+    id: "team_leaderboard",
+    name: "Ranking da Equipa",
+    description: "Leaderboard de performance",
+    icon: "Trophy",
+    category: "crm",
+    defaultSize: { w: 4, h: 4 },
+    minSize: { w: 3, h: 3 },
+    configSchema: {
+      metric: { type: "select", label: "Ordenar por", options: [
+        { value: "leads", label: "Total Leads" },
+        { value: "closed", label: "Fechados" },
+        { value: "properties", label: "Imóveis" },
+        { value: "conversionRate", label: "Conversão" }
+      ]},
+      limit: { type: "number", label: "Limite", default: 5, min: 3, max: 10 }
+    }
   }
 };
 
