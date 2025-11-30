@@ -36,11 +36,22 @@ export default function DashboardBuilder({ onClose }) {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [dashboardForm, setDashboardForm] = useState({ name: "", description: "" });
   const [widgets, setWidgets] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Load current user
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => {});
+  }, []);
 
   const { data: dashboards = [], isLoading } = useQuery({
     queryKey: ['customDashboards'],
     queryFn: () => base44.entities.CustomDashboard.list('name')
   });
+
+  // Filter dashboards - show user's own + shared dashboards
+  const userDashboards = dashboards.filter(db => 
+    db.created_by === currentUser?.email || db.is_shared
+  );
 
   const { data: dashboardData } = useQuery({
     queryKey: ['dashboardData'],
@@ -236,8 +247,19 @@ Sugere 4-6 widgets com configurações específicas para um dashboard útil.`,
       ...(selectedDashboard?.id ? { id: selectedDashboard.id } : {}),
       name: dashboardForm.name || selectedDashboard?.name || "Novo Dashboard",
       description: dashboardForm.description || selectedDashboard?.description || "",
-      widgets
+      widgets,
+      is_shared: dashboardForm.is_shared || selectedDashboard?.is_shared || false
     });
+  };
+
+  // Save user's default dashboard preference
+  const saveAsDefault = async (dashboardId) => {
+    try {
+      await base44.auth.updateMe({ default_dashboard_id: dashboardId });
+      toast.success("Dashboard definido como padrão");
+    } catch (error) {
+      toast.error("Erro ao guardar preferência");
+    }
   };
 
   const widgetsByCategory = getWidgetsByCategory();
@@ -250,7 +272,7 @@ Sugere 4-6 widgets com configurações específicas para um dashboard útil.`,
           <h3 className="font-semibold text-slate-900">Dashboards</h3>
         </div>
         <ScrollArea className="flex-1 p-2">
-          {dashboards.map(db => (
+          {userDashboards.map(db => (
             <button
               key={db.id}
               onClick={() => { setSelectedDashboard(db); setEditMode(false); }}
@@ -258,7 +280,15 @@ Sugere 4-6 widgets com configurações específicas para um dashboard útil.`,
                 selectedDashboard?.id === db.id ? 'bg-blue-50 border border-blue-200' : 'hover:bg-slate-50'
               }`}
             >
-              <div className="font-medium text-slate-900">{db.name}</div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-slate-900 flex-1">{db.name}</span>
+                {currentUser?.default_dashboard_id === db.id && (
+                  <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                )}
+                {db.is_shared && db.created_by !== currentUser?.email && (
+                  <Badge variant="outline" className="text-xs">Partilhado</Badge>
+                )}
+              </div>
               <div className="text-xs text-slate-500">{db.widgets?.length || 0} widgets</div>
             </button>
           ))}
@@ -324,7 +354,15 @@ Sugere 4-6 widgets com configurações específicas para um dashboard útil.`,
                       <Edit className="w-4 h-4 mr-2" />
                       Editar
                     </Button>
-                    {selectedDashboard && (
+                    {selectedDashboard && currentUser?.default_dashboard_id !== selectedDashboard.id && (
+                      <Button 
+                        variant="outline"
+                        onClick={() => saveAsDefault(selectedDashboard.id)}
+                      >
+                        Definir Padrão
+                      </Button>
+                    )}
+                    {selectedDashboard && selectedDashboard.created_by === currentUser?.email && (
                       <Button 
                         variant="ghost" 
                         className="text-red-600"
