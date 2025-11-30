@@ -448,6 +448,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 relative">
+      {/* Widget Selector */}
+      <WidgetSelector
+        open={widgetSelectorOpen}
+        onOpenChange={setWidgetSelectorOpen}
+        activeWidgets={activeWidgets}
+        onWidgetsChange={handleWidgetsChange}
+      />
+
       {/* Focus Mode */}
       <FocusMode 
         isOpen={focusModeOpen} 
