@@ -11,11 +11,25 @@ const MINIMAL_LAYOUT_PAGES = ["Home"];
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
+  const [userPermissions, setUserPermissions] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Carregar permissões do utilizador
+  React.useEffect(() => {
+    if (user?.email) {
+      base44.entities.UserPermission.filter({ user_email: user.email })
+        .then(perms => {
+          if (perms.length > 0) {
+            setUserPermissions(perms[0].permissions);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.email]);
 
   // Render minimal layout for Home page
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
