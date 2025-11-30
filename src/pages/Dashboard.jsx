@@ -18,6 +18,7 @@ import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
 import ContextualTip from "../components/onboarding/ContextualTip";
 import DashboardBuilder from "../components/dashboard/DashboardBuilder";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAgentNames } from "../components/common/useAgentNames";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [syncingFacebookLeads, setSyncingFacebookLeads] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("overview");
   const queryClient = useQueryClient();
+  const { getAgentName } = useAgentNames();
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -271,7 +273,7 @@ export default function Dashboard() {
   const leadsPerAgent = isAdmin ? allUsers
     .filter(u => u.user_type === 'agente' || u.user_type === 'gestor')
     .map(u => ({
-      name: u.full_name,
+      name: getAgentName(u.email, true),
       leads: opportunities.filter(o => o.assigned_to === u.email).length,
       fechados: opportunities.filter(o => o.assigned_to === u.email && o.status === 'closed').length
     }))

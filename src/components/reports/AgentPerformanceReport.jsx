@@ -11,10 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line } from "recharts";
 import { Download, FileText, Users, Target, Euro, Clock, Trophy, TrendingUp, Award, Star, Medal } from "lucide-react";
 import moment from "moment";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 export default function AgentPerformanceReport() {
   const [period, setPeriod] = useState("90");
   const [selectedMetric, setSelectedMetric] = useState("overall");
+  const { getAgentName } = useAgentNames();
 
   const { data: users = [] } = useQuery({
     queryKey: ['users_agents'],
@@ -46,10 +48,11 @@ export default function AgentPerformanceReport() {
 
     // Initialize all users
     users.forEach(u => {
+      const displayName = u.display_name || u.full_name;
       agentStats[u.email] = {
         email: u.email,
-        name: u.full_name,
-        avatar: u.full_name?.[0]?.toUpperCase() || 'U',
+        name: displayName,
+        avatar: displayName?.[0]?.toUpperCase() || 'U',
         leads: 0,
         won: 0,
         lost: 0,
