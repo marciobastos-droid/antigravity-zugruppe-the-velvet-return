@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -36,6 +36,7 @@ import LeadManagementHub from "../components/leads/LeadManagementHub";
 import PortalIntegrations from "../components/tools/PortalIntegrations";
 import TagManager from "../components/tags/TagManager";
 import ImportOpportunities from "../components/tools/ImportOpportunities";
+import IntegrationsHub from "../components/integrations/IntegrationsHub";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -128,9 +129,17 @@ export default function Tools() {
                   <MessageCircle className="w-4 h-4 text-green-600" />
                   WhatsApp Business
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <Button
+                  variant={activeTab === "integrations" ? "default" : "outline"}
+                  onClick={() => setActiveTab("integrations")}
+                  className="flex items-center gap-2 bg-blue-50 border-blue-300 hover:bg-blue-100"
+                >
+                  <Plug className="w-4 h-4 text-blue-600" />
+                  Integrações Externas
+                </Button>
+                </div>
+                </CardContent>
+                </Card>
 
           {/* Lead Management Group */}
           <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
@@ -448,6 +457,7 @@ export default function Tools() {
         {activeTab === "portalIntegrations" && <PortalIntegrations />}
         {activeTab === "tagManager" && <TagManager />}
         {activeTab === "importOpportunities" && <ImportOpportunities />}
+        {activeTab === "integrations" && <IntegrationsHub />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
