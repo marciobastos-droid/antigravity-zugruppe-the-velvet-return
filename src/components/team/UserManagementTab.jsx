@@ -24,6 +24,8 @@ export default function UserManagementTab({ currentUser }) {
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [settingPassword, setSettingPassword] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(null); // user id being uploaded
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -31,6 +33,34 @@ export default function UserManagementTab({ currentUser }) {
     user_type: "agente"
   });
   const [inviteSent, setInviteSent] = useState(false);
+
+  const handlePhotoUpload = async (userId, file) => {
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor selecione uma imagem");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter menos de 5MB");
+      return;
+    }
+
+    setUploadingPhoto(userId);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.User.update(userId, { photo_url: file_url });
+      toast.success("Foto atualizada com sucesso");
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error);
+      toast.error("Erro ao fazer upload da foto");
+    }
+    setUploadingPhoto(null);
+  };
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['users'],
