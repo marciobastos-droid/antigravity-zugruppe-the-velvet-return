@@ -13,6 +13,11 @@ import SalesByMonthWidget from "./SalesByMonthWidget";
 import LeadsBySourceWidget from "./LeadsBySourceWidget";
 import TopAgentsWidget from "./TopAgentsWidget";
 import UpcomingTasksWidget from "./UpcomingTasksWidget";
+import LeadsByCategoryWidget from "./LeadsByCategoryWidget";
+import SalesKPIWidget from "./SalesKPIWidget";
+import RecentActivityWidget from "./RecentActivityWidget";
+import QuickShortcutsWidget from "./QuickShortcutsWidget";
+import TeamLeaderboardWidget from "./TeamLeaderboardWidget";
 
 const widgetComponents = {
   metric_card: MetricCardWidget,
@@ -28,7 +33,12 @@ const widgetComponents = {
   sales_by_month: SalesByMonthWidget,
   leads_by_source: LeadsBySourceWidget,
   top_agents: TopAgentsWidget,
-  upcoming_tasks: UpcomingTasksWidget
+  upcoming_tasks: UpcomingTasksWidget,
+  leads_by_category: LeadsByCategoryWidget,
+  sales_kpi: SalesKPIWidget,
+  recent_activity: RecentActivityWidget,
+  quick_shortcuts: QuickShortcutsWidget,
+  team_leaderboard: TeamLeaderboardWidget
 };
 
 export default function WidgetRenderer({ widget, data }) {
