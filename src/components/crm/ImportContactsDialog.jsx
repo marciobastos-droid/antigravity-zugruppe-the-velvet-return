@@ -36,6 +36,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
   const [importing, setImporting] = React.useState(false);
   const [progress, setProgress] = React.useState("");
   const [results, setResults] = React.useState(null);
+  const [assignedAgent, setAssignedAgent] = React.useState("");
+  const [users, setUsers] = React.useState([]);
   
   // Preview state
   const [previewData, setPreviewData] = React.useState([]);
@@ -44,6 +46,15 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
   const [selectedRows, setSelectedRows] = React.useState([]);
   const [showPreview, setShowPreview] = React.useState(false);
   const [importProgress, setImportProgress] = React.useState({ current: 0, total: 0, isRunning: false });
+
+  // Load users/agents
+  React.useEffect(() => {
+    if (open) {
+      base44.entities.User.list().then(setUsers).catch(console.error);
+    }
+  }, [open]);
+
+  const agents = users.filter(u => u.user_type === 'agente' || u.user_type === 'gestor' || u.user_type === 'admin' || u.role === 'admin');
 
   const resetState = () => {
     setFile(null);
@@ -55,6 +66,7 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
     setShowPreview(false);
     setResults(null);
     setProgress("");
+    setAssignedAgent("");
   };
 
   const handleClose = () => {
@@ -332,7 +344,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
           full_name: fullName,
           tags,
           contact_type: c.contact_type || 'client',
-          status: 'active'
+          status: 'active',
+          assigned_agent: assignedAgent && assignedAgent !== 'none' ? assignedAgent : undefined
         };
       });
 
@@ -415,6 +428,32 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
             </>
           ) : (
             <>
+              {/* Assigned Agent */}
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-medium text-slate-900 mb-3">Responsável pelos Contactos</h3>
+                  <div className="max-w-sm">
+                    <Label className="text-sm mb-2 block">Atribuir todos os contactos a:</Label>
+                    <Select value={assignedAgent} onValueChange={setAssignedAgent}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar responsável (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem responsável</SelectItem>
+                        {agents.map(agent => (
+                          <SelectItem key={agent.email} value={agent.email}>
+                            {agent.display_name || agent.full_name || agent.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Se selecionado, todos os contactos importados serão atribuídos a este utilizador.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* CSV Column Mapping */}
               {fileType === 'csv' && headers.length > 0 && (
                 <Card>
