@@ -132,7 +132,7 @@ Equipa Zugruppe`
       });
       
       if (response.data?.success) {
-        toast.success("Senha definida com sucesso");
+        toast.success(`Senha definida com sucesso para ${selectedUser.display_name || selectedUser.full_name}`);
         setPasswordDialogOpen(false);
         setNewPassword("");
         setSelectedUser(null);
