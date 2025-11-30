@@ -225,10 +225,19 @@ export default function PermissionsManager() {
 
   const handleSave = () => {
     if (!selectedUser) return;
-    // Submeter permissões sem validação de campos vazios
+    
+    // Garantir que todas as categorias de permissões estão preenchidas
+    const fullPermissions = {};
+    Object.keys(PERMISSION_LABELS).forEach(category => {
+      fullPermissions[category] = {};
+      Object.keys(PERMISSION_LABELS[category].permissions).forEach(perm => {
+        fullPermissions[category][perm] = permissions[category]?.[perm] || false;
+      });
+    });
+    
     saveMutation.mutate({
       user_email: selectedUser.email,
-      permissions: permissions || {},
+      permissions: fullPermissions,
       role_template: 'custom'
     });
   };
