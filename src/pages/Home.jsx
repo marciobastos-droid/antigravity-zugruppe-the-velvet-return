@@ -96,18 +96,18 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
       {/* Logo */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
-        className="mb-12">
+        className="mb-8 sm:mb-12">
 
         <img
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
           alt="Zugruppe"
-          className="h-40 md:h-56 w-auto mx-auto" />
+          className="h-28 sm:h-40 md:h-56 w-auto mx-auto" />
 
       </motion.div>
 
@@ -129,7 +129,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full">
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6 max-w-5xl w-full">
 
         {menuItems.map((item, index) =>
         <Link
@@ -141,7 +141,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 * index }}
-            className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
+            className="relative overflow-hidden rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
 
               <div className="aspect-[4/3] overflow-hidden">
                 <img
@@ -151,10 +151,10 @@ export default function Home() {
 
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                <h3 className="text-white font-semibold text-sm md:text-base">{item.title}</h3>
+              <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 text-center">
+                <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base">{item.title}</h3>
               </div>
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
+              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-lg sm:rounded-xl transition-colors duration-300"></div>
             </motion.div>
           </Link>
         )}
@@ -165,16 +165,16 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-12 text-center">
+        className="mt-8 sm:mt-12 text-center">
 
-        <h2 className="text-lg font-medium text-[#27251f]/60 mb-6"></h2>
+        <h2 className="text-base sm:text-lg font-medium text-[#27251f]/60 mb-4 sm:mb-6"></h2>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 max-w-5xl w-full">
+        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6 max-w-5xl w-full">
 
         {brandItems.map((item, index) =>
         <div key={item.id} className="relative group">
@@ -280,9 +280,9 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.8 }}
-        className="mt-16 text-center">
+        className="mt-10 sm:mt-16 text-center px-4">
 
-        <p className="text-[#27251f]/40 text-sm">© 2025 ZuGruppe - The Velvet Return
+        <p className="text-[#27251f]/40 text-xs sm:text-sm">© 2025 ZuGruppe - The Velvet Return
 
         </p>
       </motion.footer>

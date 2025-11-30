@@ -370,21 +370,21 @@ export default function Dashboard() {
 
       {contextualTip && <ContextualTip tip={contextualTip} onDismiss={() => setContextualTip(null)} />}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex justify-between items-start mb-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 id="dashboard-stats" className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-              <BarChart3 className="w-10 h-10 text-blue-600" />
+            <h1 id="dashboard-stats" className="text-2xl sm:text-4xl font-bold text-slate-900 mb-1 sm:mb-2 flex items-center gap-2 sm:gap-3">
+              <BarChart3 className="w-7 h-7 sm:w-10 sm:h-10 text-blue-600" />
               Dashboard
             </h1>
-            <p className="text-slate-600">Visão geral do desempenho da plataforma</p>
+            <p className="text-sm sm:text-base text-slate-600">Visão geral do desempenho</p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             {activeTab === "overview" && (
               <>
                 <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -400,16 +400,17 @@ export default function Dashboard() {
                     onClick={syncFacebookLeads} 
                     disabled={syncingFacebookLeads}
                     variant="outline"
+                    size="sm"
                     className="border-blue-500 text-blue-600 hover:bg-blue-50"
                   >
-                    <RefreshCw className={`w-4 h-4 mr-2 ${syncingFacebookLeads ? 'animate-spin' : ''}`} />
-                    {syncingFacebookLeads ? 'Sincronizando...' : 'Sync Facebook Leads'}
+                    <RefreshCw className={`w-4 h-4 ${syncingFacebookLeads ? 'animate-spin' : ''} sm:mr-2`} />
+                    <span className="hidden sm:inline">{syncingFacebookLeads ? 'Sincronizando...' : 'Sync Facebook'}</span>
                   </Button>
                 )}
                 
-                <Button onClick={exportReport} variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar Relatório
+                <Button onClick={exportReport} variant="outline" size="sm">
+                  <Download className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Exportar</span>
                 </Button>
               </>
             )}
@@ -426,63 +427,63 @@ export default function Dashboard() {
             <TabsContent value="overview">
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Total Imóveis</p>
-                  <p className="text-3xl font-bold text-slate-900">{totalProperties}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {recentProperties.length} nos últimos {dateRange} dias
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Imóveis</p>
+                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalProperties}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                    +{recentProperties.length} ({dateRange}d)
                   </p>
                 </div>
-                <Building2 className="w-8 h-8 text-blue-600" />
+                <Building2 className="w-5 h-5 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-green-500">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Taxa de Importação</p>
-                  <p className="text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Importação</p>
+                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
                     {importedProperties} importados
                   </p>
                 </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
+                <TrendingUp className="w-5 h-5 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Total Leads</p>
-                  <p className="text-3xl font-bold text-slate-900">{totalLeads}</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {recentOpportunities.length} nos últimos {dateRange} dias
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Leads</p>
+                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalLeads}</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                    +{recentOpportunities.length} ({dateRange}d)
                   </p>
                 </div>
-                <Users className="w-8 h-8 text-purple-600" />
+                <Users className="w-5 h-5 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-amber-500">
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-6">
               <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm text-slate-600 mb-1">Taxa de Conversão</p>
-                  <p className="text-3xl font-bold text-slate-900">{conversionRate}%</p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {closedLeads} leads fechados
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Conversão</p>
+                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{conversionRate}%</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                    {closedLeads} fechados
                   </p>
                 </div>
-                <Target className="w-8 h-8 text-amber-600" />
+                <Target className="w-5 h-5 sm:w-8 sm:h-8 text-amber-600 flex-shrink-0" />
               </div>
             </CardContent>
           </Card>
@@ -512,14 +513,14 @@ export default function Dashboard() {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Atividade Diária</CardTitle>
-              <p className="text-sm text-slate-500">Imóveis e leads por dia</p>
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Atividade Diária</CardTitle>
+              <p className="text-xs sm:text-sm text-slate-500">Imóveis e leads por dia</p>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-2 sm:p-6 pt-0">
+              <ResponsiveContainer width="100%" height={200} className="sm:!h-[300px]">
                 <LineChart data={timelineData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: '12px' }} />
@@ -536,12 +537,12 @@ export default function Dashboard() {
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Estado dos Imóveis</CardTitle>
-              <p className="text-sm text-slate-500">Distribuição por estado</p>
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Estado dos Imóveis</CardTitle>
+              <p className="text-xs sm:text-sm text-slate-500">Distribuição por estado</p>
             </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-2 sm:p-6 pt-0">
+              <ResponsiveContainer width="100%" height={200} className="sm:!h-[300px]">
                 <PieChart>
                   <Pie
                     data={statusData}

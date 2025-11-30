@@ -12,42 +12,42 @@ export default function CRMAdvanced() {
   const [activeTab, setActiveTab] = React.useState("clients");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">CRM</h1>
-          <p className="text-slate-600">Gestão completa de contactos e comunicações</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">CRM</h1>
+          <p className="text-sm sm:text-base text-slate-600">Gestão de contactos e comunicações</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 mb-8">
-            <TabsTrigger value="metrics" className="flex items-center gap-2">
-              <PieChart className="w-4 h-4" />
-              <span className="hidden sm:inline">Métricas</span>
+          <TabsList className="flex w-full overflow-x-auto mb-4 sm:mb-8 gap-1 sm:grid sm:grid-cols-7">
+            <TabsTrigger value="metrics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <PieChart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Métricas</span>
             </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
+            <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Dashboard</span>
             </TabsTrigger>
-            <TabsTrigger value="clients" className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Contactos</span>
+            <TabsTrigger value="clients" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Contactos</span>
             </TabsTrigger>
-            <TabsTrigger value="opportunities" className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              <span className="hidden sm:inline">Oportunidades</span>
+            <TabsTrigger value="opportunities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Leads</span>
             </TabsTrigger>
-            <TabsTrigger value="matching" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              <span className="hidden sm:inline">Matching</span>
+            <TabsTrigger value="matching" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Matching</span>
             </TabsTrigger>
-            <TabsTrigger value="appointments" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span className="hidden sm:inline">Agendamentos</span>
+            <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Agenda</span>
             </TabsTrigger>
-            <TabsTrigger value="communications" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Comunicações</span>
+            <TabsTrigger value="communications" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Msgs</span>
             </TabsTrigger>
           </TabsList>
 

@@ -404,16 +404,16 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900">Os Meus Anúncios</h1>
-            <p className="text-slate-600 mt-2">Gerir os seus anúncios de imóveis e empreendimentos</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-slate-900">Os Meus Anúncios</h1>
+            <p className="text-sm sm:text-base text-slate-600 mt-1 sm:mt-2">Gerir imóveis e empreendimentos</p>
           </div>
           {activeTab === "properties" && (
-            <Link to={createPageUrl("AddListing")}>
-              <Button className="bg-slate-900 hover:bg-slate-800">
+            <Link to={createPageUrl("AddListing")} className="w-full sm:w-auto">
+              <Button className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Anúncio
               </Button>
@@ -421,15 +421,16 @@ export default function MyListings() {
           )}
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList>
-            <TabsTrigger value="properties" className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Imóveis ({properties.length})
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4 sm:mb-6">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="properties" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Imóveis</span>
+              <span className="hidden sm:inline">({properties.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="developments" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Empreendimentos
+            <TabsTrigger value="developments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Empreendimentos</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -452,13 +453,13 @@ export default function MyListings() {
         />
 
         {selectedProperties.length > 0 && (
-          <Card className="mb-6 border-blue-500 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <CheckSquare className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-blue-900">
-                    {selectedProperties.length} anúncio{selectedProperties.length > 1 ? 's' : ''} selecionado{selectedProperties.length > 1 ? 's' : ''}
+          <Card className="mb-4 sm:mb-6 border-blue-500 bg-blue-50">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <span className="font-medium text-sm sm:text-base text-blue-900">
+                    {selectedProperties.length} selecionado{selectedProperties.length > 1 ? 's' : ''}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
