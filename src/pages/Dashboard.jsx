@@ -448,6 +448,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 relative">
+      {/* Focus Mode */}
+      <FocusMode 
+        isOpen={focusModeOpen} 
+        onClose={() => setFocusModeOpen(false)} 
+        metrics={focusMetrics}
+        urgentItems={urgentItems}
+      />
+
       {/* Background Logo */}
       <div 
         className="fixed inset-0 pointer-events-none flex items-center justify-center opacity-[0.03] z-0"
