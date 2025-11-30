@@ -24,6 +24,7 @@ import FocusMode from "../components/dashboard/FocusMode";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgentNames } from "../components/common/useAgentNames";
 import { toast } from "sonner";
+import ReportsTab from "../components/dashboard/ReportsTab";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -556,6 +557,7 @@ export default function Dashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="reports">Relatórios</TabsTrigger>
               <TabsTrigger value="adminboard">AdminBoard</TabsTrigger>
             </TabsList>
 
@@ -862,10 +864,14 @@ export default function Dashboard() {
         </div>
             </TabsContent>
 
+            <TabsContent value="reports">
+              <ReportsTab />
+            </TabsContent>
+
             <TabsContent value="adminboard">
               <DashboardBuilder />
             </TabsContent>
-          </Tabs>
+            </Tabs>
         ) : (
           <>
             {/* Key Metrics for non-admin - duplicated content structure */}

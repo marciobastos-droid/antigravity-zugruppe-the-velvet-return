@@ -36,7 +36,6 @@ export default function Layout({ children, currentPageName }) {
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all' },
     
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'] },
-    { name: "Relatórios", path: createPageUrl("Reports"), icon: FileBarChart, id: "nav-reports", visibility: ['admin', 'gestor', 'agente'] },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'] },
   ];
 
