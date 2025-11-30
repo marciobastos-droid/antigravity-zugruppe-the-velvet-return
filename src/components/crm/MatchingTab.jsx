@@ -24,10 +24,21 @@ export default function MatchingTab() {
   const [activeTab, setActiveTab] = useState("clients");
   const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled"
 
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
   const { data: contacts = [], isLoading: loadingContacts } = useQuery({
     queryKey: ['clientContacts'],
     queryFn: () => base44.entities.ClientContact.list('-created_date')
   });
+
+  // Filter contacts based on user role - agents see only their own contacts
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
+  const userContacts = isAdmin 
+    ? contacts 
+    : contacts.filter(c => c.assigned_agent === currentUser?.email || c.created_by === currentUser?.email);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -41,8 +52,8 @@ export default function MatchingTab() {
 
   const activeProperties = properties.filter(p => p.status === 'active' && p.availability_status === 'available');
 
-  // Only consider contacts of type "client" for matching
-  const clientContacts = contacts.filter(c => c.contact_type === 'client');
+  // Only consider contacts of type "client" for matching (filtered by user)
+  const clientContacts = userContacts.filter(c => c.contact_type === 'client');
 
   // Clients with requirements defined
   const clientsWithRequirements = clientContacts.filter(c => 
