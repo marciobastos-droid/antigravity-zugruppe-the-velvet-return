@@ -826,7 +826,7 @@ export default function ClientDatabase() {
                           <SelectItem value={null}>Sem responsável</SelectItem>
                           {users.map((u) => (
                             <SelectItem key={u.id} value={u.email}>
-                              {u.full_name} ({u.email})
+                              {u.display_name || u.full_name}
                             </SelectItem>
                           ))}
                         </SelectContent>
