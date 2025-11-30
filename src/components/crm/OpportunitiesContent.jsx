@@ -18,11 +18,13 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 import OpportunitiesGrid from "./OpportunitiesGrid";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
+  const { getAgentOptions } = useAgentNames();
   const [viewMode, setViewMode] = React.useState(() => {
     // Default to grid on mobile
     return window.innerWidth < 768 ? "grid" : "table";
@@ -184,7 +186,7 @@ export default function OpportunitiesContent() {
       field: "assigned_to",
       options: [
         { value: "unassigned", label: "Sem agente" },
-        ...users.map(u => ({ value: u.email, label: u.full_name }))
+        ...getAgentOptions()
       ]
     },
     priority: {
