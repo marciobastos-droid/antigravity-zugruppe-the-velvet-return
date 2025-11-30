@@ -333,6 +333,81 @@ export default function Dashboard() {
     !onboardingProgress.steps_completed?.checklist_dismissed &&
     Object.values(onboardingProgress.steps_completed || {}).filter(Boolean).length < 5;
 
+  // Load saved widget preferences from user
+  React.useEffect(() => {
+    if (user?.dashboard_widgets) {
+      setActiveWidgets(user.dashboard_widgets);
+    }
+  }, [user]);
+
+  const handleWidgetsChange = async (widgets) => {
+    setActiveWidgets(widgets);
+    try {
+      await base44.auth.updateMe({ dashboard_widgets: widgets });
+      toast.success("Dashboard personalizado guardado");
+    } catch (error) {
+      console.error("Erro ao guardar preferências:", error);
+    }
+  };
+
+  // Focus mode metrics
+  const focusMetrics = {
+    totalProperties,
+    activeProperties,
+    totalLeads,
+    newLeads,
+    conversionRate,
+    closedLeads,
+    hotLeads: opportunities.filter(o => o.qualification_status === 'hot').length
+  };
+
+  // Urgent items for focus mode
+  const urgentItems = React.useMemo(() => {
+    const items = [];
+    
+    // New leads requiring attention
+    if (newLeads > 0) {
+      items.push({ 
+        message: `${newLeads} novos leads aguardam contacto`, 
+        priority: 'high' 
+      });
+    }
+    
+    // Hot leads
+    const hotCount = opportunities.filter(o => o.qualification_status === 'hot').length;
+    if (hotCount > 0) {
+      items.push({ 
+        message: `${hotCount} leads hot requerem atenção imediata`, 
+        priority: 'high' 
+      });
+    }
+
+    // Follow-ups overdue
+    const overdue = opportunities.filter(o => 
+      o.next_followup_date && new Date(o.next_followup_date) < new Date()
+    ).length;
+    if (overdue > 0) {
+      items.push({ 
+        message: `${overdue} follow-ups em atraso`, 
+        priority: 'medium' 
+      });
+    }
+
+    return items;
+  }, [opportunities, newLeads]);
+
+  // Helper to check if widget is active
+  const isWidgetActive = (widgetId) => activeWidgets.includes(widgetId);
+
+  // Escape key to close focus mode
+  React.useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setFocusModeOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, []);
+
   React.useEffect(() => {
     if (!onboardingProgress || !user) return;
     
