@@ -1059,9 +1059,35 @@ export default function ClientDatabase() {
               </div>
             )}
 
+            {/* Quick Agent Filter Tags */}
+            {agentOptions.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-slate-500 flex items-center mr-1">Responsável:</span>
+                {agentOptions.map(agent => (
+                  <Badge 
+                    key={agent.value}
+                    variant={assignedAgentFilter === agent.value ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-slate-100"
+                    onClick={() => setAssignedAgentFilter(assignedAgentFilter === agent.value ? "all" : agent.value)}
+                  >
+                    <User className="w-3 h-3 mr-1" />
+                    {agent.shortLabel}
+                  </Badge>
+                ))}
+                <Badge 
+                  variant={assignedAgentFilter === "none" ? "default" : "outline"}
+                  className="cursor-pointer hover:bg-slate-100"
+                  onClick={() => setAssignedAgentFilter(assignedAgentFilter === "none" ? "all" : "none")}
+                >
+                  Sem Responsável
+                </Badge>
+              </div>
+            )}
+
             {/* Quick Tags */}
             {allTags.length > 0 && (
               <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-slate-500 flex items-center mr-1">Tags:</span>
                 {allTags.slice(0, 10).map(tag => (
                   <Badge 
                     key={tag}
