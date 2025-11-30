@@ -75,6 +75,8 @@ export default function NotificationBell({ user }) {
       opportunity: "💼",
       appointment: "📅",
       contract: "📄",
+      matching: "🎯",
+      ai_tool: "🤖",
       system: "ℹ️"
     };
     return icons[type] || "🔔";
@@ -82,6 +84,7 @@ export default function NotificationBell({ user }) {
 
   const getPriorityColor = (priority) => {
     const colors = {
+      urgent: "border-l-4 border-l-red-600 bg-red-100",
       high: "border-l-4 border-l-red-500 bg-red-50",
       medium: "border-l-4 border-l-yellow-500 bg-yellow-50",
       low: "border-l-4 border-l-blue-500 bg-blue-50"
