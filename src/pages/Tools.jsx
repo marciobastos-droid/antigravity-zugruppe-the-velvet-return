@@ -108,81 +108,18 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "facebookLeads" ? "default" : "outline"}
-                  onClick={() => setActiveTab("facebookLeads")}
-                  className="flex items-center gap-2"
-                >
-                  <Facebook className="w-4 h-4" />
-                  Leads Facebook
-                </Button>
-                <Button
-                  variant={activeTab === "facebookCampaigns" ? "default" : "outline"}
-                  onClick={() => setActiveTab("facebookCampaigns")}
-                  className="flex items-center gap-2"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Campanhas FB
-                </Button>
-                <Button
-                  variant={activeTab === "facebookForms" ? "default" : "outline"}
-                  onClick={() => setActiveTab("facebookForms")}
-                  className="flex items-center gap-2"
-                >
-                  <FileEdit className="w-4 h-4" />
-                  Formulários FB
-                </Button>
-                <Button
-                  variant={activeTab === "socialMedia" ? "default" : "outline"}
-                  onClick={() => setActiveTab("socialMedia")}
-                  className="flex items-center gap-2"
-                >
-                  <Share2 className="w-4 h-4" />
-                  Posts Sociais
-                </Button>
-                <Button
-                  variant={activeTab === "apiPublish" ? "default" : "outline"}
-                  onClick={() => setActiveTab("apiPublish")}
-                  className="flex items-center gap-2"
-                >
-                  <Zap className="w-4 h-4" />
-                  Publicação API
-                </Button>
-                <Button
-                  variant={activeTab === "apiIntegrations" ? "default" : "outline"}
-                  onClick={() => setActiveTab("apiIntegrations")}
-                  className="flex items-center gap-2"
-                >
-                  <Key className="w-4 h-4" />
-                  Integrações API
-                </Button>
-                <Button
-                  variant={activeTab === "portalIntegrations" ? "default" : "outline"}
-                  onClick={() => setActiveTab("portalIntegrations")}
-                  className="flex items-center gap-2 bg-indigo-50 border-indigo-300 hover:bg-indigo-100"
-                >
-                  <Globe className="w-4 h-4 text-indigo-600" />
-                  Portais Imobiliários
-                </Button>
-                <Button
-                  variant={activeTab === "whatsapp" ? "default" : "outline"}
-                  onClick={() => setActiveTab("whatsapp")}
-                  className="flex items-center gap-2 bg-green-50 border-green-300 hover:bg-green-100"
-                >
-                  <MessageCircle className="w-4 h-4 text-green-600" />
-                  WhatsApp Business
-                </Button>
-                <Button
-                  variant={activeTab === "integrations" ? "default" : "outline"}
-                  onClick={() => setActiveTab("integrations")}
-                  className="flex items-center gap-2 bg-blue-50 border-blue-300 hover:bg-blue-100"
-                >
-                  <Plug className="w-4 h-4 text-blue-600" />
-                  Integrações Externas
-                </Button>
-                </div>
-                </CardContent>
-                </Card>
+                <ToolButton toolId="facebookLeads" icon={Facebook} label="Leads Facebook" />
+                <ToolButton toolId="facebookCampaigns" icon={LayoutDashboard} label="Campanhas FB" />
+                <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários FB" />
+                <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
+                <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
+                <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" />
+                <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
+                <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" className="bg-green-50 border-green-300 hover:bg-green-100" />
+                <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
+              </div>
+              </CardContent>
+              </Card>
 
           {/* Lead Management Group */}
           <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
@@ -194,27 +131,13 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "leadManagement" ? "default" : "outline"}
-                  onClick={() => setActiveTab("leadManagement")}
-                  className="flex items-center gap-2"
-                >
-                  <Target className="w-4 h-4" />
-                  Origens & Scoring
-                </Button>
-                <Button
-                  variant={activeTab === "leadNurturing" ? "default" : "outline"}
-                  onClick={() => setActiveTab("leadNurturing")}
-                  className="flex items-center gap-2"
-                >
-                  <Zap className="w-4 h-4" />
-                  Nurturing Automático
-                </Button>
+                <ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" />
+                <ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Importações e Exportações Group */}
+              {/* Importações e Exportações Group */}
           <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -224,59 +147,17 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "importProperties" ? "default" : "outline"}
-                  onClick={() => setActiveTab("importProperties")}
-                  className="flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Importar Imóveis
-                </Button>
-                <Button
-                  variant={activeTab === "importLeads" ? "default" : "outline"}
-                  onClick={() => setActiveTab("importLeads")}
-                  className="flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Importar Leads
-                </Button>
-                <Button
-                  variant={activeTab === "importContacts" ? "default" : "outline"}
-                  onClick={() => setActiveTab("importContacts")}
-                  className="flex items-center gap-2"
-                >
-                  <Users className="w-4 h-4" />
-                  Importar Contactos
-                </Button>
-                <Button
-                  variant={activeTab === "importOpportunities" ? "default" : "outline"}
-                  onClick={() => setActiveTab("importOpportunities")}
-                  className="flex items-center gap-2"
-                >
-                  <Target className="w-4 h-4" />
-                  Importar Oportunidades
-                </Button>
-                <Button
-                  variant={activeTab === "exportProperties" ? "default" : "outline"}
-                  onClick={() => setActiveTab("exportProperties")}
-                  className="flex items-center gap-2"
-                >
-                  <UploadCloud className="w-4 h-4" />
-                  Exportar Ficheiros
-                </Button>
-                <Button
-                  variant={activeTab === "reportsExporter" ? "default" : "outline"}
-                  onClick={() => setActiveTab("reportsExporter")}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Relatórios
-                </Button>
+                <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" />
+                <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
+                <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
+                <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
+                <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
+                <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Utilitários Group */}
+              {/* Utilitários Group */}
           <Card className="border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -286,67 +167,18 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "duplicateChecker" ? "default" : "outline"}
-                  onClick={() => setActiveTab("duplicateChecker")}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="w-4 h-4" />
-                  Verificar Duplicados
-                </Button>
-                <Button
-                  variant={activeTab === "inconsistencyChecker" ? "default" : "outline"}
-                  onClick={() => setActiveTab("inconsistencyChecker")}
-                  className="flex items-center gap-2"
-                >
-                  <Brain className="w-4 h-4" />
-                  Verificar Inconsistências
-                </Button>
-                <Button
-                  variant={activeTab === "emailHub" ? "default" : "outline"}
-                  onClick={() => setActiveTab("emailHub")}
-                  className="flex items-center gap-2"
-                >
-                  <Mail className="w-4 h-4" />
-                  Centro de Email
-                </Button>
-                <Button
-                  variant={activeTab === "video" ? "default" : "outline"}
-                  onClick={() => setActiveTab("video")}
-                  className="flex items-center gap-2"
-                >
-                  <Video className="w-4 h-4" />
-                  Criador de Vídeos
-                </Button>
-                <Button
-                  variant={activeTab === "description" ? "default" : "outline"}
-                  onClick={() => setActiveTab("description")}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  Gerador de Descrições
-                </Button>
-                <Button
-                  variant={activeTab === "listingOptimizer" ? "default" : "outline"}
-                  onClick={() => setActiveTab("listingOptimizer")}
-                  className="flex items-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Otimizador de Anúncios
-                </Button>
-                <Button
-                  variant={activeTab === "calendar" ? "default" : "outline"}
-                  onClick={() => setActiveTab("calendar")}
-                  className="flex items-center gap-2"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Calendário de Visitas
-                </Button>
+                <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
+                <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
+                <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
+                <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
+                <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
+                <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
+                <ToolButton toolId="calendar" icon={Calendar} label="Calendário de Visitas" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Matching IA Group */}
+              {/* Matching IA Group */}
           <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -356,35 +188,14 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "aiMatching" ? "default" : "outline"}
-                  onClick={() => setActiveTab("aiMatching")}
-                  className="flex items-center gap-2"
-                >
-                  <Target className="w-4 h-4" />
-                  Motor de Matching IA
-                </Button>
-                <Button
-                  variant={activeTab === "autoMatching" ? "default" : "outline"}
-                  onClick={() => setActiveTab("autoMatching")}
-                  className="flex items-center gap-2"
-                >
-                  <Zap className="w-4 h-4" />
-                  Matching Automático
-                </Button>
-                <Button
-                  variant={activeTab === "autoMatchingDashboard" ? "default" : "outline"}
-                  onClick={() => setActiveTab("autoMatchingDashboard")}
-                  className="flex items-center gap-2"
-                >
-                  <Bell className="w-4 h-4" />
-                  Alertas de Matching
-                </Button>
+                <ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" />
+                <ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" />
+                <ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Mercado Group */}
+              {/* Mercado Group */}
           <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -394,35 +205,14 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "marketIntelligence" ? "default" : "outline"}
-                  onClick={() => setActiveTab("marketIntelligence")}
-                  className="flex items-center gap-2"
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Inteligência de Mercado
-                </Button>
-                <Button
-                  variant={activeTab === "pricing" ? "default" : "outline"}
-                  onClick={() => setActiveTab("pricing")}
-                  className="flex items-center gap-2"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  Sugestor de Preços
-                </Button>
-                <Button
-                  variant={activeTab === "creditSimulator" ? "default" : "outline"}
-                  onClick={() => setActiveTab("creditSimulator")}
-                  className="flex items-center gap-2"
-                >
-                  <Calculator className="w-4 h-4" />
-                  Simulador de Crédito
-                </Button>
+                <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" />
+                <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" />
+                <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Finanças Group */}
+              {/* Finanças Group */}
           <Card className="border-green-400 bg-gradient-to-r from-green-50 to-emerald-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -432,19 +222,12 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "commissions" ? "default" : "outline"}
-                  onClick={() => setActiveTab("commissions")}
-                  className="flex items-center gap-2"
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Gestão de Comissões
-                </Button>
+                <ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" />
               </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
 
-          {/* Definições e Conteúdos Group */}
+              {/* Definições e Conteúdos Group */}
           <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
@@ -454,42 +237,14 @@ export default function Tools() {
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={activeTab === "documents" ? "default" : "outline"}
-                  onClick={() => setActiveTab("documents")}
-                  className="flex items-center gap-2"
-                >
-                  <Folder className="w-4 h-4" />
-                  Documentos e Contratos
-                </Button>
-                <Button
-                  variant={activeTab === "smtpConfig" ? "default" : "outline"}
-                  onClick={() => setActiveTab("smtpConfig")}
-                  className="flex items-center gap-2"
-                >
-                  <Server className="w-4 h-4" />
-                  Config. Email
-                </Button>
-                <Button
-                  variant={activeTab === "devNotes" ? "default" : "outline"}
-                  onClick={() => setActiveTab("devNotes")}
-                  className="flex items-center gap-2"
-                >
-                  <StickyNote className="w-4 h-4" />
-                  Notas & Sugestões
-                </Button>
-                <Button
-                  variant={activeTab === "tagManager" ? "default" : "outline"}
-                  onClick={() => setActiveTab("tagManager")}
-                  className="flex items-center gap-2"
-                >
-                  <Target className="w-4 h-4" />
-                  Etiquetas
-                </Button>
+                <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" />
+                <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
+                <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
+                <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+              </Card>
+              </div>
 
         {activeTab === "leadManagement" && <LeadManagementHub />}
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
