@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2 } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -41,6 +41,7 @@ import ImportOpportunities from "../components/tools/ImportOpportunities";
 import IntegrationsHub from "../components/integrations/IntegrationsHub";
 import CommissionsManager from "../components/tools/CommissionsManager";
 import InvoiceManager from "../components/tools/InvoiceManager";
+import OrphanDataCleaner from "../components/tools/OrphanDataCleaner";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -170,6 +171,7 @@ export default function Tools() {
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
                 <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
+                <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
@@ -283,6 +285,7 @@ export default function Tools() {
         {activeTab === "commissions" && <CommissionsManager />}
         {activeTab === "invoices" && <InvoiceManager />}
         {activeTab === "importInvoices" && <InvoiceManager />}
+        {activeTab === "orphanCleaner" && <OrphanDataCleaner />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
