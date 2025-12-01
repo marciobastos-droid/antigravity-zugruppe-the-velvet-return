@@ -40,29 +40,42 @@ const propertySchema = {
 };
 
 const portalGroups = {
-  imobiliarias: {
-    label: "Imobiliárias",
-    portals: [
-      { name: "Dils", domain: "dils.pt", color: "bg-teal-100 text-teal-800" },
-      { name: "JLL", domain: "jll.pt", color: "bg-indigo-100 text-indigo-800" },
-      { name: "Zugruppe", domain: "zugruppe.com", color: "bg-slate-900 text-amber-400" }
-    ]
-  },
   genericos: {
-    label: "Genéricos",
+    label: "Portais Genéricos",
     portals: [
-      { name: "Casa Sapo", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
       { name: "Idealista", domain: "idealista.pt", color: "bg-yellow-100 text-yellow-800" },
       { name: "Imovirtual", domain: "imovirtual.com", color: "bg-green-100 text-green-800" },
+      { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" },
+      { name: "Casa SAPO", domain: "casa.sapo.pt", color: "bg-blue-100 text-blue-800" },
       { name: "Infocasa", domain: "infocasa.pt", color: "bg-purple-100 text-purple-800" },
-      { name: "Supercasa", domain: "supercasa.pt", color: "bg-red-100 text-red-800" }
+      { name: "CustoJusto", domain: "custojusto.pt", color: "bg-orange-100 text-orange-800" },
+      { name: "OLX", domain: "olx.pt", color: "bg-teal-100 text-teal-800" }
+    ]
+  },
+  redes: {
+    label: "Redes Imobiliárias",
+    portals: [
+      { name: "RE/MAX", domain: "remax.pt", color: "bg-red-100 text-red-800" },
+      { name: "ERA", domain: "era.pt", color: "bg-blue-100 text-blue-800" },
+      { name: "Century 21", domain: "century21.pt", color: "bg-amber-100 text-amber-800" },
+      { name: "Keller Williams", domain: "kwportugal.pt", color: "bg-rose-100 text-rose-800" }
+    ]
+  },
+  internacionais: {
+    label: "Internacionais",
+    portals: [
+      { name: "Kyero", domain: "kyero.com", color: "bg-emerald-100 text-emerald-800" },
+      { name: "Green Acres", domain: "green-acres.pt", color: "bg-green-100 text-green-800" },
+      { name: "Quatru", domain: "quatru.pt", color: "bg-indigo-100 text-indigo-800" },
+      { name: "ImovelWeb", domain: "imovelweb.com", color: "bg-cyan-100 text-cyan-800" }
     ]
   }
 };
 
 const supportedPortals = [
-  ...portalGroups.imobiliarias.portals,
-  ...portalGroups.genericos.portals
+  ...portalGroups.genericos.portals,
+  ...portalGroups.redes.portals,
+  ...portalGroups.internacionais.portals
 ];
 
 const fieldLabels = {
@@ -1763,9 +1776,9 @@ A IA extrai automaticamente todos os dados estruturados!`}
         <CardContent className="space-y-4">
           <div className="space-y-2 mb-3">
             <div>
-              <span className="text-xs font-medium text-slate-500 mr-2">Imobiliárias:</span>
+              <span className="text-xs font-medium text-slate-500 mr-2">Genéricos:</span>
               <span className="inline-flex flex-wrap gap-1">
-                {portalGroups.imobiliarias.portals.map((portal) => (
+                {portalGroups.genericos.portals.map((portal) => (
                   <Badge key={portal.domain} className={portal.color} variant="secondary">
                     {portal.name}
                   </Badge>
@@ -1773,9 +1786,19 @@ A IA extrai automaticamente todos os dados estruturados!`}
               </span>
             </div>
             <div>
-              <span className="text-xs font-medium text-slate-500 mr-2">Genéricos:</span>
+              <span className="text-xs font-medium text-slate-500 mr-2">Redes:</span>
               <span className="inline-flex flex-wrap gap-1">
-                {portalGroups.genericos.portals.map((portal) => (
+                {portalGroups.redes.portals.map((portal) => (
+                  <Badge key={portal.domain} className={portal.color} variant="secondary">
+                    {portal.name}
+                  </Badge>
+                ))}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-medium text-slate-500 mr-2">Internacionais:</span>
+              <span className="inline-flex flex-wrap gap-1">
+                {portalGroups.internacionais.portals.map((portal) => (
                   <Badge key={portal.domain} className={portal.color} variant="secondary">
                     {portal.name}
                   </Badge>
