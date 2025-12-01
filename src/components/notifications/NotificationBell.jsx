@@ -130,9 +130,9 @@ export default function NotificationBell({ user }) {
         className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
       >
         <Bell className="w-5 h-5 text-slate-600" />
-        {unreadCount > 0 && (
+        {totalAlerts > 0 && (
           <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center bg-red-500 text-white text-xs px-1">
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {totalAlerts > 9 ? "9+" : totalAlerts}
           </Badge>
         )}
       </button>
