@@ -14,6 +14,7 @@ import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import AIMatchingSuggestions from "../components/dashboard/AIMatchingSuggestions";
 import NotificationBoard from "../components/notifications/NotificationBoard";
+import SmartNotificationsPanel from "../components/notifications/SmartNotificationsPanel";
 import OnboardingTour from "../components/onboarding/OnboardingTour";
 import OnboardingChecklist from "../components/onboarding/OnboardingChecklist";
 import ContextualTip from "../components/onboarding/ContextualTip";
@@ -645,6 +646,11 @@ export default function Dashboard() {
                         </div>
                       )}
 
+        {/* Smart Notifications Panel */}
+        <div className="mb-6">
+          <SmartNotificationsPanel user={user} />
+        </div>
+
         {/* Notifications and AI Matching */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           {isWidgetActive('notifications') && <NotificationBoard user={user} />}
@@ -952,6 +958,11 @@ export default function Dashboard() {
                 />
               </div>
             )}
+
+            {/* Smart Notifications for non-admin */}
+            <div className="mb-6">
+              <SmartNotificationsPanel user={user} />
+            </div>
 
             <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <NotificationBoard user={user} />
