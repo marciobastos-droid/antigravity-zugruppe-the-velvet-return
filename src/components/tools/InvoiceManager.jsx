@@ -1709,9 +1709,28 @@ function FinancialAnalytics({ invoices }) {
               </SelectContent>
             </Select>
 
-            <Badge variant="outline" className="ml-auto">
+            <Badge variant="outline">
               {filteredInvoices.length} faturas
             </Badge>
+            
+            <Button 
+              variant="outline" 
+              onClick={handleGeneratePDF}
+              disabled={generatingPDF || filteredInvoices.length === 0}
+              className="ml-auto"
+            >
+              {generatingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600 mr-2" />
+                  A gerar...
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
