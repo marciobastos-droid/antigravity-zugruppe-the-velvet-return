@@ -73,7 +73,7 @@ async function followRedirects(url, maxRedirects = 5) {
   return currentUrl;
 }
 
-// Extract all property links from Idealista listing page
+// Extract all property links from listing page
 function extractPropertyLinks(html, baseUrl) {
   const links = [];
   const urlObj = new URL(baseUrl);
@@ -89,6 +89,20 @@ function extractPropertyLinks(html, baseUrl) {
       link = origin + link;
     } else if (!link.startsWith('http')) {
       link = origin + '/' + link;
+    }
+    if (!links.includes(link)) {
+      links.push(link);
+    }
+  }
+  
+  // Infocasa specific patterns - shared links
+  const infocasaPattern = /href=["']([^"']*infocasa\.pt\/shared\?rgid=[^"']+)["']/gi;
+  const infocasaMatches = html.matchAll(infocasaPattern);
+  
+  for (const match of infocasaMatches) {
+    let link = match[1];
+    if (!link.startsWith('http')) {
+      link = 'https://' + link;
     }
     if (!links.includes(link)) {
       links.push(link);
