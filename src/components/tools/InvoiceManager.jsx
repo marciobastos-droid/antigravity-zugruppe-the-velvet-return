@@ -1038,6 +1038,7 @@ Obrigado.`
                 onChange={handleFileImport}
                 className="hidden"
                 id="invoice-import"
+                multiple
               />
               <label htmlFor="invoice-import">
                 <Button variant="outline" asChild disabled={importing}>
