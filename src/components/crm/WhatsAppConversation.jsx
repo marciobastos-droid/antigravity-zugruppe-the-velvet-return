@@ -50,11 +50,16 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
   const isWhatsAppConfigured = true;
 
   const sendMessage = async () => {
-    if (!message.trim() || !isWhatsAppConfigured) return;
+    if (!message.trim()) return;
 
     setSending(true);
+    console.log('=== Initiating WhatsApp send ===');
+    console.log('Contact phone:', contact.phone);
+    console.log('Message:', message.substring(0, 50) + '...');
+    
     try {
       // Enviar via backend function para maior fiabilidade
+      console.log('Calling base44.functions.invoke("sendWhatsApp")...');
       const response = await base44.functions.invoke('sendWhatsApp', {
         phoneNumber: contact.phone,
         message: message,
@@ -62,9 +67,10 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         contactName: contact.full_name
       });
 
-      const result = response.data;
-
-      console.log('WhatsApp response:', result);
+      console.log('Raw response object:', response);
+      console.log('Response status:', response?.status);
+      const result = response?.data;
+      console.log('WhatsApp response data:', result);
       
       if (result.success) {
         setMessage("");
