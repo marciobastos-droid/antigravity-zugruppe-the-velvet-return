@@ -18,6 +18,7 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
   const queryClient = useQueryClient();
   const [message, setMessage] = React.useState("");
   const [sending, setSending] = React.useState(false);
+  const [useTemplate, setUseTemplate] = React.useState(false);
   const messagesEndRef = React.useRef(null);
 
   const { data: user } = useQuery({
@@ -59,13 +60,16 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         phoneNumber: contact.phone,
         message: message,
         contactId: contact.id,
-        contactName: contact.full_name
+        contactName: contact.full_name,
+        useTemplate: useTemplate,
+        templateName: 'hello_world'
       });
 
       const result = response?.data;
       
       if (result?.success) {
         setMessage("");
+        setUseTemplate(false);
         await refetch();
         queryClient.invalidateQueries({ queryKey: ['whatsappMessages', contact?.id] });
         queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
@@ -236,19 +240,36 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         )}
       </ScrollArea>
 
-      <div className="p-3 border-t">
+      <div className="p-3 border-t space-y-2">
+        {messages.length === 0 && (
+          <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Primeiro contacto? Ative "Usar Template" para garantir entrega.</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useTemplate}
+              onChange={(e) => setUseTemplate(e.target.checked)}
+              className="rounded border-slate-300"
+            />
+            Usar Template (primeiro contacto)
+          </label>
+        </div>
         <div className="flex gap-2">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Escreva uma mensagem..."
-            disabled={sending}
+            placeholder={useTemplate ? "Template será enviado..." : "Escreva uma mensagem..."}
+            disabled={sending || useTemplate}
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
             className="flex-1"
           />
           <Button
             onClick={sendMessage}
-            disabled={!message.trim() || sending}
+            disabled={(!message.trim() && !useTemplate) || sending}
             className="bg-green-600 hover:bg-green-700"
           >
             {sending ? (

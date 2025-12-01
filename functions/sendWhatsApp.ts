@@ -68,16 +68,36 @@ Deno.serve(async (req) => {
     const apiUrl = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
     console.log(`Calling WhatsApp API: ${apiUrl}`);
     
-    const requestBody = {
-      messaging_product: 'whatsapp',
-      recipient_type: 'individual',
-      to: normalizedPhone,
-      type: 'text',
-      text: { 
-        preview_url: false,
-        body: message 
-      }
-    };
+    // Check if we should use a template (for first contact) or regular message
+    const { useTemplate, templateName } = body;
+    
+    let requestBody;
+    
+    if (useTemplate) {
+      // Use approved template for first contact
+      requestBody = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalizedPhone,
+        type: 'template',
+        template: {
+          name: templateName || 'hello_world', // Use hello_world as default (pre-approved by Meta)
+          language: { code: 'pt_PT' }
+        }
+      };
+    } else {
+      // Regular text message (only works within 24h conversation window)
+      requestBody = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalizedPhone,
+        type: 'text',
+        text: { 
+          preview_url: false,
+          body: message 
+        }
+      };
+    }
     
     console.log('Request body:', JSON.stringify(requestBody));
     
