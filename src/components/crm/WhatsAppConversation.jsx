@@ -53,13 +53,8 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
     if (!message.trim()) return;
 
     setSending(true);
-    console.log('=== Initiating WhatsApp send ===');
-    console.log('Contact phone:', contact.phone);
-    console.log('Message:', message.substring(0, 50) + '...');
     
     try {
-      // Enviar via backend function para maior fiabilidade
-      console.log('Calling base44.functions.invoke("sendWhatsApp")...');
       const response = await base44.functions.invoke('sendWhatsApp', {
         phoneNumber: contact.phone,
         message: message,
@@ -67,23 +62,19 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         contactName: contact.full_name
       });
 
-      console.log('Raw response object:', response);
-      console.log('Response status:', response?.status);
       const result = response?.data;
-      console.log('WhatsApp response data:', result);
       
-      if (result.success) {
+      if (result?.success) {
         setMessage("");
         refetch();
         queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
         toast.success("Mensagem enviada!");
         onMessageSent?.();
       } else {
-        console.error('WhatsApp error:', result);
-        if (result.config_missing) {
+        if (result?.config_missing) {
           toast.error("WhatsApp não configurado. Configure as credenciais nas variáveis de ambiente.");
         } else {
-          toast.error("Erro ao enviar: " + (result.error || 'Erro desconhecido'));
+          toast.error("Erro ao enviar: " + (result?.error || 'Erro desconhecido'));
         }
       }
     } catch (error) {
