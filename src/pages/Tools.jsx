@@ -40,6 +40,7 @@ import TagManager from "../components/tags/TagManager";
 import ImportOpportunities from "../components/tools/ImportOpportunities";
 import IntegrationsHub from "../components/integrations/IntegrationsHub";
 import CommissionsManager from "../components/tools/CommissionsManager";
+import InvoiceManager from "../components/tools/InvoiceManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -222,6 +223,7 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" />
+                <ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" />
               </div>
               </CardContent>
               </Card>
@@ -278,6 +280,7 @@ export default function Tools() {
         {activeTab === "importOpportunities" && <ImportOpportunities />}
         {activeTab === "integrations" && <IntegrationsHub />}
         {activeTab === "commissions" && <CommissionsManager />}
+        {activeTab === "invoices" && <InvoiceManager />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
