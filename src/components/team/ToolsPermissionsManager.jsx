@@ -76,7 +76,8 @@ const TOOL_CATEGORIES = {
   finance: {
     name: "Finanças",
     tools: [
-      { id: "commissions", name: "Gestão de Comissões" }
+      { id: "commissions", name: "Gestão de Comissões" },
+      { id: "invoices", name: "Gestão de Faturas" }
     ]
   },
   settings: {
