@@ -670,7 +670,11 @@ Quer agendar visitas? Responda aqui! 😊`;
         <TabsContent value="requirements" className="mt-4">
           <ContactRequirements 
             contact={contact} 
-            onUpdate={() => queryClient.invalidateQueries({ queryKey: ['clientContacts'] })}
+            onUpdate={(updatedContact) => {
+              queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+              // Force re-fetch to get latest data
+              queryClient.refetchQueries({ queryKey: ['clientContacts'] });
+            }}
           />
         </TabsContent>
 
