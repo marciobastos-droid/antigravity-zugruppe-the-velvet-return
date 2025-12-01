@@ -2,13 +2,54 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
+// Supported portals configuration
+const SUPPORTED_PORTALS = {
+  idealista: { domain: 'idealista.pt', name: 'Idealista' },
+  imovirtual: { domain: 'imovirtual.com', name: 'Imovirtual' },
+  infocasa: { domain: 'infocasa.pt', name: 'Infocasa' },
+  imovelweb: { domain: 'imovelweb.com.br', name: 'ImovelWeb' },
+  kyero: { domain: 'kyero.com', name: 'Kyero' },
+  remax: { domain: 'remax.pt', name: 'RE/MAX' },
+  era: { domain: 'era.pt', name: 'ERA' },
+  century21: { domain: 'century21.pt', name: 'Century 21' },
+  supercasa: { domain: 'supercasa.pt', name: 'Supercasa' },
+  casasapo: { domain: 'casa.sapo.pt', name: 'Casa SAPO' },
+  custojusto: { domain: 'custojusto.pt', name: 'CustoJusto' },
+  olx: { domain: 'olx.pt', name: 'OLX' },
+  bpiexpressoimobiliario: { domain: 'bpiexpressoimobiliario.pt', name: 'BPI Imobiliário' },
+  green_acres: { domain: 'green-acres.pt', name: 'Green Acres' }
+};
+
+// Detect portal from URL
+function detectPortal(url) {
+  const urlLower = url.toLowerCase();
+  for (const [key, portal] of Object.entries(SUPPORTED_PORTALS)) {
+    if (urlLower.includes(portal.domain)) {
+      return { key, ...portal };
+    }
+  }
+  return { key: 'unknown', domain: new URL(url).hostname, name: 'Portal Desconhecido' };
+}
+
 // Detect if URL is a listing page or a single property detail page
 function detectPageType(url) {
-  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos|\/shared\?rgid=/i;
-  const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$/;
+  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos|\/shared\?rgid=|\/for-sale|\/to-rent|\/a-venda|\/para-alugar|\/properties|\/listings/i;
+  const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$|\/detail\/|\/listing\/\d/;
   
   // Infocasa shared links are always listing pages
   if (url.includes('infocasa.pt/shared') || url.includes('url.infocasa.pt')) {
+    return 'listing';
+  }
+  
+  // Kyero specific patterns
+  if (url.includes('kyero.com')) {
+    if (url.includes('/property/') || /\/\d{6,}/.test(url)) return 'detail';
+    return 'listing';
+  }
+  
+  // ImovelWeb specific patterns
+  if (url.includes('imovelweb.com')) {
+    if (url.includes('/propriedades/') && /\d{8,}/.test(url)) return 'detail';
     return 'listing';
   }
   
@@ -23,7 +64,7 @@ function detectPageType(url) {
   }
   
   // Default to listing if contains typical listing URL structure
-  if (url.includes('comprar') || url.includes('arrendar')) {
+  if (url.includes('comprar') || url.includes('arrendar') || url.includes('for-sale') || url.includes('to-rent')) {
     return 'listing';
   }
   
