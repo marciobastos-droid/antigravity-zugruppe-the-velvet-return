@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Users, Plus, Search, Edit, Trash2, Building2, User, 
   Mail, Phone, MapPin, FileText, Euro, ChevronRight,
-  StickyNote, CheckCircle2, Clock, AlertCircle
+  StickyNote, CheckCircle2, Clock, AlertCircle, Download, UserPlus
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -92,6 +92,55 @@ export default function InvoiceClientsManager() {
       setSelectedClient(null);
     }
   });
+
+  // Get unique clients from invoices that are not yet in InvoiceClient
+  const getInvoiceClientsNotRegistered = () => {
+    const existingEmails = new Set(clients.map(c => c.email?.toLowerCase()).filter(Boolean));
+    const existingNames = new Set(clients.map(c => c.name?.toLowerCase()).filter(Boolean));
+    
+    const uniqueInvoiceClients = new Map();
+    
+    invoices.forEach(inv => {
+      if (!inv.recipient_name) return;
+      
+      const key = inv.recipient_email?.toLowerCase() || inv.recipient_name?.toLowerCase();
+      const alreadyExists = existingEmails.has(inv.recipient_email?.toLowerCase()) || 
+                           existingNames.has(inv.recipient_name?.toLowerCase());
+      
+      if (!alreadyExists && !uniqueInvoiceClients.has(key)) {
+        uniqueInvoiceClients.set(key, {
+          name: inv.recipient_name,
+          email: inv.recipient_email || "",
+          nif: inv.recipient_nif || "",
+          address: inv.recipient_address || "",
+          client_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
+        });
+      }
+    });
+    
+    return Array.from(uniqueInvoiceClients.values());
+  };
+
+  const importFromInvoicesMutation = useMutation({
+    mutationFn: async (clientsToImport) => {
+      const results = [];
+      for (const client of clientsToImport) {
+        results.push(await base44.entities.InvoiceClient.create({
+          ...client,
+          payment_terms: 30,
+          default_vat_rate: 23,
+          is_active: true
+        }));
+      }
+      return results;
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.length} clientes importados das faturas`);
+      queryClient.invalidateQueries({ queryKey: ['invoiceClients'] });
+    }
+  });
+
+  const invoiceClientsToImport = getInvoiceClientsNotRegistered();
 
   const resetForm = () => {
     setFormData({
@@ -174,10 +223,23 @@ export default function InvoiceClientsManager() {
           </h2>
           <p className="text-slate-600">Gerir clientes, agentes e agências para faturação</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Cliente
-        </Button>
+        <div className="flex gap-2">
+          {invoiceClientsToImport.length > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={() => importFromInvoicesMutation.mutate(invoiceClientsToImport)}
+              disabled={importFromInvoicesMutation.isPending}
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              {importFromInvoicesMutation.isPending ? "A importar..." : `Importar ${invoiceClientsToImport.length} das Faturas`}
+            </Button>
+          )}
+          <Button onClick={() => setDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Cliente
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
