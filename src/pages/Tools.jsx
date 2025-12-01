@@ -67,20 +67,19 @@ export default function Tools() {
     return userToolPermissions[toolId] !== false; // Default to true if not explicitly set
   };
 
-  // Helper to render tool button with permission check
+  // Helper to render tool button with permission check - oculta se não permitido
   const ToolButton = ({ toolId, icon: Icon, label, variant, className }) => {
     const allowed = isToolAllowed(toolId);
+    if (!allowed) return null;
+    
     return (
       <Button
         variant={activeTab === toolId ? "default" : (variant || "outline")}
-        onClick={() => allowed && setActiveTab(toolId)}
-        className={`flex items-center gap-2 ${className || ''} ${!allowed ? 'opacity-50 cursor-not-allowed' : ''}`}
-        disabled={!allowed}
-        title={!allowed ? 'Sem permissão para esta ferramenta' : ''}
+        onClick={() => setActiveTab(toolId)}
+        className={`flex items-center gap-2 ${className || ''}`}
       >
         <Icon className="w-4 h-4" />
         {label}
-        {!allowed && <Lock className="w-3 h-3 ml-1" />}
       </Button>
     );
   };
