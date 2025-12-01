@@ -30,7 +30,7 @@ const statusConfig = {
 
 const BRAND_OPTIONS = {
   "Mediação": ["ZuHaus", "ZuHandel"],
-  "Serviços": ["ZuProjekt", "ZuGarden", "Zufinance"]
+  "Serviços": ["ZuProjekt", "ZuGarden", "ZuFinance"]
 };
 
 export default function Franchising() {

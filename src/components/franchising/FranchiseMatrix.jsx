@@ -20,7 +20,7 @@ const BRAND_CATEGORIES = {
     brands: [
       { name: "ZuProjekt", icon: Hammer, description: "Projetos e Obras" },
       { name: "ZuGarden", icon: Leaf, description: "Jardins e Paisagismo" },
-      { name: "Zufinance", icon: Coins, description: "Serviços Financeiros" }
+      { name: "ZuFinance", icon: Coins, description: "Serviços Financeiros" }
     ]
   }
 };
