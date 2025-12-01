@@ -6,8 +6,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Phone, Mail, MapPin, Euro, Star, Edit, Trash2,
   Flame, ThermometerSun, Snowflake, AlertCircle,
-  ShoppingCart, Building2, Users, Briefcase
+  ShoppingCart, Building2, Users, Briefcase, UserCheck
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAgentNames } from "@/components/common/useAgentNames";
