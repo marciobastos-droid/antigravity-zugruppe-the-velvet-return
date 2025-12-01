@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2 } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity } from "lucide-react";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -43,6 +43,9 @@ import CommissionsManager from "../components/tools/CommissionsManager";
 import InvoiceManager from "../components/tools/InvoiceManager";
 import OrphanDataCleaner from "../components/tools/OrphanDataCleaner";
 import DuplicateClientsCleaner from "../components/tools/DuplicateClientsCleaner";
+import PropertyPerformanceDashboard from "../components/tools/PropertyPerformanceDashboard";
+import ImageValidator from "../components/tools/ImageValidator";
+import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -114,6 +117,7 @@ export default function Tools() {
                 <ToolButton toolId="facebookCampaigns" icon={LayoutDashboard} label="Campanhas FB" />
                 <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários FB" />
                 <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
+                <ToolButton toolId="socialAdCreator" icon={Share2} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
                 <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
                 <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" />
                 <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
@@ -174,6 +178,7 @@ export default function Tools() {
                 <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
                 <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
                 <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
+                <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
@@ -211,6 +216,7 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" />
+                <ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" />
                 <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" />
               </div>
@@ -289,6 +295,9 @@ export default function Tools() {
         {activeTab === "importInvoices" && <InvoiceManager />}
         {activeTab === "orphanCleaner" && <OrphanDataCleaner />}
         {activeTab === "duplicateClients" && <DuplicateClientsCleaner />}
+        {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
+        {activeTab === "imageValidator" && <ImageValidator />}
+        {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
