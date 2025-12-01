@@ -31,6 +31,33 @@ export default function NotificationBell({ user }) {
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 
+  // Fetch new leads (last 24h)
+  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  
+  const { data: newLeads = [] } = useQuery({
+    queryKey: ['newLeads', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const allOpps = await base44.entities.Opportunity.filter(
+        { status: 'new' },
+        '-created_date',
+        20
+      );
+      
+      // Filter by user if not admin
+      const filtered = isAdmin ? allOpps : allOpps.filter(o => 
+        o.assigned_to === user.email || o.created_by === user.email
+      );
+      
+      return filtered;
+    },
+    enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const markAsReadMutation = useMutation({
     mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
     onSuccess: () => {
