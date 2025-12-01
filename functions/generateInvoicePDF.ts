@@ -285,61 +285,94 @@ Deno.serve(async (req) => {
     if (invoices_data?.topClients && invoices_data.topClients.length > 0) {
       checkNewPage(50);
       
+      // Section title with accent bar
+      doc.setFillColor(245, 158, 11);
+      doc.rect(margin, y, 4, 10, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Top Clientes', 20, y);
-      y += 10;
+      doc.text('Top Clientes', margin + 8, y + 8);
+      y += 16;
 
-      doc.setFontSize(9);
+      // Table header
+      doc.setFillColor(39, 37, 31);
+      doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
+      
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      doc.text('#', 25, y);
-      doc.text('Cliente', 35, y);
-      doc.text('Nº Faturas', 120, y);
-      doc.text('Total', 160, y);
-      y += 7;
+      doc.setTextColor(255, 255, 255);
+      doc.text('#', margin + 5, y + 1);
+      doc.text('Cliente', margin + 15, y + 1);
+      doc.text('Faturas', margin + 110, y + 1);
+      doc.text('Total', margin + 140, y + 1);
+      doc.setTextColor(0, 0, 0);
+      y += 10;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
 
       invoices_data.topClients.forEach((client, idx) => {
         checkNewPage(8);
-        doc.text(String(idx + 1), 25, y);
-        doc.text((client.name || '-').substring(0, 40), 35, y);
-        doc.text(String(client.count || 0), 125, y);
-        doc.text(`€${client.total?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 160, y);
-        y += 6;
+        
+        if (idx % 2 === 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
+        }
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(String(idx + 1), margin + 5, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(sanitizeText((client.name || '-').substring(0, 45)), margin + 15, y);
+        doc.text(String(client.count || 0), margin + 115, y);
+        doc.text(formatCurrency(client.total), margin + 140, y);
+        y += 8;
       });
 
-      y += 10;
+      y += 8;
     }
 
     // By type breakdown
     if (invoices_data?.byType && invoices_data.byType.length > 0) {
       checkNewPage(40);
       
+      // Section title with accent bar
+      doc.setFillColor(236, 72, 153);
+      doc.rect(margin, y, 4, 10, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Por Tipo de Fatura', 20, y);
-      y += 10;
+      doc.text('Por Tipo de Fatura', margin + 8, y + 8);
+      y += 16;
 
       doc.setFontSize(9);
       for (const type of invoices_data.byType) {
-        doc.setFont('helvetica', 'bold');
-        doc.text(type.name, 25, y);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${type.count} faturas - €${type.value?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 80, y);
-        y += 6;
+        if (type.count > 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.roundedRect(margin, y - 4, pageWidth - margin * 2, 12, 2, 2, 'F');
+          
+          doc.setFont('helvetica', 'bold');
+          doc.text(sanitizeText(type.name), margin + 5, y + 3);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`${type.count} faturas`, margin + 80, y + 3);
+          doc.setFont('helvetica', 'bold');
+          doc.text(formatCurrency(type.value), margin + 130, y + 3);
+          y += 14;
+        }
       }
     }
 
-    // Footer
+    // Footer on all pages
     const totalPages = doc.internal.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       doc.setPage(i);
+      
+      // Footer line
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, pageHeight - 18, pageWidth - margin, pageHeight - 18);
+      
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
-      doc.text('Zugruppe - Gestão de Faturas', 20, pageHeight - 10);
+      doc.text(`Pagina ${i} de ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      doc.text('Zugruppe - Gestao de Faturas', margin, pageHeight - 10);
+      doc.text(new Date().toLocaleDateString('pt-PT'), pageWidth - margin, pageHeight - 10, { align: 'right' });
     }
 
     const pdfBytes = doc.output('arraybuffer');
