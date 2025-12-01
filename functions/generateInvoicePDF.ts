@@ -82,65 +82,85 @@ Deno.serve(async (req) => {
 
     // Period info if filters provided
     if (filters) {
-      doc.setFontSize(11);
+      doc.setFillColor(241, 245, 249);
+      doc.roundedRect(margin, y, pageWidth - margin * 2, 12, 2, 2, 'F');
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text('Período:', 20, y);
+      doc.text('Periodo:', margin + 5, y + 8);
       doc.setFont('helvetica', 'normal');
       let periodText = '';
       if (filters.periodFilter === 'year') periodText = `Ano ${filters.selectedYear}`;
-      else if (filters.periodFilter === 'quarter') periodText = `${filters.selectedQuarter}º Trimestre de ${filters.selectedYear}`;
+      else if (filters.periodFilter === 'quarter') periodText = `${filters.selectedQuarter}o Trimestre de ${filters.selectedYear}`;
       else if (filters.periodFilter === 'month') periodText = `${filters.selectedMonth}/${filters.selectedYear}`;
-      doc.text(periodText, 50, y);
-      y += 10;
+      doc.text(periodText, margin + 35, y + 8);
+      y += 20;
     }
 
     // Summary section
     if (invoices_data?.summary) {
       const summary = invoices_data.summary;
       
+      // Section title with accent bar
+      doc.setFillColor(59, 130, 246);
+      doc.rect(margin, y, 4, 10, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Resumo Financeiro', 20, y);
-      y += 8;
+      doc.text('Resumo Financeiro', margin + 8, y + 8);
+      y += 18;
 
-      // Draw summary box
-      doc.setDrawColor(200, 200, 200);
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, y, pageWidth - 40, 45, 3, 3, 'FD');
-      y += 8;
+      // Summary cards - 4 columns
+      const cardWidth = (pageWidth - margin * 2 - 15) / 4;
+      const cardHeight = 35;
+      const cardColors = [
+        { bg: [219, 234, 254], border: [59, 130, 246], text: [30, 64, 175] },   // Blue
+        { bg: [209, 250, 229], border: [16, 185, 129], text: [6, 95, 70] },     // Green
+        { bg: [254, 243, 199], border: [245, 158, 11], text: [146, 64, 14] },   // Amber
+        { bg: [254, 226, 226], border: [239, 68, 68], text: [153, 27, 27] }     // Red
+      ];
 
-      doc.setFontSize(10);
-      const col1 = 30;
-      const col2 = 75;
-      const col3 = 120;
-      const col4 = 165;
+      const summaryItems = [
+        { label: 'Total Faturado', value: summary.totalFaturado },
+        { label: 'Total Recebido', value: summary.totalRecebido },
+        { label: 'Pendente', value: summary.totalPendente },
+        { label: 'Vencido', value: summary.totalVencido }
+      ];
 
-      doc.setFont('helvetica', 'normal');
-      doc.text('Total Faturado:', col1, y);
-      doc.text('Total Recebido:', col2, y);
-      doc.text('Pendente:', col3, y);
-      doc.text('Vencido:', col4, y);
-      y += 6;
+      summaryItems.forEach((item, idx) => {
+        const x = margin + idx * (cardWidth + 5);
+        const color = cardColors[idx];
+        
+        // Card background
+        doc.setFillColor(...color.bg);
+        doc.setDrawColor(...color.border);
+        doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'FD');
+        
+        // Label
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...color.text);
+        doc.text(item.label, x + cardWidth / 2, y + 10, { align: 'center' });
+        
+        // Value
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text(formatCurrency(item.value), x + cardWidth / 2, y + 22, { align: 'center' });
+      });
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(`€${summary.totalFaturado?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, col1, y);
-      doc.setTextColor(16, 185, 129);
-      doc.text(`€${summary.totalRecebido?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, col2, y);
-      doc.setTextColor(245, 158, 11);
-      doc.text(`€${summary.totalPendente?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, col3, y);
-      doc.setTextColor(239, 68, 68);
-      doc.text(`€${summary.totalVencido?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, col4, y);
       doc.setTextColor(0, 0, 0);
-      y += 10;
+      y += cardHeight + 10;
 
+      // Stats row
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(margin, y, pageWidth - margin * 2, 14, 2, 2, 'F');
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.text(`${summary.totalInvoices || 0} faturas | Taxa de cobrança: ${summary.collectionRate || 0}%`, col1, y);
+      doc.text(`Total: ${summary.totalInvoices || 0} faturas`, margin + 10, y + 9);
+      doc.text(`Taxa de cobranca: ${summary.collectionRate || 0}%`, margin + 70, y + 9);
       if (summary.growthRate !== null && summary.growthRate !== undefined) {
-        doc.text(`Crescimento: ${summary.growthRate > 0 ? '+' : ''}${summary.growthRate}%`, col3, y);
+        const growthText = `Crescimento: ${summary.growthRate > 0 ? '+' : ''}${summary.growthRate}%`;
+        doc.text(growthText, pageWidth - margin - 50, y + 9);
       }
-      y += 25;
+      y += 22;
     }
 
     // Invoices list
