@@ -474,7 +474,8 @@ export default function ImportProperties() {
         message: `✅ ${created.length} imóveis importados de CSV com sucesso!\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
       });
       
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
       toast.success(`${created.length} imóveis importados com sucesso!`);
       setShowPreview(false); // Close the dialog on success
 
@@ -577,7 +578,8 @@ export default function ImportProperties() {
         message: `${created.length} imóveis importados de JSON!`
       });
       
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
       toast.success(`${created.length} imóveis importados!`);
 
     } catch (error) {
@@ -635,7 +637,8 @@ export default function ImportProperties() {
           message: `${created.length} imóveis importados!`
         });
         
-        queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
         toast.success(`${created.length} imóveis importados!`);
       } else {
         throw new Error("Erro ao extrair dados");
@@ -732,7 +735,8 @@ export default function ImportProperties() {
           message: `✅ ${created.length} imóveis importados com Gemini AI!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados` : ''}`
         });
 
-        queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+        await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
         toast.success(`${created.length} imóveis importados!`);
 
       } else {
@@ -777,7 +781,8 @@ export default function ImportProperties() {
           message: `✅ Imóvel importado com Gemini AI!\n📸 ${created.images?.length || 0} imagens encontradas`
         });
 
-        queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+        await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
         toast.success("Imóvel importado com sucesso!");
       }
 
@@ -988,7 +993,8 @@ IMPORTANTE:
         message: `✅ ${created.length} imóveis importados!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
       });
       
-      queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
       toast.success(`${created.length} imóveis importados!`);
 
     } catch (error) {
@@ -1109,7 +1115,8 @@ IMPORTANTE:
               message: `${created.length} imóveis importados de PDF!`
             });
 
-            queryClient.invalidateQueries({ queryKey: ['properties'] });
+            await queryClient.invalidateQueries({ queryKey: ['properties'] });
+            await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
             toast.success(`${created.length} imóveis importados!`);
           } else {
             throw new Error(result.details || "Erro ao extrair dados do PDF");
@@ -1309,7 +1316,8 @@ Retorna um array de objetos, mesmo que seja só um imóvel.`,
         message: `✅ ${created.length} imóveis importados de texto!`
       });
 
-      queryClient.invalidateQueries({ queryKey: ['properties', 'myProperties'] });
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
       toast.success(`${created.length} imóveis importados!`);
       
       setShowTextPreview(false);
