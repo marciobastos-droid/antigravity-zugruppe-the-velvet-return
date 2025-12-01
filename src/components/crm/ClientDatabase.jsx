@@ -2033,6 +2033,11 @@ export default function ClientDatabase() {
                   </CardContent>
                 </Card>
 
+                {/* Elected Properties Section */}
+                <div className="mt-6">
+                  <ElectedPropertiesSummary contactId={selectedClient.id} />
+                </div>
+
                 {/* Notes Section */}
                 {selectedClient.notes && (
                   <Card className="mt-6">
