@@ -1422,6 +1422,7 @@ function FinancialAnalytics({ invoices }) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [clientFilter, setClientFilter] = useState("all");
   const [activeChart, setActiveChart] = useState("monthly");
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const availableYears = [...new Set(invoices.map(i => new Date(i.issue_date || i.created_date).getFullYear()))].sort((a, b) => b - a);
