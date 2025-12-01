@@ -322,11 +322,16 @@ export default function ClientDatabase() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.ClientContact.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      console.log('Updating contact:', id, data);
+      const result = await base44.entities.ClientContact.update(id, data);
+      console.log('Update result:', result);
+      return result;
+    },
     onSuccess: async (_, variables) => {
       toast.success("Contacto atualizado");
       await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
-      
+
       // Refresh selectedClient with updated data from the server
       if (selectedClient && selectedClient.id === variables.id) {
         const updatedClients = await base44.entities.ClientContact.filter({ id: variables.id });
@@ -335,6 +340,10 @@ export default function ClientDatabase() {
         }
       }
       resetForm();
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
+      toast.error("Erro ao atualizar contacto");
     }
   });
 
