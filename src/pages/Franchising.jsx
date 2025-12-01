@@ -58,7 +58,9 @@ export default function Franchising() {
     contract_start_date: "",
     contract_end_date: "",
     monthly_fee: "",
-    royalty_percentage: "",
+    royalty_percentage: 5,
+    marketing_fund_percentage: 1.5,
+    physical_entry_fee: 15000,
     initial_investment: "",
     territory: "",
     website: "",
@@ -107,7 +109,8 @@ export default function Franchising() {
       name: "", code: "", owner_name: "", owner_email: "", owner_phone: "",
       address: "", city: "", district: "", postal_code: "", country: "Portugal",
       status: "pending", contract_start_date: "", contract_end_date: "",
-      monthly_fee: "", royalty_percentage: "", initial_investment: "",
+      monthly_fee: "", royalty_percentage: 5, marketing_fund_percentage: 1.5,
+      physical_entry_fee: 15000, initial_investment: "",
       territory: "", website: "", nif: "", notes: "",
       brand_category: "", brand_name: "", physical_type: "", physical_size: ""
     });
@@ -132,7 +135,9 @@ export default function Franchising() {
       contract_start_date: franchise.contract_start_date || "",
       contract_end_date: franchise.contract_end_date || "",
       monthly_fee: franchise.monthly_fee || "",
-      royalty_percentage: franchise.royalty_percentage || "",
+      royalty_percentage: franchise.royalty_percentage ?? 5,
+      marketing_fund_percentage: franchise.marketing_fund_percentage ?? 1.5,
+      physical_entry_fee: franchise.physical_entry_fee ?? 15000,
       initial_investment: franchise.initial_investment || "",
       territory: franchise.territory || "",
       website: franchise.website || "",
@@ -159,7 +164,9 @@ export default function Franchising() {
     const data = {
       ...formData,
       monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
-      royalty_percentage: formData.royalty_percentage ? parseFloat(formData.royalty_percentage) : null,
+      royalty_percentage: parseFloat(formData.royalty_percentage) || 5,
+      marketing_fund_percentage: parseFloat(formData.marketing_fund_percentage) || 1.5,
+      physical_entry_fee: parseFloat(formData.physical_entry_fee) || 15000,
       initial_investment: formData.initial_investment ? parseFloat(formData.initial_investment) : null,
       brand_category: formData.brand_category || null,
       brand_name: formData.brand_name || null,
@@ -406,7 +413,7 @@ export default function Franchising() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Taxa Mensal (€)</Label>
                     <Input
@@ -417,22 +424,41 @@ export default function Franchising() {
                     />
                   </div>
                   <div>
-                    <Label>Royalties (%)</Label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      value={formData.royalty_percentage}
-                      onChange={(e) => setFormData({...formData, royalty_percentage: e.target.value})}
-                      placeholder="5"
-                    />
-                  </div>
-                  <div>
                     <Label>Investimento Inicial (€)</Label>
                     <Input
                       type="number"
                       value={formData.initial_investment}
                       onChange={(e) => setFormData({...formData, initial_investment: e.target.value})}
                       placeholder="25000"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Royalties (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={formData.royalty_percentage}
+                      onChange={(e) => setFormData({...formData, royalty_percentage: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Fundo de Marketing (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={formData.marketing_fund_percentage}
+                      onChange={(e) => setFormData({...formData, marketing_fund_percentage: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Entrada Física (€)</Label>
+                    <Input
+                      type="number"
+                      value={formData.physical_entry_fee}
+                      onChange={(e) => setFormData({...formData, physical_entry_fee: e.target.value})}
                     />
                   </div>
                 </div>
@@ -726,13 +752,16 @@ export default function Franchising() {
                               <span className="text-slate-500">/mês</span>
                             </div>
                           )}
-                          {franchise.royalty_percentage && (
-                            <div className="flex items-center gap-1 text-sm">
-                              <TrendingUp className="w-4 h-4 text-amber-500" />
-                              <span className="font-medium">{franchise.royalty_percentage}%</span>
-                              <span className="text-slate-500">royalties</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1 text-sm">
+                            <TrendingUp className="w-4 h-4 text-amber-500" />
+                            <span className="font-medium">{franchise.royalty_percentage ?? 5}%</span>
+                            <span className="text-slate-500">royalties</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            <BarChart3 className="w-4 h-4 text-pink-500" />
+                            <span className="font-medium">{franchise.marketing_fund_percentage ?? 1.5}%</span>
+                            <span className="text-slate-500">marketing</span>
+                          </div>
                         </div>
 
                         {/* Brand & Physical Info */}
