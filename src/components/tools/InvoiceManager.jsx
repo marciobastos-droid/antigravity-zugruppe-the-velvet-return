@@ -232,12 +232,34 @@ export default function InvoiceManager() {
         }
       }
       
-      // For other files, use AI extraction
+      // For PDF and other files, use AI extraction with InvokeLLM for better results
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analisa este documento de fatura(s) e extrai TODOS os dados. 
+        
+Para cada fatura encontrada, extrai:
+- invoice_number: número da fatura (ex: FAT-2024-001, FT 2024/123, etc.)
+- recipient_name: nome do cliente/destinatário
+- recipient_email: email do cliente (se disponível)
+- recipient_nif: NIF/contribuinte do cliente
+- recipient_address: morada do cliente
+- issue_date: data de emissão no formato YYYY-MM-DD
+- due_date: data de vencimento no formato YYYY-MM-DD
+- total_amount: valor TOTAL da fatura (com IVA) como número
+- subtotal: valor sem IVA como número
+- vat_amount: valor do IVA como número
+- service_description: descrição dos serviços/produtos faturados
+- status: "paid" se indicar pago, senão "pending"
+- notes: observações adicionais
+
+IMPORTANTE: 
+- Converte todas as datas para formato YYYY-MM-DD
+- Converte valores monetários para números (sem símbolos € ou separadores)
+- Se houver múltiplas linhas de itens, junta as descrições
+- Extrai o número da fatura exatamente como aparece no documento`,
+        file_urls: [file_url],
+        response_json_schema: {
           type: "object",
           properties: {
             invoices: {
@@ -245,17 +267,19 @@ export default function InvoiceManager() {
               items: {
                 type: "object",
                 properties: {
-                  recipient_name: { type: "string", description: "Nome do destinatário da fatura" },
-                  recipient_email: { type: "string", description: "Email do destinatário" },
-                  recipient_nif: { type: "string", description: "NIF/Contribuinte" },
-                  invoice_type: { type: "string", description: "Tipo: agent, agency, commission, subscription, service" },
-                  issue_date: { type: "string", description: "Data de emissão (YYYY-MM-DD)" },
-                  due_date: { type: "string", description: "Data de vencimento (YYYY-MM-DD)" },
-                  total_amount: { type: "number", description: "Valor total com IVA" },
-                  subtotal: { type: "number", description: "Valor sem IVA" },
-                  vat_amount: { type: "number", description: "Valor do IVA" },
-                  status: { type: "string", description: "Estado: draft, pending, sent, paid" },
-                  notes: { type: "string", description: "Notas adicionais" }
+                  invoice_number: { type: "string" },
+                  recipient_name: { type: "string" },
+                  recipient_email: { type: "string" },
+                  recipient_nif: { type: "string" },
+                  recipient_address: { type: "string" },
+                  issue_date: { type: "string" },
+                  due_date: { type: "string" },
+                  total_amount: { type: "number" },
+                  subtotal: { type: "number" },
+                  vat_amount: { type: "number" },
+                  service_description: { type: "string" },
+                  status: { type: "string" },
+                  notes: { type: "string" }
                 }
               }
             }
@@ -263,23 +287,29 @@ export default function InvoiceManager() {
         }
       });
 
-      if (result.status === 'success' && result.output) {
-        const invoicesData = result.output.invoices || (Array.isArray(result.output) ? result.output : [result.output]);
-        const data = Array.isArray(invoicesData) ? invoicesData : [invoicesData];
+      if (result && result.invoices) {
+        const data = Array.isArray(result.invoices) ? result.invoices : [result.invoices];
         
-        if (data.length > 0 && data[0].recipient_name) {
+        if (data.length > 0 && (data[0].recipient_name || data[0].invoice_number)) {
           setImportData(data.map(inv => ({
             ...inv,
             status: inv.status || 'draft',
-            invoice_type: inv.invoice_type || 'agent',
-            recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
+            invoice_type: 'service',
+            recipient_type: 'agent',
+            items: inv.service_description ? [{
+              description: inv.service_description,
+              quantity: 1,
+              unit_price: inv.subtotal || inv.total_amount || 0,
+              vat_rate: inv.vat_amount && inv.subtotal ? Math.round((inv.vat_amount / inv.subtotal) * 100) : 23,
+              total: inv.total_amount || 0
+            }] : []
           })));
-          toast.success(`${data.length} faturas encontradas no ficheiro`);
+          toast.success(`${data.length} fatura(s) extraída(s) do PDF`);
         } else {
-          toast.error("Não foram encontradas faturas válidas no ficheiro");
+          toast.error("Não foram encontrados dados de fatura no PDF");
         }
       } else {
-        toast.error("Erro ao processar ficheiro: " + (result.details || "formato não reconhecido"));
+        toast.error("Erro ao processar PDF - verifique se o documento contém faturas válidas");
       }
     } catch (error) {
       console.error(error);
