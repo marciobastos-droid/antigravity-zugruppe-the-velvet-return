@@ -83,7 +83,44 @@ export default function InvoiceManager() {
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list('-created_date')
+    queryFn: async () => {
+      const allInvoices = await base44.entities.Invoice.list('-created_date');
+      
+      // Auto-update overdue invoices
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const overdueUpdates = [];
+      for (const inv of allInvoices) {
+        // Check if invoice should be marked as overdue
+        if ((inv.status === 'pending' || inv.status === 'sent') && inv.due_date) {
+          const dueDate = new Date(inv.due_date);
+          dueDate.setHours(0, 0, 0, 0);
+          if (dueDate < today) {
+            overdueUpdates.push(inv.id);
+          }
+        }
+      }
+      
+      // Update overdue invoices in background
+      if (overdueUpdates.length > 0) {
+        Promise.all(overdueUpdates.map(id => 
+          base44.entities.Invoice.update(id, { status: 'overdue' })
+        )).catch(console.error);
+      }
+      
+      // Return invoices with corrected status for immediate display
+      return allInvoices.map(inv => {
+        if ((inv.status === 'pending' || inv.status === 'sent') && inv.due_date) {
+          const dueDate = new Date(inv.due_date);
+          dueDate.setHours(0, 0, 0, 0);
+          if (dueDate < today) {
+            return { ...inv, status: 'overdue' };
+          }
+        }
+        return inv;
+      });
+    }
   });
 
   const { users, getAgentName } = useAgentNames();
