@@ -57,19 +57,68 @@ export default function Dashboard() {
     enabled: !!user
   });
 
+  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+
+  // Fetch properties filtered by user
   const { data: properties = [] } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date'),
+    queryKey: ['properties', user?.email, isAdmin],
+    queryFn: async () => {
+      if (!user) return [];
+      const allProperties = await base44.entities.Property.list('-created_date');
+      
+      if (isAdmin) {
+        return allProperties;
+      }
+      
+      // Non-admin: filter by assigned_consultant or created_by
+      return allProperties.filter(p => 
+        p.assigned_consultant === user.email || 
+        p.created_by === user.email ||
+        p.agent_id === user.email
+      );
+    },
+    enabled: !!user
   });
 
+  // Fetch opportunities filtered by user
   const { data: opportunities = [] } = useQuery({
-    queryKey: ['opportunities'],
-    queryFn: () => base44.entities.Opportunity.list('-created_date'),
+    queryKey: ['opportunities', user?.email, isAdmin],
+    queryFn: async () => {
+      if (!user) return [];
+      const allOpportunities = await base44.entities.Opportunity.list('-created_date');
+      
+      if (isAdmin) {
+        return allOpportunities;
+      }
+      
+      // Non-admin: filter by assigned_to, seller_email, or created_by
+      return allOpportunities.filter(o => 
+        o.assigned_to === user.email || 
+        o.seller_email === user.email ||
+        o.created_by === user.email
+      );
+    },
+    enabled: !!user
   });
 
+  // Fetch buyer profiles filtered by user
   const { data: buyerProfiles = [] } = useQuery({
-    queryKey: ['buyerProfiles'],
-    queryFn: () => base44.entities.BuyerProfile.list(),
+    queryKey: ['buyerProfiles', user?.email, isAdmin],
+    queryFn: async () => {
+      if (!user) return [];
+      const allProfiles = await base44.entities.BuyerProfile.list();
+      
+      if (isAdmin) {
+        return allProfiles;
+      }
+      
+      // Non-admin: filter by assigned_agent or created_by
+      return allProfiles.filter(p => 
+        p.assigned_agent === user.email || 
+        p.created_by === user.email
+      );
+    },
+    enabled: !!user
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -107,10 +156,8 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     if (user && onboardingProgress === null) {
-      // Ainda não carregou o progresso, não mostrar nada
       return;
     }
-    // Check both onboardingProgress and user.onboarding_completed
     if (user?.onboarding_completed) {
       setShowTour(false);
       return;
@@ -124,7 +171,6 @@ export default function Dashboard() {
   }, [user, onboardingProgress]);
 
   React.useEffect(() => {
-    // Skip contextual tips if user has completed onboarding
     if (user?.onboarding_completed) {
       setContextualTip(null);
       return;
@@ -181,10 +227,6 @@ export default function Dashboard() {
       }
     });
   };
-
-
-
-  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
 
   const syncFacebookLeads = async () => {
     if (!fbSettings?.access_token) {
@@ -293,7 +335,7 @@ export default function Dashboard() {
 
   const timelineData = generateTimelineData();
 
-  // Leads by agent
+  // Leads by agent (Admin only)
   const leadsPerAgent = isAdmin ? allUsers
     .filter(u => u.user_type === 'agente' || u.user_type === 'gestor')
     .map(u => ({
@@ -379,7 +421,6 @@ export default function Dashboard() {
   const urgentItems = React.useMemo(() => {
     const items = [];
     
-    // New leads requiring attention
     if (newLeads > 0) {
       items.push({ 
         message: `${newLeads} novos leads aguardam contacto`, 
@@ -387,7 +428,6 @@ export default function Dashboard() {
       });
     }
     
-    // Hot leads
     const hotCount = opportunities.filter(o => o.qualification_status === 'hot').length;
     if (hotCount > 0) {
       items.push({ 
@@ -396,7 +436,6 @@ export default function Dashboard() {
       });
     }
 
-    // Follow-ups overdue
     const overdue = opportunities.filter(o => 
       o.next_followup_date && new Date(o.next_followup_date) < new Date()
     ).length;
@@ -410,7 +449,6 @@ export default function Dashboard() {
     return items;
   }, [opportunities, newLeads]);
 
-  // Helper to check if widget is active
   const isWidgetActive = (widgetId) => activeWidgets.includes(widgetId);
 
   // Escape key to close focus mode
@@ -495,7 +533,9 @@ export default function Dashboard() {
               <BarChart3 className="w-7 h-7 sm:w-10 sm:h-10 text-blue-600" />
               Dashboard
             </h1>
-            <p className="text-sm sm:text-base text-slate-600">Visão geral do desempenho</p>
+            <p className="text-sm sm:text-base text-slate-600">
+              {isAdmin ? 'Visão geral do desempenho' : `Os meus dados - ${user?.full_name || user?.email}`}
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
@@ -532,7 +572,7 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
 
-                {fbSettings?.access_token && (
+                {fbSettings?.access_token && isAdmin && (
                   <Button 
                     onClick={syncFacebookLeads} 
                     disabled={syncingFacebookLeads}
@@ -880,13 +920,13 @@ export default function Dashboard() {
             </Tabs>
         ) : (
           <>
-            {/* Key Metrics for non-admin - duplicated content structure */}
+            {/* Key Metrics for non-admin - filtered data */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card className="border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-slate-600 mb-1">Total Imóveis</p>
+                      <p className="text-sm text-slate-600 mb-1">Meus Imóveis</p>
                       <p className="text-3xl font-bold text-slate-900">{totalProperties}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {recentProperties.length} nos últimos {dateRange} dias
@@ -901,10 +941,10 @@ export default function Dashboard() {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-slate-600 mb-1">Taxa de Importação</p>
-                      <p className="text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
+                      <p className="text-sm text-slate-600 mb-1">Imóveis Ativos</p>
+                      <p className="text-3xl font-bold text-slate-900">{activeProperties}</p>
                       <p className="text-xs text-slate-500 mt-1">
-                        {importedProperties} importados
+                        {soldProperties} vendidos
                       </p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-green-600" />
@@ -916,7 +956,7 @@ export default function Dashboard() {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-sm text-slate-600 mb-1">Total Leads</p>
+                      <p className="text-sm text-slate-600 mb-1">Meus Leads</p>
                       <p className="text-3xl font-bold text-slate-900">{totalLeads}</p>
                       <p className="text-xs text-slate-500 mt-1">
                         {recentOpportunities.length} nos últimos {dateRange} dias
@@ -967,6 +1007,126 @@ export default function Dashboard() {
             <div className="grid lg:grid-cols-2 gap-6 mb-6">
               <NotificationBoard user={user} />
               <AIMatchingSuggestions user={user} />
+            </div>
+
+            {/* Charts for non-admin */}
+            <div className="grid lg:grid-cols-2 gap-6 mb-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Os Meus Leads</CardTitle>
+                  <p className="text-sm text-slate-500">Distribuição por fase do pipeline</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={leadStatusData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                      />
+                      <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Os Meus Imóveis</CardTitle>
+                  <p className="text-sm text-slate-500">Distribuição por tipo</p>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={propertyTypeData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                      />
+                      <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Stats for non-admin */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Estado dos Imóveis</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Ativos</span>
+                      <span className="font-semibold text-green-600">{activeProperties}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Vendidos</span>
+                      <span className="font-semibold text-blue-600">{soldProperties}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Pendentes</span>
+                      <span className="font-semibold text-amber-600">{pendingProperties}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Leads Hot</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">🔥 Hot</span>
+                      <span className="font-semibold text-red-600">
+                        {opportunities.filter(o => o.qualification_status === 'hot').length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">🌡️ Warm</span>
+                      <span className="font-semibold text-orange-600">
+                        {opportunities.filter(o => o.qualification_status === 'warm').length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">❄️ Cold</span>
+                      <span className="font-semibold text-blue-600">
+                        {opportunities.filter(o => o.qualification_status === 'cold').length}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Pipeline de Leads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Em Progresso</span>
+                      <span className="font-semibold text-slate-900">
+                        {contactedLeads + opportunities.filter(o => o.status === 'scheduled').length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Novos</span>
+                      <span className="font-semibold text-slate-900">{newLeads}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Conversão</span>
+                      <span className="font-semibold text-green-600">{conversionRate}%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}
