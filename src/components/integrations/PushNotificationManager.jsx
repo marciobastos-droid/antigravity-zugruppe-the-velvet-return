@@ -12,6 +12,7 @@ export default function PushNotificationManager({ user }) {
   const queryClient = useQueryClient();
   const [permissionStatus, setPermissionStatus] = React.useState('default');
   const [isSubscribed, setIsSubscribed] = React.useState(false);
+  const [isSupported, setIsSupported] = React.useState(true);
 
   const { data: subscription } = useQuery({
     queryKey: ['pushSubscription', user?.email],
@@ -37,7 +38,11 @@ export default function PushNotificationManager({ user }) {
   }, [subscription]);
 
   React.useEffect(() => {
-    if ('Notification' in window) {
+    // Check if notifications are supported
+    const notificationsSupported = 'Notification' in window;
+    setIsSupported(notificationsSupported);
+    
+    if (notificationsSupported) {
       setPermissionStatus(Notification.permission);
     }
     
@@ -47,7 +52,7 @@ export default function PushNotificationManager({ user }) {
         registration.pushManager.getSubscription().then(sub => {
           setIsSubscribed(!!sub);
         });
-      });
+      }).catch(() => {});
     }
   }, []);
 
@@ -144,7 +149,21 @@ export default function PushNotificationManager({ user }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Not Supported Message */}
+        {!isSupported && (
+          <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-amber-900">Navegador não suportado</p>
+              <p className="text-xs text-amber-700">
+                O seu navegador não suporta notificações push. Utilize Chrome, Firefox, Edge ou Safari para ativar esta funcionalidade.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Permission Status */}
+        {isSupported && (
         <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
           <div className="flex items-center gap-3">
             {permissionStatus === 'granted' ? (
@@ -178,6 +197,7 @@ export default function PushNotificationManager({ user }) {
             </Button>
           )}
         </div>
+        )}
 
         {/* Notification Preferences */}
         {(permissionStatus === 'granted' || subscription) && (
