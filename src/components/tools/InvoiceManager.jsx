@@ -256,18 +256,20 @@ export default function InvoiceManager() {
     return data;
   };
 
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
+
   // Handle file import
   const handleFileImport = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setImporting(true);
+    setImportProgress({ current: 0, total: files.length });
+    
     try {
-      const fileName = file.name.toLowerCase();
-      
-      // For CSV files, parse locally first
-      if (fileName.endsWith('.csv')) {
-        const text = await file.text();
+      // Check if it's a single CSV file
+      if (files.length === 1 && files[0].name.toLowerCase().endsWith('.csv')) {
+        const text = await files[0].text();
         const parsedData = parseCSV(text);
         
         if (parsedData.length > 0) {
@@ -283,11 +285,18 @@ export default function InvoiceManager() {
         }
       }
       
-      // For PDF and other files, use AI extraction with InvokeLLM for better results
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Process multiple PDF files
+      const allExtractedInvoices = [];
       
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analisa cuidadosamente este documento PDF de fatura portuguesa e extrai TODOS os dados com precisão.
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setImportProgress({ current: i + 1, total: files.length });
+        
+        try {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          
+          const result = await base44.integrations.Core.InvokeLLM({
+            prompt: `Analisa cuidadosamente este documento PDF de fatura portuguesa e extrai TODOS os dados com precisão.
 
 INSTRUÇÕES DE EXTRAÇÃO:
 
@@ -301,92 +310,99 @@ INSTRUÇÕES DE EXTRAÇÃO:
    - recipient_nif: Número de contribuinte (9 dígitos, procura "NIF:", "Contribuinte:", "NIPC:")
    - recipient_address: Morada completa do cliente
 
-3. DADOS DO EMITENTE (se o cliente não estiver claro, pode ser o emitente):
-   - Verifica quem está a PAGAR vs quem está a RECEBER
-
-4. DATAS (converter para YYYY-MM-DD):
+3. DATAS (converter para YYYY-MM-DD):
    - issue_date: Data de emissão (procura "Data:", "Emissão:", "Data de emissão")
    - due_date: Data de vencimento (procura "Vencimento:", "Data limite", "Prazo de pagamento")
 
-5. VALORES MONETÁRIOS (extrair APENAS números, sem € ou separadores):
+4. VALORES MONETÁRIOS (extrair APENAS números, sem € ou separadores):
    - total_amount: Valor TOTAL com IVA (procura "Total:", "Total a pagar:", "Valor total")
    - subtotal: Valor base sem IVA (procura "Subtotal:", "Base tributável:", "Incidência")
    - vat_amount: Valor do IVA (procura "IVA:", "Taxa:", "Imposto")
    - ATENÇÃO: Usa ponto (.) como separador decimal, não vírgula
 
-6. DESCRIÇÃO DOS SERVIÇOS (service_description):
-   - MUITO IMPORTANTE: Extrai a descrição COMPLETA dos serviços/produtos
-   - Procura na tabela de itens, linhas de detalhe, campo "Descrição"
+5. DESCRIÇÃO DOS SERVIÇOS (service_description):
+   - Extrai a descrição COMPLETA dos serviços/produtos
    - Se houver múltiplos itens, junta-os separados por "; "
-   - Exemplos: "Consultoria imobiliária", "Comissão de venda", "Mensalidade Janeiro 2024"
 
-7. ESTADO (status):
+6. ESTADO (status):
    - "paid" se indicar: "Pago", "Liquidado", "Recebido", carimbo de pagamento
    - "pending" caso contrário
 
-8. NOTAS (notes):
+7. NOTAS (notes):
    - Observações, condições de pagamento, referências MB, IBAN
 
-FORMATO DE RESPOSTA:
 Retorna um array com todas as faturas encontradas no documento.`,
-        file_urls: [file_url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            invoices: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  invoice_number: { type: "string", description: "Número completo da fatura" },
-                  recipient_name: { type: "string", description: "Nome do cliente/destinatário" },
-                  recipient_email: { type: "string", description: "Email do cliente" },
-                  recipient_nif: { type: "string", description: "NIF/Contribuinte (9 dígitos)" },
-                  recipient_address: { type: "string", description: "Morada completa" },
-                  issue_date: { type: "string", description: "Data de emissão (YYYY-MM-DD)" },
-                  due_date: { type: "string", description: "Data de vencimento (YYYY-MM-DD)" },
-                  total_amount: { type: "number", description: "Valor total COM IVA" },
-                  subtotal: { type: "number", description: "Valor SEM IVA" },
-                  vat_amount: { type: "number", description: "Valor do IVA" },
-                  service_description: { type: "string", description: "Descrição completa dos serviços/produtos" },
-                  status: { type: "string", description: "paid ou pending" },
-                  notes: { type: "string", description: "Observações e notas adicionais" }
+            file_urls: [file_url],
+            response_json_schema: {
+              type: "object",
+              properties: {
+                invoices: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      invoice_number: { type: "string" },
+                      recipient_name: { type: "string" },
+                      recipient_email: { type: "string" },
+                      recipient_nif: { type: "string" },
+                      recipient_address: { type: "string" },
+                      issue_date: { type: "string" },
+                      due_date: { type: "string" },
+                      total_amount: { type: "number" },
+                      subtotal: { type: "number" },
+                      vat_amount: { type: "number" },
+                      service_description: { type: "string" },
+                      status: { type: "string" },
+                      notes: { type: "string" }
+                    }
+                  }
                 }
               }
             }
-          }
-        }
-      });
+          });
 
-      if (result && result.invoices) {
-        const data = Array.isArray(result.invoices) ? result.invoices : [result.invoices];
-        
-        if (data.length > 0 && (data[0].recipient_name || data[0].invoice_number)) {
-          setImportData(data.map(inv => ({
-            ...inv,
-            status: inv.status || 'draft',
-            invoice_type: 'service',
-            recipient_type: 'agent',
-            items: inv.service_description ? [{
-              description: inv.service_description,
-              quantity: 1,
-              unit_price: inv.subtotal || inv.total_amount || 0,
-              vat_rate: inv.vat_amount && inv.subtotal ? Math.round((inv.vat_amount / inv.subtotal) * 100) : 23,
-              total: inv.total_amount || 0
-            }] : []
-          })));
-          toast.success(`${data.length} fatura(s) extraída(s) do PDF`);
-        } else {
-          toast.error("Não foram encontrados dados de fatura no PDF");
+          if (result && result.invoices) {
+            const data = Array.isArray(result.invoices) ? result.invoices : [result.invoices];
+            data.forEach(inv => {
+              if (inv.recipient_name || inv.invoice_number) {
+                allExtractedInvoices.push({
+                  ...inv,
+                  status: inv.status || 'draft',
+                  invoice_type: 'service',
+                  recipient_type: 'agent',
+                  source_file: file.name,
+                  items: inv.service_description ? [{
+                    description: inv.service_description,
+                    quantity: 1,
+                    unit_price: inv.subtotal || inv.total_amount || 0,
+                    vat_rate: inv.vat_amount && inv.subtotal ? Math.round((inv.vat_amount / inv.subtotal) * 100) : 23,
+                    total: inv.total_amount || 0
+                  }] : []
+                });
+              }
+            });
+          }
+        } catch (fileError) {
+          console.error(`Erro ao processar ${file.name}:`, fileError);
+          toast.error(`Erro ao processar: ${file.name}`);
         }
+      }
+      
+      if (allExtractedInvoices.length > 0) {
+        setImportData(prev => [...prev, ...allExtractedInvoices]);
+        toast.success(`${allExtractedInvoices.length} fatura(s) extraída(s) de ${files.length} ficheiro(s)`);
       } else {
-        toast.error("Erro ao processar PDF - verifique se o documento contém faturas válidas");
+        toast.error("Não foram encontrados dados de fatura nos ficheiros");
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao importar ficheiro");
+      toast.error("Erro ao importar ficheiros");
     }
     setImporting(false);
+    setImportProgress({ current: 0, total: 0 });
+    
+    // Reset input
+    e.target.value = '';
   };
 
   const resetForm = () => {
