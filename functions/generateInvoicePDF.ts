@@ -231,39 +231,54 @@ Deno.serve(async (req) => {
     if (invoices_data?.monthlyData && invoices_data.monthlyData.length > 0) {
       checkNewPage(60);
       
+      // Section title with accent bar
+      doc.setFillColor(139, 92, 246);
+      doc.rect(margin, y, 4, 10, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Evolução Mensal', 20, y);
-      y += 10;
+      doc.text('Evolucao Mensal', margin + 8, y + 8);
+      y += 16;
 
       // Table header
-      doc.setFillColor(241, 245, 249);
-      doc.rect(20, y - 5, pageWidth - 40, 8, 'F');
+      doc.setFillColor(39, 37, 31);
+      doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
       
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      doc.text('Mês', 25, y);
-      doc.text('Faturado', 60, y);
-      doc.text('Recebido', 100, y);
-      doc.text('Pendente', 140, y);
-      doc.text('Nº Faturas', 170, y);
-      y += 8;
+      doc.setTextColor(255, 255, 255);
+      doc.text('Mes', margin + 5, y + 1);
+      doc.text('Faturado', margin + 40, y + 1);
+      doc.text('Recebido', margin + 80, y + 1);
+      doc.text('Pendente', margin + 120, y + 1);
+      doc.text('Faturas', margin + 160, y + 1);
+      doc.setTextColor(0, 0, 0);
+      y += 10;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
 
-      for (const month of invoices_data.monthlyData) {
+      const monthNames = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 
+                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+      for (let i = 0; i < invoices_data.monthlyData.length; i++) {
+        const month = invoices_data.monthlyData[i];
         checkNewPage(8);
         
-        doc.text(month.monthFull || month.month, 25, y);
-        doc.text(`€${month.faturado?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 60, y);
-        doc.text(`€${month.recebido?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 100, y);
-        doc.text(`€${month.pendente?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 140, y);
-        doc.text(String(month.count || 0), 175, y);
-        y += 6;
+        if (i % 2 === 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
+        }
+        
+        const monthName = sanitizeText(month.monthFull || monthNames[i] || month.month);
+        doc.text(monthName, margin + 5, y);
+        doc.text(formatCurrency(month.faturado), margin + 40, y);
+        doc.text(formatCurrency(month.recebido), margin + 80, y);
+        doc.text(formatCurrency(month.pendente), margin + 120, y);
+        doc.text(String(month.count || 0), margin + 165, y);
+        y += 8;
       }
 
-      y += 10;
+      y += 8;
     }
 
     // Top clients
