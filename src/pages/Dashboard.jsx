@@ -609,65 +609,73 @@ export default function Dashboard() {
         {/* Key Metrics */}
         {isWidgetActive('metrics') && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex justify-between items-start">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Imóveis</p>
-                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalProperties}</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
-                    +{recentProperties.length} ({dateRange}d)
-                  </p>
+          <Link to={createPageUrl("MyListings")}>
+            <Card className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Imóveis</p>
+                    <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalProperties}</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                      +{recentProperties.length} ({dateRange}d)
+                    </p>
+                  </div>
+                  <Building2 className="w-5 h-5 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
                 </div>
-                <Building2 className="w-5 h-5 sm:w-8 sm:h-8 text-blue-600 flex-shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex justify-between items-start">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Importação</p>
-                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
-                    {importedProperties} importados
-                  </p>
+          <Link to={createPageUrl("MyListings")}>
+            <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Importação</p>
+                    <p className="text-xl sm:text-3xl font-bold text-slate-900">{importSuccessRate}%</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                      {importedProperties} importados
+                    </p>
+                  </div>
+                  <TrendingUp className="w-5 h-5 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
                 </div>
-                <TrendingUp className="w-5 h-5 sm:w-8 sm:h-8 text-green-600 flex-shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex justify-between items-start">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Leads</p>
-                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalLeads}</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
-                    +{recentOpportunities.length} ({dateRange}d)
-                  </p>
+          <Link to={createPageUrl("CRMAdvanced")}>
+            <Card className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Total Leads</p>
+                    <p className="text-xl sm:text-3xl font-bold text-slate-900">{totalLeads}</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                      +{recentOpportunities.length} ({dateRange}d)
+                    </p>
+                  </div>
+                  <Users className="w-5 h-5 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
                 </div>
-                <Users className="w-5 h-5 sm:w-8 sm:h-8 text-purple-600 flex-shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card className="border-l-4 border-l-amber-500">
-            <CardContent className="p-3 sm:p-6">
-              <div className="flex justify-between items-start">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Conversão</p>
-                  <p className="text-xl sm:text-3xl font-bold text-slate-900">{conversionRate}%</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
-                    {closedLeads} fechados
-                  </p>
+          <Link to={createPageUrl("CRMAdvanced")}>
+            <Card className="border-l-4 border-l-amber-500 hover:shadow-md transition-shadow cursor-pointer">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-slate-600 mb-0.5 sm:mb-1 truncate">Conversão</p>
+                    <p className="text-xl sm:text-3xl font-bold text-slate-900">{conversionRate}%</p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1 truncate">
+                      {closedLeads} fechados
+                    </p>
+                  </div>
+                  <Target className="w-5 h-5 sm:w-8 sm:h-8 text-amber-600 flex-shrink-0" />
                 </div>
-                <Target className="w-5 h-5 sm:w-8 sm:h-8 text-amber-600 flex-shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
         )}
 
