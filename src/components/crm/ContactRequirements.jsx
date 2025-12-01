@@ -85,23 +85,31 @@ export default function ContactRequirements({ contact, onUpdate }) {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
+      console.log('Saving requirements for contact:', contact.id, data);
+      const result = await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
+      console.log('Save result:', result);
       return data;
     },
     onSuccess: async (savedRequirements) => {
+      console.log('Requirements saved successfully:', savedRequirements);
       toast.success("Requisitos atualizados");
       setRequirements(savedRequirements);
       setEditing(false);
       await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       
       // Fetch the updated contact from server
-      const updatedContacts = await base44.entities.ClientContact.filter({ id: contact.id });
-      if (updatedContacts.length > 0 && onUpdate) {
-        onUpdate(updatedContacts[0]);
+      try {
+        const updatedContacts = await base44.entities.ClientContact.filter({ id: contact.id });
+        if (updatedContacts.length > 0 && onUpdate) {
+          onUpdate(updatedContacts[0]);
+        }
+      } catch (fetchErr) {
+        console.error('Error fetching updated contact:', fetchErr);
       }
     },
     onError: (error) => {
-      toast.error("Erro ao guardar requisitos");
+      console.error('Error saving requirements:', error);
+      toast.error("Erro ao guardar requisitos: " + (error.message || "Erro desconhecido"));
     }
   });
 
