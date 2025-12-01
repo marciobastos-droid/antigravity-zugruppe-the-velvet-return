@@ -14,7 +14,7 @@ import {
   FileText, Plus, Search, Euro, Calendar, Send, 
   CheckCircle2, Clock, AlertCircle, Trash2, Edit,
   Download, Mail, Building2, User, Filter, Eye,
-  Receipt, TrendingUp, X
+  Receipt, TrendingUp, X, Upload, BarChart3
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays, isAfter, isBefore } from "date-fns";
@@ -39,11 +39,15 @@ const typeConfig = {
 
 export default function InvoiceManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [activeTab, setActiveTab] = useState("list");
+  const [importData, setImportData] = useState([]);
+  const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -104,6 +108,90 @@ export default function InvoiceManager() {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
     }
   });
+
+  const bulkCreateMutation = useMutation({
+    mutationFn: async (invoices) => {
+      const year = new Date().getFullYear();
+      let count = invoices.filter(i => i.invoice_number?.startsWith(`FAT-${year}`)).length;
+      
+      const results = [];
+      for (const inv of invoices) {
+        count++;
+        const invoice_number = inv.invoice_number || `FAT-${year}-${String(count).padStart(4, '0')}`;
+        results.push(await base44.entities.Invoice.create({ ...inv, invoice_number }));
+      }
+      return results;
+    },
+    onSuccess: (data) => {
+      toast.success(`${data.length} faturas importadas com sucesso`);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      setImportDialogOpen(false);
+      setImportData([]);
+    }
+  });
+
+  // Handle file import
+  const handleFileImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url,
+        json_schema: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              recipient_name: { type: "string" },
+              recipient_email: { type: "string" },
+              recipient_nif: { type: "string" },
+              invoice_type: { type: "string" },
+              issue_date: { type: "string" },
+              due_date: { type: "string" },
+              total_amount: { type: "number" },
+              subtotal: { type: "number" },
+              vat_amount: { type: "number" },
+              status: { type: "string" },
+              notes: { type: "string" },
+              items: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    description: { type: "string" },
+                    quantity: { type: "number" },
+                    unit_price: { type: "number" },
+                    vat_rate: { type: "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status === 'success' && result.output) {
+        const data = Array.isArray(result.output) ? result.output : [result.output];
+        setImportData(data.map(inv => ({
+          ...inv,
+          status: inv.status || 'draft',
+          invoice_type: inv.invoice_type || 'agent',
+          recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
+        })));
+        toast.success(`${data.length} faturas encontradas no ficheiro`);
+      } else {
+        toast.error("Erro ao processar ficheiro");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao importar ficheiro");
+    }
+    setImporting(false);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -272,13 +360,18 @@ export default function InvoiceManager() {
           </h2>
           <p className="text-slate-600">Emissão e controlo de faturas a agências e agentes</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Fatura
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+            <Upload className="w-4 h-4 mr-2" />
+            Importar
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Fatura
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingInvoice ? "Editar Fatura" : "Nova Fatura"}</DialogTitle>
@@ -484,7 +577,113 @@ export default function InvoiceManager() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Import Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Upload className="w-5 h-5" />
+              Importar Faturas
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+              <Upload className="w-10 h-10 mx-auto text-slate-400 mb-3" />
+              <p className="text-sm text-slate-600 mb-3">
+                Carregue um ficheiro CSV, Excel ou PDF com os dados das faturas
+              </p>
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls,.pdf"
+                onChange={handleFileImport}
+                className="hidden"
+                id="invoice-import"
+              />
+              <label htmlFor="invoice-import">
+                <Button variant="outline" asChild disabled={importing}>
+                  <span>{importing ? "A processar..." : "Selecionar Ficheiro"}</span>
+                </Button>
+              </label>
+            </div>
+
+            {importData.length > 0 && (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-green-700">
+                    <CheckCircle2 className="w-4 h-4 inline mr-1" />
+                    {importData.length} faturas prontas para importar
+                  </p>
+                </div>
+
+                <div className="max-h-64 overflow-y-auto border rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 sticky top-0">
+                      <tr>
+                        <th className="text-left p-2">Destinatário</th>
+                        <th className="text-left p-2">Tipo</th>
+                        <th className="text-right p-2">Valor</th>
+                        <th className="text-left p-2">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importData.map((inv, idx) => (
+                        <tr key={idx} className="border-t">
+                          <td className="p-2">
+                            <p className="font-medium">{inv.recipient_name}</p>
+                            <p className="text-xs text-slate-500">{inv.recipient_email}</p>
+                          </td>
+                          <td className="p-2">{typeConfig[inv.invoice_type]?.label || inv.invoice_type}</td>
+                          <td className="p-2 text-right font-medium">€{inv.total_amount?.toFixed(2) || '0.00'}</td>
+                          <td className="p-2">
+                            <Badge className={statusConfig[inv.status]?.color || 'bg-slate-100'}>
+                              {statusConfig[inv.status]?.label || inv.status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setImportData([])} className="flex-1">
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={() => bulkCreateMutation.mutate(importData)} 
+                    disabled={bulkCreateMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    {bulkCreateMutation.isPending ? "A importar..." : `Importar ${importData.length} Faturas`}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Faturas
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Análise Financeira
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="analytics" className="mt-4">
+          <FinancialAnalytics invoices={invoices} />
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-4 space-y-4">
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -664,6 +863,219 @@ export default function InvoiceManager() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// Financial Analytics Component
+function FinancialAnalytics({ invoices }) {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+
+  // Monthly revenue data
+  const monthlyData = Array.from({ length: 12 }, (_, i) => {
+    const monthInvoices = invoices.filter(inv => {
+      if (!inv.issue_date) return false;
+      const date = new Date(inv.issue_date);
+      return date.getFullYear() === currentYear && date.getMonth() === i;
+    });
+
+    const paid = monthInvoices.filter(i => i.status === 'paid');
+    const pending = monthInvoices.filter(i => i.status === 'sent' || i.status === 'pending');
+
+    return {
+      month: format(new Date(currentYear, i, 1), 'MMM', { locale: ptBR }),
+      faturado: monthInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      recebido: paid.reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      pendente: pending.reduce((sum, i) => sum + (i.total_amount || 0), 0)
+    };
+  });
+
+  // By type
+  const byType = Object.keys(typeConfig).map(type => ({
+    name: typeConfig[type].label,
+    value: invoices.filter(i => i.invoice_type === type).reduce((sum, i) => sum + (i.total_amount || 0), 0),
+    count: invoices.filter(i => i.invoice_type === type).length
+  })).filter(t => t.value > 0);
+
+  // Top clients
+  const clientTotals = invoices.reduce((acc, inv) => {
+    const key = inv.recipient_email || inv.recipient_name;
+    if (!acc[key]) acc[key] = { name: inv.recipient_name, email: inv.recipient_email, total: 0, count: 0 };
+    acc[key].total += inv.total_amount || 0;
+    acc[key].count++;
+    return acc;
+  }, {});
+
+  const topClients = Object.values(clientTotals)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  // Totals
+  const totalFaturado = invoices.reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalRecebido = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalPendente = invoices.filter(i => i.status === 'sent' || i.status === 'pending').reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalVencido = invoices.filter(i => i.status === 'overdue' || (i.status === 'sent' && i.due_date && isBefore(new Date(i.due_date), new Date()))).reduce((sum, i) => sum + (i.total_amount || 0), 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <p className="text-sm text-blue-600 mb-1">Total Faturado</p>
+            <p className="text-2xl font-bold text-blue-900">€{totalFaturado.toFixed(2)}</p>
+            <p className="text-xs text-blue-600">{invoices.length} faturas</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4">
+            <p className="text-sm text-green-600 mb-1">Total Recebido</p>
+            <p className="text-2xl font-bold text-green-900">€{totalRecebido.toFixed(2)}</p>
+            <p className="text-xs text-green-600">{((totalRecebido/totalFaturado)*100 || 0).toFixed(0)}% do total</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+          <CardContent className="p-4">
+            <p className="text-sm text-amber-600 mb-1">Pendente</p>
+            <p className="text-2xl font-bold text-amber-900">€{totalPendente.toFixed(2)}</p>
+            <p className="text-xs text-amber-600">A aguardar pagamento</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+          <CardContent className="p-4">
+            <p className="text-sm text-red-600 mb-1">Vencido</p>
+            <p className="text-2xl font-bold text-red-900">€{totalVencido.toFixed(2)}</p>
+            <p className="text-xs text-red-600">Requer atenção</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Monthly Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Faturação Mensal {currentYear}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {monthlyData.slice(0, currentMonth + 1).map((m, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium capitalize">{m.month}</span>
+                    <span>€{m.faturado.toFixed(0)}</span>
+                  </div>
+                  <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
+                    <div 
+                      className="bg-green-500" 
+                      style={{ width: `${(m.recebido / (m.faturado || 1)) * 100}%` }}
+                    />
+                    <div 
+                      className="bg-amber-400" 
+                      style={{ width: `${(m.pendente / (m.faturado || 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-4 mt-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-green-500" />
+                <span>Recebido</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-amber-400" />
+                <span>Pendente</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Clients */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Top Clientes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topClients.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">Sem dados</p>
+            ) : (
+              <div className="space-y-3">
+                {topClients.map((client, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-semibold text-slate-700">
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{client.name}</p>
+                        <p className="text-xs text-slate-500">{client.count} faturas</p>
+                      </div>
+                    </div>
+                    <p className="font-bold text-slate-900">€{client.total.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* By Type */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Por Tipo de Fatura</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {byType.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">Sem dados</p>
+            ) : (
+              <div className="space-y-3">
+                {byType.map((type, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">{type.name}</p>
+                      <p className="text-xs text-slate-500">{type.count} faturas</p>
+                    </div>
+                    <p className="font-bold text-slate-900">€{type.value.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Payment Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Estado dos Pagamentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(statusConfig).map(([key, config]) => {
+                const count = invoices.filter(i => i.status === key).length;
+                const value = invoices.filter(i => i.status === key).reduce((sum, i) => sum + (i.total_amount || 0), 0);
+                if (count === 0) return null;
+                
+                const Icon = config.icon;
+                return (
+                  <div key={key} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge className={config.color}>
+                        <Icon className="w-3 h-3 mr-1" />
+                        {config.label}
+                      </Badge>
+                      <span className="text-sm text-slate-500">({count})</span>
+                    </div>
+                    <span className="font-medium">€{value.toFixed(2)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
