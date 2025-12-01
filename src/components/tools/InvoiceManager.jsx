@@ -547,7 +547,7 @@ Retorna um array com todas as faturas encontradas no documento.`,
   };
 
   const toggleSelectAll = () => {
-    const payableInvoices = filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending');
+    const payableInvoices = filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending' || i.status === 'overdue');
     if (selectedInvoices.length === payableInvoices.length) {
       setSelectedInvoices([]);
     } else {
@@ -1301,12 +1301,12 @@ Obrigado.`
             </Select>
           </div>
           {/* Select All for payable invoices */}
-          {filteredInvoices.some(i => i.status === 'sent' || i.status === 'pending') && (
+          {filteredInvoices.some(i => i.status === 'sent' || i.status === 'pending' || i.status === 'overdue') && (
             <div className="mt-3 pt-3 border-t">
               <Button variant="outline" size="sm" onClick={toggleSelectAll}>
-                {selectedInvoices.length === filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending').length 
+                {selectedInvoices.length === filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending' || i.status === 'overdue').length 
                   ? 'Desselecionar Todas' 
-                  : 'Selecionar Pendentes/Enviadas'}
+                  : 'Selecionar Pendentes/Enviadas/Vencidas'}
               </Button>
             </div>
           )}
@@ -1339,7 +1339,7 @@ Obrigado.`
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 min-w-0 flex-1">
                         {/* Checkbox for payable invoices */}
-                        {(invoice.status === 'sent' || invoice.status === 'pending') && (
+                        {(invoice.status === 'sent' || invoice.status === 'pending' || invoice.status === 'overdue') && (
                           <input
                             type="checkbox"
                             checked={selectedInvoices.includes(invoice.id)}
@@ -1381,7 +1381,7 @@ Obrigado.`
                             <Send className="w-4 h-4" />
                           </Button>
                         )}
-                        {invoice.status === 'sent' && (
+                        {(invoice.status === 'sent' || invoice.status === 'overdue') && (
                           <>
                             <Button variant="outline" size="sm" onClick={() => handleOpenPayment(invoice)}>
                               <CreditCard className="w-4 h-4 mr-1" />
