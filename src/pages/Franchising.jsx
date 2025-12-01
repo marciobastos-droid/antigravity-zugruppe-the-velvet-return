@@ -842,10 +842,28 @@ export default function Franchising() {
                     <Card className="bg-amber-50 border-amber-200">
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="w-6 h-6 text-amber-600 mx-auto mb-1" />
-                        <p className="text-2xl font-bold text-amber-900">{selectedFranchise.royalty_percentage || 0}%</p>
+                        <p className="text-2xl font-bold text-amber-900">{selectedFranchise.royalty_percentage ?? 5}%</p>
                         <p className="text-xs text-amber-700">Royalties</p>
                       </CardContent>
                     </Card>
+                  </div>
+
+                  {/* Custos Fixos */}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-pink-50 rounded-lg border border-pink-200">
+                      <p className="text-slate-500 text-xs">Fundo de Marketing</p>
+                      <p className="font-bold text-pink-700">{selectedFranchise.marketing_fund_percentage ?? 1.5}%</p>
+                    </div>
+                    <div className="p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <p className="text-slate-500 text-xs">Entrada Física</p>
+                      <p className="font-bold text-indigo-700">€{(selectedFranchise.physical_entry_fee ?? 15000).toLocaleString()}</p>
+                    </div>
+                    {selectedFranchise.initial_investment && (
+                      <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p className="text-slate-500 text-xs">Investimento Inicial</p>
+                        <p className="font-bold text-slate-700">€{selectedFranchise.initial_investment.toLocaleString()}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Details */}
