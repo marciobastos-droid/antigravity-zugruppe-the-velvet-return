@@ -28,13 +28,15 @@ export default function FocusMode({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-slate-900/95 z-50 flex items-center justify-center p-4 cursor-pointer"
+        onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="w-full max-w-4xl"
+          className="w-full max-w-4xl cursor-default"
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -126,7 +128,7 @@ export default function FocusMode({
           </div>
 
           <p className="text-center text-slate-500 text-sm mt-8">
-            Pressione ESC ou clique no X para sair
+            Pressione ESC ou clique fora para sair
           </p>
         </motion.div>
       </motion.div>
