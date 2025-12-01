@@ -244,7 +244,7 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         )}
       </ScrollArea>
 
-      <div className="p-3 border-t space-y-2">
+      <div className="p-3 border-t">
         <div className="flex gap-2">
           <Input
             value={message}
@@ -266,29 +266,6 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
             )}
           </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs"
-          onClick={async () => {
-            console.log('=== TEST WHATSAPP DIRECT ===');
-            try {
-              const res = await base44.functions.invoke('sendWhatsApp', {
-                phoneNumber: contact.phone,
-                message: 'Teste de conexão WhatsApp',
-                contactId: contact.id,
-                contactName: contact.full_name
-              });
-              console.log('Test result:', res);
-              alert('Resultado: ' + JSON.stringify(res?.data || res, null, 2));
-            } catch (err) {
-              console.error('Test error:', err);
-              alert('Erro: ' + err.message);
-            }
-          }}
-        >
-          🧪 Testar Envio WhatsApp (Debug)
-        </Button>
       </div>
     </Card>
   );
