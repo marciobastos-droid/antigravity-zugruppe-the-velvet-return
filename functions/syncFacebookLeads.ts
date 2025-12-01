@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
       };
 
       // Criar lead na base de dados
-      await base44.entities.FacebookLead.create(leadData);
+      const createdFbLead = await base44.entities.FacebookLead.create(leadData);
       newLeads.push(leadData);
       
       // Adicionar aos sets para evitar duplicados na mesma sincronização
@@ -162,6 +162,64 @@ Deno.serve(async (req) => {
       }
       if (phone && phone.length >= 9) {
         existingPhones.add(phone);
+      }
+
+      // Auto-criar Oportunidade para cada lead
+      try {
+        // Verificar se já existe contacto com este email
+        let contactId = null;
+        if (email) {
+          const existingContacts = await base44.entities.ClientContact.filter({ email: email });
+          if (existingContacts && existingContacts.length > 0) {
+            contactId = existingContacts[0].id;
+            // Atualizar agente se definido
+            if (assigned_to) {
+              await base44.entities.ClientContact.update(contactId, { assigned_agent: assigned_to });
+            }
+          } else {
+            // Criar novo contacto
+            const newContact = await base44.entities.ClientContact.create({
+              full_name: leadData.full_name,
+              email: leadData.email,
+              phone: leadData.phone,
+              city: leadData.location,
+              contact_type: "client",
+              source: "facebook_ads",
+              assigned_agent: assigned_to || undefined,
+              notes: `Importado do Facebook Lead Ads\nCampanha: ${leadData.campaign_name || leadData.campaign_id}\n${leadData.message || ''}`
+            });
+            contactId = newContact.id;
+          }
+        }
+
+        // Criar oportunidade
+        const opportunity = await base44.entities.Opportunity.create({
+          lead_type: "comprador",
+          contact_id: contactId || undefined,
+          buyer_name: leadData.full_name,
+          buyer_email: leadData.email,
+          buyer_phone: leadData.phone,
+          location: leadData.location,
+          budget: leadData.budget ? Number(leadData.budget) : undefined,
+          property_type_interest: leadData.property_type,
+          assigned_to: assigned_to || undefined,
+          message: `Lead do Facebook (Campanha: ${leadData.campaign_name || leadData.campaign_id})\n\n${leadData.message || ''}`,
+          status: "new",
+          priority: "high",
+          lead_source: "facebook_ads",
+          source_detail: leadData.campaign_name || leadData.campaign_id
+        });
+
+        // Atualizar FacebookLead com ID da oportunidade criada
+        await base44.entities.FacebookLead.update(createdFbLead.id, {
+          status: "converted",
+          converted_to_opportunity_id: opportunity.id
+        });
+
+        console.log(`Auto-created opportunity for lead: ${leadData.full_name}`);
+      } catch (oppError) {
+        console.error('Failed to auto-create opportunity:', oppError);
+        // Não falhar a sincronização por erro na criação de oportunidade
       }
     }
 
