@@ -932,65 +932,73 @@ export default function Dashboard() {
           <>
             {/* Key Metrics for non-admin - filtered data */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card className="border-l-4 border-l-blue-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm text-slate-600 mb-1">Meus Imóveis</p>
-                      <p className="text-3xl font-bold text-slate-900">{totalProperties}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {recentProperties.length} nos últimos {dateRange} dias
-                      </p>
+              <Link to={createPageUrl("MyListings")}>
+                <Card className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Meus Imóveis</p>
+                        <p className="text-3xl font-bold text-slate-900">{totalProperties}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {recentProperties.length} nos últimos {dateRange} dias
+                        </p>
+                      </div>
+                      <Building2 className="w-8 h-8 text-blue-600" />
                     </div>
-                    <Building2 className="w-8 h-8 text-blue-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card className="border-l-4 border-l-green-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm text-slate-600 mb-1">Imóveis Ativos</p>
-                      <p className="text-3xl font-bold text-slate-900">{activeProperties}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {soldProperties} vendidos
-                      </p>
+              <Link to={createPageUrl("MyListings")}>
+                <Card className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Imóveis Ativos</p>
+                        <p className="text-3xl font-bold text-slate-900">{activeProperties}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {soldProperties} vendidos
+                        </p>
+                      </div>
+                      <TrendingUp className="w-8 h-8 text-green-600" />
                     </div>
-                    <TrendingUp className="w-8 h-8 text-green-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card className="border-l-4 border-l-purple-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm text-slate-600 mb-1">Meus Leads</p>
-                      <p className="text-3xl font-bold text-slate-900">{totalLeads}</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {recentOpportunities.length} nos últimos {dateRange} dias
-                      </p>
+              <Link to={createPageUrl("CRMAdvanced")}>
+                <Card className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Meus Leads</p>
+                        <p className="text-3xl font-bold text-slate-900">{totalLeads}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {recentOpportunities.length} nos últimos {dateRange} dias
+                        </p>
+                      </div>
+                      <Users className="w-8 h-8 text-purple-600" />
                     </div>
-                    <Users className="w-8 h-8 text-purple-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
 
-              <Card className="border-l-4 border-l-amber-500">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm text-slate-600 mb-1">Taxa de Conversão</p>
-                      <p className="text-3xl font-bold text-slate-900">{conversionRate}%</p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {closedLeads} leads fechados
-                      </p>
+              <Link to={createPageUrl("CRMAdvanced")}>
+                <Card className="border-l-4 border-l-amber-500 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm text-slate-600 mb-1">Taxa de Conversão</p>
+                        <p className="text-3xl font-bold text-slate-900">{conversionRate}%</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {closedLeads} leads fechados
+                        </p>
+                      </div>
+                      <Target className="w-8 h-8 text-amber-600" />
                     </div>
-                    <Target className="w-8 h-8 text-amber-600" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
 
             {shouldShowChecklist && (
