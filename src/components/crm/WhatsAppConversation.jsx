@@ -66,7 +66,8 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
       
       if (result?.success) {
         setMessage("");
-        refetch();
+        await refetch();
+        queryClient.invalidateQueries({ queryKey: ['whatsappMessages', contact?.id] });
         queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
         toast.success("Mensagem enviada!");
         onMessageSent?.();
