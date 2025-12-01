@@ -187,6 +187,8 @@ export default function InvoiceManager() {
             vat_rate: 23,
             total: row.total_amount || 0
           }];
+          // Keep description for service type detection
+          row.service_description = row.description;
           delete row.description;
         }
         data.push(row);
@@ -214,7 +216,7 @@ export default function InvoiceManager() {
           setImportData(parsedData.map(inv => ({
             ...inv,
             status: inv.status || 'draft',
-            invoice_type: inv.invoice_type || 'agent',
+            invoice_type: inv.invoice_type || 'service',
             recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
           })));
           toast.success(`${parsedData.length} faturas encontradas no ficheiro CSV`);
@@ -732,7 +734,7 @@ export default function InvoiceManager() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 sticky top-0">
                       <tr>
-                        <th className="text-left p-2">Destinatário</th>
+                        <th className="text-left p-2">Destinatário / Descrição</th>
                         <th className="text-left p-2">Tipo</th>
                         <th className="text-right p-2">Valor</th>
                         <th className="text-left p-2">Estado</th>
@@ -744,6 +746,11 @@ export default function InvoiceManager() {
                           <td className="p-2">
                             <p className="font-medium">{inv.recipient_name}</p>
                             <p className="text-xs text-slate-500">{inv.recipient_email}</p>
+                            {inv.service_description && (
+                              <p className="text-xs text-blue-600 mt-1 truncate max-w-[200px]" title={inv.service_description}>
+                                {inv.service_description}
+                              </p>
+                            )}
                           </td>
                           <td className="p-2">{typeConfig[inv.invoice_type]?.label || inv.invoice_type}</td>
                           <td className="p-2 text-right font-medium">€{inv.total_amount?.toFixed(2) || '0.00'}</td>
@@ -1010,6 +1017,18 @@ function FinancialAnalytics({ invoices }) {
     count: invoices.filter(i => i.invoice_type === type).length
   })).filter(t => t.value > 0);
 
+  // By service description (for service type invoices)
+  const serviceInvoices = invoices.filter(i => i.invoice_type === 'service' || i.items?.length > 0);
+  const byService = serviceInvoices.reduce((acc, inv) => {
+    const desc = inv.items?.[0]?.description || inv.service_description || 'Outros Serviços';
+    const key = desc.substring(0, 30);
+    if (!acc[key]) acc[key] = { name: key, value: 0, count: 0 };
+    acc[key].value += inv.total_amount || 0;
+    acc[key].count++;
+    return acc;
+  }, {});
+  const topServices = Object.values(byService).sort((a, b) => b.value - a.value).slice(0, 5);
+
   // Top clients
   const clientTotals = invoices.reduce((acc, inv) => {
     const key = inv.recipient_email || inv.recipient_name;
@@ -1149,6 +1168,30 @@ function FinancialAnalytics({ invoices }) {
                       <p className="text-xs text-slate-500">{type.count} faturas</p>
                     </div>
                     <p className="font-bold text-slate-900">€{type.value.toFixed(2)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* By Service Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Por Serviço</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topServices.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">Sem dados de serviços</p>
+            ) : (
+              <div className="space-y-3">
+                {topServices.map((service, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate" title={service.name}>{service.name}</p>
+                      <p className="text-xs text-slate-500">{service.count} faturas</p>
+                    </div>
+                    <p className="font-bold text-slate-900 ml-2">€{service.value.toFixed(2)}</p>
                   </div>
                 ))}
               </div>
