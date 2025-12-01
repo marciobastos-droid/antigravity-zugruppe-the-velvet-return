@@ -24,7 +24,7 @@ import OpportunitiesGrid from "./OpportunitiesGrid";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
-  const { getAgentOptions } = useAgentNames();
+  const { getAgentOptions, getAgentName } = useAgentNames();
   const [viewMode, setViewMode] = React.useState(() => {
     // Default to grid on mobile
     return window.innerWidth < 768 ? "grid" : "table";
@@ -645,12 +645,14 @@ export default function OpportunitiesContent() {
               <div className="flex items-center gap-2">
                 <Select value={bulkAssignAgent} onValueChange={setBulkAssignAgent}>
                   <SelectTrigger className="w-48 bg-white">
-                    <SelectValue placeholder="Selecionar agente..." />
+                    <SelectValue placeholder="Selecionar agente...">
+                      {bulkAssignAgent ? getAgentName(bulkAssignAgent) : "Selecionar agente..."}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((u) => (
                       <SelectItem key={u.id} value={u.email}>
-                        {u.full_name}
+                        {u.display_name || u.full_name || u.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
