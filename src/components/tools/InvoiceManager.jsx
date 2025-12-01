@@ -110,14 +110,19 @@ export default function InvoiceManager() {
   });
 
   const bulkCreateMutation = useMutation({
-    mutationFn: async (invoices) => {
+    mutationFn: async (importedInvoices) => {
       const year = new Date().getFullYear();
-      let count = invoices.filter(i => i.invoice_number?.startsWith(`FAT-${year}`)).length;
+      const existingCount = invoices.filter(i => i.invoice_number?.startsWith(`FAT-${year}`)).length;
+      let count = existingCount;
       
       const results = [];
-      for (const inv of invoices) {
-        count++;
-        const invoice_number = inv.invoice_number || `FAT-${year}-${String(count).padStart(4, '0')}`;
+      for (const inv of importedInvoices) {
+        // Use imported invoice_number or generate new one
+        let invoice_number = inv.invoice_number;
+        if (!invoice_number) {
+          count++;
+          invoice_number = `FAT-${year}-${String(count).padStart(4, '0')}`;
+        }
         results.push(await base44.entities.Invoice.create({ ...inv, invoice_number }));
       }
       return results;
@@ -145,7 +150,9 @@ export default function InvoiceManager() {
       headers.forEach((header, idx) => {
         const value = values[idx] || '';
         // Map common header names
-        if (header.includes('nome') || header.includes('name') || header === 'destinatário') {
+        if (header.includes('numero') || header.includes('número') || header === 'nº' || header === 'invoice' || header === 'fatura') {
+          row.invoice_number = value;
+        } else if (header.includes('nome') || header.includes('name') || header === 'destinatário') {
           row.recipient_name = value;
         } else if (header.includes('email')) {
           row.recipient_email = value;
@@ -684,7 +691,7 @@ export default function InvoiceManager() {
                 Carregue um ficheiro CSV, Excel ou PDF com os dados das faturas
               </p>
               <p className="text-xs text-slate-500 mb-3">
-                CSV deve ter colunas: Nome, Email, NIF, Tipo, Data Emissão, Data Vencimento, Valor Total, Estado
+                CSV deve ter colunas: Nº Fatura, Nome, Email, NIF, Tipo, Data Emissão, Data Vencimento, Valor Total, Estado, Descrição
               </p>
               <input
                 type="file"
@@ -706,7 +713,7 @@ export default function InvoiceManager() {
                   variant="ghost" 
                   size="sm"
                   onClick={() => {
-                    const template = "Nome;Email;NIF;Tipo;Data Emissão;Data Vencimento;Valor Total;IVA;Estado;Descrição;Notas\nJoão Silva;joao@exemplo.com;123456789;Agente;2024-01-01;2024-01-31;123.00;23.00;Pendente;Mensalidade Janeiro;";
+                    const template = "Número;Nome;Email;NIF;Tipo;Data Emissão;Data Vencimento;Valor Total;IVA;Estado;Descrição;Notas\nFAT-2024-0001;João Silva;joao@exemplo.com;123456789;Serviço;2024-01-01;2024-01-31;123.00;23.00;Pendente;Mensalidade Janeiro;";
                     const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -734,6 +741,7 @@ export default function InvoiceManager() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 sticky top-0">
                       <tr>
+                        <th className="text-left p-2">Nº Fatura</th>
                         <th className="text-left p-2">Destinatário / Descrição</th>
                         <th className="text-left p-2">Tipo</th>
                         <th className="text-right p-2">Valor</th>
@@ -743,6 +751,9 @@ export default function InvoiceManager() {
                     <tbody>
                       {importData.map((inv, idx) => (
                         <tr key={idx} className="border-t">
+                          <td className="p-2">
+                            <span className="text-xs font-mono text-slate-600">{inv.invoice_number || '-'}</span>
+                          </td>
                           <td className="p-2">
                             <p className="font-medium">{inv.recipient_name}</p>
                             <p className="text-xs text-slate-500">{inv.recipient_email}</p>
