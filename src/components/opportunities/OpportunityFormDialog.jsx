@@ -127,16 +127,88 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       let result;
+      let contactId = data.profile_id || data.contact_id || prefillContact?.id;
+      
       if (isEditing) {
         result = await base44.entities.Opportunity.update(opportunity.id, data);
       } else {
+        // Se não tem contacto associado, procurar ou criar um
+        if (!contactId && data.buyer_name) {
+          // Procurar contacto existente por email ou telefone
+          let existingContact = null;
+          
+          if (data.buyer_email) {
+            existingContact = contacts.find(c => 
+              c.email?.toLowerCase() === data.buyer_email.toLowerCase()
+            );
+          }
+          
+          if (!existingContact && data.buyer_phone) {
+            const normalizedPhone = data.buyer_phone.replace(/\s+/g, '').replace(/[^\d+]/g, '');
+            existingContact = contacts.find(c => {
+              const contactPhone = c.phone?.replace(/\s+/g, '').replace(/[^\d+]/g, '');
+              return contactPhone && contactPhone === normalizedPhone;
+            });
+          }
+          
+          if (existingContact) {
+            // Contacto já existe - vincular a oportunidade
+            contactId = existingContact.id;
+            toast.info(`Oportunidade vinculada ao contacto existente: ${existingContact.full_name}`);
+          } else {
+            // Criar novo contacto automaticamente
+            const { data: contactRefData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
+            
+            const newContact = await base44.entities.ClientContact.create({
+              ref_id: contactRefData.ref_id,
+              full_name: data.buyer_name,
+              first_name: data.buyer_name.split(' ')[0],
+              last_name: data.buyer_name.split(' ').slice(1).join(' ') || '',
+              email: data.buyer_email || '',
+              phone: data.buyer_phone || '',
+              city: data.location || '',
+              contact_type: data.lead_type?.includes('parceiro') ? 'partner' : 'client',
+              status: 'active',
+              source: data.lead_source || 'direct_contact',
+              assigned_agent: data.assigned_to || '',
+              company_name: data.company_name || '',
+              property_requirements: {
+                budget_max: data.budget ? Number(data.budget) : null,
+                locations: data.location ? [data.location] : []
+              }
+            });
+            
+            contactId = newContact.id;
+            toast.success(`Novo contacto criado: ${data.buyer_name}`);
+          }
+        }
+        
         const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
-        result = await base44.entities.Opportunity.create({ ...data, ref_id: refData.ref_id });
+        result = await base44.entities.Opportunity.create({ 
+          ...data, 
+          ref_id: refData.ref_id,
+          contact_id: contactId,
+          profile_id: contactId
+        });
+        
+        // Adicionar oportunidade aos linked_opportunity_ids do contacto
+        if (contactId) {
+          try {
+            const contact = contacts.find(c => c.id === contactId);
+            const linkedIds = contact?.linked_opportunity_ids || [];
+            if (!linkedIds.includes(result.id)) {
+              await base44.entities.ClientContact.update(contactId, {
+                linked_opportunity_ids: [...linkedIds, result.id]
+              });
+            }
+          } catch (err) {
+            console.error("Erro ao vincular oportunidade ao contacto:", err);
+          }
+        }
       }
       
       // Atualizar o assigned_agent do contacto se estiver definido assigned_to
-      if (data.assigned_to && (data.profile_id || data.contact_id || prefillContact?.id)) {
-        const contactId = data.profile_id || data.contact_id || prefillContact?.id;
+      if (data.assigned_to && contactId) {
         try {
           await base44.entities.ClientContact.update(contactId, { 
             assigned_agent: data.assigned_to 
@@ -151,6 +223,7 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contactOpportunities'] });
       toast.success(isEditing ? "Oportunidade atualizada!" : "Oportunidade criada!");
       onOpenChange(false);
       onSaved?.();
