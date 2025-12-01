@@ -187,10 +187,21 @@ export default function InvoiceClientsManager() {
 
   // Get client invoices
   const getClientInvoices = (client) => {
-    return invoices.filter(inv => 
-      inv.recipient_email === client.email || 
-      inv.recipient_name === client.name
-    );
+    const clientEmail = client.email?.toLowerCase().trim();
+    const clientName = client.name?.toLowerCase().trim();
+    
+    return invoices.filter(inv => {
+      const invEmail = inv.recipient_email?.toLowerCase().trim();
+      const invName = inv.recipient_name?.toLowerCase().trim();
+      
+      // Match by email (if both exist)
+      if (clientEmail && invEmail && clientEmail === invEmail) return true;
+      
+      // Match by name (if both exist)
+      if (clientName && invName && clientName === invName) return true;
+      
+      return false;
+    });
   };
 
   // Get client stats
