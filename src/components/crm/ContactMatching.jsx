@@ -1154,6 +1154,150 @@ Quer agendar visitas? Responda aqui! 😊`;
         </TabsContent>
       </Tabs>
 
+      {/* Add Elected Property Dialog */}
+      <Dialog open={addPropertyDialogOpen} onOpenChange={setAddPropertyDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-amber-500" />
+              Adicionar Imóvel Eleito
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Input
+                value={propertySearch}
+                onChange={(e) => setPropertySearch(e.target.value)}
+                placeholder="Pesquisar por título, cidade, referência..."
+                className="pl-10"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {activeProperties
+                .filter(p => {
+                  if (!propertySearch) return true;
+                  const search = propertySearch.toLowerCase();
+                  return (
+                    p.title?.toLowerCase().includes(search) ||
+                    p.city?.toLowerCase().includes(search) ||
+                    p.ref_id?.toLowerCase().includes(search) ||
+                    p.address?.toLowerCase().includes(search)
+                  );
+                })
+                .slice(0, 20)
+                .map(property => {
+                  const isAlreadyFavorite = favoriteIds.includes(property.id);
+                  const isAlreadySent = alreadySentIds.includes(property.id);
+                  
+                  return (
+                    <Card 
+                      key={property.id} 
+                      className={`cursor-pointer hover:shadow-md transition-shadow ${
+                        isAlreadyFavorite ? 'border-pink-300 bg-pink-50/50' : ''
+                      }`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-3">
+                          {property.images?.[0] ? (
+                            <img 
+                              src={property.images[0]} 
+                              alt={property.title}
+                              className="w-20 h-16 object-cover rounded-lg flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-20 h-16 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Home className="w-6 h-6 text-slate-300" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-semibold text-slate-900 truncate">{property.title}</h4>
+                              {property.ref_id && (
+                                <Badge variant="outline" className="text-xs font-mono">{property.ref_id}</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-slate-600">
+                              <MapPin className="w-3 h-3" />
+                              {property.city}
+                              <span className="font-medium">€{property.price?.toLocaleString()}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                              {property.bedrooms && <span>T{property.bedrooms}</span>}
+                              {property.useful_area && <span>• {property.useful_area}m²</span>}
+                              <Badge variant="outline" className="text-xs">
+                                {propertyTypeLabels[property.property_type] || property.property_type}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            {isAlreadyFavorite ? (
+                              <Badge className="bg-pink-100 text-pink-700 border-pink-300">
+                                <Heart className="w-3 h-3 mr-1 fill-pink-500" />
+                                Eleito
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setAddingPropertyId(property.id);
+                                  handleFeedback(property.id, 'favorite');
+                                  setTimeout(() => {
+                                    setAddingPropertyId(null);
+                                    toast.success(`"${property.title}" adicionado como imóvel eleito!`);
+                                  }, 500);
+                                }}
+                                disabled={addingPropertyId === property.id}
+                                className="bg-amber-500 hover:bg-amber-600"
+                              >
+                                {addingPropertyId === property.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Star className="w-4 h-4 mr-1" />
+                                    Eleger
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            {isAlreadySent && (
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+                                <Check className="w-3 h-3 mr-1" />
+                                Enviado
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              
+              {propertySearch && activeProperties.filter(p => {
+                const search = propertySearch.toLowerCase();
+                return (
+                  p.title?.toLowerCase().includes(search) ||
+                  p.city?.toLowerCase().includes(search) ||
+                  p.ref_id?.toLowerCase().includes(search)
+                );
+              }).length === 0 && (
+                <div className="text-center py-8 text-slate-500">
+                  <Search className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                  <p>Nenhum imóvel encontrado</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t">
+              <Button variant="outline" onClick={() => setAddPropertyDialogOpen(false)}>
+                Fechar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Save Search Dialog */}
       <Dialog open={saveSearchDialogOpen} onOpenChange={setSaveSearchDialogOpen}>
         <DialogContent className="max-w-md">
