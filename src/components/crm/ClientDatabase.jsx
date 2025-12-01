@@ -161,21 +161,20 @@ export default function ClientDatabase() {
       const userType = user.user_type?.toLowerCase() || '';
       const permissions = user.permissions || {};
       
-      // Admins e gestores veem todos
+      // Admins e gestores veem todos - limit to 500 for performance
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
-        return await base44.entities.ClientContact.list('-created_date');
+        return await base44.entities.ClientContact.list('-created_date', 500);
       }
       
       // Verifica permissão canViewAllLeads ou canViewAllContacts
       if (permissions.canViewAllLeads === true || permissions.canViewAllContacts === true) {
-        return await base44.entities.ClientContact.list('-created_date');
+        return await base44.entities.ClientContact.list('-created_date', 500);
       }
       
       // Para agentes: buscar apenas os contactos atribuídos ou criados por eles
-      // Usar queries separadas para melhor performance
       const [assignedContacts, createdContacts] = await Promise.all([
-        base44.entities.ClientContact.filter({ assigned_agent: user.email }, '-created_date'),
-        base44.entities.ClientContact.filter({ created_by: user.email }, '-created_date')
+        base44.entities.ClientContact.filter({ assigned_agent: user.email }, '-created_date', 250),
+        base44.entities.ClientContact.filter({ created_by: user.email }, '-created_date', 250)
       ]);
       
       // Combinar e remover duplicados
@@ -189,14 +188,16 @@ export default function ClientDatabase() {
         new Date(b.created_date) - new Date(a.created_date)
       );
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 30000 // 30 second cache
   });
 
+  // Lazy load communications only when needed (not on initial render)
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', user?.email],
     queryFn: async () => {
       if (!user) return [];
-      const allComms = await base44.entities.CommunicationLog.list('-communication_date');
+      const allComms = await base44.entities.CommunicationLog.list('-communication_date', 200);
       
       const userType = user.user_type?.toLowerCase() || '';
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
@@ -205,14 +206,16 @@ export default function ClientDatabase() {
       
       return allComms.filter(c => c.agent_email === user.email || c.created_by === user.email);
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 60000 // 1 minute cache
   });
 
+  // Lazy load opportunities with limit
   const { data: opportunities = [] } = useQuery({
     queryKey: ['opportunities', user?.email],
     queryFn: async () => {
       if (!user) return [];
-      const allOpps = await base44.entities.Opportunity.list();
+      const allOpps = await base44.entities.Opportunity.list('-created_date', 500);
       
       const userType = user.user_type?.toLowerCase() || '';
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
@@ -223,12 +226,8 @@ export default function ClientDatabase() {
         o.seller_email === user.email || o.assigned_to === user.email || o.created_by === user.email
       );
     },
-    enabled: !!user
-  });
-
-  const { data: properties = [] } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list()
+    enabled: !!user,
+    staleTime: 60000 // 1 minute cache
   });
 
   const createMutation = useMutation({
@@ -548,49 +547,8 @@ export default function ClientDatabase() {
     return combined;
   }, [opportunitiesByContact, opportunities]);
 
-  // Memoized active properties for matching score - limit sample for performance
-  const activeProperties = useMemo(() => 
-    properties.filter(p => p.status === 'active').slice(0, 100), 
-    [properties]
-  );
-
-  // Memoized matching scores - only calculate for visible clients to improve performance
-  const matchingScores = useMemo(() => {
-    const scores = new Map();
-    if (activeProperties.length === 0) return scores;
-
-    // Only calculate for first 50 clients for performance
-    const clientsToScore = clients.slice(0, 50);
-
-    clientsToScore.forEach(client => {
-      const req = client.property_requirements;
-      if (!req || Object.keys(req).length === 0) {
-        scores.set(client.id, 0);
-        return;
-      }
-
-      let matchCount = 0;
-      const propsToCheck = activeProperties.slice(0, 20); // Limit check
-      propsToCheck.forEach(property => {
-        let matches = true;
-        if (req.locations?.length > 0) {
-          matches = req.locations.some(loc => 
-            property.city?.toLowerCase().includes(loc.toLowerCase())
-          );
-        }
-        if (matches && req.budget_max && property.price > req.budget_max * 1.15) matches = false;
-        if (matches && req.budget_min && property.price < req.budget_min * 0.85) matches = false;
-        if (matches && req.bedrooms_min && property.bedrooms < req.bedrooms_min) matches = false;
-        if (matches) matchCount++;
-      });
-      scores.set(client.id, Math.min(100, Math.round((matchCount / Math.min(propsToCheck.length, 10)) * 100)));
-    });
-    return scores;
-  }, [clients, activeProperties]);
-
-  const getMatchingScore = useCallback((clientId) => {
-    return matchingScores.get(clientId) || 0;
-  }, [matchingScores]);
+  // Disable matching score calculation - too slow
+  const getMatchingScore = useCallback(() => 0, []);
 
   // Memoized unique values for filters
   const { allCities, allTags, allAssignedAgents } = useMemo(() => ({
@@ -1313,10 +1271,9 @@ export default function ClientDatabase() {
             </CardContent>
           </Card>
         ) : (
-          filteredClients.map((client) => {
+          filteredClients.slice(0, 50).map((client) => {
             const clientComms = getClientCommunications(client.id);
             const clientOpps = getClientOpportunities(client);
-            const matchScore = getMatchingScore(client.id);
             const req = client.property_requirements;
             const hasRequirements = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
             
@@ -1354,19 +1311,11 @@ export default function ClientDatabase() {
                       </div>
                     </div>
                     
-                    {/* Match Score - Compact on Mobile */}
+                    {/* Requirements Indicator */}
                     {hasRequirements && (
                       <div className="text-center p-2 md:p-3 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg md:rounded-xl border border-purple-100 flex-shrink-0">
-                        <div className="flex items-center justify-center gap-1 mb-0.5">
-                          <Sparkles className="w-3 h-3 text-purple-500" />
-                          <span className="text-xs text-purple-600 hidden md:inline">Match</span>
-                        </div>
-                        <div className={`text-base md:text-lg font-bold ${
-                          matchScore >= 70 ? 'text-green-600' : 
-                          matchScore >= 40 ? 'text-amber-600' : 'text-slate-500'
-                        }`}>
-                          {matchScore}%
-                        </div>
+                        <Sparkles className="w-4 h-4 text-purple-500 mx-auto" />
+                        <span className="text-xs text-purple-600">Requisitos</span>
                       </div>
                     )}
                   </div>
