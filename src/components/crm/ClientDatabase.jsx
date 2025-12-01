@@ -1267,7 +1267,11 @@ export default function ClientDatabase() {
             <CardContent>
               <User className="w-12 h-12 text-slate-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhum contacto encontrado</h3>
-              <p className="text-slate-600">Crie o primeiro contacto para começar</p>
+              <p className="text-slate-600">
+                {clients.length === 0 
+                  ? "Não tem contactos atribuídos. Crie um novo contacto para começar."
+                  : "Ajuste os filtros de pesquisa para ver resultados."}
+              </p>
             </CardContent>
           </Card>
         ) : (
