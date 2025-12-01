@@ -5,15 +5,21 @@ const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
 const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
 
 Deno.serve(async (req) => {
+  console.log('=== sendWhatsApp function called ===');
+  
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
+    console.log('User authenticated:', user?.email);
 
     if (!user) {
+      console.log('ERROR: User not authenticated');
       return Response.json({ success: false, error: 'Não autenticado' });
     }
 
-    const { phoneNumber, message, contactId, contactName } = await req.json();
+    const body = await req.json();
+    const { phoneNumber, message, contactId, contactName } = body;
+    console.log('Request params - phone:', phoneNumber, 'message length:', message?.length);
 
     if (!phoneNumber || !message) {
       return Response.json({ success: false, error: 'Número e mensagem são obrigatórios' });
@@ -32,7 +38,10 @@ Deno.serve(async (req) => {
       }
     }
     
+    console.log('Credentials check - phoneNumberId:', phoneNumberId ? 'SET' : 'MISSING', 'accessToken:', accessToken ? 'SET (length: ' + accessToken.length + ')' : 'MISSING');
+    
     if (!phoneNumberId || !accessToken) {
+      console.log('ERROR: Missing WhatsApp credentials');
       return Response.json({ 
         success: false, 
         error: 'WhatsApp Business não está configurado. Configure as credenciais nas variáveis de ambiente ou em Ferramentas > WhatsApp Business.',
@@ -138,7 +147,10 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('sendWhatsApp error:', error);
+    console.error('=== sendWhatsApp EXCEPTION ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     return Response.json({ 
       success: false, 
       error: error.message || 'Erro ao enviar mensagem'
