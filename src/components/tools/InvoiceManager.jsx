@@ -235,28 +235,48 @@ export default function InvoiceManager() {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analisa este documento de fatura(s) e extrai TODOS os dados. 
-        
-Para cada fatura encontrada, extrai:
-- invoice_number: número da fatura (ex: FAT-2024-001, FT 2024/123, etc.)
-- recipient_name: nome do cliente/destinatário
-- recipient_email: email do cliente (se disponível)
-- recipient_nif: NIF/contribuinte do cliente
-- recipient_address: morada do cliente
-- issue_date: data de emissão no formato YYYY-MM-DD
-- due_date: data de vencimento no formato YYYY-MM-DD
-- total_amount: valor TOTAL da fatura (com IVA) como número
-- subtotal: valor sem IVA como número
-- vat_amount: valor do IVA como número
-- service_description: descrição dos serviços/produtos faturados
-- status: "paid" se indicar pago, senão "pending"
-- notes: observações adicionais
+        prompt: `Analisa cuidadosamente este documento PDF de fatura portuguesa e extrai TODOS os dados com precisão.
 
-IMPORTANTE: 
-- Converte todas as datas para formato YYYY-MM-DD
-- Converte valores monetários para números (sem símbolos € ou separadores)
-- Se houver múltiplas linhas de itens, junta as descrições
-- Extrai o número da fatura exatamente como aparece no documento`,
+INSTRUÇÕES DE EXTRAÇÃO:
+
+1. NÚMERO DA FATURA (invoice_number):
+   - Procura por: "Fatura nº", "FT", "FAT", "Factura", "Invoice", "Nº", "Documento"
+   - Extrai o número COMPLETO incluindo prefixos e ano (ex: "FT 2024/00123", "FAT-2024-0001")
+
+2. DADOS DO CLIENTE/DESTINATÁRIO:
+   - recipient_name: Nome completo do cliente (procura após "Cliente:", "Destinatário:", "Nome:", "Exmo.")
+   - recipient_email: Email do cliente se presente
+   - recipient_nif: Número de contribuinte (9 dígitos, procura "NIF:", "Contribuinte:", "NIPC:")
+   - recipient_address: Morada completa do cliente
+
+3. DADOS DO EMITENTE (se o cliente não estiver claro, pode ser o emitente):
+   - Verifica quem está a PAGAR vs quem está a RECEBER
+
+4. DATAS (converter para YYYY-MM-DD):
+   - issue_date: Data de emissão (procura "Data:", "Emissão:", "Data de emissão")
+   - due_date: Data de vencimento (procura "Vencimento:", "Data limite", "Prazo de pagamento")
+
+5. VALORES MONETÁRIOS (extrair APENAS números, sem € ou separadores):
+   - total_amount: Valor TOTAL com IVA (procura "Total:", "Total a pagar:", "Valor total")
+   - subtotal: Valor base sem IVA (procura "Subtotal:", "Base tributável:", "Incidência")
+   - vat_amount: Valor do IVA (procura "IVA:", "Taxa:", "Imposto")
+   - ATENÇÃO: Usa ponto (.) como separador decimal, não vírgula
+
+6. DESCRIÇÃO DOS SERVIÇOS (service_description):
+   - MUITO IMPORTANTE: Extrai a descrição COMPLETA dos serviços/produtos
+   - Procura na tabela de itens, linhas de detalhe, campo "Descrição"
+   - Se houver múltiplos itens, junta-os separados por "; "
+   - Exemplos: "Consultoria imobiliária", "Comissão de venda", "Mensalidade Janeiro 2024"
+
+7. ESTADO (status):
+   - "paid" se indicar: "Pago", "Liquidado", "Recebido", carimbo de pagamento
+   - "pending" caso contrário
+
+8. NOTAS (notes):
+   - Observações, condições de pagamento, referências MB, IBAN
+
+FORMATO DE RESPOSTA:
+Retorna um array com todas as faturas encontradas no documento.`,
         file_urls: [file_url],
         response_json_schema: {
           type: "object",
@@ -266,19 +286,19 @@ IMPORTANTE:
               items: {
                 type: "object",
                 properties: {
-                  invoice_number: { type: "string" },
-                  recipient_name: { type: "string" },
-                  recipient_email: { type: "string" },
-                  recipient_nif: { type: "string" },
-                  recipient_address: { type: "string" },
-                  issue_date: { type: "string" },
-                  due_date: { type: "string" },
-                  total_amount: { type: "number" },
-                  subtotal: { type: "number" },
-                  vat_amount: { type: "number" },
-                  service_description: { type: "string" },
-                  status: { type: "string" },
-                  notes: { type: "string" }
+                  invoice_number: { type: "string", description: "Número completo da fatura" },
+                  recipient_name: { type: "string", description: "Nome do cliente/destinatário" },
+                  recipient_email: { type: "string", description: "Email do cliente" },
+                  recipient_nif: { type: "string", description: "NIF/Contribuinte (9 dígitos)" },
+                  recipient_address: { type: "string", description: "Morada completa" },
+                  issue_date: { type: "string", description: "Data de emissão (YYYY-MM-DD)" },
+                  due_date: { type: "string", description: "Data de vencimento (YYYY-MM-DD)" },
+                  total_amount: { type: "number", description: "Valor total COM IVA" },
+                  subtotal: { type: "number", description: "Valor SEM IVA" },
+                  vat_amount: { type: "number", description: "Valor do IVA" },
+                  service_description: { type: "string", description: "Descrição completa dos serviços/produtos" },
+                  status: { type: "string", description: "paid ou pending" },
+                  notes: { type: "string", description: "Observações e notas adicionais" }
                 }
               }
             }
