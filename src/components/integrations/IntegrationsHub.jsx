@@ -2,10 +2,11 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Bell, Mail, Plug } from "lucide-react";
+import { Calendar, Bell, Mail, Plug, RefreshCw } from "lucide-react";
 import GoogleCalendarIntegration from "./GoogleCalendarIntegration";
 import PushNotificationManager from "./PushNotificationManager";
 import EmailSyncStatus from "./EmailSyncStatus";
+import GmailSyncManager from "./GmailSyncManager";
 
 export default function IntegrationsHub() {
   const { data: user } = useQuery({
