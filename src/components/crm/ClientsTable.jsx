@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Mail, Phone, MapPin, Building2, Eye, Edit, Trash2, 
   MessageSquare, TrendingUp, Home, Clock, Euro, Bed, 
-  Facebook, Globe, Users2, Megaphone, Tag, User
+  Facebook, Globe, Users2, Megaphone, Tag, User,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
