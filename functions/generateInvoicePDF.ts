@@ -1,6 +1,38 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { jsPDF } from 'npm:jspdf@2.5.1';
 
+// Helper to sanitize text for PDF (remove problematic characters)
+const sanitizeText = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/[^\x00-\x7F]/g, (char) => {
+      const replacements = {
+        'á': 'a', 'à': 'a', 'ã': 'a', 'â': 'a', 'ä': 'a',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+        'ó': 'o', 'ò': 'o', 'õ': 'o', 'ô': 'o', 'ö': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+        'ç': 'c', 'ñ': 'n',
+        'Á': 'A', 'À': 'A', 'Ã': 'A', 'Â': 'A', 'Ä': 'A',
+        'É': 'E', 'È': 'E', 'Ê': 'E', 'Ë': 'E',
+        'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I',
+        'Ó': 'O', 'Ò': 'O', 'Õ': 'O', 'Ô': 'O', 'Ö': 'O',
+        'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U',
+        'Ç': 'C', 'Ñ': 'N',
+        '€': 'EUR', '£': 'GBP', '°': 'o', '²': '2', '³': '3',
+        '–': '-', '—': '-', ''': "'", ''': "'", '"': '"', '"': '"',
+        '…': '...', '•': '-', '·': '-'
+      };
+      return replacements[char] || '';
+    });
+};
+
+// Format currency without special characters
+const formatCurrency = (value) => {
+  if (value === null || value === undefined || isNaN(value)) return '0.00 EUR';
+  return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' EUR';
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -15,30 +47,38 @@ Deno.serve(async (req) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
     let y = 20;
 
     // Helper function to add new page if needed
     const checkNewPage = (neededSpace = 30) => {
-      if (y + neededSpace > pageHeight - 20) {
+      if (y + neededSpace > pageHeight - 25) {
         doc.addPage();
-        y = 20;
+        y = 25;
         return true;
       }
       return false;
     };
 
+    // Draw header background
+    doc.setFillColor(39, 37, 31); // Dark header
+    doc.rect(0, 0, pageWidth, 40, 'F');
+
     // Header
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text(title || 'Relatório de Faturas', pageWidth / 2, y, { align: 'center' });
-    y += 10;
+    doc.setTextColor(255, 255, 255);
+    doc.text(sanitizeText(title || 'Relatorio Financeiro'), pageWidth / 2, 18, { align: 'center' });
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-PT')} às ${new Date().toLocaleTimeString('pt-PT')}`, pageWidth / 2, y, { align: 'center' });
-    y += 5;
-    doc.text(`Por: ${user.full_name || user.email}`, pageWidth / 2, y, { align: 'center' });
-    y += 15;
+    const dateStr = new Date().toLocaleDateString('pt-PT');
+    const timeStr = new Date().toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+    doc.text(`Gerado em: ${dateStr} as ${timeStr}`, pageWidth / 2, 28, { align: 'center' });
+    doc.text(`Por: ${sanitizeText(user.full_name || user.email)}`, pageWidth / 2, 35, { align: 'center' });
+    
+    doc.setTextColor(0, 0, 0);
+    y = 50;
 
     // Period info if filters provided
     if (filters) {
