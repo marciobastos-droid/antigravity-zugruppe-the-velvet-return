@@ -102,7 +102,14 @@ function CommunicationsOverview() {
   const [agentFilter, setAgentFilter] = React.useState("all");
   const [dateFilter, setDateFilter] = React.useState("all");
 
-  const { data: communications = [], isLoading } = useQuery({
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
+
+  const { data: allCommunications = [], isLoading } = useQuery({
     queryKey: ['allCommunicationLogs'],
     queryFn: () => base44.entities.CommunicationLog.list('-communication_date')
   });
@@ -111,6 +118,16 @@ function CommunicationsOverview() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list()
   });
+
+  // Filter communications by current user if not admin
+  const communications = React.useMemo(() => {
+    if (!currentUser) return [];
+    if (isAdmin) return allCommunications;
+    return allCommunications.filter(c => 
+      c.agent_email === currentUser.email || 
+      c.created_by === currentUser.email
+    );
+  }, [allCommunications, currentUser, isAdmin]);
 
   const typeIcons = {
     phone_call: Phone,
