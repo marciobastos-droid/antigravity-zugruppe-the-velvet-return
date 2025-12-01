@@ -19,6 +19,8 @@ import {
   Star, Zap, AlertCircle, CheckCircle2, Flame, Snowflake, ThermometerSun,
   LayoutGrid, List, Link2
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
