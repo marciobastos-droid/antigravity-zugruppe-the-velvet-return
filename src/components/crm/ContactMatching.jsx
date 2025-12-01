@@ -966,6 +966,16 @@ Quer agendar visitas? Responda aqui! 😊`;
 
         {/* Favorites Tab */}
         <TabsContent value="favorites" className="mt-4">
+          <div className="mb-4">
+            <Button 
+              onClick={() => setAddPropertyDialogOpen(true)}
+              className="w-full bg-amber-500 hover:bg-amber-600"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Adicionar Imóvel Eleito Manualmente
+            </Button>
+          </div>
+          
           {favoriteProperties.length > 0 ? (
             <div className="space-y-3">
               {favoriteProperties.map((property) => (
@@ -990,15 +1000,29 @@ Quer agendar visitas? Responda aqui! 😊`;
                           {property.city}
                           <span className="font-medium">€{property.price?.toLocaleString()}</span>
                         </div>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                          {property.bedrooms && <span>T{property.bedrooms}</span>}
+                          {property.useful_area && <span>• {property.useful_area}m²</span>}
+                        </div>
                       </div>
-                      <Link 
-                        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-                        target="_blank"
-                      >
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
+                      <div className="flex gap-1">
+                        <Link 
+                          to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                          target="_blank"
+                        >
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-500 hover:bg-red-50"
+                          onClick={() => handleFeedback(property.id, 'rejected')}
+                        >
+                          <X className="w-4 h-4" />
                         </Button>
-                      </Link>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1007,10 +1031,10 @@ Quer agendar visitas? Responda aqui! 😊`;
           ) : (
             <Card className="text-center py-8">
               <CardContent>
-                <Heart className="w-12 h-12 text-pink-200 mx-auto mb-3" />
-                <h3 className="font-semibold text-slate-900 mb-1">Sem favoritos</h3>
+                <Star className="w-12 h-12 text-amber-200 mx-auto mb-3" />
+                <h3 className="font-semibold text-slate-900 mb-1">Sem imóveis eleitos</h3>
                 <p className="text-sm text-slate-600">
-                  Marque imóveis como favoritos durante a pesquisa
+                  Adicione imóveis eleitos manualmente ou marque durante a pesquisa
                 </p>
               </CardContent>
             </Card>
