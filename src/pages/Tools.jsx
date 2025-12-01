@@ -143,7 +143,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Download className="w-5 h-5 text-blue-600" />
                 <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(6 ferramentas)</span>
+                <span className="text-sm text-blue-600">(7 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -151,6 +151,7 @@ export default function Tools() {
                 <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
                 <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
                 <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
+                <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
                 <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
                 <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
               </div>
@@ -281,6 +282,7 @@ export default function Tools() {
         {activeTab === "integrations" && <IntegrationsHub />}
         {activeTab === "commissions" && <CommissionsManager />}
         {activeTab === "invoices" && <InvoiceManager />}
+        {activeTab === "importInvoices" && <InvoiceManager />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
