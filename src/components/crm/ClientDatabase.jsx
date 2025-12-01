@@ -1865,6 +1865,96 @@ export default function ClientDatabase() {
                   </Card>
                 </div>
 
+                {/* Important Dates Section */}
+                <Card className="mt-6">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      Datas Importantes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="p-3 bg-slate-50 rounded-lg border text-center">
+                        <p className="text-xs text-slate-500 mb-1">Criado em</p>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {format(new Date(selectedClient.created_date), "dd/MM/yyyy")}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          {Math.floor((new Date() - new Date(selectedClient.created_date)) / (1000 * 60 * 60 * 24))} dias
+                        </p>
+                      </div>
+                      
+                      <div className={`p-3 rounded-lg border text-center ${
+                        selectedClient.last_contact_date && 
+                        new Date(selectedClient.last_contact_date) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-green-50 border-green-200'
+                      }`}>
+                        <p className="text-xs text-slate-500 mb-1">Último Contacto</p>
+                        <p className={`text-sm font-semibold ${
+                          selectedClient.last_contact_date && 
+                          new Date(selectedClient.last_contact_date) < new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+                            ? 'text-red-700'
+                            : 'text-green-700'
+                        }`}>
+                          {selectedClient.last_contact_date 
+                            ? format(new Date(selectedClient.last_contact_date), "dd/MM/yyyy")
+                            : 'Nunca'}
+                        </p>
+                        {selectedClient.last_contact_date && (
+                          <p className="text-xs text-slate-400 mt-1">
+                            há {Math.floor((new Date() - new Date(selectedClient.last_contact_date)) / (1000 * 60 * 60 * 24))} dias
+                          </p>
+                        )}
+                      </div>
+
+                      <div className={`p-3 rounded-lg border text-center ${
+                        selectedClient.next_followup_date && 
+                        new Date(selectedClient.next_followup_date) < new Date()
+                          ? 'bg-amber-50 border-amber-200'
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
+                        <p className="text-xs text-slate-500 mb-1">Próximo Follow-up</p>
+                        <p className={`text-sm font-semibold ${
+                          selectedClient.next_followup_date && 
+                          new Date(selectedClient.next_followup_date) < new Date()
+                            ? 'text-amber-700'
+                            : 'text-blue-700'
+                        }`}>
+                          {selectedClient.next_followup_date 
+                            ? format(new Date(selectedClient.next_followup_date), "dd/MM/yyyy")
+                            : 'Não agendado'}
+                        </p>
+                        {selectedClient.next_followup_date && new Date(selectedClient.next_followup_date) < new Date() && (
+                          <p className="text-xs text-amber-600 mt-1 font-medium">⚠️ Atrasado</p>
+                        )}
+                      </div>
+
+                      <div className={`p-3 rounded-lg border text-center ${
+                        selectedClient.birthday ? 'bg-pink-50 border-pink-200' : 'bg-slate-50'
+                      }`}>
+                        <p className="text-xs text-slate-500 mb-1">Aniversário</p>
+                        <p className={`text-sm font-semibold ${selectedClient.birthday ? 'text-pink-700' : 'text-slate-400'}`}>
+                          {selectedClient.birthday 
+                            ? format(new Date(selectedClient.birthday), "dd/MM")
+                            : 'Não definido'}
+                        </p>
+                        {selectedClient.birthday && (() => {
+                          const today = new Date();
+                          const bday = new Date(selectedClient.birthday);
+                          bday.setFullYear(today.getFullYear());
+                          if (bday < today) bday.setFullYear(today.getFullYear() + 1);
+                          const daysUntil = Math.ceil((bday - today) / (1000 * 60 * 60 * 24));
+                          return daysUntil <= 30 ? (
+                            <p className="text-xs text-pink-600 mt-1 font-medium">🎂 Em {daysUntil} dias</p>
+                          ) : null;
+                        })()}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Notes Section */}
                 {selectedClient.notes && (
                   <Card className="mt-6">
