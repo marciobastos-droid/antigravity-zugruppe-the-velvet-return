@@ -52,7 +52,8 @@ export default function Layout({ children, currentPageName }) {
     
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
-  ];
+    { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
+    ];
 
   // Verificar se utilizador tem permissão para uma página específica
   const hasPagePermission = (pagePermKey) => {
