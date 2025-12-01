@@ -191,17 +191,17 @@ export default function OpportunitiesDashboard({ opportunities }) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-700 mb-1">Novos</p>
-                <p className="text-3xl font-bold text-green-900">{stats.new}</p>
-                <p className="text-xs text-green-700 mt-1">
+                <p className="text-xs text-cyan-700 mb-1">Novos</p>
+                <p className="text-3xl font-bold text-cyan-900">{stats.new}</p>
+                <p className="text-xs text-cyan-700 mt-1">
                   {stats.total > 0 ? ((stats.new / stats.total) * 100).toFixed(0) : 0}% do total
                 </p>
               </div>
-              <Target className="w-10 h-10 text-green-600 opacity-50" />
+              <Target className="w-10 h-10 text-cyan-600 opacity-50" />
             </div>
           </CardContent>
         </Card>
