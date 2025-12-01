@@ -131,26 +131,34 @@ export default function Layout({ children, currentPageName }) {
               {user && <NotificationBell user={user} />}
               {user ? (
                 <div className="hidden lg:flex items-center gap-3">
-                  <div className="text-right hidden xl:block">
-                    <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
-                    <p className="text-xs text-slate-500">
-                      {user.user_type === 'admin' ? 'Administrador' : 
-                       user.user_type === 'gestor' ? 'Gestor' : 
-                       user.user_type === 'agente' ? 'Agente' : user.email}
-                    </p>
+                    <div className="text-right hidden xl:block">
+                      <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
+                      <p className="text-xs text-slate-500">
+                        {user.user_type === 'admin' ? 'Administrador' : 
+                         user.user_type === 'gestor' ? 'Gestor' : 
+                         user.user_type === 'agente' ? 'Agente' : user.email}
+                      </p>
+                    </div>
+                    {user.photo_url ? (
+                      <img 
+                        src={user.photo_url} 
+                        alt={user.full_name}
+                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-slate-200"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-semibold text-xs md:text-sm">
+                          {user.full_name?.[0]?.toUpperCase() || "U"}
+                        </span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => base44.auth.logout()}
+                      className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                    >
+                      Sair
+                    </button>
                   </div>
-                  <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-semibold text-xs md:text-sm">
-                      {user.full_name?.[0]?.toUpperCase() || "U"}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => base44.auth.logout()}
-                    className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
-                  >
-                    Sair
-                  </button>
-                </div>
               ) : (
                 <button
                   onClick={() => base44.auth.redirectToLogin()}
@@ -193,11 +201,19 @@ export default function Layout({ children, currentPageName }) {
                 <div className="px-3 py-2.5 border-t border-slate-200 mt-1.5 pt-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold text-xs">
-                          {user.full_name?.[0]?.toUpperCase() || "U"}
-                        </span>
-                      </div>
+                      {user.photo_url ? (
+                        <img 
+                          src={user.photo_url} 
+                          alt={user.full_name}
+                          className="w-9 h-9 rounded-full object-cover border-2 border-slate-200"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-xs">
+                            {user.full_name?.[0]?.toUpperCase() || "U"}
+                          </span>
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-medium text-slate-900 truncate max-w-[150px]">{user.full_name}</p>
                         <p className="text-xs text-slate-500">
