@@ -95,14 +95,15 @@ function ElectedPropertiesSummary({ contactId }) {
                   <span className="font-medium text-slate-700">€{property.price?.toLocaleString()}</span>
                 </div>
               </div>
-              <Link 
-                to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+              <a 
+                href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
                 target="_blank"
+                rel="noopener noreferrer"
               >
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                   <Eye className="w-4 h-4" />
                 </Button>
-              </Link>
+              </a>
             </div>
           ))}
           {electedProperties.length > 3 && (
