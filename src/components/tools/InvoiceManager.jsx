@@ -1027,8 +1027,21 @@ Obrigado.`
             <div className="border-2 border-dashed rounded-lg p-6 text-center">
               <Upload className="w-10 h-10 mx-auto text-slate-400 mb-3" />
               <p className="text-sm text-slate-600 mb-2">
-                Carregue um ficheiro CSV, Excel ou PDF com os dados das faturas
+                Carregue ficheiros CSV, Excel ou <strong>múltiplos PDFs</strong> com faturas
               </p>
+              {importing && importProgress.total > 1 && (
+                <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700 font-medium">
+                    A processar ficheiro {importProgress.current} de {importProgress.total}...
+                  </p>
+                  <div className="mt-2 h-2 bg-blue-100 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               <p className="text-xs text-slate-500 mb-3">
                 CSV deve ter colunas: Nº Fatura, Nome, Email, NIF, Tipo, Data Emissão, Data Vencimento, Valor Total, Estado, Descrição
               </p>
