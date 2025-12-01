@@ -13,8 +13,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Building2, Plus, Search, MapPin, Phone, Mail, Calendar, 
   Euro, Users, TrendingUp, Edit, Trash2, Eye, Globe,
-  FileText, BarChart3, AlertCircle, CheckCircle2, Clock, XCircle
+  FileText, BarChart3, AlertCircle, CheckCircle2, Clock, XCircle, Grid3X3, List
 } from "lucide-react";
+import FranchiseMatrix from "@/components/franchising/FranchiseMatrix";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,6 +27,11 @@ const statusConfig = {
   terminated: { label: "Terminada", color: "bg-slate-100 text-slate-800 border-slate-200", icon: XCircle }
 };
 
+const BRAND_OPTIONS = {
+  "Mediação": ["ZuHaus", "ZuHandel"],
+  "Serviços": ["ZuProjeckt", "ZuGarden", "Zufinance"]
+};
+
 export default function Franchising() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +41,7 @@ export default function Franchising() {
   const [editingFranchise, setEditingFranchise] = useState(null);
   const [selectedFranchise, setSelectedFranchise] = useState(null);
   const [activeTab, setActiveTab] = useState("list");
+  const [viewMode, setViewMode] = useState("list");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,7 +63,11 @@ export default function Franchising() {
     territory: "",
     website: "",
     nif: "",
-    notes: ""
+    notes: "",
+    brand_category: "",
+    brand_name: "",
+    physical_type: "",
+    physical_size: ""
   });
 
   const { data: franchises = [], isLoading } = useQuery({
@@ -97,7 +108,8 @@ export default function Franchising() {
       address: "", city: "", district: "", postal_code: "", country: "Portugal",
       status: "pending", contract_start_date: "", contract_end_date: "",
       monthly_fee: "", royalty_percentage: "", initial_investment: "",
-      territory: "", website: "", nif: "", notes: ""
+      territory: "", website: "", nif: "", notes: "",
+      brand_category: "", brand_name: "", physical_type: "", physical_size: ""
     });
     setEditingFranchise(null);
     setDialogOpen(false);
@@ -125,9 +137,21 @@ export default function Franchising() {
       territory: franchise.territory || "",
       website: franchise.website || "",
       nif: franchise.nif || "",
-      notes: franchise.notes || ""
+      notes: franchise.notes || "",
+      brand_category: franchise.brand_category || "",
+      brand_name: franchise.brand_name || "",
+      physical_type: franchise.physical_type || "",
+      physical_size: franchise.physical_size || ""
     });
     setDialogOpen(true);
+  };
+
+  const handleMatrixCellClick = (filter) => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setDistrictFilter("all");
+    // Could filter by brand/physical type here
+    setViewMode("list");
   };
 
   const handleSubmit = (e) => {
@@ -136,7 +160,11 @@ export default function Franchising() {
       ...formData,
       monthly_fee: formData.monthly_fee ? parseFloat(formData.monthly_fee) : null,
       royalty_percentage: formData.royalty_percentage ? parseFloat(formData.royalty_percentage) : null,
-      initial_investment: formData.initial_investment ? parseFloat(formData.initial_investment) : null
+      initial_investment: formData.initial_investment ? parseFloat(formData.initial_investment) : null,
+      brand_category: formData.brand_category || null,
+      brand_name: formData.brand_name || null,
+      physical_type: formData.physical_type || null,
+      physical_size: formData.physical_size || null
     };
 
     if (editingFranchise) {
