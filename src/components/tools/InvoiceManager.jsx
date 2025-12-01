@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { format, addDays, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 const statusConfig = {
   draft: { label: "Rascunho", color: "bg-slate-100 text-slate-700", icon: FileText },
