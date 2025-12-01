@@ -159,6 +159,16 @@ export default function OpportunitiesGrid({
                 )}
               </div>
 
+              {/* Converted Badge */}
+              {convertedOpportunities.has(opp.id) && (
+                <div className="mb-2">
+                  <Badge className="bg-green-100 text-green-800 border-green-300 text-[10px]">
+                    <UserCheck className="w-3 h-3 mr-1" />
+                    Convertido
+                  </Badge>
+                </div>
+              )}
+
               {/* Footer */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <div className="text-[10px] sm:text-xs text-slate-500">
