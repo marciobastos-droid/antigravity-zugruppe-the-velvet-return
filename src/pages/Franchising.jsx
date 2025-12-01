@@ -734,6 +734,22 @@ export default function Franchising() {
                             </div>
                           )}
                         </div>
+
+                        {/* Brand & Physical Info */}
+                        {(franchise.brand_name || franchise.physical_type) && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {franchise.brand_name && (
+                              <Badge className={franchise.brand_category === 'Mediação' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}>
+                                {franchise.brand_name}
+                              </Badge>
+                            )}
+                            {franchise.physical_type && (
+                              <Badge variant="outline">
+                                {franchise.physical_type} {franchise.physical_size}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex gap-2">
@@ -754,6 +770,7 @@ export default function Franchising() {
             })
           )}
         </div>
+        )}
 
         {/* Franchise Detail Dialog */}
         <Dialog open={!!selectedFranchise} onOpenChange={(open) => !open && setSelectedFranchise(null)}>
