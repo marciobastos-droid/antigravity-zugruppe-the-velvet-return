@@ -7,7 +7,7 @@ import {
   Clock, CheckCircle2, AlertTriangle, XCircle, RefreshCw, 
   TrendingUp, Users, Calendar, Activity, Zap
 } from "lucide-react";
-import { formatDistanceToNow, addHours, isPast, differenceInMinutes } from "date-fns";
+import { formatDistanceToNow, addHours, isPast, differenceInMinutes, isToday, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function FacebookSyncDashboard({ 
@@ -16,7 +16,8 @@ export default function FacebookSyncDashboard({
   syncLogs = [], 
   leadsByCampaign = {},
   onSync,
-  syncing
+  syncing,
+  lastSyncTimestamp = null
 }) {
   const getCampaignStatus = (campaign) => {
     const lastSyncDate = lastSync[campaign.form_id];
@@ -94,6 +95,14 @@ export default function FacebookSyncDashboard({
   const totalCampaigns = campaigns.length;
   const campaignsWithErrors = campaigns.filter(c => getCampaignStatus(c).status === 'error').length;
   const campaignsOverdue = campaigns.filter(c => getCampaignStatus(c).status === 'overdue').length;
+
+  // Leads from today
+  const todayLeads = allLeads.filter(l => l.created_date && isToday(new Date(l.created_date)));
+  
+  // Leads since last sync
+  const leadsSinceLastSync = lastSyncTimestamp 
+    ? allLeads.filter(l => l.created_date && new Date(l.created_date) > new Date(lastSyncTimestamp))
+    : [];
 
   return (
     <div className="space-y-4">
@@ -272,6 +281,89 @@ export default function FacebookSyncDashboard({
             <TrendingUp className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-600">Nenhuma campanha configurada</p>
             <p className="text-sm text-slate-500">Adicione uma campanha para começar a sincronizar leads</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Leads Since Last Sync */}
+      {leadsSinceLastSync.length > 0 && (
+        <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Zap className="w-4 h-4 text-green-600" />
+              Leads da Última Sincronização ({leadsSinceLastSync.length})
+              {lastSyncTimestamp && (
+                <span className="text-xs font-normal text-slate-500 ml-2">
+                  desde {format(new Date(lastSyncTimestamp), "dd/MM HH:mm", { locale: ptBR })}
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[250px] overflow-y-auto">
+              {leadsSinceLastSync.map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200 hover:bg-green-50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 truncate">{lead.full_name}</p>
+                      <Badge className="bg-green-100 text-green-800 border-0">Novo</Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                      <span>{lead.email}</span>
+                      {lead.phone && <span>• {lead.phone}</span>}
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-400 text-right">
+                    <div>{lead.campaign_name || 'Campanha'}</div>
+                    <div>{lead.created_date && format(new Date(lead.created_date), "HH:mm", { locale: ptBR })}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Today's Leads */}
+      {todayLeads.length > 0 && (
+        <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              Leads de Hoje ({todayLeads.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[250px] overflow-y-auto">
+              {todayLeads.map((lead) => (
+                <div key={lead.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 truncate">{lead.full_name}</p>
+                      <Badge className={
+                        lead.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                        lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                        lead.status === 'converted' ? 'bg-green-100 text-green-800' :
+                        'bg-slate-100 text-slate-800'
+                      }>
+                        {lead.status === 'new' ? 'Novo' :
+                         lead.status === 'contacted' ? 'Contactado' : 
+                         lead.status === 'converted' ? 'Convertido' :
+                         lead.status === 'archived' ? 'Arquivado' : lead.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                      <span>{lead.email}</span>
+                      {lead.phone && <span>• {lead.phone}</span>}
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-400 text-right">
+                    <div>{lead.campaign_name || 'Campanha'}</div>
+                    <div>{lead.created_date && format(new Date(lead.created_date), "HH:mm", { locale: ptBR })}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
