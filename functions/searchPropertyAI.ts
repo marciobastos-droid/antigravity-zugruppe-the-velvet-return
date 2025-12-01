@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
     let { url } = await req.json();
 
     if (!url) {
-      return Response.json({ error: 'URL é obrigatório' }, { status: 400 });
+      return Response.json({ success: false, error: 'URL é obrigatório' });
     }
 
     // Handle short URLs (url.infocasa.pt) - follow redirects to get real URL
@@ -217,9 +217,10 @@ Deno.serve(async (req) => {
       pageContent = await response.text();
     } catch (fetchError) {
       return Response.json({ 
+        success: false,
         error: 'Não foi possível aceder ao website. Verifique o URL.',
         details: fetchError.message 
-      }, { status: 400 });
+      });
     }
 
     // If it's a listing page, extract multiple properties
@@ -300,9 +301,10 @@ Responde APENAS com JSON válido (sem markdown):
       if (!geminiResponse.ok) {
         const errorText = await geminiResponse.text();
         return Response.json({ 
+          success: false,
           error: 'Erro na API Gemini',
           details: errorText 
-        }, { status: 500 });
+        });
       }
 
       const geminiData = await geminiResponse.json();
@@ -318,9 +320,10 @@ Responde APENAS com JSON válido (sem markdown):
         listingData = JSON.parse(responseText);
       } catch (parseError) {
         return Response.json({ 
-          error: 'Não foi possível extrair dados da listagem',
-          rawResponse: responseText.substring(0, 1000)
-        }, { status: 400 });
+          success: false,
+          error: 'Não foi possível extrair dados da listagem. O portal pode estar a bloquear o acesso.',
+          rawResponse: responseText.substring(0, 500)
+        });
       }
 
       // Process each property
@@ -452,9 +455,10 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
       return Response.json({ 
+        success: false,
         error: 'Erro na API Gemini',
         details: errorText 
-      }, { status: 500 });
+      });
     }
 
     const geminiData = await geminiResponse.json();
@@ -471,9 +475,10 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
       propertyData = JSON.parse(responseText);
     } catch (parseError) {
       return Response.json({ 
-        error: 'Não foi possível extrair dados do imóvel',
+        success: false,
+        error: 'Não foi possível extrair dados do imóvel. O portal pode estar a bloquear o acesso.',
         rawResponse: responseText.substring(0, 500)
-      }, { status: 400 });
+      });
     }
 
     propertyData.source_url = url;
@@ -491,9 +496,10 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
     });
 
   } catch (error) {
+    console.error('searchPropertyAI error:', error);
     return Response.json({ 
-      error: error.message || 'Erro ao processar pedido',
-      stack: error.stack
-    }, { status: 500 });
+      success: false,
+      error: error.message || 'Erro ao processar pedido'
+    });
   }
 });
