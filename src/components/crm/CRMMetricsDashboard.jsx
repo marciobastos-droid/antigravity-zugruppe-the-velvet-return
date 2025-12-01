@@ -18,22 +18,29 @@ import {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 export default function CRMMetricsDashboard() {
-  const { data: contacts = [] } = useQuery({
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+
+  const { data: allContacts = [] } = useQuery({
     queryKey: ['clientContacts'],
     queryFn: () => base44.entities.ClientContact.list()
   });
 
-  const { data: opportunities = [] } = useQuery({
+  const { data: allOpportunities = [] } = useQuery({
     queryKey: ['opportunities'],
     queryFn: () => base44.entities.Opportunity.list()
   });
 
-  const { data: communications = [] } = useQuery({
+  const { data: allCommunications = [] } = useQuery({
     queryKey: ['communicationLogs'],
     queryFn: () => base44.entities.CommunicationLog.list()
   });
 
-  const { data: sentMatches = [] } = useQuery({
+  const { data: allSentMatches = [] } = useQuery({
     queryKey: ['sentMatches'],
     queryFn: () => base44.entities.SentMatch.list()
   });
@@ -47,6 +54,44 @@ export default function CRMMetricsDashboard() {
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list()
   });
+
+  // Filter data by current user if not admin
+  const contacts = React.useMemo(() => {
+    if (!user) return [];
+    if (isAdmin) return allContacts;
+    return allContacts.filter(c => 
+      c.assigned_agent === user.email || 
+      c.created_by === user.email
+    );
+  }, [allContacts, user, isAdmin]);
+
+  const opportunities = React.useMemo(() => {
+    if (!user) return [];
+    if (isAdmin) return allOpportunities;
+    return allOpportunities.filter(o => 
+      o.assigned_to === user.email || 
+      o.seller_email === user.email ||
+      o.created_by === user.email
+    );
+  }, [allOpportunities, user, isAdmin]);
+
+  const communications = React.useMemo(() => {
+    if (!user) return [];
+    if (isAdmin) return allCommunications;
+    return allCommunications.filter(c => 
+      c.agent_email === user.email || 
+      c.created_by === user.email
+    );
+  }, [allCommunications, user, isAdmin]);
+
+  const sentMatches = React.useMemo(() => {
+    if (!user) return [];
+    if (isAdmin) return allSentMatches;
+    return allSentMatches.filter(m => 
+      m.sent_by === user.email || 
+      m.created_by === user.email
+    );
+  }, [allSentMatches, user, isAdmin]);
 
   // === MÉTRICAS DE CONTACTOS ===
   const activeContacts = contacts.filter(c => c.status === 'active').length;
