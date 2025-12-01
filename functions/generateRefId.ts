@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     }
 
     const prefixes = {
-      Property: 'IMO',
+      Property: 'ZU',
       ClientContact: 'CLI',
       Opportunity: 'OPO'
     };
@@ -55,14 +55,14 @@ Deno.serve(async (req) => {
     if (numToGenerate === 1) {
       // Single ref_id (backwards compatible)
       const nextNumber = maxNumber + 1;
-      const ref_id = `${prefix}-${nextNumber.toString().padStart(4, '0')}`;
+      const ref_id = `${prefix}-${nextNumber.toString().padStart(5, '0')}`;
       return Response.json({ ref_id });
     } else {
       // Multiple ref_ids
       const ref_ids = [];
       for (let i = 1; i <= numToGenerate; i++) {
         const nextNumber = maxNumber + i;
-        ref_ids.push(`${prefix}-${nextNumber.toString().padStart(4, '0')}`);
+        ref_ids.push(`${prefix}-${nextNumber.toString().padStart(5, '0')}`);
       }
       return Response.json({ ref_ids });
     }
