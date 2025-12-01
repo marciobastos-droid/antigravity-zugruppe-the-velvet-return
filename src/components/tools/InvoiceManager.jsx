@@ -21,6 +21,7 @@ import { format, addDays, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useAgentNames } from "../common/useAgentNames";
+import InvoiceClientsManager from "./InvoiceClientsManager";
 
 const statusConfig = {
   draft: { label: "Rascunho", color: "bg-slate-100 text-slate-700", icon: FileText },
@@ -1006,11 +1007,19 @@ Obrigado.`
             <FileText className="w-4 h-4" />
             Faturas
           </TabsTrigger>
+          <TabsTrigger value="clients" className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            Clientes
+          </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Análise Financeira
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="clients" className="mt-4">
+          <InvoiceClientsManager />
+        </TabsContent>
 
         <TabsContent value="analytics" className="mt-4">
           <FinancialAnalytics invoices={invoices} />
