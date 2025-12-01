@@ -42,6 +42,7 @@ import IntegrationsHub from "../components/integrations/IntegrationsHub";
 import CommissionsManager from "../components/tools/CommissionsManager";
 import InvoiceManager from "../components/tools/InvoiceManager";
 import OrphanDataCleaner from "../components/tools/OrphanDataCleaner";
+import DuplicateClientsCleaner from "../components/tools/DuplicateClientsCleaner";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -170,6 +171,7 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
+                <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
                 <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
                 <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
@@ -286,6 +288,7 @@ export default function Tools() {
         {activeTab === "invoices" && <InvoiceManager />}
         {activeTab === "importInvoices" && <InvoiceManager />}
         {activeTab === "orphanCleaner" && <OrphanDataCleaner />}
+        {activeTab === "duplicateClients" && <DuplicateClientsCleaner />}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
