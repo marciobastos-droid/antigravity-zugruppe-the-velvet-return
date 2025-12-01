@@ -56,6 +56,27 @@ export default function ClientsTable({
   onSelectionChange
 }) {
   const { getAgentName } = useAgentNames();
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  
+  // Calculate paginated data
+  const totalItems = clients.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedClients = useMemo(() => 
+    clients.slice(startIndex, endIndex), 
+    [clients, startIndex, endIndex]
+  );
+  
+  // Reset to page 1 when clients change significantly
+  React.useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
 
   const getClientCommunications = (clientId) => {
     return communications.filter(c => c.contact_id === clientId);
