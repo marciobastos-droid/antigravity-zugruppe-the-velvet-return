@@ -197,14 +197,32 @@ export default function FacebookLeadsIntegration() {
       const campaign = fbSettings?.campaigns?.find(c => c.form_id === lead.form_id);
       const finalAgentEmail = agentEmail || campaign?.assigned_to || undefined;
 
-      // First, create or find the contact
+      // First, create or find the contact - check by email AND phone to avoid duplicates
       let contactId = null;
       try {
-        // Check if contact already exists
-        const existingContacts = await base44.entities.ClientContact.filter({ email: lead.email });
+        // Check if contact already exists by email
+        let existingContacts = [];
+        if (lead.email) {
+          existingContacts = await base44.entities.ClientContact.filter({ email: lead.email });
+        }
+        
+        // If not found by email, try by phone
+        if (existingContacts.length === 0 && lead.phone) {
+          existingContacts = await base44.entities.ClientContact.filter({ phone: lead.phone });
+        }
+        
+        // If not found by phone, try by full_name (exact match)
+        if (existingContacts.length === 0 && lead.full_name) {
+          const allContacts = await base44.entities.ClientContact.filter({ full_name: lead.full_name });
+          // Only use name match if there's exactly one result to avoid ambiguity
+          if (allContacts.length === 1) {
+            existingContacts = allContacts;
+          }
+        }
         
         if (existingContacts && existingContacts.length > 0) {
           contactId = existingContacts[0].id;
+          console.log(`Contacto existente encontrado: ${contactId} para lead ${lead.full_name}`);
           // Update the contact's assigned_agent if an agent is selected
           if (finalAgentEmail) {
             await base44.entities.ClientContact.update(contactId, { 
@@ -213,6 +231,7 @@ export default function FacebookLeadsIntegration() {
           }
         } else {
           // Create new contact with assigned_agent
+          console.log(`Criando novo contacto para lead ${lead.full_name}`);
           const newContact = await base44.entities.ClientContact.create({
             full_name: lead.full_name,
             email: lead.email,
