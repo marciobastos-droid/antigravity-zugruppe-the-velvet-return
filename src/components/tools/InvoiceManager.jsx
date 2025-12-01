@@ -130,6 +130,72 @@ export default function InvoiceManager() {
     }
   });
 
+  // Parse CSV content
+  const parseCSV = (text) => {
+    const lines = text.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return [];
+    
+    const headers = lines[0].split(/[,;]/).map(h => h.trim().toLowerCase().replace(/['"]/g, ''));
+    const data = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(/[,;]/).map(v => v.trim().replace(/['"]/g, ''));
+      const row = {};
+      
+      headers.forEach((header, idx) => {
+        const value = values[idx] || '';
+        // Map common header names
+        if (header.includes('nome') || header.includes('name') || header === 'destinatário') {
+          row.recipient_name = value;
+        } else if (header.includes('email')) {
+          row.recipient_email = value;
+        } else if (header.includes('nif') || header.includes('contribuinte')) {
+          row.recipient_nif = value;
+        } else if (header.includes('tipo') || header === 'type') {
+          row.invoice_type = value.toLowerCase().includes('agência') ? 'agency' : 
+                            value.toLowerCase().includes('comissão') ? 'commission' : 
+                            value.toLowerCase().includes('subscrição') ? 'subscription' : 'agent';
+        } else if (header.includes('emissão') || header.includes('issue') || header === 'data') {
+          row.issue_date = value;
+        } else if (header.includes('vencimento') || header.includes('due')) {
+          row.due_date = value;
+        } else if (header.includes('total') || header.includes('valor') || header === 'amount') {
+          row.total_amount = parseFloat(value.replace(/[€\s]/g, '').replace(',', '.')) || 0;
+        } else if (header.includes('subtotal')) {
+          row.subtotal = parseFloat(value.replace(/[€\s]/g, '').replace(',', '.')) || 0;
+        } else if (header.includes('iva') || header.includes('vat')) {
+          row.vat_amount = parseFloat(value.replace(/[€\s]/g, '').replace(',', '.')) || 0;
+        } else if (header.includes('estado') || header === 'status') {
+          row.status = value.toLowerCase().includes('pag') ? 'paid' : 
+                      value.toLowerCase().includes('pend') ? 'pending' : 
+                      value.toLowerCase().includes('envi') ? 'sent' : 'draft';
+        } else if (header.includes('descrição') || header.includes('description')) {
+          row.description = value;
+        } else if (header.includes('notas') || header.includes('notes')) {
+          row.notes = value;
+        }
+      });
+      
+      // Only add if has recipient name
+      if (row.recipient_name) {
+        // Create items array if we have a description
+        if (row.description) {
+          row.items = [{ 
+            description: row.description, 
+            quantity: 1, 
+            unit_price: row.subtotal || row.total_amount || 0,
+            vat_rate: 23,
+            total: row.total_amount || 0
+          }];
+          delete row.description;
+        }
+        data.push(row);
+      }
+    }
+    
+    return data;
+  };
+
   // Handle file import
   const handleFileImport = async (e) => {
     const file = e.target.files?.[0];
@@ -137,36 +203,50 @@ export default function InvoiceManager() {
 
     setImporting(true);
     try {
+      const fileName = file.name.toLowerCase();
+      
+      // For CSV files, parse locally first
+      if (fileName.endsWith('.csv')) {
+        const text = await file.text();
+        const parsedData = parseCSV(text);
+        
+        if (parsedData.length > 0) {
+          setImportData(parsedData.map(inv => ({
+            ...inv,
+            status: inv.status || 'draft',
+            invoice_type: inv.invoice_type || 'agent',
+            recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
+          })));
+          toast.success(`${parsedData.length} faturas encontradas no ficheiro CSV`);
+          setImporting(false);
+          return;
+        }
+      }
+      
+      // For other files, use AI extraction
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
         json_schema: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              recipient_name: { type: "string" },
-              recipient_email: { type: "string" },
-              recipient_nif: { type: "string" },
-              invoice_type: { type: "string" },
-              issue_date: { type: "string" },
-              due_date: { type: "string" },
-              total_amount: { type: "number" },
-              subtotal: { type: "number" },
-              vat_amount: { type: "number" },
-              status: { type: "string" },
-              notes: { type: "string" },
+          type: "object",
+          properties: {
+            invoices: {
+              type: "array",
               items: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    description: { type: "string" },
-                    quantity: { type: "number" },
-                    unit_price: { type: "number" },
-                    vat_rate: { type: "number" }
-                  }
+                type: "object",
+                properties: {
+                  recipient_name: { type: "string", description: "Nome do destinatário da fatura" },
+                  recipient_email: { type: "string", description: "Email do destinatário" },
+                  recipient_nif: { type: "string", description: "NIF/Contribuinte" },
+                  invoice_type: { type: "string", description: "Tipo: agent, agency, commission, subscription, service" },
+                  issue_date: { type: "string", description: "Data de emissão (YYYY-MM-DD)" },
+                  due_date: { type: "string", description: "Data de vencimento (YYYY-MM-DD)" },
+                  total_amount: { type: "number", description: "Valor total com IVA" },
+                  subtotal: { type: "number", description: "Valor sem IVA" },
+                  vat_amount: { type: "number", description: "Valor do IVA" },
+                  status: { type: "string", description: "Estado: draft, pending, sent, paid" },
+                  notes: { type: "string", description: "Notas adicionais" }
                 }
               }
             }
@@ -175,16 +255,22 @@ export default function InvoiceManager() {
       });
 
       if (result.status === 'success' && result.output) {
-        const data = Array.isArray(result.output) ? result.output : [result.output];
-        setImportData(data.map(inv => ({
-          ...inv,
-          status: inv.status || 'draft',
-          invoice_type: inv.invoice_type || 'agent',
-          recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
-        })));
-        toast.success(`${data.length} faturas encontradas no ficheiro`);
+        const invoicesData = result.output.invoices || (Array.isArray(result.output) ? result.output : [result.output]);
+        const data = Array.isArray(invoicesData) ? invoicesData : [invoicesData];
+        
+        if (data.length > 0 && data[0].recipient_name) {
+          setImportData(data.map(inv => ({
+            ...inv,
+            status: inv.status || 'draft',
+            invoice_type: inv.invoice_type || 'agent',
+            recipient_type: inv.invoice_type === 'agency' ? 'agency' : 'agent'
+          })));
+          toast.success(`${data.length} faturas encontradas no ficheiro`);
+        } else {
+          toast.error("Não foram encontradas faturas válidas no ficheiro");
+        }
       } else {
-        toast.error("Erro ao processar ficheiro");
+        toast.error("Erro ao processar ficheiro: " + (result.details || "formato não reconhecido"));
       }
     } catch (error) {
       console.error(error);
@@ -592,8 +678,11 @@ export default function InvoiceManager() {
           <div className="space-y-4 mt-4">
             <div className="border-2 border-dashed rounded-lg p-6 text-center">
               <Upload className="w-10 h-10 mx-auto text-slate-400 mb-3" />
-              <p className="text-sm text-slate-600 mb-3">
+              <p className="text-sm text-slate-600 mb-2">
                 Carregue um ficheiro CSV, Excel ou PDF com os dados das faturas
+              </p>
+              <p className="text-xs text-slate-500 mb-3">
+                CSV deve ter colunas: Nome, Email, NIF, Tipo, Data Emissão, Data Vencimento, Valor Total, Estado
               </p>
               <input
                 type="file"
@@ -607,6 +696,27 @@ export default function InvoiceManager() {
                   <span>{importing ? "A processar..." : "Selecionar Ficheiro"}</span>
                 </Button>
               </label>
+              
+              {/* Download template */}
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-slate-500 mb-2">Ou descarregue o modelo CSV:</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    const template = "Nome;Email;NIF;Tipo;Data Emissão;Data Vencimento;Valor Total;IVA;Estado;Descrição;Notas\nJoão Silva;joao@exemplo.com;123456789;Agente;2024-01-01;2024-01-31;123.00;23.00;Pendente;Mensalidade Janeiro;";
+                    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'modelo_faturas.csv';
+                    a.click();
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-1" />
+                  Descarregar Modelo CSV
+                </Button>
+              </div>
             </div>
 
             {importData.length > 0 && (
