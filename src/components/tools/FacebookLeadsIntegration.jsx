@@ -912,6 +912,7 @@ export default function FacebookLeadsIntegration() {
               leadsByCampaign={leadsByCampaign}
               onSync={handleSyncLeads}
               syncing={syncing}
+              lastSyncTimestamp={syncLogs.length > 0 ? syncLogs[0]?.created_date : null}
             />
           </TabsContent>
 
