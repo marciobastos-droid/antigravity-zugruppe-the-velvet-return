@@ -653,16 +653,28 @@ export default function ImportProperties() {
 
   // Nova função usando Gemini API - suporta listagens e páginas individuais
   const importFromURLWithGemini = async () => {
+    if (!url || !url.trim()) {
+      toast.error("Por favor, cole um link válido");
+      return;
+    }
+
     setImporting(true);
     setValidationDetails(null);
+    setResults(null);
     const portal = detectPortal(url);
-    setProgress(`🤖 A analisar com Gemini AI...`);
+    setProgress(`🤖 A analisar ${portal.name} com Gemini AI...`);
+    toast.info(`A processar link de ${portal.name}...`);
 
     try {
-      const { data } = await base44.functions.invoke('searchPropertyAI', { url });
+      const response = await base44.functions.invoke('searchPropertyAI', { url });
+      const data = response.data;
+
+      if (!data) {
+        throw new Error('Sem resposta do servidor. Tente novamente.');
+      }
 
       if (!data.success) {
-        throw new Error(data.error || 'Erro ao extrair dados');
+        throw new Error(data.error || data.details || 'Erro ao extrair dados do portal');
       }
 
       // Check if it's a listing page with multiple properties
@@ -787,18 +799,31 @@ export default function ImportProperties() {
       }
 
     } catch (error) {
-      setResults({ success: false, message: error.message || "Erro ao importar com Gemini" });
-      toast.error("Erro ao importar");
+      console.error("Gemini import error:", error);
+      const errorMessage = error.message || "Erro ao importar com Gemini";
+      setResults({ 
+        success: false, 
+        message: `❌ ${errorMessage}\n\n💡 Sugestões:\n• Verifique se o link está correto\n• Tente o link de um imóvel individual\n• Use o botão "IA Padrão" como alternativa`,
+        portal: portal
+      });
+      toast.error(errorMessage);
     }
 
     setImporting(false);
   };
 
   const importFromURL = async () => {
+    if (!url || !url.trim()) {
+      toast.error("Por favor, cole um link válido");
+      return;
+    }
+
     setImporting(true);
     setValidationDetails(null);
+    setResults(null);
     const portal = detectPortal(url);
     setProgress(`A analisar página de ${portal.name}...`);
+    toast.info(`A processar link de ${portal.name}...`);
     
     try {
       const urlObj = new URL(url);
@@ -998,8 +1023,14 @@ IMPORTANTE:
       toast.success(`${created.length} imóveis importados!`);
 
     } catch (error) {
-      setResults({ success: false, message: error.message || "Erro ao importar" });
-      toast.error("Erro ao importar");
+      console.error("Standard import error:", error);
+      const errorMessage = error.message || "Erro ao importar";
+      setResults({ 
+        success: false, 
+        message: `❌ ${errorMessage}\n\n💡 Sugestões:\n• Verifique se o link está correto e acessível\n• Alguns portais bloqueiam acesso automático\n• Tente copiar o link de um imóvel individual`,
+        portal: portal
+      });
+      toast.error(errorMessage);
     }
     
     setImporting(false);
