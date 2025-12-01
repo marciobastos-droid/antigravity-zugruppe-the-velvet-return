@@ -224,13 +224,33 @@ export default function Franchising() {
             </h1>
             <p className="text-slate-600 mt-1">Gerir a rede de franquias</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Franquia
+          <div className="flex gap-2">
+            {/* View Mode Toggle */}
+            <div className="flex border rounded-lg overflow-hidden">
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4" />
               </Button>
-            </DialogTrigger>
+              <Button
+                variant={viewMode === "matrix" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("matrix")}
+                className="rounded-none"
+              >
+                <Grid3X3 className="w-4 h-4" />
+              </Button>
+            </div>
+            <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Franquia
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingFranchise ? "Editar Franquia" : "Nova Franquia"}</DialogTitle>
@@ -417,6 +437,79 @@ export default function Franchising() {
                   </div>
                 </div>
 
+                {/* Matriz de Franchising */}
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <Grid3X3 className="w-4 h-4" />
+                    Matriz de Franchising
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Categoria da Marca</Label>
+                      <Select 
+                        value={formData.brand_category} 
+                        onValueChange={(v) => setFormData({...formData, brand_category: v, brand_name: ""})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar categoria..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Mediação">Mediação</SelectItem>
+                          <SelectItem value="Serviços">Serviços</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Marca</Label>
+                      <Select 
+                        value={formData.brand_name} 
+                        onValueChange={(v) => setFormData({...formData, brand_name: v})}
+                        disabled={!formData.brand_category}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar marca..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {formData.brand_category && BRAND_OPTIONS[formData.brand_category]?.map(brand => (
+                            <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Tipo de Espaço Físico</Label>
+                      <Select 
+                        value={formData.physical_type} 
+                        onValueChange={(v) => setFormData({...formData, physical_type: v})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar tipo..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Loja">Loja</SelectItem>
+                          <SelectItem value="Escritório">Escritório</SelectItem>
+                          <SelectItem value="Kiosk">Kiosk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Tamanho do Espaço</Label>
+                      <Select 
+                        value={formData.physical_size} 
+                        onValueChange={(v) => setFormData({...formData, physical_size: v})}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar tamanho..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="> 50m2">&gt; 50m²</SelectItem>
+                          <SelectItem value="< 50m2">&lt; 50m²</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <Label>Notas</Label>
                   <Textarea
@@ -438,6 +531,7 @@ export default function Franchising() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
@@ -480,7 +574,26 @@ export default function Franchising() {
           </Card>
         </div>
 
+        {/* Matrix View */}
+        {viewMode === "matrix" && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Grid3X3 className="w-5 h-5 text-blue-600" />
+                Matriz de Franchising
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FranchiseMatrix 
+                franchises={franchises} 
+                onCellClick={handleMatrixCellClick}
+              />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Filters */}
+        {viewMode === "list" && (
         <Card className="mb-6">
           <CardContent className="p-4">
             <div className="grid md:grid-cols-4 gap-4">
@@ -517,13 +630,15 @@ export default function Franchising() {
                     <SelectItem key={d} value={d}>{d}</SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+                </Select>
+                </div>
+                </CardContent>
+                </Card>
+                )}
 
-        {/* Franchise List */}
-        <div className="grid gap-4">
+                {/* Franchise List */}
+                {viewMode === "list" && (
+                <div className="grid gap-4">
           {filteredFranchises.length === 0 ? (
             <Card className="text-center py-12">
               <CardContent>
