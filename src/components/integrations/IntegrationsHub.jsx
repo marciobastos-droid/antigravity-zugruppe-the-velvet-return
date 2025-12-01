@@ -24,8 +24,12 @@ export default function IntegrationsHub() {
         </div>
       </div>
 
-      <Tabs defaultValue="calendar" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="gmail" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="gmail" className="flex items-center gap-2">
+            <Mail className="w-4 h-4" />
+            <span className="hidden sm:inline">Gmail Sync</span>
+          </TabsTrigger>
           <TabsTrigger value="calendar" className="flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             <span className="hidden sm:inline">Calendar</span>
@@ -35,10 +39,14 @@ export default function IntegrationsHub() {
             <span className="hidden sm:inline">Notificações</span>
           </TabsTrigger>
           <TabsTrigger value="email" className="flex items-center gap-2">
-            <Mail className="w-4 h-4" />
-            <span className="hidden sm:inline">Email</span>
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">SMTP</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="gmail" className="mt-6">
+          <GmailSyncManager />
+        </TabsContent>
 
         <TabsContent value="calendar" className="mt-6">
           <GoogleCalendarIntegration />
