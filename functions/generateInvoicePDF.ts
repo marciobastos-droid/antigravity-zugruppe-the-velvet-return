@@ -167,56 +167,64 @@ Deno.serve(async (req) => {
     if (invoices_data?.invoices && invoices_data.invoices.length > 0) {
       checkNewPage(50);
       
+      // Section title with accent bar
+      doc.setFillColor(16, 185, 129);
+      doc.rect(margin, y, 4, 10, 'F');
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Lista de Faturas', 20, y);
-      y += 10;
+      doc.text('Lista de Faturas', margin + 8, y + 8);
+      y += 16;
 
       // Table header
-      doc.setFillColor(241, 245, 249);
-      doc.rect(20, y - 5, pageWidth - 40, 8, 'F');
+      doc.setFillColor(39, 37, 31);
+      doc.rect(margin, y - 5, pageWidth - margin * 2, 10, 'F');
       
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      doc.text('Nº Fatura', 22, y);
-      doc.text('Cliente', 55, y);
-      doc.text('Data', 110, y);
-      doc.text('Estado', 135, y);
-      doc.text('Valor', 165, y);
-      y += 8;
+      doc.setTextColor(255, 255, 255);
+      doc.text('No Fatura', margin + 3, y + 1);
+      doc.text('Cliente', margin + 35, y + 1);
+      doc.text('Data', margin + 95, y + 1);
+      doc.text('Estado', margin + 125, y + 1);
+      doc.text('Valor', margin + 155, y + 1);
+      doc.setTextColor(0, 0, 0);
+      y += 10;
 
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
 
-      for (const invoice of invoices_data.invoices) {
+      const statusLabels = {
+        draft: 'Rascunho',
+        pending: 'Pendente',
+        sent: 'Enviada',
+        paid: 'Paga',
+        overdue: 'Vencida',
+        cancelled: 'Cancelada'
+      };
+
+      for (let i = 0; i < invoices_data.invoices.length; i++) {
+        const invoice = invoices_data.invoices[i];
         checkNewPage(10);
 
         // Alternate row colors
-        if (invoices_data.invoices.indexOf(invoice) % 2 === 0) {
-          doc.setFillColor(250, 250, 250);
-          doc.rect(20, y - 4, pageWidth - 40, 7, 'F');
+        if (i % 2 === 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
         }
 
-        doc.text(invoice.invoice_number || '-', 22, y);
-        doc.text((invoice.recipient_name || '-').substring(0, 25), 55, y);
-        doc.text(invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString('pt-PT') : '-', 110, y);
+        doc.text(sanitizeText(invoice.invoice_number || '-'), margin + 3, y);
+        doc.text(sanitizeText((invoice.recipient_name || '-').substring(0, 28)), margin + 35, y);
+        doc.text(invoice.issue_date ? new Date(invoice.issue_date).toLocaleDateString('pt-PT') : '-', margin + 95, y);
         
-        // Status with color
-        const statusLabels = {
-          draft: 'Rascunho',
-          pending: 'Pendente',
-          sent: 'Enviada',
-          paid: 'Paga',
-          overdue: 'Vencida',
-          cancelled: 'Cancelada'
-        };
-        doc.text(statusLabels[invoice.status] || invoice.status || '-', 135, y);
+        // Status
+        const status = statusLabels[invoice.status] || invoice.status || '-';
+        doc.text(status, margin + 125, y);
         
-        doc.text(`€${invoice.total_amount?.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) || '0.00'}`, 165, y);
-        y += 7;
+        doc.text(formatCurrency(invoice.total_amount), margin + 155, y);
+        y += 8;
       }
 
-      y += 10;
+      y += 8;
     }
 
     // Monthly breakdown
