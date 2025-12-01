@@ -35,7 +35,7 @@ export default function CRMAdvanced() {
             </TabsTrigger>
             <TabsTrigger value="opportunities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Target className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Leads</span>
+              <span className="hidden xs:inline sm:inline">Oportunidades</span>
             </TabsTrigger>
             <TabsTrigger value="matching" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
