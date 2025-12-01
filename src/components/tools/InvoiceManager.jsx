@@ -1029,37 +1029,103 @@ IMPORTANTE:
 
 // Financial Analytics Component
 function FinancialAnalytics({ invoices }) {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
+  const [periodFilter, setPeriodFilter] = useState("year");
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedQuarter, setSelectedQuarter] = useState(Math.floor(new Date().getMonth() / 3) + 1);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [clientFilter, setClientFilter] = useState("all");
+  const [activeChart, setActiveChart] = useState("monthly");
 
-  // Monthly revenue data
+  const currentYear = new Date().getFullYear();
+  const availableYears = [...new Set(invoices.map(i => new Date(i.issue_date || i.created_date).getFullYear()))].sort((a, b) => b - a);
+  if (!availableYears.includes(currentYear)) availableYears.unshift(currentYear);
+
+  // Get unique clients
+  const uniqueClients = [...new Set(invoices.map(i => i.recipient_email || i.recipient_name))].filter(Boolean);
+
+  // Filter invoices based on selections
+  const filteredInvoices = invoices.filter(inv => {
+    if (!inv.issue_date && !inv.created_date) return false;
+    const date = new Date(inv.issue_date || inv.created_date);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const quarter = Math.floor(month / 3) + 1;
+
+    // Period filter
+    if (periodFilter === "year" && year !== selectedYear) return false;
+    if (periodFilter === "quarter" && (year !== selectedYear || quarter !== selectedQuarter)) return false;
+    if (periodFilter === "month" && (year !== selectedYear || month !== selectedMonth)) return false;
+
+    // Type filter
+    if (typeFilter !== "all" && inv.invoice_type !== typeFilter) return false;
+
+    // Client filter
+    if (clientFilter !== "all" && (inv.recipient_email !== clientFilter && inv.recipient_name !== clientFilter)) return false;
+
+    return true;
+  });
+
+  // Monthly revenue data for selected year
   const monthlyData = Array.from({ length: 12 }, (_, i) => {
-    const monthInvoices = invoices.filter(inv => {
-      if (!inv.issue_date) return false;
-      const date = new Date(inv.issue_date);
-      return date.getFullYear() === currentYear && date.getMonth() === i;
+    const monthInvoices = filteredInvoices.filter(inv => {
+      const date = new Date(inv.issue_date || inv.created_date);
+      return date.getFullYear() === selectedYear && date.getMonth() === i;
     });
 
     const paid = monthInvoices.filter(i => i.status === 'paid');
     const pending = monthInvoices.filter(i => i.status === 'sent' || i.status === 'pending');
 
     return {
-      month: format(new Date(currentYear, i, 1), 'MMM', { locale: ptBR }),
+      month: format(new Date(selectedYear, i, 1), 'MMM', { locale: ptBR }),
+      monthFull: format(new Date(selectedYear, i, 1), 'MMMM', { locale: ptBR }),
       faturado: monthInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0),
       recebido: paid.reduce((sum, i) => sum + (i.total_amount || 0), 0),
-      pendente: pending.reduce((sum, i) => sum + (i.total_amount || 0), 0)
+      pendente: pending.reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      count: monthInvoices.length
     };
   });
+
+  // Quarterly data
+  const quarterlyData = [1, 2, 3, 4].map(q => {
+    const quarterInvoices = filteredInvoices.filter(inv => {
+      const date = new Date(inv.issue_date || inv.created_date);
+      return date.getFullYear() === selectedYear && Math.floor(date.getMonth() / 3) + 1 === q;
+    });
+
+    return {
+      quarter: `T${q}`,
+      faturado: quarterInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      recebido: quarterInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      pendente: quarterInvoices.filter(i => i.status === 'sent' || i.status === 'pending').reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      count: quarterInvoices.length
+    };
+  });
+
+  // Yearly comparison (last 3 years)
+  const yearlyData = availableYears.slice(0, 4).map(year => {
+    const yearInvoices = invoices.filter(inv => {
+      const date = new Date(inv.issue_date || inv.created_date);
+      return date.getFullYear() === year;
+    });
+
+    return {
+      year: year.toString(),
+      faturado: yearInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      recebido: yearInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total_amount || 0), 0),
+      count: yearInvoices.length
+    };
+  }).reverse();
 
   // By type
   const byType = Object.keys(typeConfig).map(type => ({
     name: typeConfig[type].label,
-    value: invoices.filter(i => i.invoice_type === type).reduce((sum, i) => sum + (i.total_amount || 0), 0),
-    count: invoices.filter(i => i.invoice_type === type).length
+    value: filteredInvoices.filter(i => i.invoice_type === type).reduce((sum, i) => sum + (i.total_amount || 0), 0),
+    count: filteredInvoices.filter(i => i.invoice_type === type).length
   })).filter(t => t.value > 0);
 
-  // By service description (for service type invoices)
-  const serviceInvoices = invoices.filter(i => i.invoice_type === 'service' || i.items?.length > 0);
+  // By service description
+  const serviceInvoices = filteredInvoices.filter(i => i.invoice_type === 'service' || i.items?.length > 0);
   const byService = serviceInvoices.reduce((acc, inv) => {
     const desc = inv.items?.[0]?.description || inv.service_description || 'Outros Serviços';
     const key = desc.substring(0, 30);
@@ -1071,7 +1137,7 @@ function FinancialAnalytics({ invoices }) {
   const topServices = Object.values(byService).sort((a, b) => b.value - a.value).slice(0, 5);
 
   // Top clients
-  const clientTotals = invoices.reduce((acc, inv) => {
+  const clientTotals = filteredInvoices.reduce((acc, inv) => {
     const key = inv.recipient_email || inv.recipient_name;
     if (!acc[key]) acc[key] = { name: inv.recipient_name, email: inv.recipient_email, total: 0, count: 0 };
     acc[key].total += inv.total_amount || 0;
@@ -1084,82 +1150,304 @@ function FinancialAnalytics({ invoices }) {
     .slice(0, 5);
 
   // Totals
-  const totalFaturado = invoices.reduce((sum, i) => sum + (i.total_amount || 0), 0);
-  const totalRecebido = invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total_amount || 0), 0);
-  const totalPendente = invoices.filter(i => i.status === 'sent' || i.status === 'pending').reduce((sum, i) => sum + (i.total_amount || 0), 0);
-  const totalVencido = invoices.filter(i => i.status === 'overdue' || (i.status === 'sent' && i.due_date && isBefore(new Date(i.due_date), new Date()))).reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalFaturado = filteredInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalRecebido = filteredInvoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalPendente = filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending').reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const totalVencido = filteredInvoices.filter(i => i.status === 'overdue' || (i.status === 'sent' && i.due_date && isBefore(new Date(i.due_date), new Date()))).reduce((sum, i) => sum + (i.total_amount || 0), 0);
+
+  // Growth calculation
+  const previousPeriodInvoices = invoices.filter(inv => {
+    const date = new Date(inv.issue_date || inv.created_date);
+    if (periodFilter === "year") return date.getFullYear() === selectedYear - 1;
+    if (periodFilter === "quarter") {
+      const prevQ = selectedQuarter === 1 ? 4 : selectedQuarter - 1;
+      const prevY = selectedQuarter === 1 ? selectedYear - 1 : selectedYear;
+      return date.getFullYear() === prevY && Math.floor(date.getMonth() / 3) + 1 === prevQ;
+    }
+    if (periodFilter === "month") {
+      const prevM = selectedMonth === 0 ? 11 : selectedMonth - 1;
+      const prevY = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+      return date.getFullYear() === prevY && date.getMonth() === prevM;
+    }
+    return false;
+  });
+  const previousTotal = previousPeriodInvoices.reduce((sum, i) => sum + (i.total_amount || 0), 0);
+  const growthRate = previousTotal > 0 ? ((totalFaturado - previousTotal) / previousTotal * 100).toFixed(1) : null;
+
+  const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   return (
     <div className="space-y-6">
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-500" />
+              <span className="text-sm font-medium">Filtros:</span>
+            </div>
+            
+            <Select value={periodFilter} onValueChange={setPeriodFilter}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Mês</SelectItem>
+                <SelectItem value="quarter">Trimestre</SelectItem>
+                <SelectItem value="year">Ano</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map(y => (
+                  <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {periodFilter === "quarter" && (
+              <Select value={selectedQuarter.toString()} onValueChange={(v) => setSelectedQuarter(parseInt(v))}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">T1</SelectItem>
+                  <SelectItem value="2">T2</SelectItem>
+                  <SelectItem value="3">T3</SelectItem>
+                  <SelectItem value="4">T4</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+
+            {periodFilter === "month" && (
+              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      {format(new Date(2024, i, 1), 'MMMM', { locale: ptBR })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <div className="h-6 w-px bg-slate-200" />
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Tipos</SelectItem>
+                {Object.entries(typeConfig).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Clientes</SelectItem>
+                {uniqueClients.slice(0, 20).map(client => (
+                  <SelectItem key={client} value={client}>{client}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Badge variant="outline" className="ml-auto">
+              {filteredInvoices.length} faturas
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-4">
             <p className="text-sm text-blue-600 mb-1">Total Faturado</p>
-            <p className="text-2xl font-bold text-blue-900">€{totalFaturado.toFixed(2)}</p>
-            <p className="text-xs text-blue-600">{invoices.length} faturas</p>
+            <p className="text-2xl font-bold text-blue-900">€{totalFaturado.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-blue-600">{filteredInvoices.length} faturas</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="p-4">
             <p className="text-sm text-green-600 mb-1">Total Recebido</p>
-            <p className="text-2xl font-bold text-green-900">€{totalRecebido.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-green-900">€{totalRecebido.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
             <p className="text-xs text-green-600">{((totalRecebido/totalFaturado)*100 || 0).toFixed(0)}% do total</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
           <CardContent className="p-4">
             <p className="text-sm text-amber-600 mb-1">Pendente</p>
-            <p className="text-2xl font-bold text-amber-900">€{totalPendente.toFixed(2)}</p>
-            <p className="text-xs text-amber-600">A aguardar pagamento</p>
+            <p className="text-2xl font-bold text-amber-900">€{totalPendente.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-amber-600">A aguardar</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
           <CardContent className="p-4">
             <p className="text-sm text-red-600 mb-1">Vencido</p>
-            <p className="text-2xl font-bold text-red-900">€{totalVencido.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-red-900">€{totalVencido.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
             <p className="text-xs text-red-600">Requer atenção</p>
+          </CardContent>
+        </Card>
+        <Card className={`bg-gradient-to-br ${growthRate >= 0 ? 'from-emerald-50 to-emerald-100 border-emerald-200' : 'from-rose-50 to-rose-100 border-rose-200'}`}>
+          <CardContent className="p-4">
+            <p className={`text-sm mb-1 ${growthRate >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Crescimento</p>
+            <p className={`text-2xl font-bold ${growthRate >= 0 ? 'text-emerald-900' : 'text-rose-900'}`}>
+              {growthRate !== null ? `${growthRate > 0 ? '+' : ''}${growthRate}%` : 'N/A'}
+            </p>
+            <p className={`text-xs ${growthRate >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>vs período anterior</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Chart Selector */}
+      <div className="flex gap-2">
+        <Button 
+          variant={activeChart === "monthly" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveChart("monthly")}
+        >
+          Mensal
+        </Button>
+        <Button 
+          variant={activeChart === "quarterly" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveChart("quarterly")}
+        >
+          Trimestral
+        </Button>
+        <Button 
+          variant={activeChart === "yearly" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveChart("yearly")}
+        >
+          Anual
+        </Button>
+        <Button 
+          variant={activeChart === "comparison" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => setActiveChart("comparison")}
+        >
+          Comparativo
+        </Button>
+      </div>
+
+      {/* Interactive Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Monthly Chart */}
-        <Card>
+        {/* Main Chart */}
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-lg">Faturação Mensal {currentYear}</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-blue-600" />
+              {activeChart === "monthly" && `Faturação Mensal ${selectedYear}`}
+              {activeChart === "quarterly" && `Faturação Trimestral ${selectedYear}`}
+              {activeChart === "yearly" && "Evolução Anual"}
+              {activeChart === "comparison" && "Faturado vs Recebido"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {monthlyData.slice(0, currentMonth + 1).map((m, idx) => (
-                <div key={idx} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium capitalize">{m.month}</span>
-                    <span>€{m.faturado.toFixed(0)}</span>
-                  </div>
-                  <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
-                    <div 
-                      className="bg-green-500" 
-                      style={{ width: `${(m.recebido / (m.faturado || 1)) * 100}%` }}
-                    />
-                    <div 
-                      className="bg-amber-400" 
-                      style={{ width: `${(m.pendente / (m.faturado || 1)) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-4 mt-4 text-xs">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded bg-green-500" />
-                <span>Recebido</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded bg-amber-400" />
-                <span>Pendente</span>
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              {activeChart === "monthly" && (
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" stroke="#64748b" />
+                  <YAxis stroke="#64748b" tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value) => [`€${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, '']}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="recebido" name="Recebido" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="pendente" name="Pendente" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              )}
+              {activeChart === "quarterly" && (
+                <BarChart data={quarterlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="quarter" stroke="#64748b" />
+                  <YAxis stroke="#64748b" tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value) => [`€${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, '']}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="faturado" name="Faturado" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="recebido" name="Recebido" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              )}
+              {activeChart === "yearly" && (
+                <LineChart data={yearlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="year" stroke="#64748b" />
+                  <YAxis stroke="#64748b" tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value) => [`€${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, '']}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="faturado" name="Faturado" stroke="#3b82f6" strokeWidth={3} dot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="recebido" name="Recebido" stroke="#10b981" strokeWidth={3} dot={{ r: 6 }} />
+                </LineChart>
+              )}
+              {activeChart === "comparison" && (
+                <AreaChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" stroke="#64748b" />
+                  <YAxis stroke="#64748b" tickFormatter={(v) => `€${(v/1000).toFixed(0)}k`} />
+                  <Tooltip 
+                    formatter={(value) => [`€${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, '']}
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
+                  />
+                  <Legend />
+                  <Area type="monotone" dataKey="faturado" name="Faturado" fill="#3b82f6" fillOpacity={0.3} stroke="#3b82f6" strokeWidth={2} />
+                  <Area type="monotone" dataKey="recebido" name="Recebido" fill="#10b981" fillOpacity={0.3} stroke="#10b981" strokeWidth={2} />
+                </AreaChart>
+              )}
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* By Type Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Por Tipo de Fatura</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {byType.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">Sem dados</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={byType}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {byType.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => [`€${value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`, 'Valor']} />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -1174,9 +1462,9 @@ function FinancialAnalytics({ invoices }) {
             ) : (
               <div className="space-y-3">
                 {topClients.map((client, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => setClientFilter(client.email || client.name)}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-semibold text-slate-700">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-white" style={{ backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}>
                         {idx + 1}
                       </div>
                       <div>
@@ -1184,7 +1472,7 @@ function FinancialAnalytics({ invoices }) {
                         <p className="text-xs text-slate-500">{client.count} faturas</p>
                       </div>
                     </div>
-                    <p className="font-bold text-slate-900">€{client.total.toFixed(2)}</p>
+                    <p className="font-bold text-slate-900">€{client.total.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
                   </div>
                 ))}
               </div>
@@ -1192,31 +1480,7 @@ function FinancialAnalytics({ invoices }) {
           </CardContent>
         </Card>
 
-        {/* By Type */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Por Tipo de Fatura</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {byType.length === 0 ? (
-              <p className="text-center text-slate-500 py-8">Sem dados</p>
-            ) : (
-              <div className="space-y-3">
-                {byType.map((type, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">{type.name}</p>
-                      <p className="text-xs text-slate-500">{type.count} faturas</p>
-                    </div>
-                    <p className="font-bold text-slate-900">€{type.value.toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* By Service Description */}
+        {/* By Service */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Por Serviço</CardTitle>
@@ -1226,15 +1490,25 @@ function FinancialAnalytics({ invoices }) {
               <p className="text-center text-slate-500 py-8">Sem dados de serviços</p>
             ) : (
               <div className="space-y-3">
-                {topServices.map((service, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate" title={service.name}>{service.name}</p>
+                {topServices.map((service, idx) => {
+                  const maxValue = topServices[0]?.value || 1;
+                  const percentage = (service.value / maxValue) * 100;
+                  return (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-sm truncate flex-1" title={service.name}>{service.name}</p>
+                        <p className="font-bold text-slate-900 ml-2">€{service.value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-500" 
+                          style={{ width: `${percentage}%`, backgroundColor: CHART_COLORS[idx % CHART_COLORS.length] }}
+                        />
+                      </div>
                       <p className="text-xs text-slate-500">{service.count} faturas</p>
                     </div>
-                    <p className="font-bold text-slate-900 ml-2">€{service.value.toFixed(2)}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -1248,21 +1522,30 @@ function FinancialAnalytics({ invoices }) {
           <CardContent>
             <div className="space-y-4">
               {Object.entries(statusConfig).map(([key, config]) => {
-                const count = invoices.filter(i => i.status === key).length;
-                const value = invoices.filter(i => i.status === key).reduce((sum, i) => sum + (i.total_amount || 0), 0);
+                const count = filteredInvoices.filter(i => i.status === key).length;
+                const value = filteredInvoices.filter(i => i.status === key).reduce((sum, i) => sum + (i.total_amount || 0), 0);
                 if (count === 0) return null;
                 
                 const Icon = config.icon;
+                const percentage = totalFaturado > 0 ? (value / totalFaturado) * 100 : 0;
                 return (
-                  <div key={key} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge className={config.color}>
-                        <Icon className="w-3 h-3 mr-1" />
-                        {config.label}
-                      </Badge>
-                      <span className="text-sm text-slate-500">({count})</span>
+                  <div key={key} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge className={config.color}>
+                          <Icon className="w-3 h-3 mr-1" />
+                          {config.label}
+                        </Badge>
+                        <span className="text-sm text-slate-500">({count})</span>
+                      </div>
+                      <span className="font-medium">€{value.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <span className="font-medium">€{value.toFixed(2)}</span>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${key === 'paid' ? 'bg-green-500' : key === 'overdue' ? 'bg-red-500' : 'bg-amber-400'}`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
                   </div>
                 );
               })}
