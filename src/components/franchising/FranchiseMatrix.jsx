@@ -18,7 +18,7 @@ const BRAND_CATEGORIES = {
     lightColor: "bg-emerald-50 border-emerald-200",
     textColor: "text-emerald-700",
     brands: [
-      { name: "ZuProjeckt", icon: Hammer, description: "Projetos e Obras" },
+      { name: "ZuProjekt", icon: Hammer, description: "Projetos e Obras" },
       { name: "ZuGarden", icon: Leaf, description: "Jardins e Paisagismo" },
       { name: "Zufinance", icon: Coins, description: "Serviços Financeiros" }
     ]
