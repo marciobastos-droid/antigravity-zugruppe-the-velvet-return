@@ -85,6 +85,8 @@ export default function NotificationBell({ user }) {
   });
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const totalAlerts = unreadCount + newLeads.length;
+  const [activeTab, setActiveTab] = useState("leads");
 
   const handleNotificationClick = (notification) => {
     markAsReadMutation.mutate(notification.id);
