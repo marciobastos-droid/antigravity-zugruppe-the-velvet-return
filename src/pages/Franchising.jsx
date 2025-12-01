@@ -16,6 +16,7 @@ import {
   FileText, BarChart3, AlertCircle, CheckCircle2, Clock, XCircle, Grid3X3, List
 } from "lucide-react";
 import FranchiseMatrix from "@/components/franchising/FranchiseMatrix";
+import FranchiseDocuments from "@/components/franchising/FranchiseDocuments";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -967,6 +968,11 @@ export default function Franchising() {
                       </p>
                     </div>
                   )}
+
+                  {/* Documents Section */}
+                  <div className="border-t pt-4">
+                    <FranchiseDocuments franchise={selectedFranchise} isAdmin={true} />
+                  </div>
 
                   <div className="flex gap-2 pt-4 border-t">
                     <Button variant="outline" onClick={() => handleEdit(selectedFranchise)} className="flex-1">
