@@ -129,13 +129,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { url } = await req.json();
+    let { url } = await req.json();
 
     if (!url) {
       return Response.json({ error: 'URL é obrigatório' }, { status: 400 });
     }
 
+    // Handle short URLs (url.infocasa.pt) - follow redirects to get real URL
+    if (url.includes('url.infocasa.pt')) {
+      try {
+        const finalUrl = await followRedirects(url);
+        console.log(`Redirect: ${url} -> ${finalUrl}`);
+        url = finalUrl;
+      } catch (e) {
+        console.log('Could not follow redirect:', e.message);
+      }
+    }
+
     const pageType = detectPageType(url);
+    console.log(`Page type detected: ${pageType} for URL: ${url}`);
     
     // Fetch the webpage content
     let pageContent = '';
