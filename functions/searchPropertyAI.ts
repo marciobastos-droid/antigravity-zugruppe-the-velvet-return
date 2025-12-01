@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `És um especialista em extração de dados imobiliários. Esta é uma PÁGINA DE LISTAGEM de um portal imobiliário português.
+                text: `És um especialista em extração de dados imobiliários. Esta é uma PÁGINA DE LISTAGEM de um portal imobiliário português (pode ser Infocasa, Idealista, Imovirtual, etc.).
 Extrai TODOS os imóveis listados nesta página.
 
 URL: ${url}
@@ -215,12 +215,15 @@ ${textContent}
 INSTRUÇÕES CRÍTICAS:
 1. Esta é uma página de LISTAGEM - extrai TODOS os imóveis que aparecem
 2. Cada item da listagem tem: título, preço, quartos, área, localização
-3. PREÇO PORTUGUÊS: "875.000 €" = 875000, "1.450.000€" = 1450000 (ponto é separador de milhares!)
-4. TIPOLOGIA: "T4" = 4 quartos, "T5" = 5 quartos, "Moradia" = house
-5. Se URL contém "comprar" = sale, se contém "arrendar" = rent
-6. Extrai o ID do imóvel do link se visível (ex: 34231937)
-7. property_type: "apartment" para apartamentos/pisos, "house" para moradias/vivendas
+3. PREÇO PORTUGUÊS: "875.000 €" = 875000, "1.450.000€" = 1450000, "800 000 €" = 800000 (ponto ou espaço é separador de milhares!)
+4. TIPOLOGIA: "T4" = 4 quartos, "T5" = 5 quartos, "Moradia" = house, "V4" = 4 quartos house
+5. Se URL contém "comprar" = sale, se contém "arrendar" = rent. Default = sale para preços > 10.000€
+6. Extrai o ID do imóvel do link se visível
+7. property_type: "apartment" para apartamentos/pisos/duplex/penthouse, "house" para moradias/vivendas
 8. Extrai TODOS os imóveis visíveis, não apenas o primeiro
+9. INFOCASA: procura padrões como "Empreendimento", "Nova Construção", localização no formato "Freguesia, Cidade, Distrito"
+10. ÁREA: "101 - 105m²" = usa 103 (média), "75m²" = 75
+11. Se página mostra "16 Imóveis" no título, extrai os 16 imóveis
 
 Responde APENAS com JSON válido (sem markdown):
 {
