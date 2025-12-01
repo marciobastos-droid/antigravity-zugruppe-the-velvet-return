@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+// WhatsApp credentials - stored as environment variables for security
+const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -15,13 +19,23 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Número e mensagem são obrigatórios' });
     }
 
-    // Verificar configuração do WhatsApp
-    const whatsappConfig = user.whatsapp_config;
+    // Try environment variables first, then user config
+    let phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
+    let accessToken = WHATSAPP_ACCESS_TOKEN;
     
-    if (!whatsappConfig?.is_active || !whatsappConfig?.phone_number_id || !whatsappConfig?.access_token) {
+    // Fallback to user's config if env vars not set
+    if (!phoneNumberId || !accessToken) {
+      const whatsappConfig = user.whatsapp_config;
+      if (whatsappConfig?.phone_number_id && whatsappConfig?.access_token) {
+        phoneNumberId = whatsappConfig.phone_number_id;
+        accessToken = whatsappConfig.access_token;
+      }
+    }
+    
+    if (!phoneNumberId || !accessToken) {
       return Response.json({ 
         success: false, 
-        error: 'WhatsApp Business não está configurado. Configure em Ferramentas > WhatsApp Business.',
+        error: 'WhatsApp Business não está configurado. Configure as credenciais nas variáveis de ambiente ou em Ferramentas > WhatsApp Business.',
         config_missing: true
       });
     }
@@ -33,28 +47,42 @@ Deno.serve(async (req) => {
     if (normalizedPhone.length === 9 && normalizedPhone.startsWith('9')) {
       normalizedPhone = '351' + normalizedPhone;
     }
+    
+    // Se começa com 00, remover
+    if (normalizedPhone.startsWith('00')) {
+      normalizedPhone = normalizedPhone.substring(2);
+    }
 
-    console.log(`Sending WhatsApp to: ${normalizedPhone}`);
+    console.log(`Sending WhatsApp to: ${normalizedPhone} via phone_number_id: ${phoneNumberId}`);
 
     // Enviar via WhatsApp Cloud API
-    const response = await fetch(
-      `https://graph.facebook.com/v18.0/${whatsappConfig.phone_number_id}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${whatsappConfig.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: normalizedPhone,
-          type: 'text',
-          text: { body: message }
-        })
+    const apiUrl = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
+    console.log(`Calling WhatsApp API: ${apiUrl}`);
+    
+    const requestBody = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: normalizedPhone,
+      type: 'text',
+      text: { 
+        preview_url: false,
+        body: message 
       }
-    );
+    };
+    
+    console.log('Request body:', JSON.stringify(requestBody));
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
 
     const result = await response.json();
+    console.log('WhatsApp API response status:', response.status);
     console.log('WhatsApp API response:', JSON.stringify(result));
 
     if (!response.ok) {
