@@ -1563,6 +1563,64 @@ function FinancialAnalytics({ invoices }) {
 
   const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+  // Generate PDF Report
+  const handleGeneratePDF = async () => {
+    setGeneratingPDF(true);
+    try {
+      const reportData = {
+        report_type: 'financial_analysis',
+        title: `Relatório Financeiro - ${periodFilter === 'year' ? selectedYear : periodFilter === 'quarter' ? `T${selectedQuarter} ${selectedYear}` : `${selectedMonth + 1}/${selectedYear}`}`,
+        filters: {
+          periodFilter,
+          selectedYear,
+          selectedQuarter,
+          selectedMonth: selectedMonth + 1
+        },
+        invoices_data: {
+          summary: {
+            totalFaturado,
+            totalRecebido,
+            totalPendente,
+            totalVencido,
+            totalInvoices: filteredInvoices.length,
+            collectionRate: totalFaturado > 0 ? ((totalRecebido / totalFaturado) * 100).toFixed(1) : 0,
+            growthRate: growthRate !== null ? parseFloat(growthRate) : null
+          },
+          invoices: filteredInvoices.slice(0, 100).map(inv => ({
+            invoice_number: inv.invoice_number,
+            recipient_name: inv.recipient_name,
+            issue_date: inv.issue_date,
+            due_date: inv.due_date,
+            status: inv.status,
+            total_amount: inv.total_amount,
+            invoice_type: inv.invoice_type
+          })),
+          monthlyData: monthlyData,
+          topClients: topClients,
+          byType: byType
+        }
+      };
+
+      const response = await base44.functions.invoke('generateInvoicePDF', reportData);
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio_financeiro_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+      toast.success('Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar relatório PDF');
+    }
+    setGeneratingPDF(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
