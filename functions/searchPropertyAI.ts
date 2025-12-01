@@ -4,8 +4,13 @@ const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 // Detect if URL is a listing page or a single property detail page
 function detectPageType(url) {
-  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos/i;
+  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos|\/shared\?rgid=/i;
   const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$/;
+  
+  // Infocasa shared links are always listing pages
+  if (url.includes('infocasa.pt/shared') || url.includes('url.infocasa.pt')) {
+    return 'listing';
+  }
   
   // Check for listing page patterns first (more specific)
   if (listingPatterns.test(url)) {
@@ -23,6 +28,49 @@ function detectPageType(url) {
   }
   
   return 'detail';
+}
+
+// Follow redirects and get final URL
+async function followRedirects(url, maxRedirects = 5) {
+  let currentUrl = url;
+  let redirectCount = 0;
+  
+  while (redirectCount < maxRedirects) {
+    try {
+      const response = await fetch(currentUrl, {
+        method: 'HEAD',
+        redirect: 'manual',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location');
+        if (location) {
+          // Handle relative URLs
+          if (location.startsWith('/')) {
+            const urlObj = new URL(currentUrl);
+            currentUrl = urlObj.origin + location;
+          } else if (!location.startsWith('http')) {
+            const urlObj = new URL(currentUrl);
+            currentUrl = urlObj.origin + '/' + location;
+          } else {
+            currentUrl = location;
+          }
+          redirectCount++;
+          continue;
+        }
+      }
+      
+      // No more redirects
+      break;
+    } catch (e) {
+      break;
+    }
+  }
+  
+  return currentUrl;
 }
 
 // Extract all property links from Idealista listing page
