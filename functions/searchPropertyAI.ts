@@ -4,20 +4,30 @@ const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 // Supported portals configuration
 const SUPPORTED_PORTALS = {
-  idealista: { domain: 'idealista.pt', name: 'Idealista' },
-  imovirtual: { domain: 'imovirtual.com', name: 'Imovirtual' },
-  infocasa: { domain: 'infocasa.pt', name: 'Infocasa' },
-  imovelweb: { domain: 'imovelweb.com.br', name: 'ImovelWeb' },
-  kyero: { domain: 'kyero.com', name: 'Kyero' },
-  remax: { domain: 'remax.pt', name: 'RE/MAX' },
-  era: { domain: 'era.pt', name: 'ERA' },
-  century21: { domain: 'century21.pt', name: 'Century 21' },
-  supercasa: { domain: 'supercasa.pt', name: 'Supercasa' },
-  casasapo: { domain: 'casa.sapo.pt', name: 'Casa SAPO' },
-  custojusto: { domain: 'custojusto.pt', name: 'CustoJusto' },
-  olx: { domain: 'olx.pt', name: 'OLX' },
-  bpiexpressoimobiliario: { domain: 'bpiexpressoimobiliario.pt', name: 'BPI Imobiliário' },
-  green_acres: { domain: 'green-acres.pt', name: 'Green Acres' }
+  // Portais Genéricos
+  idealista: { domain: 'idealista.pt', name: 'Idealista', type: 'generic' },
+  imovirtual: { domain: 'imovirtual.com', name: 'Imovirtual', type: 'generic' },
+  infocasa: { domain: 'infocasa.pt', name: 'Infocasa', type: 'generic' },
+  supercasa: { domain: 'supercasa.pt', name: 'Supercasa', type: 'generic' },
+  casasapo: { domain: 'casa.sapo.pt', name: 'Casa SAPO', type: 'generic' },
+  custojusto: { domain: 'custojusto.pt', name: 'CustoJusto', type: 'generic' },
+  olx: { domain: 'olx.pt', name: 'OLX', type: 'generic' },
+  
+  // Portais Internacionais
+  kyero: { domain: 'kyero.com', name: 'Kyero', type: 'international' },
+  green_acres: { domain: 'green-acres.', name: 'Green Acres', type: 'international' },
+  quatru: { domain: 'quatru.pt', name: 'Quatru', type: 'international' },
+  imovelweb: { domain: 'imovelweb.com', name: 'ImovelWeb', type: 'international' },
+  
+  // Redes Imobiliárias
+  remax: { domain: 'remax.pt', name: 'RE/MAX', type: 'network' },
+  era: { domain: 'era.pt', name: 'ERA', type: 'network' },
+  century21: { domain: 'century21.pt', name: 'Century 21', type: 'network' },
+  kw: { domain: 'kwportugal.pt', name: 'Keller Williams', type: 'network' },
+  coldwell: { domain: 'coldwellbanker.pt', name: 'Coldwell Banker', type: 'network' },
+  
+  // Outros
+  bpiexpressoimobiliario: { domain: 'bpiexpressoimobiliario.pt', name: 'BPI Imobiliário', type: 'bank' }
 };
 
 // Detect portal from URL
@@ -33,8 +43,9 @@ function detectPortal(url) {
 
 // Detect if URL is a listing page or a single property detail page
 function detectPageType(url) {
-  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos|\/shared\?rgid=|\/for-sale|\/to-rent|\/a-venda|\/para-alugar|\/properties|\/listings/i;
-  const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$|\/detail\/|\/listing\/\d/;
+  const urlLower = url.toLowerCase();
+  
+  // Portal-specific detection
   
   // Infocasa shared links are always listing pages
   if (url.includes('infocasa.pt/shared') || url.includes('url.infocasa.pt')) {
@@ -42,28 +53,71 @@ function detectPageType(url) {
   }
   
   // Kyero specific patterns
-  if (url.includes('kyero.com')) {
-    if (url.includes('/property/') || /\/\d{6,}/.test(url)) return 'detail';
+  if (urlLower.includes('kyero.com')) {
+    if (/\/property\/\d|\/\d{6,}/.test(url)) return 'detail';
+    return 'listing';
+  }
+  
+  // RE/MAX specific patterns
+  if (urlLower.includes('remax.pt')) {
+    if (/\/imoveis\/[a-z0-9-]+\/\d+|\/property\/\d/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // ERA specific patterns
+  if (urlLower.includes('era.pt')) {
+    if (/\/imovel\/\d|\/property\/\d|\/pt\/imoveis\/[^\/]+$/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // Century 21 specific patterns
+  if (urlLower.includes('century21.pt')) {
+    if (/\/imovel\/|\/property\/|\/comprar\/[^\/]+\/[^\/]+\/\d+/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // Supercasa specific patterns
+  if (urlLower.includes('supercasa.pt')) {
+    if (/\/imovel\/\d|\/d\/\d/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // Casa SAPO specific patterns
+  if (urlLower.includes('casa.sapo.pt')) {
+    if (/\/imovel\/\d|\/detalhe\/\d/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // Green Acres specific patterns
+  if (urlLower.includes('green-acres.')) {
+    if (/\/property\/|\/propriete\/|\/immobilie\/|\/\d{5,}\.htm/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // Quatru specific patterns
+  if (urlLower.includes('quatru.pt')) {
+    if (/\/imovel\/|\/property\/|\/anuncio\/\d/.test(urlLower)) return 'detail';
     return 'listing';
   }
   
   // ImovelWeb specific patterns
-  if (url.includes('imovelweb.com')) {
-    if (url.includes('/propriedades/') && /\d{8,}/.test(url)) return 'detail';
+  if (urlLower.includes('imovelweb.com')) {
+    if (/\/propriedades\/.*\d{8,}/.test(urlLower)) return 'detail';
     return 'listing';
   }
   
-  // Check for listing page patterns first (more specific)
+  // Generic patterns
+  const listingPatterns = /\/comprar-|\/arrendar-|\/venda\/|\/aluguer\/|\/pesquisa|\/resultados|\/listagem|\/imoveis|lista|search|results|com-publicado|com-preco|com-tamanho|com-fotos|\/for-sale|\/to-rent|\/a-venda|\/para-alugar|\/properties|\/listings/i;
+  const detailPatterns = /\/imovel\/\d|\/anuncio\/\d|\/propriedade\/\d|\/property\/\d|\/detalhe\/\d|\/ficha\/\d|\?id=\d|\/\d{7,}\/?$|\/detail\/|\/listing\/\d/;
+  
   if (listingPatterns.test(url)) {
     return 'listing';
   }
   
-  // Check for detail page patterns
   if (detailPatterns.test(url)) {
     return 'detail';
   }
   
-  // Default to listing if contains typical listing URL structure
   if (url.includes('comprar') || url.includes('arrendar') || url.includes('for-sale') || url.includes('to-rent')) {
     return 'listing';
   }
@@ -119,60 +173,158 @@ function extractPropertyLinks(html, baseUrl) {
   const links = [];
   const urlObj = new URL(baseUrl);
   const origin = urlObj.origin;
+  const urlLower = baseUrl.toLowerCase();
   
-  // Idealista specific patterns
-  const idealistaPattern = /href=["']([^"']*\/imovel\/\d+[^"']*)["']/gi;
-  const matches = html.matchAll(idealistaPattern);
+  // Portal-specific link extraction patterns
+  const portalPatterns = {
+    idealista: [/href=["']([^"']*\/imovel\/\d+[^"']*)["']/gi],
+    infocasa: [/href=["']([^"']*infocasa\.pt\/shared\?rgid=[^"']+)["']/gi],
+    remax: [
+      /href=["']([^"']*\/imoveis\/[a-z0-9-]+\/\d+[^"']*)["']/gi,
+      /href=["']([^"']*remax\.pt\/[^"']*imovel[^"']*)["']/gi
+    ],
+    era: [
+      /href=["']([^"']*era\.pt\/[^"']*imovel[^"']*)["']/gi,
+      /href=["']([^"']*\/pt\/imoveis\/[^"']+)["']/gi
+    ],
+    century21: [
+      /href=["']([^"']*century21\.pt\/[^"']*imovel[^"']*)["']/gi,
+      /href=["']([^"']*\/comprar\/[^"']+\/\d+[^"']*)["']/gi
+    ],
+    supercasa: [
+      /href=["']([^"']*\/imovel\/\d+[^"']*)["']/gi,
+      /href=["']([^"']*\/d\/\d+[^"']*)["']/gi
+    ],
+    casasapo: [
+      /href=["']([^"']*casa\.sapo\.pt\/[^"']*imovel[^"']*)["']/gi,
+      /href=["']([^"']*\/detalhe\/\d+[^"']*)["']/gi
+    ],
+    kyero: [
+      /href=["']([^"']*\/property\/\d+[^"']*)["']/gi,
+      /href=["']([^"']*kyero\.com\/[^"']*\/\d{6,}[^"']*)["']/gi
+    ],
+    green_acres: [
+      /href=["']([^"']*\/property\/[^"']+)["']/gi,
+      /href=["']([^"']*\/\d{5,}\.htm[^"']*)["']/gi
+    ],
+    quatru: [
+      /href=["']([^"']*quatru\.pt\/[^"']*imovel[^"']*)["']/gi,
+      /href=["']([^"']*\/anuncio\/\d+[^"']*)["']/gi
+    ]
+  };
   
-  for (const match of matches) {
-    let link = match[1];
-    if (link.startsWith('/')) {
-      link = origin + link;
-    } else if (!link.startsWith('http')) {
-      link = origin + '/' + link;
-    }
-    if (!links.includes(link)) {
-      links.push(link);
+  // Detect which portal and use specific patterns
+  let patterns = [];
+  for (const [portal, portalDomain] of Object.entries(SUPPORTED_PORTALS)) {
+    if (urlLower.includes(portalDomain.domain)) {
+      patterns = portalPatterns[portal] || [];
+      break;
     }
   }
   
-  // Infocasa specific patterns - shared links
-  const infocasaPattern = /href=["']([^"']*infocasa\.pt\/shared\?rgid=[^"']+)["']/gi;
-  const infocasaMatches = html.matchAll(infocasaPattern);
-  
-  for (const match of infocasaMatches) {
-    let link = match[1];
-    if (!link.startsWith('http')) {
-      link = 'https://' + link;
-    }
-    if (!links.includes(link)) {
-      links.push(link);
-    }
-  }
-  
-  // Generic property link patterns
-  const genericPatterns = [
+  // Add generic patterns
+  patterns.push(
     /href=["']([^"']*\/anuncio\/[^"']+)["']/gi,
     /href=["']([^"']*\/propriedade\/[^"']+)["']/gi,
     /href=["']([^"']*\/property\/[^"']+)["']/gi,
-  ];
+    /href=["']([^"']*\/imovel\/[^"']+)["']/gi
+  );
   
-  for (const pattern of genericPatterns) {
-    const genericMatches = html.matchAll(pattern);
-    for (const match of genericMatches) {
+  for (const pattern of patterns) {
+    const matches = html.matchAll(pattern);
+    for (const match of matches) {
       let link = match[1];
-      if (link.startsWith('/')) {
+      if (link.startsWith('//')) {
+        link = 'https:' + link;
+      } else if (link.startsWith('/')) {
         link = origin + link;
       } else if (!link.startsWith('http')) {
         link = origin + '/' + link;
       }
-      if (!links.includes(link)) {
+      // Avoid duplicates and navigation links
+      if (!links.includes(link) && !link.includes('#') && !link.includes('javascript:')) {
         links.push(link);
       }
     }
   }
   
-  return links;
+  return [...new Set(links)]; // Remove any remaining duplicates
+}
+
+// Extract images from HTML with portal-specific patterns
+function extractImages(html, baseUrl) {
+  const images = [];
+  const urlObj = new URL(baseUrl);
+  const origin = urlObj.origin;
+  
+  // Standard img src
+  const imgPatterns = [
+    /<img[^>]+src=["']([^"']+)["'][^>]*>/gi,
+    /data-src=["']([^"']+)["']/gi,
+    /data-lazy-src=["']([^"']+)["']/gi,
+    /data-original=["']([^"']+)["']/gi,
+    /background-image:\s*url\(['"]?([^'")\s]+)['"]?\)/gi
+  ];
+  
+  // Portal-specific image patterns
+  const portalImagePatterns = [
+    // Kyero uses data-flickity-lazyload
+    /data-flickity-lazyload=["']([^"']+)["']/gi,
+    // RE/MAX uses data-bg
+    /data-bg=["']([^"']+)["']/gi,
+    // Century21 uses data-image
+    /data-image=["']([^"']+)["']/gi,
+    // Green Acres uses data-zoom-image
+    /data-zoom-image=["']([^"']+)["']/gi
+  ];
+  
+  const allPatterns = [...imgPatterns, ...portalImagePatterns];
+  
+  for (const pattern of allPatterns) {
+    const matches = html.matchAll(pattern);
+    for (const match of matches) {
+      let imgUrl = match[1];
+      
+      // Skip icons, logos, placeholders
+      if (!imgUrl || 
+          imgUrl.includes('logo') || 
+          imgUrl.includes('icon') || 
+          imgUrl.includes('avatar') ||
+          imgUrl.includes('placeholder') ||
+          imgUrl.includes('loading') ||
+          imgUrl.includes('spinner') ||
+          imgUrl.length < 20) {
+        continue;
+      }
+      
+      // Normalize URL
+      if (imgUrl.startsWith('//')) {
+        imgUrl = 'https:' + imgUrl;
+      } else if (imgUrl.startsWith('/')) {
+        imgUrl = origin + imgUrl;
+      } else if (!imgUrl.startsWith('http')) {
+        imgUrl = origin + '/' + imgUrl;
+      }
+      
+      // Filter to likely property images
+      if (imgUrl.startsWith('http') && !images.includes(imgUrl)) {
+        // Check for image extensions or known CDN patterns
+        if (/\.(jpg|jpeg|png|webp)/i.test(imgUrl) || 
+            imgUrl.includes('cloudinary') ||
+            imgUrl.includes('imgix') ||
+            imgUrl.includes('amazonaws') ||
+            imgUrl.includes('cdn') ||
+            imgUrl.includes('media') ||
+            imgUrl.includes('images') ||
+            imgUrl.includes('photos') ||
+            imgUrl.includes('fotos')) {
+          images.push(imgUrl);
+        }
+      }
+    }
+  }
+  
+  return [...new Set(images)].slice(0, 30); // Dedupe and limit
 }
 
 Deno.serve(async (req) => {
@@ -237,6 +389,9 @@ Deno.serve(async (req) => {
         .trim()
         .substring(0, 30000); // Larger limit for listing pages
 
+      // Detect portal for better extraction hints
+      const portal = detectPortal(url);
+      
       // Use Gemini to extract ALL properties from the listing page
       const geminiResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -246,7 +401,7 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `És um especialista em extração de dados imobiliários. Esta é uma PÁGINA DE LISTAGEM de um portal imobiliário português (pode ser Infocasa, Idealista, Imovirtual, etc.).
+                text: `És um especialista em extração de dados imobiliários. Esta é uma PÁGINA DE LISTAGEM do portal "${portal.name}" (${portal.domain}).
 Extrai TODOS os imóveis listados nesta página.
 
 URL: ${url}
@@ -254,20 +409,41 @@ URL: ${url}
 CONTEÚDO DA PÁGINA:
 ${textContent}
 
-INSTRUÇÕES CRÍTICAS:
+INSTRUÇÕES CRÍTICAS PARA ${portal.name.toUpperCase()}:
 1. Esta é uma página de LISTAGEM - extrai TODOS os imóveis que aparecem
 2. Cada item da listagem tem: título, preço, quartos, área, localização
-3. PREÇO PORTUGUÊS: "875.000 €" = 875000, "1.450.000€" = 1450000, "800 000 €" = 800000 (ponto ou espaço é separador de milhares!)
-4. TIPOLOGIA: "T4" = 4 quartos, "T5" = 5 quartos, "Moradia" = house, "V4" = 4 quartos house
-5. Se URL contém "comprar" = sale, se contém "arrendar" = rent. Default = sale para preços > 10.000€
-6. Extrai o ID do imóvel do link se visível
-7. property_type: "apartment" para apartamentos/pisos/duplex/penthouse, "house" para moradias/vivendas
-8. Extrai TODOS os imóveis visíveis, não apenas o primeiro
-9. INFOCASA: procura padrões como "Empreendimento", "Nova Construção", localização no formato "Freguesia, Cidade, Distrito"
-10. ÁREA: "101 - 105m²" = usa 103 (média), "75m²" = 75
-11. Se página mostra "16 Imóveis" no título, extrai os 16 imóveis
 
-Responde APENAS com JSON válido (sem markdown):
+PREÇOS PORTUGUESES (MUITO IMPORTANTE):
+- "875.000 €" = 875000 (ponto é separador de MILHARES, não decimais!)
+- "1.450.000€" = 1450000
+- "800 000 €" = 800000 (espaço também é separador de milhares)
+- "€875,000" = 875000 (formato internacional)
+- Preço mensal < 5000€ = arrendamento
+
+TIPOLOGIA PORTUGUESA:
+- "T0" = 0 quartos (estúdio)
+- "T1", "T2", "T3", "T4", "T5" = 1, 2, 3, 4, 5 quartos
+- "V3", "V4", "V5" = moradia com 3, 4, 5 quartos
+- "Moradia" = house
+- "Apartamento", "Piso", "Andar" = apartment
+
+INSTRUÇÕES POR PORTAL:
+- KYERO: preços em formato "€875,000", tipologias "3 bed", "4 bed"
+- RE/MAX: procura "Ref:" para external_id
+- ERA: formato "T3 Apartamento em Lisboa"
+- CENTURY21: formato estruturado com referências
+- SUPERCASA/CASA SAPO: padrão português típico
+- GREEN ACRES: preços internacionais, múltiplos países
+- QUATRU: formato português moderno
+
+REGRAS:
+- property_type: "apartment" para apartamentos/pisos/duplex/penthouse/studio
+- property_type: "house" para moradias/vivendas/quintas
+- listing_type: "sale" se preço > 10.000€, "rent" se < 5.000€/mês
+- Extrai external_id do link ou referência visível
+- Extrai TODOS os imóveis, não apenas o primeiro
+
+Responde APENAS com JSON válido (sem markdown, sem \`\`\`):
 {
   "is_listing_page": true,
   "total_found": number,
@@ -281,10 +457,11 @@ Responde APENAS com JSON válido (sem markdown):
       "city": "string",
       "state": "string",
       "address": "string",
-      "property_type": "apartment|house",
+      "property_type": "apartment|house|land|building|farm|store|warehouse|office",
       "listing_type": "sale|rent",
       "external_id": "string",
-      "detail_url": "string"
+      "detail_url": "string",
+      "energy_certificate": "string"
     }
   ]
 }`
@@ -352,49 +529,21 @@ Responde APENAS com JSON válido (sem markdown):
       });
     }
 
-    // Single property detail page (original logic)
+    // Single property detail page
+    const portal = detectPortal(url);
+    
     const textContent = pageContent
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 15000);
+      .substring(0, 20000); // Increased for detail pages
 
-    // Extract image URLs
-    const imageMatches = pageContent.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi);
-    const images = [];
-    for (const match of imageMatches) {
-      let imgUrl = match[1];
-      if (imgUrl && !imgUrl.includes('logo') && !imgUrl.includes('icon') && !imgUrl.includes('avatar')) {
-        if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
-        else if (imgUrl.startsWith('/')) {
-          const urlObj = new URL(url);
-          imgUrl = urlObj.origin + imgUrl;
-        }
-        if (imgUrl.startsWith('http')) {
-          images.push(imgUrl);
-        }
-      }
-    }
+    // Extract images using the enhanced function
+    const images = extractImages(pageContent, url);
 
-    // Also extract from data-src, data-lazy-src attributes
-    const lazySrcMatches = pageContent.matchAll(/data-(?:lazy-)?src=["']([^"']+)["']/gi);
-    for (const match of lazySrcMatches) {
-      let imgUrl = match[1];
-      if (imgUrl && !imgUrl.includes('logo') && !imgUrl.includes('icon')) {
-        if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
-        else if (imgUrl.startsWith('/')) {
-          const urlObj = new URL(url);
-          imgUrl = urlObj.origin + imgUrl;
-        }
-        if (imgUrl.startsWith('http') && !images.includes(imgUrl)) {
-          images.push(imgUrl);
-        }
-      }
-    }
-
-    // Use Gemini to extract single property data
+    // Use Gemini to extract single property data with portal-specific hints
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -403,29 +552,55 @@ Responde APENAS com JSON válido (sem markdown):
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `És um especialista em extração de dados imobiliários de páginas web portuguesas. 
-Analisa o seguinte conteúdo de uma página de um portal imobiliário e extrai TODOS os dados do imóvel.
+              text: `És um especialista em extração de dados imobiliários. Esta é uma página de detalhe de imóvel do portal "${portal.name}" (${portal.domain}).
 
 URL ORIGINAL: ${url}
 
 CONTEÚDO DA PÁGINA:
 ${textContent}
 
-INSTRUÇÕES IMPORTANTES:
-1. Extrai TODOS os dados disponíveis do imóvel
-2. PREÇO: Formato português usa ponto como separador de milhares (495.000 € = 495000, 1.200.000€ = 1200000)
-3. TIPOLOGIA: T0, T1, T2, T3, T4, T5+ correspondem a 0, 1, 2, 3, 4, 5+ quartos
-4. property_type deve ser: "apartment", "house", "land", "building", "farm", "store", "warehouse" ou "office"
-5. listing_type: "sale" para venda, "rent" para arrendamento (se preço mensal < 5000€ provavelmente é arrendamento)
-6. Extrai a morada completa, cidade e distrito
-7. Extrai área útil e bruta se disponíveis
-8. Extrai ano de construção, certificado energético, comodidades
-9. Se não encontrares informação, deixa o campo vazio ou 0
+INSTRUÇÕES CRÍTICAS PARA ${portal.name.toUpperCase()}:
 
-Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
+PREÇOS (MUITO IMPORTANTE):
+- Formato português: "495.000 €" = 495000 (ponto separa MILHARES!)
+- "1.200.000€" = 1200000
+- "€495,000" = 495000 (formato internacional, vírgula separa milhares)
+- Preço mensal < 5000€ indica arrendamento
+
+TIPOLOGIA PORTUGUESA:
+- "T0" = estúdio (0 quartos)
+- "T1" a "T5+" = 1 a 5+ quartos (apartamento)
+- "V1" a "V5+" = 1 a 5+ quartos (moradia)
+- "Moradia Geminada/Isolada/Em Banda" = house
+
+ÁREAS:
+- "Área útil" ou "Área habitável" = square_feet
+- "Área bruta" ou "Área total" = gross_area
+- Valores em m² (metros quadrados)
+
+CARACTERÍSTICAS A EXTRAIR:
+- Certificado energético (A+, A, B, B-, C, D, E, F, ou "Isento")
+- Ano de construção
+- Garagem, estacionamento
+- Piscina, jardim, terraço, varanda
+- Ar condicionado, aquecimento central
+- Elevador (para apartamentos)
+- Referência do imóvel (external_id)
+
+TIPOS DE IMÓVEL:
+- "apartment": apartamento, piso, andar, duplex, penthouse, estúdio, loft
+- "house": moradia, vivenda, casa, quinta habitacional
+- "land": terreno, lote
+- "building": prédio
+- "farm": quinta, herdade, propriedade rural
+- "store": loja, espaço comercial
+- "warehouse": armazém, pavilhão
+- "office": escritório, gabinete
+
+Responde APENAS com JSON válido (sem markdown, sem \`\`\`):
 {
   "title": "string",
-  "description": "string",
+  "description": "string (descrição completa do imóvel)",
   "property_type": "apartment|house|land|building|farm|store|warehouse|office",
   "listing_type": "sale|rent",
   "price": number,
@@ -435,18 +610,21 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
   "gross_area": number,
   "address": "string",
   "city": "string",
-  "state": "string",
+  "state": "string (distrito)",
   "zip_code": "string",
   "year_built": number,
   "energy_certificate": "string",
   "amenities": ["string"],
-  "external_id": "string"
+  "external_id": "string (referência do anúncio)",
+  "floor": number,
+  "parking_spaces": number,
+  "condition": "string (novo, renovado, usado, para recuperar)"
 }`
             }]
           }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 2048
+            maxOutputTokens: 4096
           }
         })
       }
@@ -482,17 +660,21 @@ Responde APENAS com um objeto JSON válido (sem markdown, sem \`\`\`):
     }
 
     propertyData.source_url = url;
-    propertyData.images = images.slice(0, 20);
+    propertyData.images = images;
+    propertyData.portal = portal.name;
 
     if (!propertyData.title || propertyData.title.length < 3) {
-      propertyData.title = `Imóvel em ${propertyData.city || 'Portugal'}`;
+      const typeLabel = propertyData.property_type === 'house' ? 'Moradia' : 
+                       propertyData.property_type === 'apartment' ? 'Apartamento' : 'Imóvel';
+      propertyData.title = `${typeLabel}${propertyData.bedrooms ? ` T${propertyData.bedrooms}` : ''} em ${propertyData.city || 'Portugal'}`;
     }
 
     return Response.json({
       success: true,
       is_listing_page: false,
       property: propertyData,
-      imageCount: images.length
+      imageCount: images.length,
+      portal: portal.name
     });
 
   } catch (error) {
