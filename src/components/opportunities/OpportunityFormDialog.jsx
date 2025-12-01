@@ -17,6 +17,7 @@ import {
   Percent, Bell, X, Plus, Search, MapPin, Bed
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAgentNames } from "../common/useAgentNames";
 
 export default function OpportunityFormDialog({ opportunity, open, onOpenChange, onSaved, prefillContact }) {
   const queryClient = useQueryClient();
@@ -56,10 +57,7 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
-  });
+  const { users, getAgentName } = useAgentNames();
 
   const { data: contacts = [] } = useQuery({
     queryKey: ['clientContacts'],
@@ -361,12 +359,14 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
                     onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar agente" />
+                      <SelectValue placeholder="Selecionar agente">
+                        {formData.assigned_to ? getAgentName(formData.assigned_to) : "Selecionar agente"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {users.map((u) => (
                         <SelectItem key={u.id} value={u.email}>
-                          {u.full_name}
+                          {u.display_name || u.full_name || u.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
