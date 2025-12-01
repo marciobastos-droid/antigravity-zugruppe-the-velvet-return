@@ -63,6 +63,8 @@ export default function InvoiceManager() {
   const [activeTab, setActiveTab] = useState("list");
   const [importData, setImportData] = useState([]);
   const [importing, setImporting] = useState(false);
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [bulkPaymentDialogOpen, setBulkPaymentDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -467,6 +469,37 @@ Retorna um array com todas as faturas encontradas no documento.`,
       updateData.paid_date = format(new Date(), "yyyy-MM-dd");
     }
     updateMutation.mutate({ id: invoice.id, data: updateData });
+  };
+
+  const bulkMarkAsPaidMutation = useMutation({
+    mutationFn: async (ids) => {
+      const paid_date = format(new Date(), "yyyy-MM-dd");
+      for (const id of ids) {
+        await base44.entities.Invoice.update(id, { status: 'paid', paid_date });
+      }
+      return ids.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`${count} faturas marcadas como pagas`);
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      setSelectedInvoices([]);
+      setBulkPaymentDialogOpen(false);
+    }
+  });
+
+  const toggleSelectInvoice = (id) => {
+    setSelectedInvoices(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    const payableInvoices = filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending');
+    if (selectedInvoices.length === payableInvoices.length) {
+      setSelectedInvoices([]);
+    } else {
+      setSelectedInvoices(payableInvoices.map(i => i.id));
+    }
   };
 
   const handleSendInvoice = async (invoice) => {
@@ -881,6 +914,53 @@ Obrigado.`
         </DialogContent>
       </Dialog>
 
+      {/* Bulk Payment Confirmation Dialog */}
+      <Dialog open={bulkPaymentDialogOpen} onOpenChange={setBulkPaymentDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+              Confirmar Pagamento em Massa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-green-600 mb-1">Total a marcar como pago</p>
+              <p className="text-3xl font-bold text-green-700">
+                €{filteredInvoices.filter(i => selectedInvoices.includes(i.id)).reduce((sum, i) => sum + (i.total_amount || 0), 0).toFixed(2)}
+              </p>
+              <p className="text-sm text-green-600 mt-1">{selectedInvoices.length} fatura{selectedInvoices.length > 1 ? 's' : ''}</p>
+            </div>
+
+            <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+              {filteredInvoices.filter(i => selectedInvoices.includes(i.id)).map(invoice => (
+                <div key={invoice.id} className="p-2 flex items-center justify-between text-sm">
+                  <div>
+                    <span className="font-medium">{invoice.invoice_number}</span>
+                    <span className="text-slate-500 ml-2">{invoice.recipient_name}</span>
+                  </div>
+                  <span className="font-medium">€{invoice.total_amount?.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button variant="outline" onClick={() => setBulkPaymentDialogOpen(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button 
+                onClick={() => bulkMarkAsPaidMutation.mutate(selectedInvoices)}
+                disabled={bulkMarkAsPaidMutation.isPending}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-2" />
+                {bulkMarkAsPaidMutation.isPending ? "A processar..." : "Confirmar Pagamento"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -1083,6 +1163,37 @@ Obrigado.`
         </Card>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedInvoices.length > 0 && (
+        <Card className="border-green-300 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-900">
+                  {selectedInvoices.length} fatura{selectedInvoices.length > 1 ? 's' : ''} selecionada{selectedInvoices.length > 1 ? 's' : ''}
+                </span>
+                <span className="text-sm text-green-700">
+                  (€{filteredInvoices.filter(i => selectedInvoices.includes(i.id)).reduce((sum, i) => sum + (i.total_amount || 0), 0).toFixed(2)})
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setBulkPaymentDialogOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Marcar como Pagas
+                </Button>
+                <Button variant="outline" onClick={() => setSelectedInvoices([])}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
@@ -1122,6 +1233,16 @@ Obrigado.`
               </SelectContent>
             </Select>
           </div>
+          {/* Select All for payable invoices */}
+          {filteredInvoices.some(i => i.status === 'sent' || i.status === 'pending') && (
+            <div className="mt-3 pt-3 border-t">
+              <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+                {selectedInvoices.length === filteredInvoices.filter(i => i.status === 'sent' || i.status === 'pending').length 
+                  ? 'Desselecionar Todas' 
+                  : 'Selecionar Pendentes/Enviadas'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -1147,9 +1268,18 @@ Obrigado.`
                 const isOverdue = invoice.status === 'sent' && invoice.due_date && isBefore(new Date(invoice.due_date), new Date());
 
                 return (
-                  <div key={invoice.id} className="p-4 hover:bg-slate-50 transition-colors">
+                  <div key={invoice.id} className={`p-4 hover:bg-slate-50 transition-colors ${selectedInvoices.includes(invoice.id) ? 'bg-green-50' : ''}`}>
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 min-w-0 flex-1">
+                        {/* Checkbox for payable invoices */}
+                        {(invoice.status === 'sent' || invoice.status === 'pending') && (
+                          <input
+                            type="checkbox"
+                            checked={selectedInvoices.includes(invoice.id)}
+                            onChange={() => toggleSelectInvoice(invoice.id)}
+                            className="w-4 h-4 rounded border-slate-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                          />
+                        )}
                         <div className={`p-2 rounded-lg ${isOverdue ? 'bg-red-100' : 'bg-slate-100'}`}>
                           <TypeIcon className={`w-5 h-5 ${isOverdue ? 'text-red-600' : 'text-slate-600'}`} />
                         </div>
