@@ -54,64 +54,28 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
 
     setSending(true);
     try {
-      const phoneNumber = contact.phone.replace(/\D/g, '');
-      
-      // Enviar via WhatsApp API
-      const response = await fetch(
-        `https://graph.facebook.com/v18.0/${user.whatsapp_config.phone_number_id}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${user.whatsapp_config.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            messaging_product: 'whatsapp',
-            to: phoneNumber,
-            type: 'text',
-            text: { body: message }
-          })
-        }
-      );
+      // Enviar via backend function para maior fiabilidade
+      const response = await base44.functions.invoke('sendWhatsApp', {
+        phoneNumber: contact.phone,
+        message: message,
+        contactId: contact.id,
+        contactName: contact.full_name
+      });
 
-      const result = await response.json();
+      const result = response.data;
 
-      if (response.ok && result.messages?.[0]?.id) {
-        // Guardar mensagem no CRM
-        await base44.entities.WhatsAppMessage.create({
-          message_id: result.messages[0].id,
-          contact_id: contact.id,
-          contact_phone: phoneNumber,
-          contact_name: contact.full_name,
-          agent_email: user.email,
-          direction: 'outbound',
-          message_type: 'text',
-          content: message,
-          status: 'sent',
-          timestamp: new Date().toISOString()
-        });
-
-        // Criar entrada no histórico de comunicações
-        await base44.entities.CommunicationLog.create({
-          contact_id: contact.id,
-          contact_name: contact.full_name,
-          communication_type: 'whatsapp',
-          direction: 'outbound',
-          summary: message.substring(0, 200),
-          communication_date: new Date().toISOString(),
-          agent_email: user.email
-        });
-
+      if (result.success) {
         setMessage("");
         refetch();
         queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
         toast.success("Mensagem enviada!");
         onMessageSent?.();
       } else {
-        throw new Error(result.error?.message || 'Erro ao enviar');
+        throw new Error(result.error || 'Erro ao enviar');
       }
     } catch (error) {
-      toast.error("Erro ao enviar: " + error.message);
+      console.error('WhatsApp send error:', error);
+      toast.error("Erro ao enviar: " + (error.message || 'Erro desconhecido'));
     }
     setSending(false);
   };
