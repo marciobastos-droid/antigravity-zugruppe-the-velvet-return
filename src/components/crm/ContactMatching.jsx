@@ -49,6 +49,9 @@ export default function ContactMatching({ contact }) {
   const [alertFrequency, setAlertFrequency] = React.useState("daily");
   const [savingForLater, setSavingForLater] = React.useState(null);
   const [sendMethod, setSendMethod] = React.useState("email");
+  const [addPropertyDialogOpen, setAddPropertyDialogOpen] = React.useState(false);
+  const [propertySearch, setPropertySearch] = React.useState("");
+  const [addingPropertyId, setAddingPropertyId] = React.useState(null);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
