@@ -1581,8 +1581,8 @@ export default function ClientDatabase() {
               </TabsList>
 
               <TabsContent value="details" className="mt-4">
-                {/* Quick Info Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                {/* Quick Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
                   <Card className="bg-blue-50 border-blue-200">
                     <CardContent className="p-3 text-center">
                       <p className="text-xs text-blue-600 mb-1">Tipo</p>
@@ -1601,8 +1601,24 @@ export default function ClientDatabase() {
                   </Card>
                   <Card className="bg-purple-50 border-purple-200">
                     <CardContent className="p-3 text-center">
-                      <p className="text-xs text-purple-600 mb-1">Origem</p>
-                      <span className="text-sm font-medium text-purple-900">
+                      <p className="text-xs text-purple-600 mb-1">Oportunidades</p>
+                      <span className="text-lg font-bold text-purple-900">
+                        {getClientOpportunities(selectedClient).length}
+                      </span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-indigo-50 border-indigo-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-indigo-600 mb-1">Comunicações</p>
+                      <span className="text-lg font-bold text-indigo-900">
+                        {getClientCommunications(selectedClient.id).length}
+                      </span>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-amber-50 border-amber-200">
+                    <CardContent className="p-3 text-center">
+                      <p className="text-xs text-amber-600 mb-1">Origem</p>
+                      <span className="text-sm font-medium text-amber-900">
                         {selectedClient.source === 'facebook_ads' ? 'Facebook' : 
                          selectedClient.source === 'website' ? 'Website' :
                          selectedClient.source === 'referral' ? 'Indicação' :
@@ -1612,101 +1628,258 @@ export default function ClientDatabase() {
                       </span>
                     </CardContent>
                   </Card>
-                  <Card className="bg-amber-50 border-amber-200">
+                  <Card className="bg-slate-50 border-slate-200">
                     <CardContent className="p-3 text-center">
-                      <p className="text-xs text-amber-600 mb-1">Agente</p>
-                      <span className="text-sm font-medium text-amber-900 truncate block">
-                        {selectedClient.assigned_agent?.split('@')[0] || 'N/A'}
+                      <p className="text-xs text-slate-600 mb-1">Responsável</p>
+                      <span className="text-sm font-medium text-slate-900 truncate block">
+                        {getAgentName(selectedClient.assigned_agent, 'short') || 'N/A'}
                       </span>
                     </CardContent>
                   </Card>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-slate-900">Informação de Contacto</h4>
-                    <div className="space-y-2 text-sm">
-                      {selectedClient.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-slate-500" />
-                          <a href={`mailto:${selectedClient.email}`} className="text-blue-600 hover:underline">
-                            {selectedClient.email}
-                          </a>
-                        </div>
-                      )}
-                      {selectedClient.phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-slate-500" />
-                          <a href={`tel:${selectedClient.phone}`} className="text-blue-600 hover:underline">
-                            {selectedClient.phone}
-                          </a>
-                        </div>
-                      )}
-                      {selectedClient.secondary_phone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-slate-500" />
-                          {selectedClient.secondary_phone}
-                        </div>
-                      )}
-                      {selectedClient.address && (
-                        <div className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-slate-500 mt-0.5" />
-                          <span>
-                            {selectedClient.address}
-                            {selectedClient.postal_code && `, ${selectedClient.postal_code}`}
-                            {selectedClient.city && ` - ${selectedClient.city}`}
-                          </span>
-                        </div>
-                      )}
-                      {selectedClient.preferred_contact_method && (
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-slate-500" />
-                          Preferência: {selectedClient.preferred_contact_method === 'phone' ? 'Telefone' : 
-                                       selectedClient.preferred_contact_method === 'email' ? 'Email' :
-                                       selectedClient.preferred_contact_method === 'whatsapp' ? 'WhatsApp' : 'SMS'}
-                        </div>
+                {/* Client Header with Photo */}
+                <div className="flex items-start gap-4 mb-6 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-2xl">
+                      {selectedClient.full_name?.[0]?.toUpperCase() || '?'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-xl font-bold text-slate-900">{selectedClient.full_name}</h3>
+                      {selectedClient.ref_id && (
+                        <Badge variant="outline" className="font-mono text-xs">{selectedClient.ref_id}</Badge>
                       )}
                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-slate-900">Informação Profissional</h4>
-                    <div className="space-y-2 text-sm">
-                      {selectedClient.company_name && (
-                        <div className="flex items-center gap-2">
-                          <Building2 className="w-4 h-4 text-slate-500" />
-                          {selectedClient.company_name}
-                        </div>
-                      )}
-                      {selectedClient.job_title && (
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-500" />
-                          {selectedClient.job_title}
-                        </div>
-                      )}
-                      {selectedClient.nif && (
-                        <div className="flex items-center gap-2">
-                          <TagIcon className="w-4 h-4 text-slate-500" />
-                          NIF: {selectedClient.nif}
-                        </div>
-                      )}
-                      {selectedClient.birthday && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-slate-500" />
-                          Aniversário: {format(new Date(selectedClient.birthday), "dd/MM/yyyy")}
-                        </div>
+                    {selectedClient.company_name && (
+                      <p className="text-slate-600 flex items-center gap-1 mt-1">
+                        <Building2 className="w-4 h-4" />
+                        {selectedClient.company_name}
+                        {selectedClient.job_title && <span className="text-slate-400"> • {selectedClient.job_title}</span>}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                      {selectedClient.tags?.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          <TagIcon className="w-3 h-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        Criado: {format(new Date(selectedClient.created_date), "dd/MM/yyyy")}
+                      </span>
+                      {selectedClient.last_contact_date && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Último contacto: {format(new Date(selectedClient.last_contact_date), "dd/MM/yyyy")}
+                        </span>
                       )}
                     </div>
                   </div>
                 </div>
 
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Contact Information */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-green-600" />
+                        Informação de Contacto
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {selectedClient.email ? (
+                        <a href={`mailto:${selectedClient.email}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Mail className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-blue-600 group-hover:underline">{selectedClient.email}</p>
+                            <p className="text-xs text-slate-500">Email principal</p>
+                          </div>
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-3 p-2 text-slate-400">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                            <Mail className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm">Sem email</span>
+                        </div>
+                      )}
+                      
+                      {selectedClient.phone ? (
+                        <a href={`tel:${selectedClient.phone}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <Phone className="w-4 h-4 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-green-600 group-hover:underline">{selectedClient.phone}</p>
+                            <p className="text-xs text-slate-500">Telefone principal</p>
+                          </div>
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-3 p-2 text-slate-400">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                            <Phone className="w-4 h-4" />
+                          </div>
+                          <span className="text-sm">Sem telefone</span>
+                        </div>
+                      )}
+
+                      {selectedClient.secondary_phone && (
+                        <a href={`tel:${selectedClient.secondary_phone}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors group">
+                          <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
+                            <Phone className="w-4 h-4 text-green-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-green-600 group-hover:underline">{selectedClient.secondary_phone}</p>
+                            <p className="text-xs text-slate-500">Telefone secundário</p>
+                          </div>
+                        </a>
+                      )}
+
+                      {(selectedClient.address || selectedClient.city) && (
+                        <div className="flex items-start gap-3 p-2">
+                          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                            <MapPin className="w-4 h-4 text-red-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">
+                              {selectedClient.address || selectedClient.city}
+                            </p>
+                            {selectedClient.address && (
+                              <p className="text-xs text-slate-500">
+                                {selectedClient.postal_code && `${selectedClient.postal_code} `}
+                                {selectedClient.city}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedClient.preferred_contact_method && (
+                        <div className="flex items-center gap-3 p-2 bg-amber-50 rounded-lg">
+                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-amber-800">
+                              Prefere {selectedClient.preferred_contact_method === 'phone' ? 'Telefone' : 
+                                       selectedClient.preferred_contact_method === 'email' ? 'Email' :
+                                       selectedClient.preferred_contact_method === 'whatsapp' ? 'WhatsApp' : 'SMS'}
+                            </p>
+                            <p className="text-xs text-amber-600">Método de contacto preferido</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Professional & Additional Info */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-purple-600" />
+                        Informação Adicional
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {selectedClient.nif && (
+                        <div className="flex items-center gap-3 p-2">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                            <TagIcon className="w-4 h-4 text-slate-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{selectedClient.nif}</p>
+                            <p className="text-xs text-slate-500">NIF / Contribuinte</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedClient.birthday && (
+                        <div className="flex items-center gap-3 p-2">
+                          <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-pink-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{format(new Date(selectedClient.birthday), "dd/MM/yyyy")}</p>
+                            <p className="text-xs text-slate-500">Data de nascimento</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedClient.assigned_agent && (
+                        <div className="flex items-center gap-3 p-2 bg-indigo-50 rounded-lg">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <User className="w-4 h-4 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-indigo-800">{getAgentName(selectedClient.assigned_agent)}</p>
+                            <p className="text-xs text-indigo-600">Agente responsável</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Property Requirements Summary */}
+                      {selectedClient.property_requirements && (
+                        <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+                          <h5 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                            <Target className="w-4 h-4 text-blue-600" />
+                            Requisitos de Imóvel
+                          </h5>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {(selectedClient.property_requirements.budget_min || selectedClient.property_requirements.budget_max) && (
+                              <div className="flex items-center gap-1 text-slate-700">
+                                <Euro className="w-3 h-3 text-green-600" />
+                                {selectedClient.property_requirements.budget_min ? `${(selectedClient.property_requirements.budget_min/1000).toFixed(0)}k` : '0'} - 
+                                {selectedClient.property_requirements.budget_max ? ` ${(selectedClient.property_requirements.budget_max/1000).toFixed(0)}k` : ' ∞'}
+                              </div>
+                            )}
+                            {selectedClient.property_requirements.bedrooms_min && (
+                              <div className="flex items-center gap-1 text-slate-700">
+                                <Bed className="w-3 h-3 text-purple-600" />
+                                T{selectedClient.property_requirements.bedrooms_min}+
+                              </div>
+                            )}
+                            {selectedClient.property_requirements.locations?.length > 0 && (
+                              <div className="col-span-2 flex items-center gap-1 text-slate-700">
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                {selectedClient.property_requirements.locations.slice(0, 3).join(', ')}
+                                {selectedClient.property_requirements.locations.length > 3 && ` +${selectedClient.property_requirements.locations.length - 3}`}
+                              </div>
+                            )}
+                            {selectedClient.property_requirements.property_types?.length > 0 && (
+                              <div className="col-span-2 flex items-center gap-1 text-slate-700">
+                                <Home className="w-3 h-3 text-blue-600" />
+                                {selectedClient.property_requirements.property_types.slice(0, 2).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Notes Section */}
                 {selectedClient.notes && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-slate-900 mb-2">Notas</h4>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg">
-                      {selectedClient.notes}
-                    </p>
-                  </div>
+                  <Card className="mt-6">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-slate-600" />
+                        Notas
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-slate-600 whitespace-pre-wrap bg-slate-50 p-4 rounded-lg border">
+                        {selectedClient.notes}
+                      </p>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {/* Quick Contact Actions */}
