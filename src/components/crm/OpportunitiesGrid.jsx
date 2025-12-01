@@ -50,6 +50,23 @@ export default function OpportunitiesGrid({
 }) {
   const { getAgentName } = useAgentNames();
 
+  // Buscar contactos para verificar quais oportunidades foram convertidas
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  // Criar mapa de oportunidades convertidas
+  const convertedOpportunities = React.useMemo(() => {
+    const converted = new Set();
+    contacts.forEach(contact => {
+      if (contact.linked_opportunity_ids && contact.linked_opportunity_ids.length > 0) {
+        contact.linked_opportunity_ids.forEach(id => converted.add(id));
+      }
+    });
+    return converted;
+  }, [contacts]);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
       {opportunities.map((opp) => {
