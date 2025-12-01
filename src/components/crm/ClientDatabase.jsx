@@ -38,6 +38,82 @@ const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
 const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
 const ContactOpportunities = lazy(() => import("./ContactOpportunities"));
 
+// Component to show elected properties summary
+function ElectedPropertiesSummary({ contactId }) {
+  const { data: propertyFeedback = [] } = useQuery({
+    queryKey: ['propertyFeedback', contactId],
+    queryFn: async () => {
+      if (!contactId) return [];
+      return await base44.entities.PropertyFeedback.filter({ contact_id: contactId });
+    },
+    enabled: !!contactId
+  });
+
+  const { data: properties = [] } = useQuery({
+    queryKey: ['propertiesForFeedback'],
+    queryFn: () => base44.entities.Property.list('-created_date', 100),
+    enabled: propertyFeedback.length > 0
+  });
+
+  const favoriteIds = propertyFeedback.filter(f => f.feedback_type === 'favorite').map(f => f.property_id);
+  const electedProperties = properties.filter(p => favoriteIds.includes(p.id));
+
+  if (electedProperties.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="border-amber-200 bg-amber-50/30">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          Imóveis Eleitos ({electedProperties.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-2">
+          {electedProperties.slice(0, 3).map(property => (
+            <div key={property.id} className="flex items-center gap-3 p-2 bg-white rounded-lg border">
+              {property.images?.[0] ? (
+                <img 
+                  src={property.images[0]} 
+                  alt={property.title}
+                  className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Home className="w-5 h-5 text-slate-300" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-slate-900 truncate">{property.title}</p>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <MapPin className="w-3 h-3" />
+                  {property.city}
+                  <span className="font-medium text-slate-700">€{property.price?.toLocaleString()}</span>
+                </div>
+              </div>
+              <Link 
+                to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                target="_blank"
+              >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+          ))}
+          {electedProperties.length > 3 && (
+            <p className="text-xs text-amber-600 text-center pt-1">
+              +{electedProperties.length - 3} mais imóveis eleitos
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function BulkTagSelector({ onTagSelect }) {
   const [open, setOpen] = React.useState(false);
   const { data: tags = [] } = useQuery({
