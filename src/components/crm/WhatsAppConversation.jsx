@@ -45,9 +45,9 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const isWhatsAppConfigured = user?.whatsapp_config?.is_active && 
-    user?.whatsapp_config?.phone_number_id && 
-    user?.whatsapp_config?.access_token;
+  // WhatsApp is configured via environment variables on the backend
+  // We just need to check if user is authenticated
+  const isWhatsAppConfigured = true;
 
   const sendMessage = async () => {
     if (!message.trim() || !isWhatsAppConfigured) return;
@@ -64,6 +64,8 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
 
       const result = response.data;
 
+      console.log('WhatsApp response:', result);
+      
       if (result.success) {
         setMessage("");
         refetch();
@@ -71,7 +73,12 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         toast.success("Mensagem enviada!");
         onMessageSent?.();
       } else {
-        throw new Error(result.error || 'Erro ao enviar');
+        console.error('WhatsApp error:', result);
+        if (result.config_missing) {
+          toast.error("WhatsApp não configurado. Configure as credenciais nas variáveis de ambiente.");
+        } else {
+          toast.error("Erro ao enviar: " + (result.error || 'Erro desconhecido'));
+        }
       }
     } catch (error) {
       console.error('WhatsApp send error:', error);
