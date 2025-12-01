@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { format, addDays, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, AreaChart, Area, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useAgentNames } from "../common/useAgentNames";
 
 const statusConfig = {
   draft: { label: "Rascunho", color: "bg-slate-100 text-slate-700", icon: FileText },
@@ -70,10 +71,7 @@ export default function InvoiceManager() {
     queryFn: () => base44.entities.Invoice.list('-created_date')
   });
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
-  });
+  const { users, getAgentName } = useAgentNames();
 
   const agents = users.filter(u => u.user_type === 'agente' || u.user_type === 'gestor');
 
@@ -529,7 +527,7 @@ IMPORTANTE:
                     <SelectContent>
                       {agents.map(agent => (
                         <SelectItem key={agent.email} value={agent.email}>
-                          {agent.display_name || agent.full_name} ({agent.email})
+                          {getAgentName(agent.email)}
                         </SelectItem>
                       ))}
                     </SelectContent>
