@@ -14,7 +14,7 @@ import {
   FileText, Plus, Search, Euro, Calendar, Send, 
   CheckCircle2, Clock, AlertCircle, Trash2, Edit,
   Download, Mail, Building2, User, Filter, Eye,
-  Receipt, TrendingUp, X, Upload, BarChart3
+  Receipt, TrendingUp, X, Upload, BarChart3, CreditCard, Copy, QrCode
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays, isAfter, isBefore } from "date-fns";
@@ -39,9 +39,21 @@ const typeConfig = {
   service: { label: "Serviço", icon: FileText }
 };
 
+// Generate Multibanco reference from invoice ID
+const generateMBReference = (invoiceId, amount) => {
+  const entity = "21551"; // Simulated entity
+  // Generate reference based on invoice ID hash
+  const hash = invoiceId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const reference = String(hash % 1000000000).padStart(9, '0');
+  const formatted = `${reference.slice(0,3)} ${reference.slice(3,6)} ${reference.slice(6,9)}`;
+  return { entity, reference: formatted, amount: amount?.toFixed(2) || '0.00' };
+};
+
 export default function InvoiceManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentInvoice, setPaymentInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -458,16 +470,49 @@ Retorna um array com todas as faturas encontradas no documento.`,
 
   const handleSendInvoice = async (invoice) => {
     try {
+      const mb = generateMBReference(invoice.id, invoice.total_amount);
+      const paymentLink = `${window.location.origin}${window.location.pathname}?pay=${invoice.id}`;
+      
       await base44.integrations.Core.SendEmail({
         to: invoice.recipient_email,
-        subject: `Fatura ${invoice.invoice_number}`,
-        body: `Caro(a) ${invoice.recipient_name},\n\nSegue em anexo a fatura ${invoice.invoice_number} no valor de €${invoice.total_amount?.toFixed(2)}.\n\nData de vencimento: ${invoice.due_date ? format(new Date(invoice.due_date), "dd/MM/yyyy") : 'N/A'}\n\nObrigado.`
+        subject: `Fatura ${invoice.invoice_number} - Pagamento`,
+        body: `Caro(a) ${invoice.recipient_name},
+
+Segue a fatura ${invoice.invoice_number} no valor de €${invoice.total_amount?.toFixed(2)}.
+
+Data de vencimento: ${invoice.due_date ? format(new Date(invoice.due_date), "dd/MM/yyyy") : 'N/A'}
+
+═══════════════════════════════════
+DADOS PARA PAGAMENTO MULTIBANCO
+═══════════════════════════════════
+Entidade: ${mb.entity}
+Referência: ${mb.reference}
+Valor: €${mb.amount}
+═══════════════════════════════════
+
+Ou pague por MB Way/Transferência:
+IBAN: PT50 0000 0000 0000 0000 0000 0
+MB Way: +351 900 000 000
+
+Após o pagamento, responda a este email com o comprovativo.
+
+Obrigado.`
       });
       handleStatusChange(invoice, 'sent');
-      toast.success("Fatura enviada por email");
+      toast.success("Fatura enviada por email com dados de pagamento");
     } catch (error) {
       toast.error("Erro ao enviar email");
     }
+  };
+
+  const handleOpenPayment = (invoice) => {
+    setPaymentInvoice(invoice);
+    setPaymentDialogOpen(true);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado!");
   };
 
   // Filter invoices
@@ -723,6 +768,117 @@ Retorna um array com todas as faturas encontradas no documento.`,
         </Dialog>
         </div>
       </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-green-600" />
+              Pagamento da Fatura
+            </DialogTitle>
+          </DialogHeader>
+          {paymentInvoice && (
+            <div className="space-y-4 mt-4">
+              <div className="text-center p-4 bg-slate-50 rounded-lg">
+                <p className="text-sm text-slate-600">Fatura</p>
+                <p className="text-xl font-bold">{paymentInvoice.invoice_number}</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  €{paymentInvoice.total_amount?.toFixed(2)}
+                </p>
+              </div>
+
+              {/* Multibanco */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">MB</span>
+                  </div>
+                  <span className="font-semibold">Multibanco</span>
+                </div>
+                {(() => {
+                  const mb = generateMBReference(paymentInvoice.id, paymentInvoice.total_amount);
+                  return (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Entidade:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold">{mb.entity}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(mb.entity)}>
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Referência:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold">{mb.reference}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(mb.reference.replace(/\s/g, ''))}>
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-600">Valor:</span>
+                        <span className="font-mono font-bold">€{mb.amount}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* MB Way */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">MW</span>
+                  </div>
+                  <span className="font-semibold">MB Way</span>
+                </div>
+                <p className="text-sm text-slate-600">
+                  Envie €{paymentInvoice.total_amount?.toFixed(2)} para o número:
+                </p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono font-bold">+351 900 000 000</span>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard("+351900000000")}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Transfer */}
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Euro className="w-5 h-5 text-slate-600" />
+                  <span className="font-semibold">Transferência Bancária</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-mono">PT50 0000 0000 0000 0000 0000 0</span>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard("PT50000000000000000000000")}>
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setPaymentDialogOpen(false)} className="flex-1">
+                  Fechar
+                </Button>
+                <Button 
+                  onClick={() => {
+                    handleStatusChange(paymentInvoice, 'paid');
+                    setPaymentDialogOpen(false);
+                  }} 
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Confirmar Pagamento
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
@@ -1020,10 +1176,15 @@ Retorna um array com todas as faturas encontradas no documento.`,
                           </Button>
                         )}
                         {invoice.status === 'sent' && (
-                          <Button variant="outline" size="sm" className="text-green-600" onClick={() => handleStatusChange(invoice, 'paid')}>
-                            <CheckCircle2 className="w-4 h-4 mr-1" />
-                            Paga
-                          </Button>
+                          <>
+                            <Button variant="outline" size="sm" onClick={() => handleOpenPayment(invoice)}>
+                              <CreditCard className="w-4 h-4 mr-1" />
+                              Pagar
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-green-600" onClick={() => handleStatusChange(invoice, 'paid')}>
+                              <CheckCircle2 className="w-4 h-4" />
+                            </Button>
+                          </>
                         )}
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(invoice)}>
                           <Edit className="w-4 h-4" />
