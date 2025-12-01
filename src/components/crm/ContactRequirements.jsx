@@ -118,11 +118,24 @@ export default function ContactRequirements({ contact, onUpdate }) {
     const cleanRequirements = {};
     Object.keys(requirements).forEach(key => {
       const value = requirements[key];
-      if (value !== undefined && value !== null && value !== "") {
+      // Keep arrays even if empty, but filter out undefined/null/empty strings
+      if (Array.isArray(value)) {
+        if (value.length > 0) {
+          cleanRequirements[key] = value;
+        }
+      } else if (value !== undefined && value !== null && value !== "") {
         cleanRequirements[key] = value;
       }
     });
-    console.log('Saving requirements:', cleanRequirements);
+    
+    console.log('handleSave called, cleanRequirements:', cleanRequirements);
+    
+    if (!contact?.id) {
+      console.error('No contact ID available');
+      toast.error("Erro: contacto não identificado");
+      return;
+    }
+    
     updateMutation.mutate(cleanRequirements);
   };
 
