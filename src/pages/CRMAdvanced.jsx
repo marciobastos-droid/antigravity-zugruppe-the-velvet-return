@@ -9,7 +9,10 @@ import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
 import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 
 export default function CRMAdvanced() {
-  const [activeTab, setActiveTab] = React.useState("clients");
+  // Read tab from URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = urlParams.get('tab');
+  const [activeTab, setActiveTab] = React.useState(tabFromUrl || "clients");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
