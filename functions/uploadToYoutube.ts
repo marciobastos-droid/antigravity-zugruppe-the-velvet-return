@@ -35,62 +35,47 @@ Deno.serve(async (req) => {
     // Get YouTube access token via Google Drive connector
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
-    // Step 1: Initialize resumable upload
-    const initResponse = await fetch(
-      'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
+    // Use simple upload for smaller videos (under 50MB)
+    const uploadResponse = await fetch(
+      'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=multipart&part=snippet,status',
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'X-Upload-Content-Type': 'video/webm',
-          'X-Upload-Content-Length': videoSize.toString()
+          'Content-Type': 'multipart/related; boundary=foo_bar_baz'
         },
-        body: JSON.stringify({
-          snippet: {
-            title: title.substring(0, 100), // YouTube title limit
-            description: description.substring(0, 5000), // YouTube description limit
-            categoryId: '22' // People & Blogs
-          },
-          status: {
-            privacyStatus: privacyStatus,
-            selfDeclaredMadeForKids: false
-          }
-        })
+        body: [
+          '--foo_bar_baz',
+          'Content-Type: application/json; charset=UTF-8',
+          '',
+          JSON.stringify({
+            snippet: {
+              title: title.substring(0, 100),
+              description: description.substring(0, 5000),
+              categoryId: '22'
+            },
+            status: {
+              privacyStatus: privacyStatus,
+              selfDeclaredMadeForKids: false
+            }
+          }),
+          '--foo_bar_baz',
+          'Content-Type: video/webm',
+          'Content-Transfer-Encoding: base64',
+          '',
+          base64Data,
+          '--foo_bar_baz--'
+        ].join('\r\n')
       }
     );
 
-    if (!initResponse.ok) {
-      const errorText = await initResponse.text();
-      console.error('YouTube init error:', errorText);
-      return Response.json({ 
-        error: 'Failed to initialize YouTube upload', 
-        details: errorText 
-      }, { status: initResponse.status });
-    }
-
-    const uploadUrl = initResponse.headers.get('Location');
-    
-    if (!uploadUrl) {
-      return Response.json({ error: 'No upload URL returned' }, { status: 500 });
-    }
-
-    // Step 2: Upload the video content
-    const uploadResponse = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'video/webm',
-        'Content-Length': videoSize.toString()
-      },
-      body: videoBytes
-    });
-
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
-      console.error('YouTube upload error:', errorText);
+      console.error('YouTube upload error:', uploadResponse.status, errorText);
       return Response.json({ 
         error: 'Failed to upload video to YouTube', 
-        details: errorText 
+        details: errorText,
+        status: uploadResponse.status
       }, { status: uploadResponse.status });
     }
 
