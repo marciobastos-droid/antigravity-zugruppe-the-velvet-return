@@ -14,7 +14,7 @@ import {
   Mail, RefreshCw, Check, X, Link2, Unlink, Loader2, 
   Inbox, Send, Clock, User, Search, AlertCircle,
   CheckCircle2, ArrowRight, MessageSquare, Calendar,
-  Filter, Download, ExternalLink
+  Filter, Download, ExternalLink, TestTube, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
