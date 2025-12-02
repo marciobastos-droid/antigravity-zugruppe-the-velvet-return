@@ -189,6 +189,24 @@ export default function NotificationBell({ user }) {
               </TabsList>
 
               <TabsContent value="leads" className="mt-0">
+                {newLeads.length > 0 && (
+                  <div className="flex items-center justify-end px-3 py-1 border-b">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => markAllLeadsAsReadMutation.mutate()}
+                      disabled={markAllLeadsAsReadMutation.isPending}
+                      className="text-xs h-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                    >
+                      {markAllLeadsAsReadMutation.isPending ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <CheckCheck className="w-3 h-3 mr-1" />
+                      )}
+                      Marcar todos como contactados
+                    </Button>
+                  </div>
+                )}
                 <ScrollArea className="h-80">
                   {newLeads.length === 0 ? (
                     <div className="p-8 text-center text-slate-500">
