@@ -248,7 +248,7 @@ export default function DataTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sortedData.length === 0 ? (
+              {paginatedData.length === 0 ? (
                 <tr>
                   <td 
                     colSpan={visibleColumnObjects.length + (showCheckboxes ? 1 : 0)}
@@ -258,7 +258,7 @@ export default function DataTable({
                   </td>
                 </tr>
               ) : (
-                sortedData.map((row) => {
+                paginatedData.map((row) => {
                   const isSelected = selectedRows.includes(row[rowKey]);
                   return (
                     <tr
