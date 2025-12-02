@@ -64,11 +64,27 @@ Deno.serve(async (req) => {
     if (!uploadResponse.ok) {
       const errorText = await uploadResponse.text();
       console.error('YouTube upload error:', uploadResponse.status, errorText);
+      
+      // Parse error for better message
+      let errorMessage = 'Failed to upload video to YouTube';
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.error?.message) {
+          errorMessage = errorJson.error.message;
+        }
+        if (errorJson.error?.errors?.[0]?.reason === 'youtubeSignupRequired') {
+          errorMessage = 'A conta Google precisa de ter um canal YouTube criado. Acede a youtube.com e cria um canal primeiro.';
+        }
+        if (errorJson.error?.errors?.[0]?.reason === 'forbidden') {
+          errorMessage = 'Acesso negado. Verifica se a API YouTube Data API v3 está ativada no Google Cloud Console.';
+        }
+      } catch (e) {}
+      
       return Response.json({ 
-        error: 'Failed to upload video to YouTube', 
+        error: errorMessage, 
         details: errorText,
         status: uploadResponse.status
-      }, { status: uploadResponse.status });
+      }, { status: 200 }); // Return 200 so frontend gets the error message
     }
 
     const videoData = await uploadResponse.json();
