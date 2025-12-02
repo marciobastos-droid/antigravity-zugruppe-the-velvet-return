@@ -51,6 +51,7 @@ import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
+  const [linkingContacts, setLinkingContacts] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
