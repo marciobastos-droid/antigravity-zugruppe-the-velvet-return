@@ -96,13 +96,17 @@ export default function SendEmailDialog({
     try {
       const processed = getProcessedContent();
       
-      // Send email using Core integration
-      await base44.integrations.Core.SendEmail({
+      // Send email using Gmail via App Connector
+      const response = await base44.functions.invoke('gmailIntegration', {
+        action: 'sendEmail',
         to: recipient.email,
         subject: processed.subject,
-        body: processed.body,
-        from_name: user?.full_name || "Zugruppe"
+        body: processed.body
       });
+      
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
 
       // Log the communication (EmailLog is for Gmail sync only)
       if (recipient.type === 'client' && recipient.id) {
