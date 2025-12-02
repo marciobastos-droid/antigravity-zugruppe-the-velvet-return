@@ -103,19 +103,20 @@ export default function SendEmailDialog({
         from_name: user?.full_name || "Zugruppe"
       });
 
-      // Log the email
-      await base44.entities.EmailLog.create({
-        template_id: selectedTemplate || null,
-        recipient_email: recipient.email,
-        recipient_name: recipient.name,
-        recipient_type: recipient.type,
-        recipient_id: recipient.id,
-        subject: processed.subject,
-        body: processed.body,
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        sent_by: user?.email
-      });
+      // Log the communication (EmailLog is for Gmail sync only)
+      if (recipient.type === 'client' && recipient.id) {
+        await base44.entities.CommunicationLog.create({
+          contact_id: recipient.id,
+          contact_name: recipient.name || '',
+          communication_type: 'email',
+          direction: 'outbound',
+          subject: processed.subject,
+          summary: processed.body?.substring(0, 500) || '',
+          communication_date: new Date().toISOString(),
+          agent_email: user?.email || '',
+          outcome: 'successful'
+        });
+      }
 
       // Update template usage count
       if (selectedTemplate) {
