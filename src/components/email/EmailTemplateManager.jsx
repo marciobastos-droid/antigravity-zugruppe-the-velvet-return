@@ -18,14 +18,14 @@ import { toast } from "sonner";
 
 const DYNAMIC_FIELDS = {
   client: [
-    { key: "{{nome}}", label: "Nome", icon: User },
+    { key: "{{nome_completo}}", label: "Nome Completo", icon: User },
     { key: "{{email}}", label: "Email", icon: Mail },
     { key: "{{telefone}}", label: "Telefone", icon: Phone },
     { key: "{{cidade}}", label: "Cidade", icon: MapPin },
     { key: "{{empresa}}", label: "Empresa", icon: Building2 },
   ],
   opportunity: [
-    { key: "{{nome}}", label: "Nome", icon: User },
+    { key: "{{nome_completo}}", label: "Nome Completo", icon: User },
     { key: "{{email}}", label: "Email", icon: Mail },
     { key: "{{telefone}}", label: "Telefone", icon: Phone },
     { key: "{{imovel}}", label: "Imóvel", icon: Building2 },
