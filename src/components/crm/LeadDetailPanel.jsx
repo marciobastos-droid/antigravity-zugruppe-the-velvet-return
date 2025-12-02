@@ -277,8 +277,8 @@ Extrai:
   const pendingFollowUps = (lead.follow_ups || []).filter(f => !f.completed);
   const overdueFollowups = pendingFollowUps.filter(f => new Date(f.date) < new Date());
 
-  return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[680px] bg-white shadow-2xl z-50 flex flex-col">
+  const panelContent = (
+    <div className={`bg-white flex flex-col h-full ${!isFullscreen ? 'shadow-2xl' : ''}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-6">
         <div className="flex items-start justify-between mb-4">
