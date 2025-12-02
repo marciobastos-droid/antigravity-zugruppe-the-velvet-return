@@ -12,7 +12,7 @@ export default function CRMAdvanced() {
   // Read tab from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get('tab');
-  const [activeTab, setActiveTab] = React.useState(tabFromUrl || "clients");
+  const [activeTab, setActiveTab] = React.useState(tabFromUrl || "opportunities");
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
