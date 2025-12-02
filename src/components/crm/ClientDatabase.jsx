@@ -2126,12 +2126,6 @@ export default function ClientDatabase() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="matching" className="mt-4">
-                <Suspense fallback={<LoadingFallback />}>
-                  <ContactMatching contact={selectedClient} />
-                </Suspense>
-              </TabsContent>
-
               <TabsContent value="whatsapp" className="mt-4">
                 <Suspense fallback={<LoadingFallback />}>
                   <WhatsAppConversation 
