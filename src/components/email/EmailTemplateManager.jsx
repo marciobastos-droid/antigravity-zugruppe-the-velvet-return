@@ -147,7 +147,8 @@ export default function EmailTemplateManager() {
   const getPreviewHtml = (template) => {
     let html = template.body || "";
     // Replace fields with sample data
-    html = html.replace(/\{\{nome\}\}/g, "João Silva");
+    html = html.replace(/\{\{nome_completo\}\}/g, "João Silva");
+    html = html.replace(/\{\{nome\}\}/g, "João Silva"); // backwards compatibility
     html = html.replace(/\{\{email\}\}/g, "joao@exemplo.com");
     html = html.replace(/\{\{telefone\}\}/g, "+351 912 345 678");
     html = html.replace(/\{\{cidade\}\}/g, "Lisboa");
