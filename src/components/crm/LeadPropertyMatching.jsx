@@ -224,8 +224,14 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
     setIsExpanded(true);
 
     try {
-      // Calculate basic scores for all properties
-      const scoredProperties = activeProperties.map(property => ({
+      // Primeiro filtrar imóveis que cumprem requisitos obrigatórios
+      const hasRequirements = Object.keys(requirements).length > 0;
+      const eligibleProperties = hasRequirements 
+        ? activeProperties.filter(meetsHardRequirements)
+        : activeProperties;
+
+      // Calculate basic scores for eligible properties
+      const scoredProperties = eligibleProperties.map(property => ({
         ...property,
         score: calculateBasicScore(property)
       }));
