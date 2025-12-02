@@ -48,7 +48,8 @@ export default function SendEmailDialog({
     let result = text;
     
     // Contact/Opportunity fields
-    result = result.replace(/\{\{nome\}\}/g, data?.name || recipient?.name || "");
+    result = result.replace(/\{\{nome_completo\}\}/g, data?.name || recipient?.name || "");
+    result = result.replace(/\{\{nome\}\}/g, data?.name || recipient?.name || ""); // backwards compatibility
     result = result.replace(/\{\{email\}\}/g, data?.email || recipient?.email || "");
     result = result.replace(/\{\{telefone\}\}/g, data?.phone || "");
     result = result.replace(/\{\{cidade\}\}/g, data?.city || data?.location || "");
