@@ -259,8 +259,8 @@ export default function Layout({ children, currentPageName }) {
                 alt="Zugruppe Logo"
                 className="h-8 md:h-10 w-auto object-contain mb-3 md:mb-4 brightness-0 invert" />
 
-              <p className="text-white/70 text-sm">The Velvet Return
-
+              <p className="text-white/70 text-sm">
+                Privileged Approach Unipessoal Lda
               </p>
             </div>
             <div>
@@ -279,10 +279,10 @@ export default function Layout({ children, currentPageName }) {
             </div>
             <div>
               <h3 className="font-semibold mb-3 md:mb-4 text-[#4cb5f5] text-base">Contacto</h3>
-              <p className="text-white/70 text-sm">
-                Marketplace imobiliário premium
-                <br />
-                para uma vida moderna
+              <p className="text-white/70 text-sm">info@zugruppe.com
+
+
+
               </p>
             </div>
           </div>
