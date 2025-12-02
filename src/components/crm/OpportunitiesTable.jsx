@@ -309,6 +309,18 @@ export default function OpportunitiesTable({
     "estimated_value", "probability", "buyer_phone", "assigned_to", "created_date", "converted", "actions"
   ];
 
+  // Pre-sort data by created_date (desc) then alphabetically by name
+  const sortedOpportunities = React.useMemo(() => {
+    return [...opportunities].sort((a, b) => {
+      // First by created_date descending
+      const dateA = new Date(a.created_date || 0);
+      const dateB = new Date(b.created_date || 0);
+      if (dateB - dateA !== 0) return dateB - dateA;
+      // Then alphabetically by name
+      return (a.buyer_name || '').localeCompare(b.buyer_name || '', 'pt');
+    });
+  }, [opportunities]);
+
   return (
     <DataTable
       data={opportunities}
