@@ -21,6 +21,26 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
     queryFn: () => base44.entities.Property.list('-created_date'),
   });
 
+  // Buscar contacto ligado para obter requisitos
+  const { data: linkedContact } = useQuery({
+    queryKey: ['linkedContactForMatching', lead.id, lead.contact_id, lead.buyer_email],
+    queryFn: async () => {
+      if (lead.contact_id) {
+        const contacts = await base44.entities.ClientContact.filter({ id: lead.contact_id });
+        if (contacts[0]) return contacts[0];
+      }
+      // Procurar pelo email
+      if (lead.buyer_email) {
+        const allContacts = await base44.entities.ClientContact.list();
+        return allContacts.find(c => c.email === lead.buyer_email) || null;
+      }
+      return null;
+    },
+    enabled: !!lead
+  });
+
+  const requirements = linkedContact?.property_requirements || {};
+
   const activeProperties = properties.filter(p => p.status === 'active');
 
   const calculateBasicScore = (property) => {
