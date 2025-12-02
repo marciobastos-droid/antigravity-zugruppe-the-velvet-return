@@ -91,6 +91,13 @@ Deno.serve(async (req) => {
                            matchedContact?.full_name || 
                            'Desconhecido';
 
+        // Check for duplicate message
+        const existingMessages = await base44.asServiceRole.entities.WhatsAppMessage.filter({ message_id: messageId });
+        if (existingMessages.length > 0) {
+          console.log('Duplicate message, skipping:', messageId);
+          continue;
+        }
+
         // Guardar mensagem
         await base44.asServiceRole.entities.WhatsAppMessage.create({
           message_id: messageId,
@@ -106,6 +113,8 @@ Deno.serve(async (req) => {
           wa_conversation_id: value.metadata?.phone_number_id
         });
 
+        console.log('Message saved:', { messageId, from, content: content.substring(0, 50) });
+
         // Criar entrada no histórico de comunicações se encontrou contacto
         if (matchedContact) {
           await base44.asServiceRole.entities.CommunicationLog.create({
@@ -114,12 +123,33 @@ Deno.serve(async (req) => {
             communication_type: 'whatsapp',
             direction: 'inbound',
             summary: content.substring(0, 200),
-            communication_date: timestamp
+            communication_date: timestamp,
+            whatsapp_status: 'delivered'
           });
+        }
+
+        // Mark message as read (optional - sends read receipt)
+        if (WHATSAPP_ACCESS_TOKEN && value.metadata?.phone_number_id) {
+          try {
+            await fetch(`https://graph.facebook.com/v18.0/${value.metadata.phone_number_id}/messages`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                status: 'read',
+                message_id: messageId
+              })
+            });
+          } catch (e) {
+            console.log('Could not send read receipt:', e.message);
+          }
         }
       }
 
-      return Response.json({ status: 'processed' });
+      return Response.json({ status: 'processed', messages_count: value.messages.length });
 
     } catch (error) {
       console.error('Webhook error:', error);
