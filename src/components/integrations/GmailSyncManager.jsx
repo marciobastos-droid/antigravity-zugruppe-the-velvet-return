@@ -306,6 +306,49 @@ export default function GmailSyncManager() {
     return fromContact || toContact;
   }).length;
 
+  // Test connection
+  const handleTestConnection = async () => {
+    setTesting(true);
+    setTestResults(null);
+    try {
+      const response = await base44.functions.invoke('gmailIntegration', { action: 'testConnection' });
+      setTestResults(response.data);
+      if (response.data.success) {
+        toast.success("Conexão Gmail OK!");
+      } else {
+        toast.error("Erro na conexão: " + (response.data.message || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      setTestResults({ success: false, error: error.message });
+      toast.error("Erro ao testar: " + error.message);
+    }
+    setTesting(false);
+  };
+
+  // Send test email
+  const handleSendTestEmail = async () => {
+    if (!testEmail) {
+      toast.error("Introduza um email para teste");
+      return;
+    }
+    setSendingTest(true);
+    try {
+      const response = await base44.functions.invoke('gmailIntegration', { 
+        action: 'sendTestEmail',
+        testEmail 
+      });
+      if (response.data.success) {
+        toast.success(`Email de teste enviado para ${testEmail}`);
+        setTestEmail("");
+      } else {
+        toast.error("Erro: " + (response.data.error || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      toast.error("Erro ao enviar: " + error.message);
+    }
+    setSendingTest(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Connection Status */}
