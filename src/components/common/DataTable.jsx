@@ -119,6 +119,18 @@ export default function DataTable({
     });
   }, [data, sortColumn, sortDirection, columns]);
 
+  // Pagination
+  const totalPages = Math.ceil(sortedData.length / pageSize);
+  const paginatedData = React.useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedData.slice(start, start + pageSize);
+  }, [sortedData, currentPage, pageSize]);
+
+  // Reset to page 1 when data or pageSize changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [data.length, pageSize]);
+
   const visibleColumnObjects = columns.filter(c => visibleColumns.includes(c.key));
   const allSelected = data.length > 0 && selectedRows.length === data.length;
 
