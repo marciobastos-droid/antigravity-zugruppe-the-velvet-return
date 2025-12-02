@@ -199,11 +199,16 @@ export default function GmailSyncManager() {
       outcome: 'successful'
     });
 
-    // Create email log entry - validate required fields
+    // Create email log entry - validate required fields before creating
+    if (!email.id || !contact.id) {
+      console.error('Missing required fields:', { emailId: email.id, contactId: contact.id });
+      return { success: false, reason: 'missing_required_fields' };
+    }
+
     const emailLogData = {
-      gmail_message_id: email.id,
-      gmail_thread_id: email.threadId || '',
-      contact_id: contact.id,
+      gmail_message_id: String(email.id),
+      gmail_thread_id: String(email.threadId || ''),
+      contact_id: String(contact.id),
       contact_name: contact.full_name || '',
       contact_email: contactEmail || '',
       subject: email.subject || '(Sem assunto)',
