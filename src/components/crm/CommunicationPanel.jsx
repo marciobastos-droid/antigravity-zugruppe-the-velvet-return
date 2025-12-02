@@ -1,13 +1,16 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, MessageSquare, Send, Clock, CheckCircle2, Loader2, Copy } from "lucide-react";
-import { format } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Mail, MessageSquare, Send, Clock, CheckCircle2, Loader2, Copy, Phone, History, ArrowDownLeft, ArrowUpRight, Smartphone } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 
 const EMAIL_TEMPLATES = {
