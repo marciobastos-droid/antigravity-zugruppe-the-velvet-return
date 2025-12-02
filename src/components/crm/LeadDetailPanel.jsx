@@ -280,11 +280,13 @@ Extrai:
 
   const handleStatusChange = async (newStatus) => {
     await onUpdate(lead.id, { status: newStatus });
+    queryClient.invalidateQueries({ queryKey: ['opportunities'] });
     toast.success("Estado atualizado");
   };
 
   const handleQualificationChange = async (qualification) => {
     await onUpdate(lead.id, { qualification_status: qualification });
+    queryClient.invalidateQueries({ queryKey: ['opportunities'] });
     toast.success("Qualificação atualizada");
   };
 
