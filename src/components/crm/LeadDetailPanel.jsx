@@ -907,7 +907,7 @@ Extrai:
               </CardContent>
             </Card>
           </TabsContent>
-        </ScrollArea>
+        </div>
       </Tabs>
 
       {/* Send Email Dialog */}
