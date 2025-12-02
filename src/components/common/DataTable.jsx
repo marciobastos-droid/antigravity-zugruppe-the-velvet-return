@@ -29,18 +29,39 @@ export default function DataTable({
   emptyMessage = "Nenhum resultado encontrado",
   className = "",
   pageSizeOptions = [50, 100, 250],
-  defaultPageSize = 50
+  defaultPageSize = 50,
+  persistKey = null // Key to persist settings in localStorage
 }) {
+  // Load persisted settings
+  const getPersistedSettings = () => {
+    if (!persistKey) return null;
+    try {
+      const saved = localStorage.getItem(`datatable_${persistKey}`);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const persisted = getPersistedSettings();
+
   const [visibleColumns, setVisibleColumns] = React.useState(
-    defaultVisibleColumns.length > 0 ? defaultVisibleColumns : columns.map(c => c.key)
+    persisted?.visibleColumns || (defaultVisibleColumns.length > 0 ? defaultVisibleColumns : columns.map(c => c.key))
   );
-  const [sortColumn, setSortColumn] = React.useState(defaultSortColumn);
-  const [sortDirection, setSortDirection] = React.useState(defaultSortDirection);
-  const [columnWidths, setColumnWidths] = React.useState({});
+  const [sortColumn, setSortColumn] = React.useState(persisted?.sortColumn ?? defaultSortColumn);
+  const [sortDirection, setSortDirection] = React.useState(persisted?.sortDirection || defaultSortDirection);
+  const [columnWidths, setColumnWidths] = React.useState(persisted?.columnWidths || {});
   const [resizing, setResizing] = React.useState(null);
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(defaultPageSize);
+  const [pageSize, setPageSize] = React.useState(persisted?.pageSize || defaultPageSize);
   const tableRef = React.useRef(null);
+
+  // Persist settings when they change
+  React.useEffect(() => {
+    if (!persistKey) return;
+    const settings = { visibleColumns, sortColumn, sortDirection, columnWidths, pageSize };
+    localStorage.setItem(`datatable_${persistKey}`, JSON.stringify(settings));
+  }, [persistKey, visibleColumns, sortColumn, sortDirection, columnWidths, pageSize]);
 
   // Handle column resize
   const handleMouseDown = (e, columnKey) => {
