@@ -909,4 +909,21 @@ Extrai:
       />
     </div>
   );
+
+  // Render as fullscreen dialog or side panel
+  if (isFullscreen) {
+    return (
+      <Dialog open={true} onOpenChange={(open) => !open && setIsFullscreen(false)}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 overflow-hidden">
+          {panelContent}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <div className="fixed inset-y-0 right-0 w-full md:w-[680px] z-50">
+      {panelContent}
+    </div>
+  );
 }
