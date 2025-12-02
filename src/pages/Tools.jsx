@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2 } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
@@ -52,6 +52,7 @@ export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);
+  const [syncingEmails, setSyncingEmails] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -183,6 +184,7 @@ export default function Tools() {
                 <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
+                      <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
@@ -301,7 +303,52 @@ export default function Tools() {
         {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
         {activeTab === "imageValidator" && <ImageValidator />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
-        {activeTab === "linkContacts" && (
+        {activeTab === "gmailSync" && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-8">
+                    <Mail className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">Sincronizar Emails do Gmail</h3>
+                    <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                      Esta ferramenta verifica a sua caixa de entrada do Gmail e identifica emails de clientes conhecidos,
+                      criando registos de comunicação e notificações automáticas.
+                    </p>
+                    <Button 
+                      onClick={async () => {
+                        setSyncingEmails(true);
+                        try {
+                          const response = await base44.functions.invoke('checkNewClientEmails');
+                          const data = response.data;
+                          if (data.error) {
+                            toast.error("Erro: " + data.error);
+                          } else {
+                            toast.success(`${data.emailsLogged || 0} emails sincronizados, ${data.notificationsCreated || 0} notificações criadas`);
+                          }
+                        } catch (error) {
+                          toast.error("Erro ao sincronizar emails: " + (error.message || "Erro desconhecido"));
+                        }
+                        setSyncingEmails(false);
+                      }}
+                      disabled={syncingEmails}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {syncingEmails ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          A sincronizar...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Sincronizar Agora
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            {activeTab === "linkContacts" && (
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-8">
