@@ -248,8 +248,8 @@ export default function ClientDatabase() {
       
       // Para agentes: buscar apenas os contactos atribuídos ou criados por eles
       const [assignedContacts, createdContacts] = await Promise.all([
-        base44.entities.ClientContact.filter({ assigned_agent: user.email }, '-created_date', 250),
-        base44.entities.ClientContact.filter({ created_by: user.email }, '-created_date', 250)
+        base44.entities.ClientContact.filter({ assigned_agent: user.email }, '-created_date'),
+        base44.entities.ClientContact.filter({ created_by: user.email }, '-created_date')
       ]);
       
       // Combinar e remover duplicados
