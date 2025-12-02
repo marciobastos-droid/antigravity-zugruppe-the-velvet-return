@@ -439,7 +439,83 @@ export default function GmailSyncManager() {
                   <RefreshCw className={`w-4 h-4 ${loadingEmails ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-            </div>
+
+              {/* Test Section */}
+              <div className="mt-4 p-4 bg-white rounded-lg border space-y-3">
+                <div className="flex items-center gap-2">
+                  <TestTube className="w-4 h-4 text-slate-600" />
+                  <span className="font-medium text-sm">Diagnóstico e Testes</span>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleTestConnection}
+                    disabled={testing}
+                  >
+                    {testing ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Settings className="w-4 h-4 mr-2" />
+                    )}
+                    Testar Conexão
+                  </Button>
+                </div>
+
+                {testResults && (
+                  <div className={`p-3 rounded-lg text-sm ${testResults.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {testResults.success ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                      )}
+                      <span className={testResults.success ? 'text-green-800' : 'text-red-800'}>
+                        {testResults.message || (testResults.success ? 'Conexão OK' : 'Erro na conexão')}
+                      </span>
+                    </div>
+                    {testResults.results && (
+                      <div className="text-xs space-y-1 text-slate-600">
+                        <p>• Tokens salvos: {testResults.results.hasTokens ? '✓' : '✗'}</p>
+                        <p>• Access Token: {testResults.results.hasAccessToken ? '✓' : '✗'}</p>
+                        <p>• Refresh Token: {testResults.results.hasRefreshToken ? '✓' : '✗'}</p>
+                        <p>• Email conectado: {testResults.results.connectedEmail || '-'}</p>
+                        <p>• API Gmail: {testResults.results.apiTest?.success ? '✓' : '✗'}</p>
+                        {testResults.results.apiTest?.error && (
+                          <p className="text-red-600">Erro API: {testResults.results.apiTest.error}</p>
+                        )}
+                        {testResults.results.error && (
+                          <p className="text-red-600">Erro: {testResults.results.error}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Input
+                    value={testEmail}
+                    onChange={(e) => setTestEmail(e.target.value)}
+                    placeholder="Email para teste..."
+                    className="flex-1"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSendTestEmail}
+                    disabled={sendingTest || !testEmail}
+                  >
+                    {sendingTest ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    Enviar Teste
+                  </Button>
+                </div>
+              </div>
+              </div>
           ) : (
             <div className="text-center py-4">
               <Mail className="w-12 h-12 text-slate-300 mx-auto mb-3" />
