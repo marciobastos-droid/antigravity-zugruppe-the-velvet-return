@@ -835,22 +835,28 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-indigo-600" />
-            Relatório de Matching - {contact?.full_name}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {/* Action Bar */}
-          <div className="flex items-center justify-between gap-4 pb-4 border-b">
-            <div className="flex items-center gap-2">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden flex flex-col p-0">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 px-6 py-5 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Brain className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Relatório de Matching Imobiliário</h2>
+                <p className="text-indigo-200 text-sm">
+                  Análise inteligente para {contact?.full_name}
+                </p>
+              </div>
+            </div>
+            
+            {/* Action Buttons in Header */}
+            <div className="flex items-center gap-3">
               <Button
                 onClick={runMatching}
                 disabled={analyzing}
-                className="bg-indigo-600 hover:bg-indigo-700"
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border-0 text-white"
               >
                 {analyzing ? (
                   <>
@@ -866,54 +872,43 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
               </Button>
               
               {matches.length > 0 && (
-                <Badge variant="outline">
-                  {matches.length} imóveis compatíveis
-                </Badge>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={saveSelectedProperties}
+                    disabled={saving || selectedProperties.length === 0}
+                    className="bg-white/10 hover:bg-white/20 border-white/30 text-white"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Guardar ({selectedProperties.length})
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => generateReport('pdf')}
+                    disabled={generating || selectedProperties.length === 0}
+                    className="bg-white text-indigo-700 hover:bg-indigo-50"
+                  >
+                    {generating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Gerar PDF
+                      </>
+                    )}
+                  </Button>
+                </>
               )}
             </div>
-
-            {matches.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowCustomizer(!showCustomizer)}
-                  className={showCustomizer ? 'bg-indigo-50 border-indigo-300' : ''}
-                >
-                  <Settings className="w-4 h-4 mr-1" />
-                  Personalizar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={saveSelectedProperties}
-                  disabled={saving || selectedProperties.length === 0}
-                >
-                  {saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Guardar ({selectedProperties.length})
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => generateReport('pdf')}
-                  disabled={generating || selectedProperties.length === 0}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 mr-2" />
-                      Gerar PDF
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
           </div>
+        </div>
+
+        <div className="flex-1 overflow-hidden flex flex-col px-6 py-4">
 
           {/* Progress */}
           {analyzing && (
