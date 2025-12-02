@@ -89,13 +89,6 @@ export default function ContactRequirements({ contact, onUpdate }) {
         throw new Error("Contact ID is missing");
       }
       
-      // Verify contact exists before updating
-      console.log('Verifying contact exists:', contact.id);
-      const existingContacts = await base44.entities.ClientContact.filter({ id: contact.id });
-      if (!existingContacts || existingContacts.length === 0) {
-        throw new Error(`Contacto não encontrado. Pode ter sido eliminado.`);
-      }
-      
       console.log('Saving requirements for contact:', contact.id, data);
       const result = await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
       console.log('Save result:', result);
