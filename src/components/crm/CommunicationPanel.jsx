@@ -430,61 +430,125 @@ export default function CommunicationPanel({ lead, onUpdate }) {
 
         {activeTab === "history" && (
           <div className="space-y-3">
-            {communicationHistory.length === 0 ? (
-              <div className="text-center py-8 text-slate-500 text-sm">
-                Nenhuma comunicação registada
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              <div className="text-center p-2 bg-blue-50 rounded-lg">
+                <Mail className="w-4 h-4 mx-auto text-blue-600 mb-1" />
+                <div className="text-lg font-bold text-blue-900">
+                  {unifiedHistory.filter(h => h.type === 'email').length}
+                </div>
+                <div className="text-xs text-blue-600">Emails</div>
               </div>
-            ) : (
-              communicationHistory.map((comm, idx) => (
-                <div
-                  key={idx}
-                  className={`border rounded-lg p-3 ${
-                    comm.type === 'email' ? 'border-blue-200 bg-blue-50' : 'border-green-200 bg-green-50'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {comm.type === 'email' ? (
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      ) : (
-                        <MessageSquare className="w-4 h-4 text-green-600" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">
-                          {comm.type === 'email' ? 'Email' : 'WhatsApp'}
-                          {comm.subject && `: ${comm.subject}`}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {format(new Date(comm.sent_at), 'dd/MM/yyyy HH:mm')}
+              <div className="text-center p-2 bg-green-50 rounded-lg">
+                <MessageSquare className="w-4 h-4 mx-auto text-green-600 mb-1" />
+                <div className="text-lg font-bold text-green-900">
+                  {unifiedHistory.filter(h => h.type === 'whatsapp').length}
+                </div>
+                <div className="text-xs text-green-600">WhatsApp</div>
+              </div>
+              <div className="text-center p-2 bg-purple-50 rounded-lg">
+                <Phone className="w-4 h-4 mx-auto text-purple-600 mb-1" />
+                <div className="text-lg font-bold text-purple-900">
+                  {unifiedHistory.filter(h => h.type === 'call').length}
+                </div>
+                <div className="text-xs text-purple-600">Chamadas</div>
+              </div>
+              <div className="text-center p-2 bg-slate-50 rounded-lg">
+                <History className="w-4 h-4 mx-auto text-slate-600 mb-1" />
+                <div className="text-lg font-bold text-slate-900">
+                  {unifiedHistory.length}
+                </div>
+                <div className="text-xs text-slate-600">Total</div>
+              </div>
+            </div>
+
+            <ScrollArea className="h-[300px]">
+              {unifiedHistory.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 text-sm">
+                  Nenhuma comunicação registada
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {unifiedHistory.map((comm) => {
+                    const getTypeConfig = () => {
+                      switch(comm.type) {
+                        case 'email': return { icon: Mail, color: 'blue', label: 'Email' };
+                        case 'whatsapp': return { icon: MessageSquare, color: 'green', label: 'WhatsApp' };
+                        case 'call': return { icon: Phone, color: 'purple', label: 'Chamada' };
+                        case 'sms': return { icon: Smartphone, color: 'orange', label: 'SMS' };
+                        case 'meeting': return { icon: Clock, color: 'indigo', label: 'Reunião' };
+                        default: return { icon: MessageSquare, color: 'slate', label: comm.type };
+                      }
+                    };
+                    const config = getTypeConfig();
+                    const Icon = config.icon;
+
+                    return (
+                      <div
+                        key={comm.id}
+                        className={`border rounded-lg p-3 bg-${config.color}-50/50 border-${config.color}-200`}
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded-full bg-${config.color}-100`}>
+                              <Icon className={`w-3.5 h-3.5 text-${config.color}-600`} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-slate-900">
+                                  {config.label}
+                                </span>
+                                {comm.direction === 'inbound' ? (
+                                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                                    <ArrowDownLeft className="w-3 h-3 mr-1" />
+                                    Recebido
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                                    <ArrowUpRight className="w-3 h-3 mr-1" />
+                                    Enviado
+                                  </Badge>
+                                )}
+                                {comm.source === 'gmail' && (
+                                  <Badge variant="outline" className="text-xs">Gmail</Badge>
+                                )}
+                              </div>
+                              {comm.subject && (
+                                <p className="text-xs text-slate-600 font-medium">{comm.subject}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs text-slate-500">
+                              {formatDistanceToNow(comm.date, { addSuffix: true, locale: pt })}
+                            </span>
+                            {comm.message && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => copyToClipboard(comm.message)}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        {comm.message && (
+                          <p className="text-sm text-slate-700 line-clamp-2 mt-1 pl-8">
+                            {comm.message}
+                          </p>
+                        )}
+                        <p className="text-xs text-slate-400 mt-1 pl-8">
+                          {format(comm.date, 'dd/MM/yyyy HH:mm', { locale: pt })}
+                          {comm.agent && ` • ${comm.agent.split('@')[0]}`}
                         </p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {comm.status === 'sent' ? (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 mr-1 text-green-600" />
-                            Enviado
-                          </>
-                        ) : (
-                          'Aberto'
-                        )}
-                      </Badge>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(comm.message)}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-700 whitespace-pre-line">
-                    {comm.message}
-                  </p>
+                    );
+                  })}
                 </div>
-              ))
-            )}
+              )}
+            </ScrollArea>
           </div>
         )}
       </CardContent>
