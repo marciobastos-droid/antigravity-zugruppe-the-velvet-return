@@ -639,6 +639,17 @@ INSTRUÇÕES:
               </div>
             </div>
           )}
+
+          {req.bathrooms_min && (
+            <div className="bg-white rounded-lg p-2 border border-green-100">
+              <div className="text-xs text-slate-500 flex items-center gap-1">
+                <Bath className="w-3 h-3" /> Casas de Banho
+              </div>
+              <div className="font-medium text-sm">
+                {req.bathrooms_min}+
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Locations */}
