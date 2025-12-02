@@ -275,30 +275,6 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* Admin Tools */}
-      {isAdmin && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.85 }}
-          className="mt-8 sm:mt-12"
-        >
-          <Button
-            onClick={handleLinkContacts}
-            disabled={linkingContacts}
-            variant="outline"
-            className="gap-2"
-          >
-            {linkingContacts ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Link2 className="w-4 h-4" />
-            )}
-            {linkingContacts ? "A vincular..." : "Vincular Contactos a Oportunidades"}
-          </Button>
-        </motion.div>
-      )}
-
       {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
