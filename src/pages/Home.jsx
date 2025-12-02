@@ -23,19 +23,6 @@ export default function Home() {
   });
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
-  const [linkingContacts, setLinkingContacts] = React.useState(false);
-
-  const handleLinkContacts = async () => {
-    setLinkingContacts(true);
-    try {
-      const response = await base44.functions.invoke('linkContactsToOpportunities');
-      const data = response.data;
-      toast.success(`Vinculadas ${data.summary.updatedOpportunities} oportunidades e ${data.summary.updatedContacts} contactos`);
-    } catch (error) {
-      toast.error("Erro ao vincular contactos: " + (error.message || "Erro desconhecido"));
-    }
-    setLinkingContacts(false);
-  };
 
   // Menu CRM
   const menuItems = [
