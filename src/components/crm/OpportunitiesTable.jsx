@@ -306,7 +306,7 @@ export default function OpportunitiesTable({
 
   const defaultVisibleColumns = [
     "buyer_name", "lead_type", "status", "qualification_status", 
-    "estimated_value", "probability", "buyer_phone", "assigned_to", "converted", "actions"
+    "estimated_value", "probability", "buyer_phone", "assigned_to", "created_date", "converted", "actions"
   ];
 
   return (
