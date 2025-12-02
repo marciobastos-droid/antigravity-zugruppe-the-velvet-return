@@ -477,14 +477,56 @@ Responde APENAS com JSON válido (sem markdown, sem \`\`\`):
 
       if (!geminiResponse.ok) {
         const errorText = await geminiResponse.text();
+        let errorDetails = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error?.message) {
+            errorDetails = errorJson.error.message;
+          }
+        } catch {}
+        
+        // Check for specific error types
+        if (errorDetails.includes('quota') || errorDetails.includes('RATE_LIMIT')) {
+          return Response.json({ 
+            success: false,
+            error: 'Limite de pedidos da API Gemini atingido. Aguarde alguns minutos e tente novamente.',
+            details: 'Rate limit exceeded'
+          });
+        }
+        if (errorDetails.includes('API key') || errorDetails.includes('API_KEY')) {
+          return Response.json({ 
+            success: false,
+            error: 'Chave da API Gemini inválida ou não configurada.',
+            details: 'Invalid API key'
+          });
+        }
+        
         return Response.json({ 
           success: false,
-          error: 'Erro na API Gemini',
-          details: errorText 
+          error: 'Erro na API Gemini. Tente a opção "IA Padrão" como alternativa.',
+          details: errorDetails.substring(0, 200)
         });
       }
 
       const geminiData = await geminiResponse.json();
+      
+      // Check for blocked or empty responses
+      if (!geminiData.candidates || geminiData.candidates.length === 0) {
+        const blockReason = geminiData.promptFeedback?.blockReason;
+        if (blockReason) {
+          return Response.json({ 
+            success: false,
+            error: `Conteúdo bloqueado pela API: ${blockReason}. Tente a opção "IA Padrão".`,
+            details: blockReason
+          });
+        }
+        return Response.json({ 
+          success: false,
+          error: 'A API não retornou dados. Tente a opção "IA Padrão" como alternativa.',
+          details: 'Empty response'
+        });
+      }
+      
       let responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       responseText = responseText
