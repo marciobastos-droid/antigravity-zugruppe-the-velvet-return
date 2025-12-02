@@ -74,7 +74,7 @@ Cumprimentos,
 };
 
 export default function CommunicationPanel({ lead, onUpdate }) {
-  const [activeTab, setActiveTab] = React.useState("email");
+  const [activeTab, setActiveTab] = React.useState("history");
   const [sending, setSending] = React.useState(false);
   
   // Email state
@@ -90,6 +90,113 @@ export default function CommunicationPanel({ lead, onUpdate }) {
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
+
+  // Fetch all communications from different sources
+  const { data: communicationLogs = [] } = useQuery({
+    queryKey: ['communicationLogs', lead.contact_id, lead.profile_id, lead.id],
+    queryFn: async () => {
+      const all = await base44.entities.CommunicationLog.list('-communication_date', 200);
+      return all.filter(c => 
+        c.contact_id === lead.contact_id || 
+        c.contact_id === lead.profile_id ||
+        c.contact_id === lead.id
+      );
+    },
+    enabled: !!(lead.contact_id || lead.profile_id || lead.id)
+  });
+
+  const { data: emailLogs = [] } = useQuery({
+    queryKey: ['emailLogs', lead.contact_id, lead.profile_id],
+    queryFn: async () => {
+      const all = await base44.entities.EmailLog.list('-sent_date', 200);
+      return all.filter(e => 
+        e.contact_id === lead.contact_id || 
+        e.contact_id === lead.profile_id
+      );
+    },
+    enabled: !!(lead.contact_id || lead.profile_id)
+  });
+
+  const { data: whatsappMessages = [] } = useQuery({
+    queryKey: ['whatsappMessages', lead.buyer_phone],
+    queryFn: async () => {
+      if (!lead.buyer_phone) return [];
+      const all = await base44.entities.WhatsAppMessage.list('-created_date', 100);
+      const phone = lead.buyer_phone.replace(/\D/g, '');
+      return all.filter(m => m.from_number?.includes(phone) || m.to_number?.includes(phone));
+    },
+    enabled: !!lead.buyer_phone
+  });
+
+  // Merge all communications into a unified timeline
+  const unifiedHistory = React.useMemo(() => {
+    const items = [];
+
+    // From lead's communication_history
+    (lead.communication_history || []).forEach(comm => {
+      items.push({
+        id: `lead-${comm.sent_at}`,
+        type: comm.type,
+        direction: 'outbound',
+        subject: comm.subject,
+        message: comm.message,
+        date: new Date(comm.sent_at),
+        status: comm.status,
+        source: 'lead'
+      });
+    });
+
+    // From CommunicationLog
+    communicationLogs.forEach(log => {
+      items.push({
+        id: `comm-${log.id}`,
+        type: log.communication_type,
+        direction: log.direction,
+        subject: log.subject,
+        message: log.summary || log.notes,
+        date: new Date(log.communication_date),
+        status: log.outcome,
+        agent: log.agent_email,
+        source: 'communication_log'
+      });
+    });
+
+    // From EmailLog (only if not already in communication logs)
+    emailLogs.forEach(log => {
+      const exists = items.some(i => i.id === `email-${log.gmail_message_id}`);
+      if (!exists) {
+        items.push({
+          id: `email-${log.gmail_message_id}`,
+          type: 'email',
+          direction: log.direction,
+          subject: log.subject,
+          message: '',
+          date: new Date(log.sent_date),
+          status: 'synced',
+          source: 'gmail'
+        });
+      }
+    });
+
+    // From WhatsApp messages
+    whatsappMessages.forEach(msg => {
+      const phone = lead.buyer_phone?.replace(/\D/g, '');
+      const isInbound = msg.from_number?.includes(phone);
+      items.push({
+        id: `wa-${msg.id}`,
+        type: 'whatsapp',
+        direction: isInbound ? 'inbound' : 'outbound',
+        subject: null,
+        message: msg.message_body,
+        date: new Date(msg.created_date),
+        status: msg.status,
+        source: 'whatsapp'
+      });
+    });
+
+    // Sort by date descending
+    return items.sort((a, b) => b.date - a.date);
+  }, [lead.communication_history, communicationLogs, emailLogs, whatsappMessages, lead.buyer_phone]);
 
   const applyTemplate = (templateKey) => {
     const template = EMAIL_TEMPLATES[templateKey];
