@@ -388,9 +388,26 @@ export default function GmailSyncManager() {
               {/* Sync Actions */}
               <div className="flex gap-2">
                 <Button 
+                  onClick={handleCheckNewEmails}
+                  disabled={checkingNewEmails}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  {checkingNewEmails ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A verificar...
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4 mr-2" />
+                      Verificar Novos de Clientes
+                    </>
+                  )}
+                </Button>
+                <Button 
                   onClick={handleSyncAll}
                   disabled={syncing || pendingCount === 0}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  variant="outline"
                 >
                   {syncing ? (
                     <>
@@ -400,7 +417,7 @@ export default function GmailSyncManager() {
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
-                      Sincronizar Todos ({pendingCount})
+                      Sincronizar ({pendingCount})
                     </>
                   )}
                 </Button>
