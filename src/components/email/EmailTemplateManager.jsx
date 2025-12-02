@@ -379,7 +379,7 @@ export default function EmailTemplateManager() {
             <div className="mt-4 space-y-4">
               <div className="p-3 bg-slate-100 rounded-lg">
                 <p className="text-sm text-slate-600">Assunto:</p>
-                <p className="font-medium">{previewTemplate.subject?.replace(/\{\{nome\}\}/g, "João Silva")}</p>
+                <p className="font-medium">{previewTemplate.subject?.replace(/\{\{nome_completo\}\}/g, "João Silva").replace(/\{\{nome\}\}/g, "João Silva")}</p>
               </div>
               <div className="border rounded-lg p-4 bg-white min-h-[200px]">
                 <div 
