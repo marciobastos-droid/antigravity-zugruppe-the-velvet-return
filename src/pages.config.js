@@ -17,6 +17,7 @@ import Reports from './pages/Reports';
 import TeamManagement from './pages/TeamManagement';
 import Franchising from './pages/Franchising';
 import GmailCallback from './pages/GmailCallback';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "TeamManagement": TeamManagement,
     "Franchising": Franchising,
     "GmailCallback": GmailCallback,
+    "PrivacyPolicy": PrivacyPolicy,
 }
 
 export const pagesConfig = {
