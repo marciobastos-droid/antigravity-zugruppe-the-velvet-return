@@ -279,7 +279,7 @@ Extrai:
   const overdueFollowups = pendingFollowUps.filter(f => new Date(f.date) < new Date());
 
   const panelContent = (
-    <div className={`bg-white flex flex-col h-full ${!isFullscreen ? 'shadow-2xl' : ''}`}>
+    <div className={`bg-white flex flex-col h-full max-h-screen ${!isFullscreen ? 'shadow-2xl' : ''}`}>
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-6">
         <div className="flex items-start justify-between mb-4">
@@ -441,7 +441,7 @@ Extrai:
           <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto p-4 pb-8">
+        <div className="flex-1 overflow-y-auto p-4 pb-20" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-0 space-y-4">
             {/* Key Metrics */}
