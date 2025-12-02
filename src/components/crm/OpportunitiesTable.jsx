@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Eye, Edit, Trash2, Star, Phone, Mail, MapPin, Euro, 
-  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake, UserCheck
+  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake, UserCheck, MessageCircle
 } from "lucide-react";
 import DataTable from "../common/DataTable";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { useAgentNames } from "@/components/common/useAgentNames";
 
@@ -74,6 +75,12 @@ export default function OpportunitiesTable({
     queryFn: () => base44.entities.ClientContact.list(),
   });
 
+  // Buscar comunicações recentes (últimas 48h)
+  const { data: recentComms = [] } = useQuery({
+    queryKey: ['recentCommunications'],
+    queryFn: () => base44.entities.CommunicationLog.list('-communication_date', 200),
+  });
+
   // Criar mapa de oportunidades convertidas
   const convertedOpportunities = React.useMemo(() => {
     const converted = new Set();
@@ -85,23 +92,86 @@ export default function OpportunitiesTable({
     return converted;
   }, [contacts]);
 
+  // Criar mapa de comunicações recentes por email do cliente (últimas 48h, apenas inbound)
+  const recentClientComms = React.useMemo(() => {
+    const now = new Date();
+    const hoursAgo48 = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const commsMap = {};
+    
+    recentComms.forEach(comm => {
+      if (comm.direction !== 'inbound') return;
+      const commDate = new Date(comm.communication_date || comm.created_date);
+      if (commDate < hoursAgo48) return;
+      
+      const email = comm.contact_email?.toLowerCase();
+      if (!email) return;
+      
+      if (!commsMap[email]) {
+        commsMap[email] = { hasEmail: false, hasMessage: false, lastDate: null };
+      }
+      
+      if (comm.communication_type === 'email') {
+        commsMap[email].hasEmail = true;
+      }
+      if (['whatsapp', 'sms'].includes(comm.communication_type)) {
+        commsMap[email].hasMessage = true;
+      }
+      
+      if (!commsMap[email].lastDate || commDate > commsMap[email].lastDate) {
+        commsMap[email].lastDate = commDate;
+      }
+    });
+    
+    return commsMap;
+  }, [recentComms]);
+
   const columns = [
     {
       key: "buyer_name",
       label: "Contacto",
       minWidth: "180px",
       alwaysVisible: true,
-      render: (val, opp) => (
-        <div>
-          <div className="font-medium text-slate-900 flex items-center gap-1">
-            {opp.priority === 'high' && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
-            {val}
+      render: (val, opp) => {
+        const clientEmail = opp.buyer_email?.toLowerCase();
+        const commInfo = clientEmail ? recentClientComms[clientEmail] : null;
+        
+        return (
+          <div>
+            <div className="font-medium text-slate-900 flex items-center gap-1">
+              {opp.priority === 'high' && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+              {val}
+              {commInfo && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex items-center gap-0.5 ml-1">
+                        {commInfo.hasEmail && (
+                          <span className="relative">
+                            <Mail className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          </span>
+                        )}
+                        {commInfo.hasMessage && (
+                          <span className="relative">
+                            <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          </span>
+                        )}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Nova comunicação recebida</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            {opp.buyer_email && (
+              <div className="text-xs text-slate-500 truncate max-w-[160px]">{opp.buyer_email}</div>
+            )}
           </div>
-          {opp.buyer_email && (
-            <div className="text-xs text-slate-500 truncate max-w-[160px]">{opp.buyer_email}</div>
-          )}
-        </div>
-      )
+        );
+      }
     },
     {
       key: "lead_type",
