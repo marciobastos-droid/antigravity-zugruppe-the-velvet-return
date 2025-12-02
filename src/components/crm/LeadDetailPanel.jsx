@@ -936,7 +936,7 @@ Extrai:
   if (isFullscreen) {
     return (
       <Dialog open={true} onOpenChange={(open) => !open && setIsFullscreen(false)}>
-        <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden">
           {panelContent}
         </DialogContent>
       </Dialog>
