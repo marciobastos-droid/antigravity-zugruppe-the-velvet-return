@@ -81,44 +81,10 @@ export default function GmailSyncManager() {
       return response.data;
     },
     onSuccess: () => {
-      toast.success("Gmail desconectado");
+      toast.info("Para desconectar completamente, vá às definições da app");
       refetchConnection();
-      refetchUser();
     }
   });
-
-  // Handle OAuth callback
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    
-    if (code && window.location.pathname.includes('gmail-callback')) {
-      handleOAuthCallback(code);
-    }
-  }, []);
-
-  const handleOAuthCallback = async (code) => {
-    try {
-      const redirectUri = window.location.origin + '/gmail-callback';
-      const response = await base44.functions.invoke('gmailIntegration', {
-        action: 'exchangeCode',
-        code,
-        redirectUri
-      });
-      
-      if (response.data?.success) {
-        toast.success(`Gmail conectado: ${response.data.connected_email}`);
-        // Clear URL params
-        window.history.replaceState({}, '', window.location.pathname);
-        refetchConnection();
-        refetchUser();
-      } else {
-        toast.error("Erro ao conectar Gmail");
-      }
-    } catch (error) {
-      toast.error("Erro na autenticação: " + error.message);
-    }
-  };
 
   // Extract email address from "Name <email@domain.com>" format
   const extractEmail = (emailString) => {
