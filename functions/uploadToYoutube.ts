@@ -24,12 +24,6 @@ Deno.serve(async (req) => {
       ? body.videoBase64.split(',')[1] 
       : body.videoBase64;
     
-    const binaryString = atob(base64Data);
-    const videoBytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      videoBytes[i] = binaryString.charCodeAt(i);
-    }
-    
     // Get YouTube access token via Google Drive connector
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
