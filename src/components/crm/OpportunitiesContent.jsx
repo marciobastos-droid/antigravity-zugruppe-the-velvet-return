@@ -108,6 +108,23 @@ export default function OpportunitiesContent() {
     queryFn: () => base44.entities.FacebookLead.list(),
   });
 
+  // Buscar contactos para verificar quais oportunidades foram convertidas
+  const { data: clientContacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  // Criar set de oportunidades convertidas
+  const convertedOpportunityIds = React.useMemo(() => {
+    const converted = new Set();
+    clientContacts.forEach(contact => {
+      if (contact.linked_opportunity_ids && contact.linked_opportunity_ids.length > 0) {
+        contact.linked_opportunity_ids.forEach(id => converted.add(id));
+      }
+    });
+    return converted;
+  }, [clientContacts]);
+
   // Extract unique campaign names
   const allCampaigns = React.useMemo(() => {
     const campaignsSet = new Set();
