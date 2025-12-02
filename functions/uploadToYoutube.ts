@@ -9,47 +9,31 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check content type to determine how to parse the request
-    const contentType = req.headers.get('content-type') || '';
+    // JSON body with base64 video
+    const body = await req.json();
+    const title = body.title || 'Vídeo Imobiliário';
+    const description = body.description || 'Vídeo criado com ZuGruppe';
+    const privacyStatus = body.privacyStatus || 'private';
     
-    let videoFile, title, description, privacyStatus;
-    
-    if (contentType.includes('multipart/form-data')) {
-      const formData = await req.formData();
-      videoFile = formData.get('video');
-      title = formData.get('title') || 'Vídeo Imobiliário';
-      description = formData.get('description') || 'Vídeo criado com ZuGruppe';
-      privacyStatus = formData.get('privacyStatus') || 'private';
-    } else {
-      // JSON body with base64 video
-      const body = await req.json();
-      title = body.title || 'Vídeo Imobiliário';
-      description = body.description || 'Vídeo criado com ZuGruppe';
-      privacyStatus = body.privacyStatus || 'private';
-      
-      if (body.videoBase64) {
-        // Convert base64 to blob
-        const base64Data = body.videoBase64.split(',')[1] || body.videoBase64;
-        const binaryString = atob(base64Data);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        videoFile = new Blob([bytes], { type: 'video/webm' });
-        videoFile.size = bytes.length;
-      }
+    if (!body.videoBase64) {
+      return Response.json({ error: 'No video data provided' }, { status: 400 });
     }
 
-    if (!videoFile) {
-      return Response.json({ error: 'No video file provided' }, { status: 400 });
+    // Convert base64 to Uint8Array
+    const base64Data = body.videoBase64.includes(',') 
+      ? body.videoBase64.split(',')[1] 
+      : body.videoBase64;
+    
+    const binaryString = atob(base64Data);
+    const videoBytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      videoBytes[i] = binaryString.charCodeAt(i);
     }
+    
+    const videoSize = videoBytes.length;
 
     // Get YouTube access token via Google Drive connector
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
-
-    // Get video as ArrayBuffer
-    const videoBuffer = await videoFile.arrayBuffer();
-    const videoSize = videoBuffer.byteLength;
 
     // Step 1: Initialize resumable upload
     const initResponse = await fetch(
