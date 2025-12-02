@@ -27,7 +27,9 @@ export default function DataTable({
   showCheckboxes = false,
   rowKey = "id",
   emptyMessage = "Nenhum resultado encontrado",
-  className = ""
+  className = "",
+  pageSizeOptions = [50, 100, 250],
+  defaultPageSize = 50
 }) {
   const [visibleColumns, setVisibleColumns] = React.useState(
     defaultVisibleColumns.length > 0 ? defaultVisibleColumns : columns.map(c => c.key)
@@ -36,6 +38,8 @@ export default function DataTable({
   const [sortDirection, setSortDirection] = React.useState(defaultSortDirection);
   const [columnWidths, setColumnWidths] = React.useState({});
   const [resizing, setResizing] = React.useState(null);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(defaultPageSize);
   const tableRef = React.useRef(null);
 
   // Handle column resize
