@@ -97,7 +97,14 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
 </html>`;
 
     // Encode subject properly for UTF-8
-    const encodedSubject = `=?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
+    const encoder = new TextEncoder();
+    const subjectBytes = encoder.encode(subject);
+    const subjectBase64 = btoa(String.fromCharCode(...subjectBytes));
+    const encodedSubject = `=?UTF-8?B?${subjectBase64}?=`;
+
+    // Encode HTML body to base64
+    const bodyBytes = encoder.encode(htmlBody);
+    const bodyBase64 = btoa(String.fromCharCode(...bodyBytes));
 
     // Build email with proper encoding
     const emailParts = [
@@ -111,11 +118,12 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
         'Content-Type: text/html; charset=UTF-8',
         'Content-Transfer-Encoding: base64',
         '',
-        btoa(unescape(encodeURIComponent(htmlBody)))
+        bodyBase64
     ].filter(Boolean).join('\r\n');
 
-    // Base64url encode the entire message
-    const encodedEmail = btoa(unescape(encodeURIComponent(emailParts)))
+    // Base64url encode the entire raw message
+    const rawBytes = encoder.encode(emailParts);
+    const encodedEmail = btoa(String.fromCharCode(...rawBytes))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
