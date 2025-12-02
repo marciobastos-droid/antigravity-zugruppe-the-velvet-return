@@ -234,7 +234,7 @@ export default function SendEmailDialog({
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-slate-500 mt-1">
-                  Campos disponíveis: {"{{nome}}"}, {"{{email}}"}, {"{{telefone}}"}, {"{{cidade}}"}, {"{{imovel}}"}, {"{{orcamento}}"}
+                  Campos disponíveis: {"{{nome_completo}}"}, {"{{email}}"}, {"{{telefone}}"}, {"{{cidade}}"}, {"{{imovel}}"}, {"{{orcamento}}"}
                 </p>
               </div>
             </TabsContent>
