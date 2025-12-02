@@ -275,6 +275,29 @@ export default function GmailSyncManager() {
     setTesting(false);
   };
 
+  // Check for new client emails and create notifications
+  const handleCheckNewEmails = async () => {
+    setCheckingNewEmails(true);
+    try {
+      const response = await base44.functions.invoke('checkNewClientEmails', {});
+      if (response.data.success) {
+        if (response.data.notificationsCreated > 0) {
+          toast.success(`${response.data.notificationsCreated} novo(s) email(s) de clientes! Notificações criadas.`);
+        } else {
+          toast.info(response.data.message || 'Nenhum novo email de clientes');
+        }
+        refetchEmails();
+        queryClient.invalidateQueries({ queryKey: ['emailLogs'] });
+        queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
+      } else {
+        toast.error("Erro: " + (response.data.error || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      toast.error("Erro ao verificar emails: " + error.message);
+    }
+    setCheckingNewEmails(false);
+  };
+
   // Send test email
   const handleSendTestEmail = async () => {
     if (!testEmail) {
