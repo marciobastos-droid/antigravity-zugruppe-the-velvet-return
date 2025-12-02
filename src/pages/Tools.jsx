@@ -180,6 +180,7 @@ export default function Tools() {
                 <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
                 <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
                 <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
+                <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
