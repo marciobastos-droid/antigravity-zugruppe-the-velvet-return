@@ -257,6 +257,12 @@ export default function OpportunitiesContent() {
           return !opp.assigned_to;
         }
 
+        // Tratamento especial para converted - precisa verificar nos contactos
+        if (key === "converted") {
+          // This will be checked separately below
+          return true;
+        }
+
         // Pesquisa de texto
         if (config.type === "text" && config.searchFields) {
           const searchValue = String(value).toLowerCase();
