@@ -9,11 +9,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formData = await req.formData();
-    const videoFile = formData.get('video');
-    const title = formData.get('title') || 'Vídeo Imobiliário';
-    const description = formData.get('description') || 'Vídeo criado com ZuGruppe';
-    const privacyStatus = formData.get('privacyStatus') || 'private';
+    // Check content type to determine how to parse the request
+    const contentType = req.headers.get('content-type') || '';
+    
+    let videoFile, title, description, privacyStatus;
+    
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      videoFile = formData.get('video');
+      title = formData.get('title') || 'Vídeo Imobiliário';
+      description = formData.get('description') || 'Vídeo criado com ZuGruppe';
+      privacyStatus = formData.get('privacyStatus') || 'private';
+    } else {
+      // JSON body with base64 video
+      const body = await req.json();
+      title = body.title || 'Vídeo Imobiliário';
+      description = body.description || 'Vídeo criado com ZuGruppe';
+      privacyStatus = body.privacyStatus || 'private';
+      
+      if (body.videoBase64) {
+        // Convert base64 to blob
+        const base64Data = body.videoBase64.split(',')[1] || body.videoBase64;
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        videoFile = new Blob([bytes], { type: 'video/webm' });
+        videoFile.size = bytes.length;
+      }
+    }
 
     if (!videoFile) {
       return Response.json({ error: 'No video file provided' }, { status: 400 });
@@ -21,6 +46,10 @@ Deno.serve(async (req) => {
 
     // Get YouTube access token via Google Drive connector
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
+
+    // Get video as ArrayBuffer
+    const videoBuffer = await videoFile.arrayBuffer();
+    const videoSize = videoBuffer.byteLength;
 
     // Step 1: Initialize resumable upload
     const initResponse = await fetch(
@@ -30,13 +59,13 @@ Deno.serve(async (req) => {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
-          'X-Upload-Content-Type': videoFile.type || 'video/webm',
-          'X-Upload-Content-Length': videoFile.size.toString()
+          'X-Upload-Content-Type': 'video/webm',
+          'X-Upload-Content-Length': videoSize.toString()
         },
         body: JSON.stringify({
           snippet: {
-            title: title,
-            description: description,
+            title: title.substring(0, 100), // YouTube title limit
+            description: description.substring(0, 5000), // YouTube description limit
             categoryId: '22' // People & Blogs
           },
           status: {
@@ -53,7 +82,7 @@ Deno.serve(async (req) => {
       return Response.json({ 
         error: 'Failed to initialize YouTube upload', 
         details: errorText 
-      }, { status: 500 });
+      }, { status: initResponse.status });
     }
 
     const uploadUrl = initResponse.headers.get('Location');
@@ -63,14 +92,11 @@ Deno.serve(async (req) => {
     }
 
     // Step 2: Upload the video content
-    const videoBuffer = await videoFile.arrayBuffer();
-    
     const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': videoFile.type || 'video/webm',
-        'Content-Length': videoFile.size.toString()
+        'Content-Type': 'video/webm',
+        'Content-Length': videoSize.toString()
       },
       body: videoBuffer
     });
@@ -81,7 +107,7 @@ Deno.serve(async (req) => {
       return Response.json({ 
         error: 'Failed to upload video to YouTube', 
         details: errorText 
-      }, { status: 500 });
+      }, { status: uploadResponse.status });
     }
 
     const videoData = await uploadResponse.json();
