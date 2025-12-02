@@ -2145,17 +2145,6 @@ export default function ClientDatabase() {
         </Suspense>
       )}
 
-      {/* Matching Report Dialog */}
-      {selectedClient && matchingReportOpen && (
-        <Suspense fallback={null}>
-          <MatchingReport
-            contact={selectedClient}
-            open={matchingReportOpen}
-            onOpenChange={setMatchingReportOpen}
-          />
-        </Suspense>
-      )}
-
       {/* Send Email Dialog */}
       {emailDialogOpen && (
         <Suspense fallback={null}>
