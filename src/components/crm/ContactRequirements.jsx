@@ -260,8 +260,8 @@ INSTRUÇÕES:
 
   if (editing) {
     return (
-      <Card className="border-blue-200 bg-blue-50/30">
-        <CardHeader className="pb-3">
+      <Card className="border-blue-200 bg-blue-50/30 max-h-[70vh] flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-base flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Target className="w-5 h-5 text-blue-600" />
@@ -294,7 +294,7 @@ INSTRUÇÕES:
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 overflow-y-auto flex-1">
           {/* AI Text Input */}
           {showAiInput && (
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 space-y-3">
