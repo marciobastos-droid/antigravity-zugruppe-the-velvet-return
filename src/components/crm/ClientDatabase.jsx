@@ -236,14 +236,14 @@ export default function ClientDatabase() {
       const userType = user.user_type?.toLowerCase() || '';
       const permissions = user.permissions || {};
       
-      // Admins e gestores veem todos - limit to 500 for performance
+      // Admins e gestores veem todos
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
-        return await base44.entities.ClientContact.list('-created_date', 500);
+        return await base44.entities.ClientContact.list('-created_date');
       }
       
       // Verifica permissão canViewAllLeads ou canViewAllContacts
       if (permissions.canViewAllLeads === true || permissions.canViewAllContacts === true) {
-        return await base44.entities.ClientContact.list('-created_date', 500);
+        return await base44.entities.ClientContact.list('-created_date');
       }
       
       // Para agentes: buscar apenas os contactos atribuídos ou criados por eles
