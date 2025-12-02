@@ -299,8 +299,6 @@ export default function CommunicationPanel({ lead, onUpdate }) {
     toast.success("Copiado!");
   };
 
-  const communicationHistory = [...(lead.communication_history || [])].reverse();
-
   return (
     <Card>
       <CardHeader>
