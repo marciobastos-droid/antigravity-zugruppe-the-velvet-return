@@ -201,6 +201,15 @@ export default function OpportunitiesContent() {
       ],
       advanced: true
     },
+    converted: {
+      type: FILTER_TYPES.select,
+      label: "Convertido",
+      field: "converted",
+      options: [
+        { value: "yes", label: "✅ Convertido" },
+        { value: "no", label: "❌ Não Convertido" }
+      ]
+    },
     created_date: {
       type: FILTER_TYPES.dateRange,
       label: "Data de Criação",
