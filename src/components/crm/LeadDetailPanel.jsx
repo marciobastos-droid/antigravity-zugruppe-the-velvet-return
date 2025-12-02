@@ -432,8 +432,9 @@ Extrai:
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="grid grid-cols-5 mx-4 mt-4">
+        <TabsList className="grid grid-cols-6 mx-4 mt-4">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
+          <TabsTrigger value="matching" className="text-xs">Matching</TabsTrigger>
           <TabsTrigger value="communications" className="text-xs">Comunicações</TabsTrigger>
           <TabsTrigger value="properties" className="text-xs">Imóveis</TabsTrigger>
           <TabsTrigger value="followups" className="text-xs">Follow-ups</TabsTrigger>
