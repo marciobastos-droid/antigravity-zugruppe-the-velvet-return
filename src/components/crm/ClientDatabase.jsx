@@ -2095,13 +2095,6 @@ export default function ClientDatabase() {
                     Registar Comunicação
                   </Button>
                   <Button 
-                    onClick={() => setMatchingReportOpen(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Relatório de Matching
-                  </Button>
-                  <Button 
                     onClick={() => setOpportunityDialogOpen(true)}
                     className="bg-amber-600 hover:bg-amber-700"
                   >
