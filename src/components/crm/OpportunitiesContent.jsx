@@ -48,6 +48,7 @@ export default function OpportunitiesContent() {
     lead_source: "all",
     assigned_to: "all",
     priority: "all",
+    converted: "all",
     created_date: {},
     updated_date: {},
     budget: {},
