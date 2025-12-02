@@ -1,8 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-const GOOGLE_CLIENT_ID = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID");
-const GOOGLE_CLIENT_SECRET = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET");
-
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
@@ -15,10 +12,6 @@ Deno.serve(async (req) => {
         const { action, ...params } = await req.json();
 
         switch (action) {
-            case 'getAuthUrl':
-                return handleGetAuthUrl(params);
-            case 'exchangeCode':
-                return handleExchangeCode(params, user, base44);
             case 'sendEmail':
                 return handleSendEmail(params, user, base44);
             case 'listEmails':
@@ -42,125 +35,27 @@ Deno.serve(async (req) => {
     }
 });
 
-function handleGetAuthUrl({ redirectUri }) {
-    // Check if credentials are configured
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-        return Response.json({ 
-            error: 'Credenciais Google OAuth não configuradas. Configure GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET nas variáveis de ambiente.',
-            missing: {
-                clientId: !GOOGLE_CLIENT_ID,
-                clientSecret: !GOOGLE_CLIENT_SECRET
-            }
-        }, { status: 400 });
-    }
-
-    const scopes = [
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.labels',
-        'https://www.googleapis.com/auth/userinfo.email'
-    ];
-
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}` +
-        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        `&response_type=code` +
-        `&scope=${encodeURIComponent(scopes.join(' '))}` +
-        `&access_type=offline` +
-        `&prompt=consent`;
-
-    return Response.json({ authUrl, redirectUri, clientIdPreview: GOOGLE_CLIENT_ID?.substring(0, 20) + '...' });
+async function getAccessToken(base44) {
+    // Use the App Connector to get the access token
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
+    return accessToken;
 }
 
-async function handleExchangeCode({ code, redirectUri }, user, base44) {
-    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-            client_id: GOOGLE_CLIENT_ID,
-            client_secret: GOOGLE_CLIENT_SECRET,
-            code,
-            redirect_uri: redirectUri,
-            grant_type: 'authorization_code'
-        })
+async function getUserEmail(accessToken) {
+    const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
     });
-
-    const tokens = await tokenResponse.json();
-
-    if (tokens.error) {
-        return Response.json({ error: tokens.error_description || tokens.error }, { status: 400 });
-    }
-
-    // Get user email from Google
-    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: { Authorization: `Bearer ${tokens.access_token}` }
-    });
-    const userInfo = await userInfoResponse.json();
-
-    // Save tokens to user
-    await base44.auth.updateMe({
-        gmail_tokens: {
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            expiry_date: Date.now() + (tokens.expires_in * 1000),
-            connected_email: userInfo.email
-        }
-    });
-
-    return Response.json({ 
-        success: true, 
-        connected_email: userInfo.email 
-    });
-}
-
-async function getValidAccessToken(user, base44) {
-    const tokens = user.gmail_tokens;
-    
-    if (!tokens || !tokens.refresh_token) {
-        throw new Error('Gmail não conectado. Por favor, conecte a sua conta Gmail.');
-    }
-
-    // Check if token is expired (with 5 min buffer)
-    if (tokens.expiry_date && tokens.expiry_date < Date.now() + 300000) {
-        // Refresh the token
-        const refreshResponse = await fetch('https://oauth2.googleapis.com/token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-                client_id: GOOGLE_CLIENT_ID,
-                client_secret: GOOGLE_CLIENT_SECRET,
-                refresh_token: tokens.refresh_token,
-                grant_type: 'refresh_token'
-            })
-        });
-
-        const newTokens = await refreshResponse.json();
-
-        if (newTokens.error) {
-            throw new Error('Falha ao atualizar token. Por favor, reconecte a sua conta Gmail.');
-        }
-
-        // Update tokens in user profile
-        await base44.auth.updateMe({
-            gmail_tokens: {
-                ...tokens,
-                access_token: newTokens.access_token,
-                expiry_date: Date.now() + (newTokens.expires_in * 1000)
-            }
-        });
-
-        return newTokens.access_token;
-    }
-
-    return tokens.access_token;
+    const data = await response.json();
+    return data.email;
 }
 
 async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, base44) {
-    const accessToken = await getValidAccessToken(user, base44);
+    const accessToken = await getAccessToken(base44);
+    const fromEmail = await getUserEmail(accessToken);
 
     // Build email
     const email = [
-        `From: ${user.gmail_tokens.connected_email}`,
+        `From: ${fromEmail}`,
         `To: ${to}`,
         cc ? `Cc: ${cc}` : '',
         bcc ? `Bcc: ${bcc}` : '',
@@ -201,7 +96,7 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
 }
 
 async function handleListEmails({ maxResults = 20, labelIds = ['INBOX'], query }, user, base44) {
-    const accessToken = await getValidAccessToken(user, base44);
+    const accessToken = await getAccessToken(base44);
 
     let url = `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${maxResults}`;
     
@@ -263,7 +158,7 @@ async function handleListEmails({ maxResults = 20, labelIds = ['INBOX'], query }
 }
 
 async function handleGetEmail({ messageId }, user, base44) {
-    const accessToken = await getValidAccessToken(user, base44);
+    const accessToken = await getAccessToken(base44);
 
     const response = await fetch(
         `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`,
@@ -311,27 +206,13 @@ async function handleGetEmail({ messageId }, user, base44) {
 }
 
 async function handleCheckConnection(user, base44) {
-    const tokens = user.gmail_tokens;
-    
-    if (!tokens || !tokens.access_token) {
-        return Response.json({ connected: false });
-    }
-
     try {
-        const accessToken = await getValidAccessToken(user, base44);
-        
-        // Verify token works
-        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
-
-        if (!response.ok) {
-            return Response.json({ connected: false });
-        }
+        const accessToken = await getAccessToken(base44);
+        const email = await getUserEmail(accessToken);
 
         return Response.json({ 
             connected: true, 
-            email: tokens.connected_email 
+            email: email 
         });
     } catch (error) {
         return Response.json({ connected: false, error: error.message });
@@ -339,38 +220,21 @@ async function handleCheckConnection(user, base44) {
 }
 
 async function handleDisconnect(user, base44) {
-    await base44.auth.updateMe({ gmail_tokens: null });
-    return Response.json({ success: true });
+    // With App Connector, user would need to disconnect from settings
+    return Response.json({ success: true, message: 'Para desconectar, vá às definições da app' });
 }
 
 async function handleTestConnection(user, base44) {
-    const tokens = user.gmail_tokens;
-    
     const results = {
-        hasTokens: !!tokens,
-        hasAccessToken: !!tokens?.access_token,
-        hasRefreshToken: !!tokens?.refresh_token,
-        connectedEmail: tokens?.connected_email || null,
-        tokenExpiry: tokens?.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
-        isExpired: tokens?.expiry_date ? tokens.expiry_date < Date.now() : null,
-        googleClientIdSet: !!GOOGLE_CLIENT_ID,
-        googleClientSecretSet: !!GOOGLE_CLIENT_SECRET,
-        apiTest: null,
-        profileTest: null
+        connectorTest: null,
+        profileTest: null,
+        apiTest: null
     };
 
-    if (!tokens?.access_token) {
-        return Response.json({ 
-            success: false, 
-            message: 'Gmail não conectado',
-            results 
-        });
-    }
-
     try {
-        // Test getting a valid access token (will refresh if needed)
-        const accessToken = await getValidAccessToken(user, base44);
-        results.tokenRefreshSuccess = true;
+        // Test getting access token from connector
+        const accessToken = await getAccessToken(base44);
+        results.connectorTest = { success: true, message: 'Token obtido do connector' };
 
         // Test API access - get profile
         const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -408,7 +272,6 @@ async function handleTestConnection(user, base44) {
         });
 
     } catch (error) {
-        results.tokenRefreshSuccess = false;
         results.error = error.message;
         return Response.json({
             success: false,
@@ -424,7 +287,8 @@ async function handleSendTestEmail({ testEmail }, user, base44) {
     }
 
     try {
-        const accessToken = await getValidAccessToken(user, base44);
+        const accessToken = await getAccessToken(base44);
+        const fromEmail = await getUserEmail(accessToken);
 
         const subject = 'Teste de Configuração Gmail - Zugruppe';
         const body = `
@@ -433,7 +297,7 @@ async function handleSendTestEmail({ testEmail }, user, base44) {
                 <p>Este email confirma que a integração Gmail está a funcionar corretamente.</p>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
                 <p style="color: #64748b; font-size: 12px;">
-                    Enviado por: ${user.gmail_tokens?.connected_email || user.email}<br>
+                    Enviado por: ${fromEmail}<br>
                     Data: ${new Date().toLocaleString('pt-PT')}<br>
                     Plataforma: Zugruppe CRM
                 </p>
@@ -441,7 +305,7 @@ async function handleSendTestEmail({ testEmail }, user, base44) {
         `;
 
         const email = [
-            `From: ${user.gmail_tokens.connected_email}`,
+            `From: ${fromEmail}`,
             `To: ${testEmail}`,
             `Subject: ${subject}`,
             'MIME-Version: 1.0',
