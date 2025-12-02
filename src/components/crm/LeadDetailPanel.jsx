@@ -669,12 +669,8 @@ Extrai:
 
           {/* Matching Tab */}
           <TabsContent value="matching" className="mt-0 space-y-4">
-            {/* Contact Requirements - só aparece se tiver contacto associado */}
-            {(lead.contact_id || lead.profile_id) && (
-              <ContactRequirementsWrapper 
-                contactId={lead.contact_id || lead.profile_id}
-              />
-            )}
+            {/* Contact Requirements - busca contacto pelo email ou linked_opportunity_ids */}
+            <ContactRequirementsFromLead lead={lead} />
             
             <LeadPropertyMatching 
               lead={lead}
