@@ -323,7 +323,7 @@ export default function OpportunitiesTable({
 
   return (
     <DataTable
-      data={opportunities}
+      data={sortedOpportunities}
       columns={columns}
       defaultVisibleColumns={defaultVisibleColumns}
       defaultSortColumn="created_date"
