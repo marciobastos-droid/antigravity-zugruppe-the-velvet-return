@@ -301,6 +301,47 @@ export default function Tools() {
         {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
         {activeTab === "imageValidator" && <ImageValidator />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
+        {activeTab === "linkContacts" && (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center py-8">
+                <Link2 className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Vincular Contactos a Oportunidades</h3>
+                <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                  Esta ferramenta associa automaticamente os contactos às oportunidades correspondentes através do email ou ID, 
+                  criando ligações bidirecionais entre os registos.
+                </p>
+                <Button 
+                  onClick={async () => {
+                    setLinkingContacts(true);
+                    try {
+                      const response = await base44.functions.invoke('linkContactsToOpportunities');
+                      const data = response.data;
+                      toast.success(`Vinculadas ${data.summary.updatedOpportunities} oportunidades e ${data.summary.updatedContacts} contactos`);
+                    } catch (error) {
+                      toast.error("Erro ao vincular contactos: " + (error.message || "Erro desconhecido"));
+                    }
+                    setLinkingContacts(false);
+                  }}
+                  disabled={linkingContacts}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {linkingContacts ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A vincular...
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="w-4 h-4 mr-2" />
+                      Executar Vinculação
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
