@@ -640,7 +640,14 @@ Extrai:
           </TabsContent>
 
           {/* Matching Tab */}
-          <TabsContent value="matching" className="mt-0">
+          <TabsContent value="matching" className="mt-0 space-y-4">
+            {/* Contact Requirements - só aparece se tiver contacto associado */}
+            {(lead.contact_id || lead.profile_id) && (
+              <ContactRequirementsWrapper 
+                contactId={lead.contact_id || lead.profile_id}
+              />
+            )}
+            
             <LeadPropertyMatching 
               lead={lead}
               onAssociateProperty={handleAssociateProperty}
