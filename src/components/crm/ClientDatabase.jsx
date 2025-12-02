@@ -1340,7 +1340,6 @@ export default function ClientDatabase() {
           onClientClick={(client) => { setActiveTab("details"); setSelectedClient(client); }}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onMatching={(client) => { setActiveTab("matching"); setSelectedClient(client); }}
           selectedContacts={selectedContacts}
           onSelectionChange={setSelectedContacts}
         />
