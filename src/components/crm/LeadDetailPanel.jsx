@@ -431,7 +431,7 @@ Extrai:
       )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList className="grid grid-cols-6 mx-4 mt-4 flex-shrink-0">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
           <TabsTrigger value="matching" className="text-xs">Matching</TabsTrigger>
@@ -441,7 +441,7 @@ Extrai:
           <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 pb-8">
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-0 space-y-4">
             {/* Key Metrics */}
@@ -944,7 +944,7 @@ Extrai:
   }
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[780px] z-50">
+    <div className="fixed inset-y-0 right-0 w-full md:w-[780px] z-50 overflow-hidden">
       {panelContent}
     </div>
   );
