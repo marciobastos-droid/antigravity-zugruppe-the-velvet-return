@@ -4,6 +4,7 @@ import { createPageUrl } from "@/utils";
 import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, Sparkles, FileBarChart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
+import { Toaster } from "sonner";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
