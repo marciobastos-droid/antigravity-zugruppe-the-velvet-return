@@ -1653,15 +1653,13 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
-                <TabsTrigger value="matching">Matching</TabsTrigger>
                 <TabsTrigger value="whatsapp" className="flex items-center gap-1">
                   <MessageSquare className="w-3 h-3 text-green-600" />
                   WhatsApp
                 </TabsTrigger>
                 <TabsTrigger value="communications">Comunicações</TabsTrigger>
-                <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
                 <TabsTrigger value="portal" className="flex items-center gap-1">
                   <Link2 className="w-3 h-3" />
                   Portal
