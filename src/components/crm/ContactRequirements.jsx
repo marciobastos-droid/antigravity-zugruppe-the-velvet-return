@@ -120,7 +120,7 @@ export default function ContactRequirements({ contact, onUpdate }) {
     }
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Criar cópia limpa dos requisitos, removendo valores undefined
     const cleanRequirements = {};
     Object.keys(requirements).forEach(key => {
@@ -143,7 +143,11 @@ export default function ContactRequirements({ contact, onUpdate }) {
       return;
     }
     
-    updateMutation.mutate(cleanRequirements);
+    try {
+      await updateMutation.mutateAsync(cleanRequirements);
+    } catch (error) {
+      console.error('handleSave error:', error);
+    }
   };
 
   const addLocation = () => {
