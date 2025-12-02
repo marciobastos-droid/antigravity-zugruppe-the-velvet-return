@@ -1093,27 +1093,30 @@ Para cada imóvel, dá um pitch de venda curto e personalizado para este cliente
           {/* Empty State */}
           {!analyzing && matches.length === 0 && (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-center py-12 px-8">
+              <div className="text-center py-16 px-8">
                 <div className="relative inline-block">
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur-2xl opacity-20 animate-pulse" />
-                  <div className="relative bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full p-6">
-                    <Brain className="w-16 h-16 text-indigo-600" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full blur-3xl opacity-30 animate-pulse" />
+                  <div className="relative bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 rounded-3xl p-8 shadow-xl shadow-indigo-100">
+                    <Brain className="w-20 h-20 text-indigo-600" />
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-slate-800 mt-6 mb-2">
-                  Análise Inteligente de Matching
+                <h3 className="text-2xl font-bold text-slate-900 mt-8 mb-3">
+                  Matching Imobiliário com IA
                 </h3>
-                <p className="text-slate-500 mb-6 max-w-sm mx-auto">
-                  A IA vai analisar os requisitos do cliente e encontrar os imóveis mais compatíveis da sua carteira.
+                <p className="text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                  A inteligência artificial vai analisar os requisitos do cliente e encontrar os imóveis mais compatíveis da sua carteira, ordenados por relevância.
                 </p>
                 <Button 
                   onClick={runMatching} 
                   size="lg"
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-200"
+                  className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-700 hover:via-purple-700 hover:to-indigo-700 shadow-xl shadow-indigo-200 text-lg px-8 py-6 h-auto"
                 >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Iniciar Matching com IA
+                  <Sparkles className="w-6 h-6 mr-3" />
+                  Iniciar Análise com IA
                 </Button>
+                <p className="text-xs text-slate-400 mt-4">
+                  Análise baseada em orçamento, localização, tipo de imóvel e outros critérios
+                </p>
               </div>
             </div>
           )}
