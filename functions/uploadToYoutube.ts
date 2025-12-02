@@ -30,8 +30,6 @@ Deno.serve(async (req) => {
       videoBytes[i] = binaryString.charCodeAt(i);
     }
     
-    const videoSize = videoBytes.length;
-
     // Get YouTube access token via Google Drive connector
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
