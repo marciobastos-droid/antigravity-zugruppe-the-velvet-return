@@ -33,12 +33,9 @@ import { useAgentNames } from "@/components/common/useAgentNames";
 const CommunicationHistory = lazy(() => import("./CommunicationHistory"));
 const WhatsAppConversation = lazy(() => import("./WhatsAppConversation"));
 const AddCommunicationDialog = lazy(() => import("./AddCommunicationDialog"));
-const ContactMatching = lazy(() => import("./ContactMatching"));
-const MatchingReport = lazy(() => import("../matching/MatchingReport"));
 const SendEmailDialog = lazy(() => import("../email/SendEmailDialog"));
 const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
 const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
-const ContactOpportunities = lazy(() => import("./ContactOpportunities"));
 
 // Component to show elected properties summary
 function ElectedPropertiesSummary({ contactId }) {
