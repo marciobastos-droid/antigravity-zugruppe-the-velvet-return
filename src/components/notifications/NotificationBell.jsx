@@ -93,6 +93,7 @@ export default function NotificationBell({ user }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
     },
   });
 
