@@ -28,6 +28,10 @@ export default function GmailSyncManager() {
   const [emailSearch, setEmailSearch] = useState("");
   const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
   const [syncFilter, setSyncFilter] = useState("all"); // all, inbox, sent
+  const [testing, setTesting] = useState(false);
+  const [testResults, setTestResults] = useState(null);
+  const [testEmail, setTestEmail] = useState("");
+  const [sendingTest, setSendingTest] = useState(false);
 
   const { data: user, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
