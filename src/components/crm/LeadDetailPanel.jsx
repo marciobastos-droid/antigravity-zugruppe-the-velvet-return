@@ -38,15 +38,33 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Wrapper component to fetch contact for requirements
-function ContactRequirementsWrapper({ contactId }) {
+// Wrapper component to fetch contact for requirements from lead
+function ContactRequirementsFromLead({ lead }) {
   const { data: contact, isLoading } = useQuery({
-    queryKey: ['clientContact', contactId],
+    queryKey: ['clientContactFromLead', lead.id, lead.buyer_email, lead.contact_id, lead.profile_id],
     queryFn: async () => {
-      const contacts = await base44.entities.ClientContact.filter({ id: contactId });
-      return contacts[0] || null;
+      // Primeiro tenta pelo contact_id ou profile_id
+      if (lead.contact_id || lead.profile_id) {
+        const contacts = await base44.entities.ClientContact.filter({ id: lead.contact_id || lead.profile_id });
+        if (contacts[0]) return contacts[0];
+      }
+      
+      // Depois procura contacto que tenha esta oportunidade ligada
+      const allContacts = await base44.entities.ClientContact.list();
+      const linkedContact = allContacts.find(c => 
+        c.linked_opportunity_ids?.includes(lead.id)
+      );
+      if (linkedContact) return linkedContact;
+      
+      // Por fim, procura pelo email
+      if (lead.buyer_email) {
+        const byEmail = allContacts.find(c => c.email === lead.buyer_email);
+        if (byEmail) return byEmail;
+      }
+      
+      return null;
     },
-    enabled: !!contactId
+    enabled: !!lead
   });
 
   if (isLoading) {
@@ -60,7 +78,15 @@ function ContactRequirementsWrapper({ contactId }) {
   }
 
   if (!contact) {
-    return null;
+    return (
+      <Card className="border-dashed border-2 border-slate-200 bg-slate-50/50">
+        <CardContent className="p-4 text-center">
+          <Target className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+          <p className="text-sm text-slate-500">Sem contacto associado</p>
+          <p className="text-xs text-slate-400">Converta a oportunidade em contacto para definir requisitos</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return <ContactRequirements contact={contact} />;
