@@ -469,19 +469,19 @@ export default function GmailSyncManager() {
             <div className="text-center py-4">
               <Mail className="w-12 h-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-600 mb-4">
-                Conecte a sua conta Gmail para sincronizar emails com o histórico de comunicações
+                Gmail conectado via App Connector. Clique em "Testar Conexão" para verificar.
               </p>
               <Button 
-                onClick={() => connectMutation.mutate()}
-                disabled={connectMutation.isPending}
-                className="bg-red-500 hover:bg-red-600"
+                onClick={handleTestConnection}
+                disabled={testing}
+                className="bg-blue-500 hover:bg-blue-600"
               >
-                {connectMutation.isPending ? (
+                {testing ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
-                  <Mail className="w-4 h-4 mr-2" />
+                  <Settings className="w-4 h-4 mr-2" />
                 )}
-                Conectar Gmail
+                Testar Conexão
               </Button>
             </div>
           )}
