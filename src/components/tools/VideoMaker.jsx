@@ -26,6 +26,12 @@ export default function VideoMaker() {
   const [voiceoverLanguage, setVoiceoverLanguage] = React.useState("pt");
   const [generatingVoiceover, setGeneratingVoiceover] = React.useState(false);
   const [generatedAudioText, setGeneratedAudioText] = React.useState("");
+  const [youtubeDialogOpen, setYoutubeDialogOpen] = React.useState(false);
+  const [youtubeTitle, setYoutubeTitle] = React.useState("");
+  const [youtubeDescription, setYoutubeDescription] = React.useState("");
+  const [youtubePrivacy, setYoutubePrivacy] = React.useState("private");
+  const [uploadingToYoutube, setUploadingToYoutube] = React.useState(false);
+  const [youtubeResult, setYoutubeResult] = React.useState(null);
   const canvasRef = React.useRef(null);
 
   const handleFileUpload = async (e) => {
@@ -259,6 +265,45 @@ Retorna APENAS o script completo de narração.`
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast.success("Vídeo descarregado!");
+  };
+
+  const openYoutubeDialog = () => {
+    setYoutubeTitle(`Imóvel - ${new Date().toLocaleDateString('pt-PT')}`);
+    setYoutubeDescription(generatedAudioText || "Vídeo de apresentação de imóvel criado com ZuGruppe.");
+    setYoutubeResult(null);
+    setYoutubeDialogOpen(true);
+  };
+
+  const uploadToYoutube = async () => {
+    if (!videoBlob) {
+      toast.error("Nenhum vídeo para publicar");
+      return;
+    }
+
+    setUploadingToYoutube(true);
+    setYoutubeResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('video', videoBlob, 'video.webm');
+      formData.append('title', youtubeTitle);
+      formData.append('description', youtubeDescription);
+      formData.append('privacyStatus', youtubePrivacy);
+
+      const response = await base44.functions.invoke('uploadToYoutube', formData);
+      
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
+
+      setYoutubeResult(response.data);
+      toast.success("Vídeo publicado no YouTube!");
+    } catch (error) {
+      console.error('YouTube upload error:', error);
+      toast.error("Erro ao publicar no YouTube: " + (error.message || "Erro desconhecido"));
+    }
+
+    setUploadingToYoutube(false);
   };
 
   return (
@@ -554,13 +599,22 @@ Retorna APENAS o script completo de narração.`
                   className="w-full"
                 />
               </div>
-              <Button 
-                onClick={downloadVideo}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Descarregar Vídeo
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={downloadVideo}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descarregar
+                </Button>
+                <Button 
+                  onClick={openYoutubeDialog}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  <Youtube className="w-4 h-4 mr-2" />
+                  YouTube
+                </Button>
+              </div>
               {generatedAudioText && (
                 <p className="text-xs text-green-800 mt-3 text-center">
                   💡 Use o script gerado com um serviço de text-to-speech para adicionar áudio
@@ -569,6 +623,98 @@ Retorna APENAS o script completo de narração.`
             </CardContent>
           </Card>
         )}
+
+        {/* YouTube Upload Dialog */}
+        <Dialog open={youtubeDialogOpen} onOpenChange={setYoutubeDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Youtube className="w-5 h-5 text-red-600" />
+                Publicar no YouTube
+              </DialogTitle>
+            </DialogHeader>
+            
+            {youtubeResult ? (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                  <p className="text-green-800 font-medium mb-2">✅ Vídeo publicado com sucesso!</p>
+                  <a 
+                    href={youtubeResult.videoUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline text-sm"
+                  >
+                    {youtubeResult.videoUrl}
+                  </a>
+                </div>
+                <Button 
+                  onClick={() => setYoutubeDialogOpen(false)}
+                  className="w-full"
+                >
+                  Fechar
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <Label>Título do Vídeo</Label>
+                  <Input
+                    value={youtubeTitle}
+                    onChange={(e) => setYoutubeTitle(e.target.value)}
+                    placeholder="Título do vídeo..."
+                  />
+                </div>
+                
+                <div>
+                  <Label>Descrição</Label>
+                  <Textarea
+                    value={youtubeDescription}
+                    onChange={(e) => setYoutubeDescription(e.target.value)}
+                    rows={4}
+                    placeholder="Descrição do vídeo..."
+                  />
+                </div>
+                
+                <div>
+                  <Label>Privacidade</Label>
+                  <Select value={youtubePrivacy} onValueChange={setYoutubePrivacy}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="private">🔒 Privado</SelectItem>
+                      <SelectItem value="unlisted">🔗 Não listado</SelectItem>
+                      <SelectItem value="public">🌐 Público</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <DialogFooter className="gap-2">
+                  <Button variant="outline" onClick={() => setYoutubeDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={uploadToYoutube}
+                    disabled={uploadingToYoutube || !youtubeTitle}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    {uploadingToYoutube ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        A publicar...
+                      </>
+                    ) : (
+                      <>
+                        <Youtube className="w-4 h-4 mr-2" />
+                        Publicar
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
