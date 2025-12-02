@@ -19,6 +19,7 @@ import { toast } from "sonner";
 const DYNAMIC_FIELDS = {
   client: [
     { key: "{{nome_completo}}", label: "Nome Completo", icon: User },
+    { key: "{{primeiro_nome}}", label: "Primeiro Nome", icon: User },
     { key: "{{email}}", label: "Email", icon: Mail },
     { key: "{{telefone}}", label: "Telefone", icon: Phone },
     { key: "{{cidade}}", label: "Cidade", icon: MapPin },
@@ -26,6 +27,7 @@ const DYNAMIC_FIELDS = {
   ],
   opportunity: [
     { key: "{{nome_completo}}", label: "Nome Completo", icon: User },
+    { key: "{{primeiro_nome}}", label: "Primeiro Nome", icon: User },
     { key: "{{email}}", label: "Email", icon: Mail },
     { key: "{{telefone}}", label: "Telefone", icon: Phone },
     { key: "{{imovel}}", label: "Imóvel", icon: Building2 },
@@ -39,6 +41,107 @@ const DYNAMIC_FIELDS = {
     { key: "{{agente_telefone}}", label: "Tel. Agente", icon: Phone },
   ]
 };
+
+// Templates pré-definidos profissionais
+const DEFAULT_TEMPLATES = [
+  {
+    name: "Boas-vindas Novo Cliente",
+    category: "client",
+    subject: "Bem-vindo à Zugruppe, {{primeiro_nome}}!",
+    body: `Olá {{nome_completo}},
+
+É com muito prazer que o recebemos na Zugruppe!
+
+O meu nome é {{agente_nome}} e serei o seu consultor dedicado. Estou aqui para ajudá-lo a encontrar o imóvel perfeito para as suas necessidades.
+
+Nos próximos dias entrarei em contacto para conhecer melhor as suas preferências e apresentar-lhe as melhores opções disponíveis no mercado.
+
+Entretanto, se tiver alguma questão, não hesite em contactar-me:
+📧 {{agente_email}}
+📱 {{agente_telefone}}
+
+Com os melhores cumprimentos,
+{{agente_nome}}
+Consultor Imobiliário | Zugruppe`
+  },
+  {
+    name: "Apresentação de Imóvel",
+    category: "opportunity",
+    subject: "{{primeiro_nome}}, temos o imóvel ideal para si!",
+    body: `Olá {{nome_completo}},
+
+Espero que esteja bem!
+
+Tenho excelentes notícias - encontrei um imóvel que corresponde exatamente aos critérios que me indicou:
+
+🏠 {{imovel}}
+📍 {{localizacao}}
+💰 {{orcamento}}
+
+Este imóvel destaca-se pela sua localização privilegiada e excelente relação qualidade-preço.
+
+Gostaria de agendar uma visita para que possa conhecer pessoalmente este espaço? Tenho disponibilidade nos próximos dias.
+
+Aguardo o seu feedback!
+
+Com os melhores cumprimentos,
+{{agente_nome}}
+📱 {{agente_telefone}}`
+  },
+  {
+    name: "Follow-up Após Visita",
+    category: "opportunity",
+    subject: "{{primeiro_nome}}, como correu a visita?",
+    body: `Olá {{nome_completo}},
+
+Foi um prazer acompanhá-lo na visita ao imóvel {{imovel}}.
+
+Gostaria de saber as suas impressões e se tem alguma questão adicional sobre o imóvel ou o processo de aquisição.
+
+Caso este imóvel não seja exatamente o que procura, tenho outras opções interessantes que posso apresentar-lhe.
+
+Fico a aguardar o seu feedback para podermos avançar da melhor forma.
+
+Com os melhores cumprimentos,
+{{agente_nome}}
+{{agente_email}} | {{agente_telefone}}`
+  },
+  {
+    name: "Agradecimento Reunião",
+    category: "general",
+    subject: "Obrigado pela reunião, {{primeiro_nome}}!",
+    body: `Olá {{nome_completo}},
+
+Agradeço a sua disponibilidade para a nossa reunião de hoje, {{data_atual}}.
+
+Foi muito útil compreender melhor as suas necessidades e objetivos. Irei trabalhar para lhe apresentar as melhores soluções.
+
+Qualquer dúvida, estou inteiramente ao seu dispor.
+
+Com os melhores cumprimentos,
+{{agente_nome}}
+Zugruppe`
+  },
+  {
+    name: "Lembrete de Visita",
+    category: "opportunity",
+    subject: "Lembrete: Visita agendada - {{imovel}}",
+    body: `Olá {{nome_completo}},
+
+Este é um lembrete amigável da visita que temos agendada:
+
+🏠 Imóvel: {{imovel}}
+📍 Localização: {{localizacao}}
+
+Por favor confirme a sua presença respondendo a este email.
+
+Se precisar reagendar, contacte-me através do {{agente_telefone}}.
+
+Até breve!
+
+{{agente_nome}}`
+  }
+];
 
 const categoryLabels = {
   client: "Clientes",
