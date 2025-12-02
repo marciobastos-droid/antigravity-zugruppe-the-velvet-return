@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Phone, Mail, MessageSquare, Video, MapPin, 
   ArrowDownLeft, ArrowUpRight, Clock, Calendar,
-  CheckCircle2, Eye, Reply, Send, Star, XCircle
+  Eye, Reply, Send, Star
 } from "lucide-react";
 import { format } from "date-fns";
 
