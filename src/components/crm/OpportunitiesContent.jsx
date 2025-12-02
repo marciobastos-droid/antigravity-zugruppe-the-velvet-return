@@ -29,7 +29,7 @@ export default function OpportunitiesContent() {
     // Default to grid on mobile
     return window.innerWidth < 768 ? "grid" : "table";
   });
-  const [selectedLead, setSelectedLead] = React.useState(null);
+  const [selectedLeadId, setSelectedLeadId] = React.useState(null);
   const [selectedLeads, setSelectedLeads] = React.useState([]);
   const [bulkAssignAgent, setBulkAssignAgent] = React.useState("");
   const [formDialogOpen, setFormDialogOpen] = React.useState(false);
@@ -338,6 +338,16 @@ export default function OpportunitiesContent() {
     });
   }, [opportunities, filters, filterConfig, filterLogic, convertedOpportunityIds]);
 
+  // Derivar selectedLead dos dados atuais das oportunidades
+  const selectedLead = React.useMemo(() => {
+    if (!selectedLeadId) return null;
+    return opportunities.find(o => o.id === selectedLeadId) || null;
+  }, [selectedLeadId, opportunities]);
+
+  const setSelectedLead = (lead) => {
+    setSelectedLeadId(lead?.id || null);
+  };
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Opportunity.update(id, data),
     onSuccess: () => {
@@ -349,7 +359,7 @@ export default function OpportunitiesContent() {
     mutationFn: (id) => base44.entities.Opportunity.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      setSelectedLead(null);
+      setSelectedLeadId(null);
     },
   });
 
