@@ -157,6 +157,11 @@ export default function GmailSyncManager() {
 
   // Sync single email to communication log
   const syncEmailToLog = async (email) => {
+    // Validate email has required ID
+    if (!email?.id) {
+      return { success: false, reason: 'invalid_email' };
+    }
+
     const fromEmail = extractEmail(email.from);
     const toEmail = extractEmail(email.to);
     
@@ -165,7 +170,7 @@ export default function GmailSyncManager() {
     const contactEmail = isSent ? toEmail : fromEmail;
     const contact = findContactByEmail(contactEmail);
 
-    if (!contact) {
+    if (!contact || !contact.id) {
       return { success: false, reason: 'no_contact' };
     }
 
@@ -194,19 +199,21 @@ export default function GmailSyncManager() {
       outcome: 'successful'
     });
 
-    // Create email log entry
-    await base44.entities.EmailLog.create({
+    // Create email log entry - validate required fields
+    const emailLogData = {
       gmail_message_id: email.id,
-      gmail_thread_id: email.threadId,
+      gmail_thread_id: email.threadId || '',
       contact_id: contact.id,
-      contact_name: contact.full_name,
-      contact_email: contactEmail,
+      contact_name: contact.full_name || '',
+      contact_email: contactEmail || '',
       subject: email.subject || '(Sem assunto)',
       direction: isSent ? 'outbound' : 'inbound',
       sent_date: email.date ? new Date(email.date).toISOString() : new Date().toISOString(),
-      sent_by: user?.email,
+      sent_by: user?.email || '',
       status: 'synced'
-    });
+    };
+
+    await base44.entities.EmailLog.create(emailLogData);
 
     return { success: true, contact };
   };
