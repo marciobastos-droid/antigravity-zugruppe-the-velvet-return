@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Settings } from "lucide-react";
+import { Camera, Settings, Link2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,19 @@ export default function Home() {
   });
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  const [linkingContacts, setLinkingContacts] = React.useState(false);
+
+  const handleLinkContacts = async () => {
+    setLinkingContacts(true);
+    try {
+      const response = await base44.functions.invoke('linkContactsToOpportunities');
+      const data = response.data;
+      toast.success(`Vinculadas ${data.summary.updatedOpportunities} oportunidades e ${data.summary.updatedContacts} contactos`);
+    } catch (error) {
+      toast.error("Erro ao vincular contactos: " + (error.message || "Erro desconhecido"));
+    }
+    setLinkingContacts(false);
+  };
 
   // Menu CRM
   const menuItems = [
