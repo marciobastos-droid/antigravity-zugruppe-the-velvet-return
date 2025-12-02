@@ -28,6 +28,7 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
 import DocumentUploader from "../documents/DocumentUploader";
+import ContactMatching from "./ContactMatching";
 import {
   DropdownMenu,
   DropdownMenuContent,
