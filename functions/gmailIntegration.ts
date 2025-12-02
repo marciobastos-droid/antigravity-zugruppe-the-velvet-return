@@ -29,6 +29,10 @@ Deno.serve(async (req) => {
                 return handleCheckConnection(user, base44);
             case 'disconnect':
                 return handleDisconnect(user, base44);
+            case 'testConnection':
+                return handleTestConnection(user, base44);
+            case 'sendTestEmail':
+                return handleSendTestEmail(params, user, base44);
             default:
                 return Response.json({ error: 'Invalid action' }, { status: 400 });
         }
