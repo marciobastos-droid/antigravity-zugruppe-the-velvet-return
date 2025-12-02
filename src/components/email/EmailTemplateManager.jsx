@@ -231,7 +231,7 @@ export default function EmailTemplateManager() {
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                    placeholder="Ex: Olá {{nome}}, bem-vindo à Zugruppe!"
+                    placeholder="Ex: Olá {{nome_completo}}, bem-vindo à Zugruppe!"
                   />
                 </div>
 
