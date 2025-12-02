@@ -517,44 +517,42 @@ export default function CRMMetricsDashboard() {
         </CardHeader>
         <CardContent>
           {popularProperties.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {popularProperties.map((prop, i) => (
-                <div key={i} className="p-3 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex gap-3">
+                <div key={i} className="p-3 border rounded-lg hover:shadow-md transition-shadow bg-white">
+                  <div className="flex flex-col gap-2">
                     {prop.image ? (
                       <img 
                         src={prop.image} 
                         alt={prop.title}
-                        className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                        className="w-full h-24 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-6 h-6 text-slate-300" />
+                      <div className="w-full h-24 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <Building2 className="w-8 h-8 text-slate-300" />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 text-sm line-clamp-1">{prop.title}</p>
-                      <p className="text-xs text-slate-500 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {prop.city}
-                      </p>
-                      {prop.price && (
-                        <p className="text-sm font-bold text-slate-700">
+                    <div className="min-w-0">
+                      <p className="font-medium text-slate-900 text-sm line-clamp-2 leading-tight">{prop.title || 'Sem título'}</p>
+                      <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{prop.city || 'N/A'}</span>
+                      </div>
+                      {prop.price > 0 && (
+                        <p className="text-sm font-bold text-slate-700 mt-1">
                           €{prop.price.toLocaleString()}
                         </p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t">
+                  <div className="flex items-center justify-between mt-3 pt-2 border-t">
                     <div className="flex items-center gap-1 text-purple-600">
                       <Sparkles className="w-3 h-3" />
                       <span className="text-sm font-medium">{prop.matches}</span>
-                      <span className="text-xs text-slate-500">matches</span>
                     </div>
                     <div className="flex items-center gap-1 text-green-600">
                       <Target className="w-3 h-3" />
                       <span className="text-sm font-medium">{prop.interested}</span>
-                      <span className="text-xs text-slate-500">interesse</span>
                     </div>
                   </div>
                 </div>
