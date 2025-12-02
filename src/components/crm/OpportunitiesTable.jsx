@@ -326,6 +326,7 @@ export default function OpportunitiesTable({
       data={sortedOpportunities}
       columns={columns}
       defaultVisibleColumns={defaultVisibleColumns}
+      persistKey="opportunities_table"
       defaultSortColumn="created_date"
       defaultSortDirection="desc"
       showCheckboxes={true}
