@@ -54,8 +54,7 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
     const fromEmail = await getUserEmail(accessToken);
 
     // Wrap body in professional HTML template
-    const htmlBody = `
-<!DOCTYPE html>
+    const htmlBody = `<!DOCTYPE html>
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
@@ -66,19 +65,16 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
         <tr>
             <td align="center">
                 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                    <!-- Header -->
                     <tr>
                         <td style="background-color: #27251f; padding: 24px 32px; text-align: center;">
                             <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg" alt="Zugruppe" height="48" style="display: inline-block;">
                         </td>
                     </tr>
-                    <!-- Content -->
                     <tr>
                         <td style="padding: 32px; color: #333333; font-size: 15px; line-height: 1.6;">
                             ${body.replace(/\n/g, '<br>')}
                         </td>
                     </tr>
-                    <!-- Footer -->
                     <tr>
                         <td style="background-color: #f8f9fa; padding: 20px 32px; border-top: 1px solid #e9ecef;">
                             <p style="margin: 0; font-size: 12px; color: #6c757d; text-align: center;">
@@ -96,34 +92,24 @@ async function handleSendEmail({ to, subject, body, cc, bcc, replyTo }, user, ba
 </body>
 </html>`;
 
-    // Encode subject properly for UTF-8
-    const encoder = new TextEncoder();
-    const subjectBytes = encoder.encode(subject);
-    const subjectBase64 = btoa(String.fromCharCode(...subjectBytes));
-    const encodedSubject = `=?UTF-8?B?${subjectBase64}?=`;
-
-    // Encode HTML body to base64
-    const bodyBytes = encoder.encode(htmlBody);
-    const bodyBase64 = btoa(String.fromCharCode(...bodyBytes));
-
-    // Build email with proper encoding
-    const emailParts = [
+    // Build the raw email message with proper MIME structure
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const emailLines = [
         `From: ${fromEmail}`,
         `To: ${to}`,
-        cc ? `Cc: ${cc}` : '',
-        bcc ? `Bcc: ${bcc}` : '',
-        replyTo ? `In-Reply-To: ${replyTo}` : '',
-        `Subject: ${encodedSubject}`,
+        cc ? `Cc: ${cc}` : null,
+        bcc ? `Bcc: ${bcc}` : null,
+        replyTo ? `In-Reply-To: ${replyTo}` : null,
+        `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
         'MIME-Version: 1.0',
-        'Content-Type: text/html; charset=UTF-8',
-        'Content-Transfer-Encoding: base64',
+        `Content-Type: text/html; charset="UTF-8"`,
         '',
-        bodyBase64
-    ].filter(Boolean).join('\r\n');
+        htmlBody
+    ].filter(line => line !== null).join('\r\n');
 
-    // Base64url encode the entire raw message
-    const rawBytes = encoder.encode(emailParts);
-    const encodedEmail = btoa(String.fromCharCode(...rawBytes))
+    // Encode using btoa with proper UTF-8 handling
+    const encodedEmail = btoa(unescape(encodeURIComponent(emailLines)))
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
