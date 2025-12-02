@@ -251,6 +251,7 @@ export default function EmailTemplateManager() {
     let html = template.body || "";
     // Replace fields with sample data
     html = html.replace(/\{\{nome_completo\}\}/g, "João Silva");
+    html = html.replace(/\{\{primeiro_nome\}\}/g, "João");
     html = html.replace(/\{\{nome\}\}/g, "João Silva"); // backwards compatibility
     html = html.replace(/\{\{email\}\}/g, "joao@exemplo.com");
     html = html.replace(/\{\{telefone\}\}/g, "+351 912 345 678");
@@ -263,7 +264,25 @@ export default function EmailTemplateManager() {
     html = html.replace(/\{\{agente_nome\}\}/g, "Maria Santos");
     html = html.replace(/\{\{agente_email\}\}/g, "maria@zugruppe.com");
     html = html.replace(/\{\{agente_telefone\}\}/g, "+351 910 000 000");
+    // Convert line breaks to HTML
+    html = html.replace(/\n/g, '<br>');
     return html;
+  };
+
+  const handleCreateDefaultTemplates = async () => {
+    try {
+      for (const template of DEFAULT_TEMPLATES) {
+        await base44.entities.EmailTemplate.create({
+          ...template,
+          is_active: true,
+          usage_count: 0
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['emailTemplates'] });
+      toast.success(`${DEFAULT_TEMPLATES.length} templates criados com sucesso!`);
+    } catch (error) {
+      toast.error("Erro ao criar templates");
+    }
   };
 
   if (isLoading) {
