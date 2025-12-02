@@ -425,7 +425,11 @@ export default function EmailTemplateManager() {
           <CardContent>
             <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
             <h3 className="font-semibold text-slate-900 mb-2">Nenhum template encontrado</h3>
-            <p className="text-slate-600">Crie o primeiro template para começar</p>
+            <p className="text-slate-600 mb-4">Crie o primeiro template ou importe os templates pré-definidos</p>
+            <Button onClick={handleCreateDefaultTemplates} variant="outline">
+              <Plus className="w-4 h-4 mr-2" />
+              Importar Templates Pré-definidos
+            </Button>
           </CardContent>
         </Card>
       ) : (
