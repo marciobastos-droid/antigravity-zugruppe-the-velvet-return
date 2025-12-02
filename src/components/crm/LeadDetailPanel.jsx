@@ -944,7 +944,7 @@ Extrai:
   }
 
   return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[680px] z-50">
+    <div className="fixed inset-y-0 right-0 w-full md:w-[780px] z-50">
       {panelContent}
     </div>
   );
