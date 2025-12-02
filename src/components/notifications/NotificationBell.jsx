@@ -84,6 +84,18 @@ export default function NotificationBell({ user }) {
     },
   });
 
+  // Mark all leads as contacted (effectively "read")
+  const markAllLeadsAsReadMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(newLeads.map(lead => 
+        base44.entities.Opportunity.update(lead.id, { status: 'contacted' })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['newLeads'] });
+    },
+  });
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const totalAlerts = unreadCount + newLeads.length;
   const [activeTab, setActiveTab] = useState("leads");
