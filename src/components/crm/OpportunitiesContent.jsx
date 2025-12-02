@@ -324,9 +324,19 @@ export default function OpportunitiesContent() {
         return true;
       });
 
-      return filterLogic === "OR" ? results.some(r => r) : results.every(r => r);
+      const passesFilters = filterLogic === "OR" ? results.some(r => r) : results.every(r => r);
+      if (!passesFilters) return false;
+
+      // Verificar filtro de convertido separadamente
+      if (filters.converted && filters.converted !== "all") {
+        const isConverted = convertedOpportunityIds.has(opp.id);
+        if (filters.converted === "yes" && !isConverted) return false;
+        if (filters.converted === "no" && isConverted) return false;
+      }
+
+      return true;
     });
-  }, [opportunities, filters, filterConfig, filterLogic]);
+  }, [opportunities, filters, filterConfig, filterLogic, convertedOpportunityIds]);
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Opportunity.update(id, data),
