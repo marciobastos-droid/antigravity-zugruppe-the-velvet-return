@@ -135,22 +135,28 @@ export default function SendEmailDialog({
     } catch (error) {
       console.error("Error sending email:", error);
       
+      const errorMessage = error?.response?.data?.message || error?.message || "Erro desconhecido";
+      
       // Log failed communication
       if (recipient.type === 'client' && recipient.id) {
-        await base44.entities.CommunicationLog.create({
-          contact_id: recipient.id,
-          contact_name: recipient.name || '',
-          communication_type: 'email',
-          direction: 'outbound',
-          subject: getProcessedContent().subject,
-          summary: `[FALHOU] ${error.message}`,
-          communication_date: new Date().toISOString(),
-          agent_email: user?.email || '',
-          outcome: 'failed'
-        });
+        try {
+          await base44.entities.CommunicationLog.create({
+            contact_id: recipient.id,
+            contact_name: recipient.name || '',
+            communication_type: 'email',
+            direction: 'outbound',
+            subject: getProcessedContent().subject,
+            summary: `[FALHOU] ${errorMessage}`,
+            communication_date: new Date().toISOString(),
+            agent_email: user?.email || '',
+            outcome: 'failed'
+          });
+        } catch (logError) {
+          console.error("Error logging failed email:", logError);
+        }
       }
 
-      toast.error("Erro ao enviar email");
+      toast.error(`Erro ao enviar email: ${errorMessage}`);
     }
     setSending(false);
   };
