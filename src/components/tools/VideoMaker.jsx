@@ -284,16 +284,23 @@ Retorna APENAS o script completo de narração.`
     setYoutubeResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('video', videoBlob, 'video.webm');
-      formData.append('title', youtubeTitle);
-      formData.append('description', youtubeDescription);
-      formData.append('privacyStatus', youtubePrivacy);
+      // Convert blob to base64
+      const reader = new FileReader();
+      const videoBase64 = await new Promise((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(videoBlob);
+      });
 
-      const response = await base44.functions.invoke('uploadToYoutube', formData);
+      const response = await base44.functions.invoke('uploadToYoutube', {
+        videoBase64: videoBase64,
+        title: youtubeTitle,
+        description: youtubeDescription,
+        privacyStatus: youtubePrivacy
+      });
       
       if (response.data.error) {
-        throw new Error(response.data.error);
+        throw new Error(response.data.details || response.data.error);
       }
 
       setYoutubeResult(response.data);
