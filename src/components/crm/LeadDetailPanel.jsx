@@ -38,6 +38,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+// Wrapper component to fetch contact for requirements
+function ContactRequirementsWrapper({ contactId }) {
+  const { data: contact, isLoading } = useQuery({
+    queryKey: ['clientContact', contactId],
+    queryFn: async () => {
+      const contacts = await base44.entities.ClientContact.filter({ id: contactId });
+      return contacts[0] || null;
+    },
+    enabled: !!contactId
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="p-4 text-center">
+          <Loader2 className="w-5 h-5 animate-spin mx-auto text-slate-400" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!contact) {
+    return null;
+  }
+
+  return <ContactRequirements contact={contact} />;
+}
+
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
   const [newNote, setNewNote] = React.useState("");
