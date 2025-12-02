@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@base44/sdk@0.8.4';
 
 const BASE44_APP_ID = Deno.env.get("BASE44_APP_ID");
+const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+const VERIFY_TOKEN = Deno.env.get("WHATSAPP_VERIFY_TOKEN") || "zugruppe_wa_verify";
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -11,13 +13,18 @@ Deno.serve(async (req) => {
     const token = url.searchParams.get('hub.verify_token');
     const challenge = url.searchParams.get('hub.challenge');
 
-    if (mode === 'subscribe') {
-      // Verificar o token comparando com os tokens dos utilizadores
-      // Por simplicidade, aceitamos qualquer token que comece com 'wa_'
-      if (token && token.startsWith('wa_')) {
-        return new Response(challenge, { status: 200 });
-      }
+    console.log('Webhook verification:', { mode, token, challenge });
+
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      console.log('Webhook verified successfully');
+      return new Response(challenge, { status: 200 });
     }
+    
+    // Fallback: accept tokens starting with 'wa_' for backwards compatibility
+    if (mode === 'subscribe' && token?.startsWith('wa_')) {
+      return new Response(challenge, { status: 200 });
+    }
+    
     return new Response('Forbidden', { status: 403 });
   }
 
