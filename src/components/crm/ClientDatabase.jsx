@@ -1566,17 +1566,6 @@ export default function ClientDatabase() {
 
                   {/* Action Buttons - Full Width on Mobile */}
                   <div className="flex gap-2 pt-3 border-t">
-                    {client.contact_type === 'client' && (
-                                              <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                onClick={() => { setActiveTab("matching"); setSelectedClient(client); }}
-                                                className="flex-1 md:flex-none text-purple-600 hover:bg-purple-50"
-                                              >
-                                                <Home className="w-4 h-4 md:mr-1" />
-                                                <span className="hidden md:inline">Match</span>
-                                              </Button>
-                                              )}
                     <Button 
                       variant="outline" 
                       size="sm" 
