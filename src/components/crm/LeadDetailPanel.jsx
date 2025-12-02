@@ -5,10 +5,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2, Send, Zap } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { 
+  X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, 
+  Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2, 
+  Send, Zap, Edit, Euro, TrendingUp, FileText, History, Flame, 
+  ThermometerSun, Snowflake, AlertCircle, ExternalLink, Copy, MoreVertical
+} from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
+import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 import AIAssistant from "./AIAssistant";
 import LeadSourceClassifier from "./LeadSourceClassifier";
@@ -17,19 +26,34 @@ import SendEmailDialog from "../email/SendEmailDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
 import DocumentUploader from "../documents/DocumentUploader";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
   const queryClient = useQueryClient();
   const [newNote, setNewNote] = React.useState("");
   const [addingNote, setAddingNote] = React.useState(false);
   const [newFollowUp, setNewFollowUp] = React.useState({ type: "call", notes: "", date: "" });
-  const [propertyLocationFilter, setPropertyLocationFilter] = React.useState("");
   const [addingFollowUp, setAddingFollowUp] = React.useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("overview");
+
+  const { data: communications = [] } = useQuery({
+    queryKey: ['communicationLogs', lead.id],
+    queryFn: async () => {
+      const all = await base44.entities.CommunicationLog.list('-communication_date');
+      return all.filter(c => c.contact_id === lead.contact_id || c.contact_id === lead.profile_id);
+    },
+    enabled: !!lead.contact_id || !!lead.profile_id
+  });
 
   const convertToContactMutation = useMutation({
     mutationFn: async () => {
-      // Map lead_type to contact_type
       const contactTypeMap = {
         'comprador': 'client',
         'vendedor': 'client',
@@ -37,7 +61,6 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
         'parceiro_vendedor': 'partner'
       };
 
-      // Use AI to extract property requirements from lead message and data
       let propertyRequirements = {};
       
       if (lead.message || lead.budget || lead.location || lead.property_type_interest) {
@@ -101,7 +124,6 @@ Extrai:
             additional_notes: extracted.additional_notes || ""
           };
         } catch (e) {
-          // If AI fails, use basic data from lead
           propertyRequirements = {
             listing_type: "sale",
             locations: lead.location ? [lead.location] : [],
@@ -148,6 +170,7 @@ Extrai:
     await onUpdate(lead.id, { quick_notes: updatedNotes });
     setNewNote("");
     setAddingNote(false);
+    toast.success("Nota adicionada");
   };
 
   const handleAddFollowUp = async () => {
@@ -165,9 +188,10 @@ Extrai:
       }
     ];
 
-    await onUpdate(lead.id, { follow_ups: updatedFollowUps });
+    await onUpdate(lead.id, { follow_ups: updatedFollowUps, next_followup_date: newFollowUp.date });
     setNewFollowUp({ type: "call", notes: "", date: "" });
     setAddingFollowUp(false);
+    toast.success("Follow-up agendado");
   };
 
   const handleToggleFollowUpComplete = async (index) => {
@@ -195,343 +219,662 @@ Extrai:
     await onUpdate(lead.id, { lead_source: source });
   };
 
+  const handleStatusChange = async (newStatus) => {
+    await onUpdate(lead.id, { status: newStatus });
+    toast.success("Estado atualizado");
+  };
+
+  const handleQualificationChange = async (qualification) => {
+    await onUpdate(lead.id, { qualification_status: qualification });
+    toast.success("Qualificação atualizada");
+  };
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado`);
+  };
+
+  const getStatusConfig = (status) => {
+    const configs = {
+      new: { label: 'Novo', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: AlertCircle },
+      contacted: { label: 'Contactado', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Phone },
+      qualified: { label: 'Qualificado', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Target },
+      proposal: { label: 'Proposta', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: FileText },
+      negotiation: { label: 'Negociação', color: 'bg-orange-100 text-orange-800 border-orange-200', icon: TrendingUp },
+      won: { label: 'Ganho', color: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
+      lost: { label: 'Perdido', color: 'bg-red-100 text-red-800 border-red-200', icon: X }
+    };
+    return configs[status] || configs.new;
+  };
+
+  const getQualificationConfig = (qual) => {
+    const configs = {
+      hot: { label: 'Hot', color: 'bg-red-500 text-white', icon: Flame },
+      warm: { label: 'Warm', color: 'bg-orange-500 text-white', icon: ThermometerSun },
+      cold: { label: 'Cold', color: 'bg-blue-500 text-white', icon: Snowflake },
+      unqualified: { label: 'Não Qualificado', color: 'bg-slate-400 text-white', icon: X }
+    };
+    return configs[qual] || null;
+  };
+
+  const getLeadTypeLabel = (type) => {
+    const labels = {
+      comprador: 'Comprador',
+      vendedor: 'Vendedor',
+      parceiro_comprador: 'Parceiro Comprador',
+      parceiro_vendedor: 'Parceiro Vendedor'
+    };
+    return labels[type] || type;
+  };
+
+  const statusConfig = getStatusConfig(lead.status);
+  const qualConfig = getQualificationConfig(lead.qualification_status);
+  const StatusIcon = statusConfig.icon;
+
+  const pendingFollowUps = (lead.follow_ups || []).filter(f => !f.completed);
+  const overdueFollowups = pendingFollowUps.filter(f => new Date(f.date) < new Date());
+
   return (
-    <div className="fixed inset-y-0 right-0 w-full md:w-[600px] bg-white shadow-2xl z-50 overflow-y-auto">
-      <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">{lead.buyer_name}</h2>
-          <Badge className="mt-1">
-            {lead.lead_type === 'comprador' ? 'Comprador' : 
-             lead.lead_type === 'vendedor' ? 'Vendedor' : 
-             lead.lead_type === 'parceiro_comprador' ? 'Parceiro Comprador' :
-             lead.lead_type === 'parceiro_vendedor' ? 'Parceiro Vendedor' : 'Parceiro'}
-          </Badge>
+    <div className="fixed inset-y-0 right-0 w-full md:w-[680px] bg-white shadow-2xl z-50 flex flex-col">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 sm:p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {lead.ref_id && (
+                <Badge variant="outline" className="text-white/70 border-white/30 text-xs">
+                  {lead.ref_id}
+                </Badge>
+              )}
+              <Badge className={qualConfig ? qualConfig.color : 'bg-slate-600'}>
+                {qualConfig ? (
+                  <span className="flex items-center gap-1">
+                    <qualConfig.icon className="w-3 h-3" />
+                    {qualConfig.label}
+                  </span>
+                ) : 'Sem qualificação'}
+              </Badge>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold truncate">{lead.buyer_name}</h2>
+            <p className="text-white/70 text-sm mt-1">{getLeadTypeLabel(lead.lead_type)}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Oportunidade
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => convertToContactMutation.mutate()}>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Converter em Contacto
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => copyToClipboard(lead.buyer_email, 'Email')}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Email
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => copyToClipboard(lead.buyer_phone, 'Telefone')}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Telefone
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10">
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-2">
+          {lead.buyer_phone && (
+            <a href={`tel:${lead.buyer_phone}`}>
+              <Button size="sm" variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-0">
+                <Phone className="w-4 h-4 mr-1" />
+                Ligar
+              </Button>
+            </a>
+          )}
           {lead.buyer_email && (
             <Button 
-              variant="outline" 
-              size="sm"
+              size="sm" 
+              variant="secondary" 
+              className="bg-white/10 hover:bg-white/20 text-white border-0"
               onClick={() => setEmailDialogOpen(true)}
-              className="text-blue-600 border-blue-300 hover:bg-blue-50"
             >
-              <Send className="w-4 h-4 mr-1" />
+              <Mail className="w-4 h-4 mr-1" />
               Email
             </Button>
           )}
+          {lead.buyer_phone && (
+            <a href={`https://wa.me/${lead.buyer_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="secondary" className="bg-green-600/80 hover:bg-green-600 text-white border-0">
+                <MessageSquare className="w-4 h-4 mr-1" />
+                WhatsApp
+              </Button>
+            </a>
+          )}
           <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => convertToContactMutation.mutate()}
-            disabled={convertToContactMutation.isPending}
-            className="text-green-600 border-green-300 hover:bg-green-50"
+            size="sm" 
+            variant="secondary" 
+            className="bg-white/10 hover:bg-white/20 text-white border-0"
+            onClick={onEdit}
           >
-            {convertToContactMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                A analisar com IA...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-1" />
-                Converter com IA
-              </>
-            )}
+            <Edit className="w-4 h-4 mr-1" />
+            Editar
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
+        </div>
+
+        {/* Status Bar */}
+        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/20">
+          <div className="flex items-center gap-2">
+            <span className="text-white/60 text-xs">Estado:</span>
+            <Select value={lead.status} onValueChange={handleStatusChange}>
+              <SelectTrigger className="h-7 w-auto min-w-[120px] bg-white/10 border-white/20 text-white text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">Novo</SelectItem>
+                <SelectItem value="contacted">Contactado</SelectItem>
+                <SelectItem value="qualified">Qualificado</SelectItem>
+                <SelectItem value="proposal">Proposta</SelectItem>
+                <SelectItem value="negotiation">Negociação</SelectItem>
+                <SelectItem value="won">Ganho</SelectItem>
+                <SelectItem value="lost">Perdido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-white/60 text-xs">Qualificação:</span>
+            <Select value={lead.qualification_status || ""} onValueChange={handleQualificationChange}>
+              <SelectTrigger className="h-7 w-auto min-w-[100px] bg-white/10 border-white/20 text-white text-xs">
+                <SelectValue placeholder="Definir" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="hot">🔥 Hot</SelectItem>
+                <SelectItem value="warm">🌡️ Warm</SelectItem>
+                <SelectItem value="cold">❄️ Cold</SelectItem>
+                <SelectItem value="unqualified">Não Qualificado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* Communication Panel */}
-        <CommunicationPanel 
-          lead={lead}
-          onUpdate={onUpdate}
-        />
+      {/* Alert for overdue follow-ups */}
+      {overdueFollowups.length > 0 && (
+        <div className="px-4 py-2 bg-red-50 border-b border-red-200 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <span className="text-sm text-red-800 font-medium">
+            {overdueFollowups.length} follow-up{overdueFollowups.length > 1 ? 's' : ''} em atraso
+          </span>
+        </div>
+      )}
 
-        {/* AI Assistant */}
-        <AIAssistant 
-          lead={lead}
-          onSuggestionAccept={handleAISuggestion}
-        />
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+        <TabsList className="grid grid-cols-5 mx-4 mt-4">
+          <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
+          <TabsTrigger value="communications" className="text-xs">Comunicações</TabsTrigger>
+          <TabsTrigger value="properties" className="text-xs">Imóveis</TabsTrigger>
+          <TabsTrigger value="followups" className="text-xs">Follow-ups</TabsTrigger>
+          <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
+        </TabsList>
 
-        {/* Lead Source Classifier */}
-        {!lead.lead_source && (
-          <Card className="border-purple-200">
-            <CardHeader>
-              <CardTitle className="text-sm">Classificar Origem</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LeadSourceClassifier 
-                lead={lead}
-                onSourceUpdate={handleSourceUpdate}
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Contact Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Informação de Contacto
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {lead.buyer_email && (
-              <div className="flex items-center gap-2 text-slate-700">
-                <Mail className="w-4 h-4" />
-                <a href={`mailto:${lead.buyer_email}`} className="hover:text-blue-600">
-                  {lead.buyer_email}
-                </a>
+        <ScrollArea className="flex-1 p-4">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="mt-0 space-y-4">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <div className="text-xs text-blue-600 mb-1">Orçamento</div>
+                <div className="text-lg font-bold text-blue-900">
+                  {lead.budget ? `€${lead.budget.toLocaleString()}` : '-'}
+                </div>
               </div>
-            )}
-            {lead.buyer_phone && (
-              <div className="flex items-center gap-2 text-slate-700">
-                <Phone className="w-4 h-4" />
-                <a href={`tel:${lead.buyer_phone}`} className="hover:text-blue-600">
-                  {lead.buyer_phone}
-                </a>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <div className="text-xs text-green-600 mb-1">Valor Estimado</div>
+                <div className="text-lg font-bold text-green-900">
+                  {lead.estimated_value ? `€${lead.estimated_value.toLocaleString()}` : '-'}
+                </div>
               </div>
-            )}
-            {lead.location && (
-              <div className="flex items-center gap-2 text-slate-700">
-                <MapPin className="w-4 h-4" />
-                {lead.location}
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <div className="text-xs text-purple-600 mb-1">Probabilidade</div>
+                <div className="text-lg font-bold text-purple-900">
+                  {lead.probability || 50}%
+                </div>
               </div>
-            )}
-            <div className="flex items-center gap-2 text-slate-700">
-              <Calendar className="w-4 h-4" />
-              Criado: {format(new Date(lead.created_date), 'dd/MM/yyyy HH:mm')}
+              <div className="p-3 bg-amber-50 rounded-lg">
+                <div className="text-xs text-amber-600 mb-1">Valor Ponderado</div>
+                <div className="text-lg font-bold text-amber-900">
+                  {lead.estimated_value 
+                    ? `€${Math.round((lead.estimated_value * (lead.probability || 50)) / 100).toLocaleString()}`
+                    : '-'}
+                </div>
+              </div>
             </div>
-            {lead.lead_source && (
-              <div className="mt-2 pt-2 border-t">
-                <Badge variant="outline" className="text-xs">
-                  Origem: {lead.lead_source}
-                </Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Property Matching */}
-        <LeadPropertyMatching 
-          lead={lead}
-          onAssociateProperty={handleAssociateProperty}
-        />
-
-        {/* Associated Property */}
-        {lead.property_title && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                Imóvel Associado
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-blue-50 rounded p-3">
-                <p className="font-medium text-blue-900">{lead.property_title}</p>
-                <Button 
-                  variant="link" 
-                  size="sm" 
-                  className="p-0 h-auto text-xs"
-                  onClick={() => handleAssociateProperty("")}
-                >
-                  Remover associação
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* AI Lead Scoring */}
-        <AILeadScoring opportunity={lead} />
-
-        {/* Documents */}
-        <DocumentUploader 
-          leadId={lead.id}
-          leadName={lead.buyer_name}
-          propertyId={lead.property_id}
-          propertyTitle={lead.property_title}
-          entityType="lead"
-        />
-
-        {/* Quick Notes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Notas Rápidas
-              </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setAddingNote(!addingNote)}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Adicionar
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {addingNote && (
-              <div className="space-y-2">
-                <Textarea
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Escreva uma nota..."
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddNote}>Guardar</Button>
-                  <Button size="sm" variant="outline" onClick={() => setAddingNote(false)}>
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {lead.quick_notes?.length > 0 ? (
-              <div className="space-y-2">
-                {[...lead.quick_notes].reverse().map((note, idx) => (
-                  <div key={idx} className="bg-slate-50 rounded p-3">
-                    <p className="text-sm text-slate-700">{note.text}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {format(new Date(note.date), 'dd/MM/yyyy HH:mm')}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500">Sem notas</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Follow-ups */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Follow-ups
-              </span>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setAddingFollowUp(!addingFollowUp)}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Agendar
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {addingFollowUp && (
-              <div className="space-y-2 border rounded p-3">
-                <Select 
-                  value={newFollowUp.type}
-                  onValueChange={(value) => setNewFollowUp({...newFollowUp, type: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="call">📞 Chamada</SelectItem>
-                    <SelectItem value="email">📧 Email</SelectItem>
-                    <SelectItem value="meeting">🤝 Reunião</SelectItem>
-                    <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
-                  </SelectContent>
-                </Select>
-                <input
-                  type="datetime-local"
-                  value={newFollowUp.date}
-                  onChange={(e) => setNewFollowUp({...newFollowUp, date: e.target.value})}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                />
-                <Textarea
-                  value={newFollowUp.notes}
-                  onChange={(e) => setNewFollowUp({...newFollowUp, notes: e.target.value})}
-                  placeholder="Notas do follow-up..."
-                  rows={2}
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAddFollowUp}>Agendar</Button>
-                  <Button size="sm" variant="outline" onClick={() => setAddingFollowUp(false)}>
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {lead.follow_ups?.length > 0 ? (
-              <div className="space-y-2">
-                {[...lead.follow_ups].sort((a, b) => 
-                  new Date(b.date) - new Date(a.date)
-                ).map((followUp, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`border rounded p-3 ${
-                      followUp.completed ? 'bg-green-50 border-green-200' : 'bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {followUp.type === 'call' ? '📞' :
-                           followUp.type === 'email' ? '📧' :
-                           followUp.type === 'meeting' ? '🤝' : '💬'}
-                        </span>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {followUp.type === 'call' ? 'Chamada' :
-                             followUp.type === 'email' ? 'Email' :
-                             followUp.type === 'meeting' ? 'Reunião' : 'WhatsApp'}
-                          </p>
-                          <p className="text-xs text-slate-600">
-                            {format(new Date(followUp.date), 'dd/MM/yyyy HH:mm')}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleToggleFollowUpComplete(lead.follow_ups.length - 1 - idx)}
+            {/* Contact Info */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Informação de Contacto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {lead.buyer_email && (
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg group">
+                      <Mail className="w-4 h-4 text-slate-500" />
+                      <a href={`mailto:${lead.buyer_email}`} className="text-sm text-blue-600 hover:underline flex-1 truncate">
+                        {lead.buyer_email}
+                      </a>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={() => copyToClipboard(lead.buyer_email, 'Email')}
                       >
-                        <CheckCircle2 
-                          className={`w-4 h-4 ${
-                            followUp.completed ? 'text-green-600' : 'text-slate-400'
-                          }`}
-                        />
+                        <Copy className="w-3 h-3" />
                       </Button>
                     </div>
-                    <p className="text-sm text-slate-700">{followUp.notes}</p>
+                  )}
+                  {lead.buyer_phone && (
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg group">
+                      <Phone className="w-4 h-4 text-slate-500" />
+                      <a href={`tel:${lead.buyer_phone}`} className="text-sm text-blue-600 hover:underline flex-1">
+                        {lead.buyer_phone}
+                      </a>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={() => copyToClipboard(lead.buyer_phone, 'Telefone')}
+                      >
+                        <Copy className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {lead.location && (
+                  <div className="flex items-center gap-2 text-sm text-slate-700">
+                    <MapPin className="w-4 h-4 text-slate-500" />
+                    {lead.location}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-500">Sem follow-ups agendados</p>
-            )}
-          </CardContent>
-        </Card>
+                )}
+                <Separator />
+                <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Criado: {format(new Date(lead.created_date), "d MMM yyyy", { locale: pt })}
+                  </span>
+                  {lead.lead_source && (
+                    <Badge variant="outline" className="text-xs">
+                      Origem: {lead.lead_source}
+                    </Badge>
+                  )}
+                  {lead.assigned_to && (
+                    <Badge variant="outline" className="text-xs">
+                      Agente: {lead.assigned_to.split('@')[0]}
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Message */}
-        {lead.message && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Mensagem Original</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-slate-700 whitespace-pre-line">{lead.message}</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+            {/* Associated Property */}
+            {lead.property_title && (
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-blue-600" />
+                    Imóvel Associado
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-blue-900">{lead.property_title}</p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-red-600 hover:text-red-700"
+                      onClick={() => handleAssociateProperty("")}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Notes */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4" />
+                    Notas ({(lead.quick_notes || []).length})
+                  </span>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setAddingNote(!addingNote)}
+                    className="h-7 text-xs"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Adicionar
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {addingNote && (
+                  <div className="space-y-2 p-3 bg-slate-50 rounded-lg">
+                    <Textarea
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="Escreva uma nota..."
+                      rows={2}
+                      className="text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleAddNote} className="h-7 text-xs">Guardar</Button>
+                      <Button size="sm" variant="outline" onClick={() => setAddingNote(false)} className="h-7 text-xs">
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {lead.quick_notes?.length > 0 ? (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {[...lead.quick_notes].reverse().slice(0, 5).map((note, idx) => (
+                      <div key={idx} className="bg-slate-50 rounded p-2">
+                        <p className="text-sm text-slate-700">{note.text}</p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {formatDistanceToNow(new Date(note.date), { addSuffix: true, locale: pt })}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 text-center py-4">Sem notas</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Message */}
+            {lead.message && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Mensagem Original</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-slate-700 whitespace-pre-line bg-slate-50 p-3 rounded-lg">
+                    {lead.message}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Communications Tab */}
+          <TabsContent value="communications" className="mt-0">
+            <CommunicationPanel 
+              lead={lead}
+              onUpdate={onUpdate}
+            />
+          </TabsContent>
+
+          {/* Properties Tab */}
+          <TabsContent value="properties" className="mt-0 space-y-4">
+            <LeadPropertyMatching 
+              lead={lead}
+              onAssociateProperty={handleAssociateProperty}
+            />
+
+            {/* Associated Properties */}
+            {lead.associated_properties?.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Imóveis Associados ({lead.associated_properties.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {lead.associated_properties.map((ap, idx) => {
+                    const prop = properties.find(p => p.id === ap.property_id);
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-2 border rounded-lg">
+                        <div className="w-12 h-10 rounded overflow-hidden bg-slate-200 flex-shrink-0">
+                          {prop?.images?.[0] ? (
+                            <img src={prop.images[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="w-5 h-5 text-slate-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{ap.property_title}</p>
+                          <Badge variant="outline" className="text-xs">
+                            {ap.status === 'interested' ? 'Interessado' :
+                             ap.status === 'visited' ? 'Visitado' :
+                             ap.status === 'rejected' ? 'Rejeitado' : 'Negociando'}
+                          </Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents */}
+            <DocumentUploader 
+              leadId={lead.id}
+              leadName={lead.buyer_name}
+              propertyId={lead.property_id}
+              propertyTitle={lead.property_title}
+              entityType="lead"
+            />
+          </TabsContent>
+
+          {/* Follow-ups Tab */}
+          <TabsContent value="followups" className="mt-0 space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Follow-ups ({(lead.follow_ups || []).length})
+                  </span>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setAddingFollowUp(!addingFollowUp)}
+                    className="h-7 text-xs"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Agendar
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {addingFollowUp && (
+                  <div className="space-y-2 border rounded-lg p-3 bg-blue-50">
+                    <Select 
+                      value={newFollowUp.type}
+                      onValueChange={(value) => setNewFollowUp({...newFollowUp, type: value})}
+                    >
+                      <SelectTrigger className="h-8 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="call">📞 Chamada</SelectItem>
+                        <SelectItem value="email">📧 Email</SelectItem>
+                        <SelectItem value="meeting">🤝 Reunião</SelectItem>
+                        <SelectItem value="whatsapp">💬 WhatsApp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="datetime-local"
+                      value={newFollowUp.date}
+                      onChange={(e) => setNewFollowUp({...newFollowUp, date: e.target.value})}
+                      className="h-8 text-sm"
+                    />
+                    <Textarea
+                      value={newFollowUp.notes}
+                      onChange={(e) => setNewFollowUp({...newFollowUp, notes: e.target.value})}
+                      placeholder="Notas do follow-up..."
+                      rows={2}
+                      className="text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleAddFollowUp} className="h-7 text-xs">Agendar</Button>
+                      <Button size="sm" variant="outline" onClick={() => setAddingFollowUp(false)} className="h-7 text-xs">
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {lead.follow_ups?.length > 0 ? (
+                  <div className="space-y-2">
+                    {[...lead.follow_ups].sort((a, b) => 
+                      new Date(a.date) - new Date(b.date)
+                    ).map((followUp, idx) => {
+                      const isOverdue = !followUp.completed && new Date(followUp.date) < new Date();
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`border rounded-lg p-3 transition-colors ${
+                            followUp.completed 
+                              ? 'bg-green-50 border-green-200' 
+                              : isOverdue 
+                                ? 'bg-red-50 border-red-200'
+                                : 'bg-white'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {followUp.type === 'call' ? '📞' :
+                                 followUp.type === 'email' ? '📧' :
+                                 followUp.type === 'meeting' ? '🤝' : '💬'}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {followUp.type === 'call' ? 'Chamada' :
+                                   followUp.type === 'email' ? 'Email' :
+                                   followUp.type === 'meeting' ? 'Reunião' : 'WhatsApp'}
+                                </p>
+                                <p className={`text-xs ${isOverdue ? 'text-red-600 font-medium' : 'text-slate-600'}`}>
+                                  {format(new Date(followUp.date), "d MMM yyyy 'às' HH:mm", { locale: pt })}
+                                  {isOverdue && ' (Em atraso)'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleToggleFollowUpComplete(idx)}
+                              className="h-7 w-7"
+                            >
+                              <CheckCircle2 
+                                className={`w-5 h-5 ${
+                                  followUp.completed ? 'text-green-600' : 'text-slate-300 hover:text-green-500'
+                                }`}
+                              />
+                            </Button>
+                          </div>
+                          <p className="text-sm text-slate-700 mt-2">{followUp.notes}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500 text-center py-8">Sem follow-ups agendados</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Next Follow-up Date */}
+            {lead.next_followup_date && (
+              <Card className="border-amber-200 bg-amber-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-900">Próximo Follow-up</p>
+                      <p className="text-xs text-amber-700">
+                        {format(new Date(lead.next_followup_date), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: pt })}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* AI Tab */}
+          <TabsContent value="ai" className="mt-0 space-y-4">
+            <AILeadScoring opportunity={lead} />
+            
+            <AIAssistant 
+              lead={lead}
+              onSuggestionAccept={handleAISuggestion}
+            />
+
+            {!lead.lead_source && (
+              <Card className="border-purple-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Classificar Origem com IA</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <LeadSourceClassifier 
+                    lead={lead}
+                    onSourceUpdate={handleSourceUpdate}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Convert to Contact */}
+            <Card className="border-green-200 bg-green-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-green-900">Converter em Contacto</p>
+                    <p className="text-xs text-green-700">A IA irá extrair automaticamente os requisitos de imóvel</p>
+                  </div>
+                  <Button 
+                    onClick={() => convertToContactMutation.mutate()}
+                    disabled={convertToContactMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {convertToContactMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        A analisar...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-1" />
+                        Converter
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </ScrollArea>
+      </Tabs>
 
       {/* Send Email Dialog */}
       <SendEmailDialog
