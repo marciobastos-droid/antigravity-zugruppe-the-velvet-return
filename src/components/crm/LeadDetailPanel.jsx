@@ -640,21 +640,9 @@ Extrai:
 
           {/* Matching Tab */}
           <TabsContent value="matching" className="mt-0">
-            <ContactMatching 
-              contact={{
-                id: lead.contact_id || lead.profile_id || lead.id,
-                full_name: lead.buyer_name,
-                email: lead.buyer_email,
-                phone: lead.buyer_phone,
-                city: lead.location,
-                property_requirements: {
-                  budget_min: lead.budget ? lead.budget * 0.8 : null,
-                  budget_max: lead.budget ? lead.budget * 1.2 : null,
-                  locations: lead.location ? [lead.location] : [],
-                  property_types: lead.property_type_interest ? [lead.property_type_interest] : []
-                }
-              }}
-              fromOpportunity={true}
+            <LeadPropertyMatching 
+              lead={lead}
+              onAssociateProperty={handleAssociateProperty}
             />
           </TabsContent>
 
