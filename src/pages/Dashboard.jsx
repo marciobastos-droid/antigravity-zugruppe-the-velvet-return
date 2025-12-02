@@ -703,6 +703,17 @@ export default function Dashboard() {
           <SmartNotificationsPanel user={user} />
         </div>
 
+        {/* Interactive Metrics and Activity Summary - NEW */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          <InteractiveMetricsWidget 
+            opportunities={opportunities} 
+            properties={properties} 
+            dateRange={parseInt(dateRange)}
+            isAdmin={isAdmin}
+          />
+          <ActivitySummary user={user} />
+        </div>
+
         {/* Notifications and AI Matching */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           {isWidgetActive('notifications') && <NotificationBoard user={user} />}
