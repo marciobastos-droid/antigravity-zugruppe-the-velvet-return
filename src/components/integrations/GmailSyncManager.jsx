@@ -73,30 +73,7 @@ export default function GmailSyncManager() {
     queryFn: () => base44.entities.EmailLog.list('-sent_date', 200),
   });
 
-  const connectMutation = useMutation({
-    mutationFn: async () => {
-      const redirectUri = window.location.origin + '/GmailCallback';
-      const response = await base44.functions.invoke('gmailIntegration', { 
-        action: 'getAuthUrl',
-        redirectUri 
-      });
-      return response.data;
-    },
-    onSuccess: (data) => {
-      if (data.error) {
-        toast.error(data.error);
-        return;
-      }
-      if (data.authUrl) {
-        console.log('Redirect URI:', data.redirectUri);
-        console.log('Auth URL:', data.authUrl);
-        window.location.href = data.authUrl;
-      }
-    },
-    onError: (error) => {
-      toast.error("Erro ao iniciar conexão: " + error.message);
-    }
-  });
+  // Gmail is now connected via App Connector - no manual OAuth needed
 
   const disconnectMutation = useMutation({
     mutationFn: async () => {
