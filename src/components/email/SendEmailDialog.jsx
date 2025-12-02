@@ -134,19 +134,20 @@ export default function SendEmailDialog({
     } catch (error) {
       console.error("Error sending email:", error);
       
-      // Log failed email
-      await base44.entities.EmailLog.create({
-        template_id: selectedTemplate || null,
-        recipient_email: recipient.email,
-        recipient_name: recipient.name,
-        recipient_type: recipient.type,
-        recipient_id: recipient.id,
-        subject: getProcessedContent().subject,
-        body: getProcessedContent().body,
-        status: "failed",
-        error_message: error.message,
-        sent_by: user?.email
-      });
+      // Log failed communication
+      if (recipient.type === 'client' && recipient.id) {
+        await base44.entities.CommunicationLog.create({
+          contact_id: recipient.id,
+          contact_name: recipient.name || '',
+          communication_type: 'email',
+          direction: 'outbound',
+          subject: getProcessedContent().subject,
+          summary: `[FALHOU] ${error.message}`,
+          communication_date: new Date().toISOString(),
+          agent_email: user?.email || '',
+          outcome: 'failed'
+        });
+      }
 
       toast.error("Erro ao enviar email");
     }
