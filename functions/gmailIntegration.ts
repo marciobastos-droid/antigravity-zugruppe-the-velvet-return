@@ -43,6 +43,17 @@ Deno.serve(async (req) => {
 });
 
 function handleGetAuthUrl({ redirectUri }) {
+    // Check if credentials are configured
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+        return Response.json({ 
+            error: 'Credenciais Google OAuth não configuradas. Configure GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET nas variáveis de ambiente.',
+            missing: {
+                clientId: !GOOGLE_CLIENT_ID,
+                clientSecret: !GOOGLE_CLIENT_SECRET
+            }
+        }, { status: 400 });
+    }
+
     const scopes = [
         'https://www.googleapis.com/auth/gmail.send',
         'https://www.googleapis.com/auth/gmail.readonly',
@@ -58,7 +69,7 @@ function handleGetAuthUrl({ redirectUri }) {
         `&access_type=offline` +
         `&prompt=consent`;
 
-    return Response.json({ authUrl });
+    return Response.json({ authUrl, redirectUri, clientIdPreview: GOOGLE_CLIENT_ID?.substring(0, 20) + '...' });
 }
 
 async function handleExchangeCode({ code, redirectUri }, user, base44) {
