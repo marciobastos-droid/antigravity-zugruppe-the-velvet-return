@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'video/webm',
         'Content-Length': videoSize.toString()
       },
-      body: videoBuffer
+      body: videoBytes
     });
 
     if (!uploadResponse.ok) {
