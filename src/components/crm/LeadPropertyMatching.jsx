@@ -509,7 +509,11 @@ Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais comp
 
           {matches.length > 0 && (
             <p className="text-xs text-center text-slate-500">
-              {matches.length} imóveis compatíveis de {activeProperties.length} disponíveis
+              {matches.length} imóveis compatíveis
+              {Object.keys(requirements).length > 0 
+                ? ` (filtrados de ${activeProperties.filter(meetsHardRequirements).length} elegíveis)`
+                : ` de ${activeProperties.length} disponíveis`
+              }
             </p>
           )}
         </CardContent>
