@@ -331,3 +331,147 @@ async function handleDisconnect(user, base44) {
     await base44.auth.updateMe({ gmail_tokens: null });
     return Response.json({ success: true });
 }
+
+async function handleTestConnection(user, base44) {
+    const tokens = user.gmail_tokens;
+    
+    const results = {
+        hasTokens: !!tokens,
+        hasAccessToken: !!tokens?.access_token,
+        hasRefreshToken: !!tokens?.refresh_token,
+        connectedEmail: tokens?.connected_email || null,
+        tokenExpiry: tokens?.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
+        isExpired: tokens?.expiry_date ? tokens.expiry_date < Date.now() : null,
+        googleClientIdSet: !!GOOGLE_CLIENT_ID,
+        googleClientSecretSet: !!GOOGLE_CLIENT_SECRET,
+        apiTest: null,
+        profileTest: null
+    };
+
+    if (!tokens?.access_token) {
+        return Response.json({ 
+            success: false, 
+            message: 'Gmail não conectado',
+            results 
+        });
+    }
+
+    try {
+        // Test getting a valid access token (will refresh if needed)
+        const accessToken = await getValidAccessToken(user, base44);
+        results.tokenRefreshSuccess = true;
+
+        // Test API access - get profile
+        const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const profileData = await profileResponse.json();
+        
+        if (profileResponse.ok) {
+            results.profileTest = { success: true, email: profileData.email };
+        } else {
+            results.profileTest = { success: false, error: profileData.error?.message || 'Unknown error' };
+        }
+
+        // Test Gmail API access
+        const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const gmailData = await gmailResponse.json();
+
+        if (gmailResponse.ok) {
+            results.apiTest = { 
+                success: true, 
+                email: gmailData.emailAddress,
+                messagesTotal: gmailData.messagesTotal,
+                threadsTotal: gmailData.threadsTotal
+            };
+        } else {
+            results.apiTest = { success: false, error: gmailData.error?.message || 'Unknown error' };
+        }
+
+        return Response.json({
+            success: results.profileTest?.success && results.apiTest?.success,
+            message: results.apiTest?.success ? 'Conexão Gmail OK' : 'Erro na API Gmail',
+            results
+        });
+
+    } catch (error) {
+        results.tokenRefreshSuccess = false;
+        results.error = error.message;
+        return Response.json({
+            success: false,
+            message: error.message,
+            results
+        });
+    }
+}
+
+async function handleSendTestEmail({ testEmail }, user, base44) {
+    if (!testEmail) {
+        return Response.json({ error: 'Email de teste não fornecido' }, { status: 400 });
+    }
+
+    try {
+        const accessToken = await getValidAccessToken(user, base44);
+
+        const subject = 'Teste de Configuração Gmail - Zugruppe';
+        const body = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #1e293b;">✅ Teste de Email Bem Sucedido!</h2>
+                <p>Este email confirma que a integração Gmail está a funcionar corretamente.</p>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <p style="color: #64748b; font-size: 12px;">
+                    Enviado por: ${user.gmail_tokens?.connected_email || user.email}<br>
+                    Data: ${new Date().toLocaleString('pt-PT')}<br>
+                    Plataforma: Zugruppe CRM
+                </p>
+            </div>
+        `;
+
+        const email = [
+            `From: ${user.gmail_tokens.connected_email}`,
+            `To: ${testEmail}`,
+            `Subject: ${subject}`,
+            'MIME-Version: 1.0',
+            'Content-Type: text/html; charset=utf-8',
+            '',
+            body
+        ].join('\r\n');
+
+        const encodedEmail = btoa(unescape(encodeURIComponent(email)))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+
+        const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ raw: encodedEmail })
+        });
+
+        const result = await response.json();
+
+        if (result.error) {
+            return Response.json({ 
+                success: false, 
+                error: result.error.message || 'Erro ao enviar email de teste'
+            });
+        }
+
+        return Response.json({ 
+            success: true, 
+            message: `Email de teste enviado para ${testEmail}`,
+            messageId: result.id
+        });
+
+    } catch (error) {
+        return Response.json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+}
