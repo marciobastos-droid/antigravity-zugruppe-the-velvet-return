@@ -85,12 +85,16 @@ export default function ContactRequirements({ contact, onUpdate }) {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      if (!contact?.id) {
-        throw new Error("Contact ID is missing");
+      const contactId = contact?.id;
+      console.log('Contact object:', contact);
+      console.log('Contact ID:', contactId, 'Type:', typeof contactId, 'Length:', contactId?.length);
+      
+      if (!contactId || typeof contactId !== 'string' || contactId.length < 20) {
+        throw new Error(`ID de contacto inválido: ${contactId}`);
       }
       
-      console.log('Saving requirements for contact:', contact.id, data);
-      const result = await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
+      console.log('Saving requirements for contact:', contactId, data);
+      const result = await base44.entities.ClientContact.update(contactId, { property_requirements: data });
       console.log('Save result:', result);
       return { data, result };
     },
