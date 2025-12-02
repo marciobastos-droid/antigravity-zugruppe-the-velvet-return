@@ -148,13 +148,26 @@ export default function DataTable({
       <CardContent className="p-0">
         {/* Toolbar */}
         <div className="flex items-center justify-between p-3 border-b bg-slate-50">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
+          <div className="flex items-center gap-3 text-sm text-slate-600">
             <span>{sortedData.length} resultado{sortedData.length !== 1 ? 's' : ''}</span>
             {sortColumn && (
               <Badge variant="outline" className="text-xs">
                 Ordenado por: {columns.find(c => c.key === sortColumn)?.label}
               </Badge>
             )}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">Por página:</span>
+              <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                <SelectTrigger className="h-7 w-20 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageSizeOptions.map(size => (
+                    <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <DropdownMenu>
