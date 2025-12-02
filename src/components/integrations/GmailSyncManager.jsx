@@ -156,69 +156,71 @@ export default function GmailSyncManager() {
   };
 
   // Sync single email to communication log
-  const syncEmailToLog = async (email) => {
-    // Validate email has required ID
-    if (!email?.id) {
+  const syncEmailToLog = async (emailItem) => {
+    // Validate email has required ID - use emailItem to avoid confusion
+    if (!emailItem || !emailItem.id) {
+      console.error('syncEmailToLog: Invalid email item', emailItem);
       return { success: false, reason: 'invalid_email' };
     }
 
-    const fromEmail = extractEmail(email.from);
-    const toEmail = extractEmail(email.to);
+    const gmailMessageId = emailItem.id;
+    const fromEmail = extractEmail(emailItem.from);
+    const toEmail = extractEmail(emailItem.to);
     
     // Determine direction and find contact
-    const isSent = email.labelIds?.includes('SENT');
-    const contactEmail = isSent ? toEmail : fromEmail;
-    const contact = findContactByEmail(contactEmail);
+    const isSent = emailItem.labelIds?.includes('SENT');
+    const contactEmailAddr = isSent ? toEmail : fromEmail;
+    const contact = findContactByEmail(contactEmailAddr);
 
     if (!contact || !contact.id) {
       return { success: false, reason: 'no_contact' };
     }
 
+    const contactId = contact.id;
+
     // Check if already synced
-    if (isEmailSynced(email.id)) {
+    if (isEmailSynced(gmailMessageId)) {
       return { success: false, reason: 'already_synced' };
     }
 
     // Get full email content
-    const fullEmailResponse = await base44.functions.invoke('gmailIntegration', {
-      action: 'getEmail',
-      messageId: email.id
-    });
-    const fullEmail = fullEmailResponse.data;
+    let fullEmail = null;
+    try {
+      const fullEmailResponse = await base44.functions.invoke('gmailIntegration', {
+        action: 'getEmail',
+        messageId: gmailMessageId
+      });
+      fullEmail = fullEmailResponse.data;
+    } catch (e) {
+      console.warn('Could not fetch full email:', e);
+    }
 
     // Create communication log entry
     await base44.entities.CommunicationLog.create({
-      contact_id: contact.id,
-      contact_name: contact.full_name,
+      contact_id: contactId,
+      contact_name: contact.full_name || '',
       communication_type: 'email',
       direction: isSent ? 'outbound' : 'inbound',
-      subject: email.subject || '(Sem assunto)',
-      summary: email.snippet || fullEmail?.body?.substring(0, 500) || '',
-      communication_date: email.date ? new Date(email.date).toISOString() : new Date().toISOString(),
-      agent_email: user?.email,
+      subject: emailItem.subject || '(Sem assunto)',
+      summary: emailItem.snippet || fullEmail?.body?.substring(0, 500) || '',
+      communication_date: emailItem.date ? new Date(emailItem.date).toISOString() : new Date().toISOString(),
+      agent_email: user?.email || '',
       outcome: 'successful'
     });
 
-    // Create email log entry - validate required fields before creating
-    if (!email.id || !contact.id) {
-      console.error('Missing required fields:', { emailId: email.id, contactId: contact.id });
-      return { success: false, reason: 'missing_required_fields' };
-    }
-
-    const emailLogData = {
-      gmail_message_id: String(email.id),
-      gmail_thread_id: String(email.threadId || ''),
-      contact_id: String(contact.id),
+    // Create email log entry with explicit required fields
+    await base44.entities.EmailLog.create({
+      gmail_message_id: gmailMessageId,
+      contact_id: contactId,
+      gmail_thread_id: emailItem.threadId || '',
       contact_name: contact.full_name || '',
-      contact_email: contactEmail || '',
-      subject: email.subject || '(Sem assunto)',
+      contact_email: contactEmailAddr || '',
+      subject: emailItem.subject || '(Sem assunto)',
       direction: isSent ? 'outbound' : 'inbound',
-      sent_date: email.date ? new Date(email.date).toISOString() : new Date().toISOString(),
+      sent_date: emailItem.date ? new Date(emailItem.date).toISOString() : new Date().toISOString(),
       sent_by: user?.email || '',
       status: 'synced'
-    };
-
-    await base44.entities.EmailLog.create(emailLogData);
+    });
 
     return { success: true, contact };
   };
