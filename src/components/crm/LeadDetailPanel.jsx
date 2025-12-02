@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, 
   Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2, 
   Send, Zap, Edit, Euro, TrendingUp, FileText, History, Flame, 
-  ThermometerSun, Snowflake, AlertCircle, ExternalLink, Copy, MoreVertical
+  ThermometerSun, Snowflake, AlertCircle, ExternalLink, Copy, MoreVertical,
+  Maximize2, Minimize2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
