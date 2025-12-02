@@ -80,99 +80,178 @@ function MatchingSummary({ matches, contact, properties }) {
     });
   }, [top3]);
 
-  const chartColors = ['#6366f1', '#22c55e', '#f59e0b'];
+  const chartColors = ['#6366f1', '#10b981', '#f59e0b'];
+
+  // Average score
+  const avgScore = matches.length > 0 
+    ? Math.round(matches.reduce((sum, m) => sum + m.score, 0) / matches.length)
+    : 0;
 
   return (
     <div className="mt-4 space-y-4">
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-          <CardContent className="p-3 text-center">
-            <Euro className="w-5 h-5 mx-auto text-blue-600 mb-1" />
-            <div className="text-2xl font-bold text-blue-700">{metrics.budgetMatches}</div>
-            <div className="text-xs text-blue-600">No Orçamento</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-          <CardContent className="p-3 text-center">
-            <MapPin className="w-5 h-5 mx-auto text-green-600 mb-1" />
-            <div className="text-2xl font-bold text-green-700">{metrics.locationMatches}</div>
-            <div className="text-xs text-green-600">Localização</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-          <CardContent className="p-3 text-center">
-            <Home className="w-5 h-5 mx-auto text-purple-600 mb-1" />
-            <div className="text-2xl font-bold text-purple-700">{metrics.typeMatches}</div>
-            <div className="text-xs text-purple-600">Tipo Imóvel</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
-          <CardContent className="p-3 text-center">
-            <Bed className="w-5 h-5 mx-auto text-amber-600 mb-1" />
-            <div className="text-2xl font-bold text-amber-700">{metrics.bedroomMatches}</div>
-            <div className="text-xs text-amber-600">Quartos</div>
-          </CardContent>
-        </Card>
+      {/* Hero Stats Bar */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-white">{matches.length}</div>
+              <div className="text-xs text-slate-400 uppercase tracking-wide">Matches</div>
+            </div>
+            <div className="w-px h-12 bg-slate-700" />
+            <div className="text-center">
+              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+                {avgScore}%
+              </div>
+              <div className="text-xs text-slate-400 uppercase tracking-wide">Média</div>
+            </div>
+            <div className="w-px h-12 bg-slate-700" />
+            <div className="text-center">
+              <div className="text-4xl font-bold text-amber-400">{properties.length}</div>
+              <div className="text-xs text-slate-400 uppercase tracking-wide">Portfolio</div>
+            </div>
+          </div>
+          
+          {/* Client Summary */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl px-5 py-3">
+            <div className="text-sm text-slate-300">Cliente</div>
+            <div className="font-semibold text-lg">{contact?.full_name}</div>
+            {req.budget_max && (
+              <div className="text-xs text-emerald-400">até €{req.budget_max.toLocaleString()}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Cards - More visual */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-5 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <Euro className="w-8 h-8 mb-2 opacity-80" />
+          <div className="text-3xl font-bold">{metrics.budgetMatches}</div>
+          <div className="text-sm text-blue-100">No Orçamento</div>
+        </div>
+        
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 p-5 text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <MapPin className="w-8 h-8 mb-2 opacity-80" />
+          <div className="text-3xl font-bold">{metrics.locationMatches}</div>
+          <div className="text-sm text-emerald-100">Localização</div>
+        </div>
+        
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-5 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <Home className="w-8 h-8 mb-2 opacity-80" />
+          <div className="text-3xl font-bold">{metrics.typeMatches}</div>
+          <div className="text-sm text-purple-100">Tipo Imóvel</div>
+        </div>
+        
+        <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white shadow-lg shadow-amber-500/25 hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <Bed className="w-8 h-8 mb-2 opacity-80" />
+          <div className="text-3xl font-bold">{metrics.bedroomMatches}</div>
+          <div className="text-sm text-amber-100">Quartos</div>
+        </div>
       </div>
 
       {/* Top 3 Compatibility Chart */}
       {top3.length > 0 && (
-        <Card className="border-indigo-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-indigo-600" />
-              Compatibilidade Top 3 Imóveis
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="flex gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-slate-200">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-indigo-600 rounded-lg">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-900">Análise Comparativa Top 3</h3>
+                <p className="text-xs text-slate-500">Compatibilidade por critério</p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="flex gap-6">
               {/* Radar Chart */}
-              <div className="flex-1 h-48">
+              <div className="flex-1 h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-                    <PolarGrid strokeDasharray="3 3" />
-                    <PolarAngleAxis dataKey="category" tick={{ fontSize: 10 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                  <RadarChart data={radarData} margin={{ top: 20, right: 40, bottom: 20, left: 40 }}>
+                    <PolarGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <PolarAngleAxis 
+                      dataKey="category" 
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }} 
+                    />
+                    <PolarRadiusAxis 
+                      angle={30} 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 9, fill: '#94a3b8' }}
+                      tickCount={5}
+                    />
                     {top3.map((match, idx) => (
                       <Radar
                         key={match.property.id}
-                        name={`#${idx + 1}`}
+                        name={match.property.title?.substring(0, 20) || `Imóvel ${idx + 1}`}
                         dataKey={`property${idx + 1}`}
                         stroke={chartColors[idx]}
                         fill={chartColors[idx]}
-                        fillOpacity={0.15}
-                        strokeWidth={2}
+                        fillOpacity={0.2}
+                        strokeWidth={2.5}
                       />
                     ))}
-                    <Legend wrapperStyle={{ fontSize: 10 }} />
+                    <Legend 
+                      wrapperStyle={{ fontSize: 11, paddingTop: 10 }} 
+                      iconType="circle"
+                    />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Top 3 List */}
-              <div className="w-48 space-y-2">
+              {/* Top 3 Podium */}
+              <div className="w-56 flex flex-col gap-3">
                 {top3.map((match, idx) => (
                   <div
                     key={match.property.id}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-slate-50"
+                    className={`relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] ${
+                      idx === 0 ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 shadow-md' :
+                      idx === 1 ? 'bg-gradient-to-r from-slate-50 to-gray-100 border-2 border-slate-300' :
+                      'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200'
+                    }`}
                   >
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ backgroundColor: chartColors[idx] }}
-                    >
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{match.property.title}</p>
-                      <p className="text-xs text-slate-500">{match.score}%</p>
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-lg ${
+                          idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
+                          idx === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-600' :
+                          'bg-gradient-to-br from-orange-400 to-orange-600'
+                        }`}
+                      >
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">
+                          {match.property.title}
+                        </p>
+                        <p className="text-xs text-slate-500">{match.property.city}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div 
+                            className="h-1.5 flex-1 bg-slate-200 rounded-full overflow-hidden"
+                          >
+                            <div 
+                              className={`h-full rounded-full ${
+                                idx === 0 ? 'bg-amber-500' :
+                                idx === 1 ? 'bg-slate-500' :
+                                'bg-orange-500'
+                              }`}
+                              style={{ width: `${match.score}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-bold text-slate-900">{match.score}%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );
