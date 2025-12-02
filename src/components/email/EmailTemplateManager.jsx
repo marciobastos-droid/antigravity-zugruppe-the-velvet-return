@@ -278,7 +278,7 @@ export default function EmailTemplateManager() {
                     required
                     value={formData.body}
                     onChange={(e) => setFormData({...formData, body: e.target.value})}
-                    placeholder="Olá {{nome}},&#10;&#10;Obrigado pelo seu interesse...&#10;&#10;Com os melhores cumprimentos,&#10;{{agente_nome}}"
+                    placeholder="Olá {{nome_completo}},&#10;&#10;Obrigado pelo seu interesse...&#10;&#10;Com os melhores cumprimentos,&#10;{{agente_nome}}"
                     rows={12}
                     className="font-mono text-sm"
                   />
