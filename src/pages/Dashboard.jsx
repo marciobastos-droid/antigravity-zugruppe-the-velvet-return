@@ -24,6 +24,8 @@ import DashboardBuilder from "../components/dashboard/DashboardBuilder";
 import TeamPerformanceSummary from "../components/dashboard/TeamPerformanceSummary";
 import WidgetSelector, { AVAILABLE_WIDGETS } from "../components/dashboard/WidgetSelector";
 import FocusMode from "../components/dashboard/FocusMode";
+import ActivitySummary from "../components/dashboard/ActivitySummary";
+import InteractiveMetricsWidget from "../components/dashboard/InteractiveMetricsWidget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgentNames } from "../components/common/useAgentNames";
 import { toast } from "sonner";
