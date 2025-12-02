@@ -2141,12 +2141,6 @@ export default function ClientDatabase() {
                 </Suspense>
               </TabsContent>
 
-              <TabsContent value="opportunities" className="mt-4">
-                <Suspense fallback={<LoadingFallback />}>
-                  <ContactOpportunities contact={selectedClient} />
-                </Suspense>
-              </TabsContent>
-
               <TabsContent value="portal" className="mt-4">
                 <Suspense fallback={<LoadingFallback />}>
                   <ClientPortalManager client={selectedClient} />
