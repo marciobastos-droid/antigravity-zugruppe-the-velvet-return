@@ -75,7 +75,7 @@ export default function GmailSyncManager() {
 
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const redirectUri = window.location.origin + '/gmail-callback';
+      const redirectUri = window.location.origin + '/GmailCallback';
       const response = await base44.functions.invoke('gmailIntegration', { 
         action: 'getAuthUrl',
         redirectUri 
@@ -83,7 +83,13 @@ export default function GmailSyncManager() {
       return response.data;
     },
     onSuccess: (data) => {
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
       if (data.authUrl) {
+        console.log('Redirect URI:', data.redirectUri);
+        console.log('Auth URL:', data.authUrl);
         window.location.href = data.authUrl;
       }
     },
