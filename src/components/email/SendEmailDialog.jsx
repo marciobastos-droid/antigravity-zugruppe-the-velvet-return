@@ -47,11 +47,16 @@ export default function SendEmailDialog({
     if (!text) return "";
     let result = text;
     
+    // Get first name from full name
+    const fullName = data?.name || recipient?.name || data?.full_name || "";
+    const firstName = fullName.split(' ')[0] || "";
+    
     // Contact/Opportunity fields
-    result = result.replace(/\{\{nome_completo\}\}/g, data?.name || recipient?.name || "");
-    result = result.replace(/\{\{nome\}\}/g, data?.name || recipient?.name || ""); // backwards compatibility
+    result = result.replace(/\{\{nome_completo\}\}/g, fullName);
+    result = result.replace(/\{\{primeiro_nome\}\}/g, firstName);
+    result = result.replace(/\{\{nome\}\}/g, fullName); // backwards compatibility
     result = result.replace(/\{\{email\}\}/g, data?.email || recipient?.email || "");
-    result = result.replace(/\{\{telefone\}\}/g, data?.phone || "");
+    result = result.replace(/\{\{telefone\}\}/g, data?.phone || data?.buyer_phone || "");
     result = result.replace(/\{\{cidade\}\}/g, data?.city || data?.location || "");
     result = result.replace(/\{\{empresa\}\}/g, data?.company_name || "");
     result = result.replace(/\{\{imovel\}\}/g, data?.property_title || "");
