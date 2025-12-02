@@ -188,7 +188,6 @@ export default function ClientDatabase() {
   const [editingClient, setEditingClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
   const [commDialogOpen, setCommDialogOpen] = useState(false);
-  const [matchingReportOpen, setMatchingReportOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [viewMode, setViewMode] = useState("table");
