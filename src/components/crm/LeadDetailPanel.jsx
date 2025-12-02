@@ -44,6 +44,7 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [addingFollowUp, setAddingFollowUp] = React.useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("overview");
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
