@@ -544,6 +544,12 @@ export default function MyListings() {
               <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Empreendimentos</span>
             </TabsTrigger>
+            {(user?.role === 'admin' || user?.user_type?.toLowerCase() === 'admin' || user?.user_type?.toLowerCase() === 'gestor') && (
+              <TabsTrigger value="byAgent" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>Por Agente</span>
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
