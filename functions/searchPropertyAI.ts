@@ -284,16 +284,26 @@ Deno.serve(async (req) => {
 
     // Build a simpler, more robust prompt with strict JSON instructions
     const prompt = pageType === 'listing' 
-      ? `Extrai os imóveis desta página. Portal: ${portal.name}
+      ? `Extrai APENAS os imóveis listados DIRETAMENTE nesta página. Portal: ${portal.name}
+URL da página: ${url}
 
-TEXTO:
+TEXTO DA PÁGINA:
 ${textContent.substring(0, 20000)}
 
-REGRAS IMPORTANTES:
-1. Responde APENAS com JSON válido, sem texto adicional
-2. Usa aspas duplas para strings
-3. Números sem aspas e sem símbolos (495000 não "495.000€")
-4. Sem vírgulas no final antes de } ou ]
+REGRAS CRÍTICAS - SEGUE À RISCA:
+1. Extrai APENAS imóveis que são listados como resultados de pesquisa NESTA PÁGINA
+2. NÃO incluas imóveis de:
+   - Seções "Imóveis Relacionados", "Pode também gostar", "Sugestões"
+   - Rodapé ou navegação lateral
+   - Links para outras páginas
+   - Imóveis "em destaque" que não fazem parte da lista principal
+   - Publicidade ou promoções
+3. Cada imóvel deve ter dados concretos (preço, localização, tipologia)
+4. Se não tiveres certeza se é um imóvel da lista principal, NÃO incluas
+5. Responde APENAS com JSON válido, sem texto adicional
+6. Usa aspas duplas para strings
+7. Números sem aspas e sem símbolos (495000 não "495.000€")
+8. Sem vírgulas no final antes de } ou ]
 
 Campos por imóvel: title, price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id
 
