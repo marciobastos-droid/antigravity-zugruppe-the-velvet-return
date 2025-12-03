@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, Eye, Trash2, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, Check, Eye, Trash2, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2, Circle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,7 +44,7 @@ export default function NotificationBell({ user }) {
       const allOpps = await base44.entities.Opportunity.filter(
         { status: 'new' },
         '-created_date',
-        20
+        50
       );
       
       // Filter by user if not admin
@@ -56,6 +56,29 @@ export default function NotificationBell({ user }) {
     },
     enabled: !!user,
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch unread leads (is_read = false)
+  const { data: unreadLeads = [] } = useQuery({
+    queryKey: ['unreadLeads', user?.email],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const allOpps = await base44.entities.Opportunity.filter(
+        { is_read: false },
+        '-created_date',
+        50
+      );
+      
+      // Filter by user if not admin
+      const filtered = isAdmin ? allOpps : allOpps.filter(o => 
+        o.assigned_to === user.email || o.created_by === user.email
+      );
+      
+      return filtered;
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
   });
 
   const markAsReadMutation = useMutation({
@@ -97,8 +120,43 @@ export default function NotificationBell({ user }) {
     },
   });
 
+  // Mark single lead as read
+  const markLeadAsReadMutation = useMutation({
+    mutationFn: async (leadId) => {
+      await base44.entities.Opportunity.update(leadId, { 
+        is_read: true,
+        read_at: new Date().toISOString(),
+        read_by: user?.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unreadLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['newLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    },
+  });
+
+  // Mark all unread leads as read
+  const markAllUnreadLeadsAsReadMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(unreadLeads.map(lead => 
+        base44.entities.Opportunity.update(lead.id, { 
+          is_read: true,
+          read_at: new Date().toISOString(),
+          read_by: user?.email
+        })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unreadLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['newLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    },
+  });
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
-  const totalAlerts = unreadCount + newLeads.length;
+  const unreadLeadsCount = unreadLeads.length;
+  const totalAlerts = unreadCount + newLeads.length + unreadLeadsCount;
   const [activeTab, setActiveTab] = useState("leads");
 
   const handleNotificationClick = (notification) => {
@@ -168,19 +226,28 @@ export default function NotificationBell({ user }) {
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-2 p-1 mx-2 mt-2" style={{ width: 'calc(100% - 16px)' }}>
+              <TabsList className="w-full grid grid-cols-3 p-1 mx-2 mt-2" style={{ width: 'calc(100% - 16px)' }}>
                 <TabsTrigger value="leads" className="text-xs">
                   <UserPlus className="w-3 h-3 mr-1" />
-                  Novos Leads
+                  Novos
                   {newLeads.length > 0 && (
                     <Badge className="ml-1 h-4 px-1 bg-green-500 text-white text-xs">
                       {newLeads.length}
                     </Badge>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="unread" className="text-xs">
+                  <Circle className="w-3 h-3 mr-1" />
+                  Não Lidas
+                  {unreadLeadsCount > 0 && (
+                    <Badge className="ml-1 h-4 px-1 bg-amber-500 text-white text-xs">
+                      {unreadLeadsCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="notifications" className="text-xs">
                   <Bell className="w-3 h-3 mr-1" />
-                  Notificações
+                  Notif.
                   {unreadCount > 0 && (
                     <Badge className="ml-1 h-4 px-1 bg-blue-500 text-white text-xs">
                       {unreadCount}
@@ -310,6 +377,120 @@ export default function NotificationBell({ user }) {
                     </Button>
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="unread" className="mt-0">
+                {unreadLeads.length > 0 && (
+                  <div className="flex items-center justify-end px-3 py-1 border-b">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => markAllUnreadLeadsAsReadMutation.mutate()}
+                      disabled={markAllUnreadLeadsAsReadMutation.isPending}
+                      className="text-xs h-7 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                    >
+                      {markAllUnreadLeadsAsReadMutation.isPending ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <CheckCheck className="w-3 h-3 mr-1" />
+                      )}
+                      Marcar todas como lidas
+                    </Button>
+                  </div>
+                )}
+                <ScrollArea className="h-80">
+                  {unreadLeads.length === 0 ? (
+                    <div className="p-8 text-center text-slate-500">
+                      <CheckCircle className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                      <p>Todas as leads foram lidas</p>
+                      <p className="text-xs mt-1">Bom trabalho!</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {unreadLeads.map((lead) => (
+                        <div
+                          key={lead.id}
+                          className="p-3 hover:bg-amber-50 transition-colors cursor-pointer border-l-4 border-l-amber-500"
+                          onClick={() => {
+                            navigate(createPageUrl('CRMAdvanced') + '?tab=opportunities');
+                            setIsOpen(false);
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-full bg-amber-100">
+                              <Circle className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-semibold text-sm text-slate-900 truncate">
+                                  {lead.buyer_name || 'Lead'}
+                                </p>
+                                <Badge className="bg-amber-100 text-amber-700 text-xs h-5">
+                                  Não lida
+                                </Badge>
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2 text-xs text-slate-600 mb-1">
+                                {lead.buyer_email && (
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />
+                                    {lead.buyer_email}
+                                  </span>
+                                )}
+                                {lead.buyer_phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {lead.buyer_phone}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                {lead.location && (
+                                  <Badge variant="outline" className="h-5">
+                                    <MapPin className="w-3 h-3 mr-1" />
+                                    {lead.location}
+                                  </Badge>
+                                )}
+                                {lead.budget && (
+                                  <Badge variant="outline" className="h-5">
+                                    <Euro className="w-3 h-3 mr-1" />
+                                    {typeof lead.budget === 'number' 
+                                      ? `€${lead.budget.toLocaleString()}`
+                                      : lead.budget}
+                                  </Badge>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-slate-400 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {formatDistanceToNow(new Date(lead.created_date), { addSuffix: true, locale: ptBR })}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      markLeadAsReadMutation.mutate(lead.id);
+                                    }}
+                                    disabled={markLeadAsReadMutation.isPending}
+                                  >
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Marcar lida
+                                  </Button>
+                                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
               </TabsContent>
 
               <TabsContent value="notifications" className="mt-0">
