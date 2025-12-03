@@ -110,6 +110,8 @@ export default function FacebookCampaignDashboard() {
     setSyncing(false);
   };
 
+  const [campaignStatuses, setCampaignStatuses] = React.useState({});
+
   const toggleCampaignStatus = async (campaignId, currentStatus) => {
     const action = currentStatus === 'ACTIVE' ? 'pause' : 'activate';
     setTogglingCampaign(campaignId);
@@ -122,6 +124,11 @@ export default function FacebookCampaignDashboard() {
       
       if (response.data.success) {
         toast.success(response.data.message);
+        // Atualizar estado local imediatamente
+        setCampaignStatuses(prev => ({
+          ...prev,
+          [campaignId]: response.data.new_status
+        }));
         queryClient.invalidateQueries({ queryKey: ['facebookLeads'] });
       } else {
         toast.error(response.data.error || 'Erro ao alterar estado da campanha');
@@ -131,6 +138,11 @@ export default function FacebookCampaignDashboard() {
     }
     
     setTogglingCampaign(null);
+  };
+
+  // Função para obter o estado atual da campanha (local ou original)
+  const getCampaignStatus = (campaign) => {
+    return campaignStatuses[campaign.id] || campaign.status;
   };
 
   const filteredCampaigns = React.useMemo(() => {
@@ -355,9 +367,9 @@ export default function FacebookCampaignDashboard() {
                       <h4 className="font-semibold text-slate-900">{campaign.name}</h4>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-xs px-2 py-0.5 rounded ${
-                          campaign.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
+                          getCampaignStatus(campaign) === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'
                         }`}>
-                          {campaign.status === 'ACTIVE' ? 'Ativa' : 'Pausada'}
+                          {getCampaignStatus(campaign) === 'ACTIVE' ? 'Ativa' : 'Pausada'}
                         </span>
                         <span className="text-xs text-slate-500">ID: {campaign.id}</span>
                       </div>
@@ -366,15 +378,15 @@ export default function FacebookCampaignDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleCampaignStatus(campaign.id, campaign.status)}
+                        onClick={() => toggleCampaignStatus(campaign.id, getCampaignStatus(campaign))}
                         disabled={togglingCampaign === campaign.id}
-                        className={campaign.status === 'ACTIVE' 
+                        className={getCampaignStatus(campaign) === 'ACTIVE' 
                           ? 'text-amber-600 hover:bg-amber-50 border-amber-300' 
                           : 'text-green-600 hover:bg-green-50 border-green-300'}
                       >
                         {togglingCampaign === campaign.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : campaign.status === 'ACTIVE' ? (
+                        ) : getCampaignStatus(campaign) === 'ACTIVE' ? (
                           <>
                             <Pause className="w-4 h-4 mr-1" />
                             Suspender
