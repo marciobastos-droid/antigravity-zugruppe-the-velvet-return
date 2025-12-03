@@ -198,6 +198,94 @@ const validateProperty = (prop, portalName) => {
   return { errors, warnings, isValid: errors.length === 0 };
 };
 
+// Função para criar ou atualizar imóveis, verificando duplicados por ref_id
+const createOrUpdateProperties = async (base44, properties, queryClient) => {
+  const results = { created: [], updated: [], errors: [] };
+  
+  // Buscar todos os ref_ids existentes
+  const existingProperties = await base44.entities.Property.list('-created_date', 10000);
+  const existingByRefId = new Map();
+  existingProperties.forEach(p => {
+    if (p.ref_id) {
+      existingByRefId.set(p.ref_id, p);
+    }
+  });
+  
+  for (const property of properties) {
+    try {
+      // Verificar se já existe um imóvel com este ref_id
+      const existing = existingByRefId.get(property.ref_id);
+      
+      if (existing) {
+        // Atualizar imóvel existente
+        const { id, created_date, updated_date, created_by, ...updateData } = property;
+        await base44.entities.Property.update(existing.id, updateData);
+        results.updated.push({ ...existing, ...updateData });
+        console.log(`[ImportProperties] ATUALIZADO: ${property.ref_id} - ${property.title}`);
+      } else {
+        // Criar novo imóvel
+        const created = await base44.entities.Property.create(property);
+        results.created.push(created);
+        console.log(`[ImportProperties] CRIADO: ${property.ref_id} - ${property.title}`);
+      }
+    } catch (error) {
+      console.error(`[ImportProperties] ERRO ao processar ${property.ref_id}:`, error);
+      results.errors.push({ property, error: error.message });
+    }
+  }
+  
+  return results;
+};
+
+// Função para bulk create/update com verificação de duplicados
+const bulkCreateOrUpdate = async (base44, properties) => {
+  // Buscar todos os ref_ids existentes de uma vez
+  const existingProperties = await base44.entities.Property.list('-created_date', 10000);
+  const existingByRefId = new Map();
+  existingProperties.forEach(p => {
+    if (p.ref_id) {
+      existingByRefId.set(p.ref_id, p);
+    }
+  });
+  
+  const toCreate = [];
+  const toUpdate = [];
+  
+  for (const property of properties) {
+    const existing = existingByRefId.get(property.ref_id);
+    if (existing) {
+      toUpdate.push({ id: existing.id, data: property });
+    } else {
+      toCreate.push(property);
+    }
+  }
+  
+  const results = { created: [], updated: [], total: 0 };
+  
+  // Criar novos imóveis em bulk
+  if (toCreate.length > 0) {
+    const created = await base44.entities.Property.bulkCreate(toCreate);
+    results.created = created;
+    console.log(`[ImportProperties] BULK CRIADOS: ${created.length} imóveis`);
+  }
+  
+  // Atualizar imóveis existentes um a um (bulk update não está disponível)
+  for (const { id, data } of toUpdate) {
+    try {
+      const { ref_id, ...updateData } = data; // Manter o ref_id original
+      await base44.entities.Property.update(id, updateData);
+      results.updated.push({ id, ...data });
+      console.log(`[ImportProperties] ATUALIZADO: ${data.ref_id} - ${data.title}`);
+    } catch (error) {
+      console.error(`[ImportProperties] ERRO ao atualizar ${data.ref_id}:`, error);
+    }
+  }
+  
+  results.total = results.created.length + results.updated.length;
+  
+  return results;
+};
+
 export default function ImportProperties() {
   const queryClient = useQueryClient();
   const [file, setFile] = React.useState(null);
