@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, DollarSign, Target, Users, RefreshCw, Calendar, Loader2, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Target, Users, RefreshCw, Calendar, Loader2, AlertCircle, Pause, Play } from "lucide-react";
 import { format, subDays, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ export default function FacebookCampaignDashboard() {
   const [period, setPeriod] = React.useState("30");
   const [selectedCampaign, setSelectedCampaign] = React.useState("all");
   const [syncing, setSyncing] = React.useState(false);
+  const [togglingCampaign, setTogglingCampaign] = React.useState(null);
 
   const { data: fbSettings } = useQuery({
     queryKey: ['fb_settings'],
@@ -107,6 +108,29 @@ export default function FacebookCampaignDashboard() {
       toast.error("Erro ao sincronizar campanhas");
     }
     setSyncing(false);
+  };
+
+  const toggleCampaignStatus = async (campaignId, currentStatus) => {
+    const action = currentStatus === 'ACTIVE' ? 'pause' : 'activate';
+    setTogglingCampaign(campaignId);
+    
+    try {
+      const response = await base44.functions.invoke('manageFacebookCampaign', {
+        action,
+        campaign_id: campaignId
+      });
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+        queryClient.invalidateQueries({ queryKey: ['facebookLeads'] });
+      } else {
+        toast.error(response.data.error || 'Erro ao alterar estado da campanha');
+      }
+    } catch (error) {
+      toast.error('Erro ao comunicar com o Facebook');
+    }
+    
+    setTogglingCampaign(null);
   };
 
   const filteredCampaigns = React.useMemo(() => {
@@ -338,9 +362,34 @@ export default function FacebookCampaignDashboard() {
                         <span className="text-xs text-slate-500">ID: {campaign.id}</span>
                       </div>
                     </div>
-                    <div className={`flex items-center gap-1 ${campaign.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {campaign.trend >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                      <span className="text-sm font-medium">{campaign.trend >= 0 ? '+' : ''}{campaign.trend}%</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleCampaignStatus(campaign.id, campaign.status)}
+                        disabled={togglingCampaign === campaign.id}
+                        className={campaign.status === 'ACTIVE' 
+                          ? 'text-amber-600 hover:bg-amber-50 border-amber-300' 
+                          : 'text-green-600 hover:bg-green-50 border-green-300'}
+                      >
+                        {togglingCampaign === campaign.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : campaign.status === 'ACTIVE' ? (
+                          <>
+                            <Pause className="w-4 h-4 mr-1" />
+                            Suspender
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 mr-1" />
+                            Reativar
+                          </>
+                        )}
+                      </Button>
+                      <div className={`flex items-center gap-1 ${campaign.trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {campaign.trend >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                        <span className="text-sm font-medium">{campaign.trend >= 0 ? '+' : ''}{campaign.trend}%</span>
+                      </div>
                     </div>
                   </div>
 
