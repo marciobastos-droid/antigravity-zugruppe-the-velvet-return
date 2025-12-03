@@ -128,6 +128,8 @@ export default function MyListings() {
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
   const [bulkPhotoDialogOpen, setBulkPhotoDialogOpen] = useState(false);
   const [createDevelopmentDialogOpen, setCreateDevelopmentDialogOpen] = useState(false);
+  const [assignAgentOpen, setAssignAgentOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState("");
   
   const [filters, setFilters] = useState({
     search: "",
