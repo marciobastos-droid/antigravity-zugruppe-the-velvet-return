@@ -476,7 +476,7 @@ export default function MyListings() {
   
   // Aplicar filtro de última importação manualmente
   const filteredProperties = useMemo(() => {
-    if (!filters.last_import || !lastImportTimestamp) {
+    if (filters.last_import !== true || !lastImportTimestamp) {
       return baseFilteredProperties;
     }
     
