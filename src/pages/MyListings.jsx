@@ -273,6 +273,24 @@ export default function MyListings() {
     },
   });
 
+  const bulkAssignAgentMutation = useMutation({
+    mutationFn: async ({ ids, agentId, agentName }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { 
+          agent_id: agentId,
+          agent_name: agentName
+        })
+      ));
+    },
+    onSuccess: (_, { ids, agentName }) => {
+      toast.success(`${ids.length} imóveis atribuídos a "${agentName}"`);
+      setSelectedProperties([]);
+      setAssignAgentOpen(false);
+      setSelectedAgent("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
   const duplicatePropertyMutation = useMutation({
     mutationFn: async (property) => {
       const { id, created_date, updated_date, created_by, ...propertyData } = property;
