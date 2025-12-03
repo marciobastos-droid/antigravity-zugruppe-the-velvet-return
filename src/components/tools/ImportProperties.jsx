@@ -969,18 +969,22 @@ IMPORTANTE:
         internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                        `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
       }));
-      const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+      
+      // Usar bulk create/update com verificação de duplicados
+      const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
+      const allProcessed = [...importResults.created, ...importResults.updated];
 
-      const countWithImages = created.filter(p => p.images?.length > 0).length;
-      const totalImages = created.reduce((sum, p) => sum + (p.images?.length || 0), 0);
+      const countWithImages = allProcessed.filter(p => p.images?.length > 0).length;
+      const totalImages = allProcessed.reduce((sum, p) => sum + (p.images?.length || 0), 0);
+      const totalProcessed = importResults.created.length + importResults.updated.length;
       
       setResults({
         success: true,
-        count: created.length,
-        properties: created,
+        count: totalProcessed,
+        properties: allProcessed,
         portal: portal,
         stats: { withImages: countWithImages, totalImages },
-        message: `✅ ${created.length} imóveis importados!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
+        message: `✅ ${totalProcessed} imóveis processados!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados\n📸 ${countWithImages} com fotos (${totalImages} imagens)${invalidProperties.length > 0 ? `\n⚠️ ${invalidProperties.length} rejeitados` : ''}`
       });
       
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
