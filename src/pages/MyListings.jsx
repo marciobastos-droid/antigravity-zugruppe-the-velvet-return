@@ -502,7 +502,10 @@ export default function MyListings() {
   
   // Aplicar filtro de última importação manualmente
   const filteredProperties = useMemo(() => {
-    if (filters.last_import !== true || !lastImportTimestamp) {
+    // Verificar se filtro está ativo (pode ser true ou "true")
+    const isLastImportActive = filters.last_import === true || filters.last_import === "true";
+    
+    if (!isLastImportActive || !lastImportTimestamp) {
       return baseFilteredProperties;
     }
     
