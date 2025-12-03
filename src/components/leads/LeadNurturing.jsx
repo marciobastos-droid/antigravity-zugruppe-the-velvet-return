@@ -12,13 +12,16 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Zap, Plus, Play, Pause, Trash2, Mail, Bell, CheckSquare,
   Clock, Users, ArrowRight, Edit2, Copy, BarChart3, RefreshCw,
-  ChevronRight, Circle, CheckCircle2, XCircle, AlertCircle
+  ChevronRight, ChevronDown, Circle, CheckCircle2, XCircle, AlertCircle, 
+  Settings2, LogOut, Loader2, MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function LeadNurturing() {
@@ -26,11 +29,24 @@ export default function LeadNurturing() {
   const [activeTab, setActiveTab] = useState("sequences");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedSequence, setSelectedSequence] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showConditions, setShowConditions] = useState(false);
+  const [showExitConditions, setShowExitConditions] = useState(false);
   const [sequenceForm, setSequenceForm] = useState({
     name: "",
     description: "",
     trigger_type: "new_lead",
     trigger_conditions: {},
+    exit_conditions: {
+      on_reply: true,
+      on_conversion: true,
+      on_appointment: true,
+      on_status_change: []
+    },
+    send_time: {
+      preferred_hour: 10,
+      avoid_weekends: true
+    },
     steps: [],
     is_active: true
   });
@@ -110,10 +126,22 @@ export default function LeadNurturing() {
       description: "",
       trigger_type: "new_lead",
       trigger_conditions: {},
+      exit_conditions: {
+        on_reply: true,
+        on_conversion: true,
+        on_appointment: true,
+        on_status_change: []
+      },
+      send_time: {
+        preferred_hour: 10,
+        avoid_weekends: true
+      },
       steps: [],
       is_active: true
     });
     setSelectedSequence(null);
+    setShowConditions(false);
+    setShowExitConditions(false);
   };
 
   const handleOpenCreate = () => {
@@ -128,9 +156,21 @@ export default function LeadNurturing() {
       description: sequence.description || "",
       trigger_type: sequence.trigger_type,
       trigger_conditions: sequence.trigger_conditions || {},
+      exit_conditions: sequence.exit_conditions || {
+        on_reply: true,
+        on_conversion: true,
+        on_appointment: true,
+        on_status_change: []
+      },
+      send_time: sequence.send_time || {
+        preferred_hour: 10,
+        avoid_weekends: true
+      },
       steps: sequence.steps || [],
       is_active: sequence.is_active
     });
+    setShowConditions(Object.keys(sequence.trigger_conditions || {}).length > 0);
+    setShowExitConditions(true);
     setDialogOpen(true);
   };
 
@@ -152,9 +192,11 @@ export default function LeadNurturing() {
     const newStep = {
       step_number: sequenceForm.steps.length + 1,
       delay_days: sequenceForm.steps.length === 0 ? 0 : 3,
+      delay_hours: 0,
       action_type: "email",
       email_subject: "",
       email_body: "",
+      condition: {},
       is_active: true
     };
     setSequenceForm({ ...sequenceForm, steps: [...sequenceForm.steps, newStep] });
@@ -193,10 +235,32 @@ export default function LeadNurturing() {
       new_lead: "Novo Lead",
       status_change: "Mudança de Estado",
       inactivity: "Inatividade",
+      no_contact: "Sem Contacto",
       property_view: "Visualização de Imóvel",
       manual: "Manual"
     };
     return labels[type] || type;
+  };
+
+  const processSequences = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await base44.functions.invoke('processNurturingSequences');
+      if (response.data.success) {
+        const r = response.data.results;
+        toast.success(
+          `Processado: ${r.enrollments_created} inscritos, ${r.emails_sent} emails, ${r.tasks_created} tarefas`
+        );
+        queryClient.invalidateQueries({ queryKey: ['nurturingSequences'] });
+        queryClient.invalidateQueries({ queryKey: ['leadEnrollments'] });
+        queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      } else {
+        toast.error(response.data.error || 'Erro ao processar');
+      }
+    } catch (error) {
+      toast.error('Erro ao processar sequências');
+    }
+    setIsProcessing(false);
   };
 
   const getActionIcon = (type) => {
@@ -219,10 +283,24 @@ export default function LeadNurturing() {
           </h2>
           <p className="text-slate-600">Automatize o acompanhamento dos seus leads</p>
         </div>
-        <Button onClick={handleOpenCreate} className="bg-purple-600 hover:bg-purple-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Sequência
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={processSequences}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-2" />
+            )}
+            Processar Agora
+          </Button>
+          <Button onClick={handleOpenCreate} className="bg-purple-600 hover:bg-purple-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Sequência
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -486,9 +564,10 @@ export default function LeadNurturing() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new_lead">Novo Lead</SelectItem>
+                    <SelectItem value="new_lead">Novo Lead (automático)</SelectItem>
+                    <SelectItem value="no_contact">Sem Contacto X dias</SelectItem>
+                    <SelectItem value="inactivity">Inatividade X dias</SelectItem>
                     <SelectItem value="status_change">Mudança de Estado</SelectItem>
-                    <SelectItem value="inactivity">Inatividade</SelectItem>
                     <SelectItem value="manual">Manual</SelectItem>
                   </SelectContent>
                 </Select>
@@ -513,6 +592,177 @@ export default function LeadNurturing() {
               <Label>Sequência ativa</Label>
             </div>
 
+            {/* Trigger Conditions */}
+            <Collapsible open={showConditions} onOpenChange={setShowConditions}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full justify-between">
+                  <span className="flex items-center gap-2">
+                    <Settings2 className="w-4 h-4" />
+                    Condições do Gatilho
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showConditions ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-3">
+                {(sequenceForm.trigger_type === 'no_contact' || sequenceForm.trigger_type === 'inactivity') && (
+                  <div>
+                    <Label className="text-xs">
+                      {sequenceForm.trigger_type === 'no_contact' ? 'Dias sem contacto' : 'Dias de inatividade'}
+                    </Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={sequenceForm.trigger_type === 'no_contact' 
+                        ? sequenceForm.trigger_conditions.no_contact_days || 3
+                        : sequenceForm.trigger_conditions.inactivity_days || 7}
+                      onChange={(e) => setSequenceForm({
+                        ...sequenceForm,
+                        trigger_conditions: {
+                          ...sequenceForm.trigger_conditions,
+                          [sequenceForm.trigger_type === 'no_contact' ? 'no_contact_days' : 'inactivity_days']: parseInt(e.target.value) || 0
+                        }
+                      })}
+                    />
+                  </div>
+                )}
+
+                {sequenceForm.trigger_type === 'status_change' && (
+                  <div>
+                    <Label className="text-xs">Estado alvo</Label>
+                    <Select
+                      value={sequenceForm.trigger_conditions.target_status || ''}
+                      onValueChange={(v) => setSequenceForm({
+                        ...sequenceForm,
+                        trigger_conditions: { ...sequenceForm.trigger_conditions, target_status: v }
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Quando mudar para..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="contacted">Contactado</SelectItem>
+                        <SelectItem value="visit_scheduled">Visita Agendada</SelectItem>
+                        <SelectItem value="proposal">Proposta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-xs">Filtrar por origem (opcional)</Label>
+                  <Select
+                    value={sequenceForm.trigger_conditions.lead_source?.[0] || 'all'}
+                    onValueChange={(v) => setSequenceForm({
+                      ...sequenceForm,
+                      trigger_conditions: {
+                        ...sequenceForm.trigger_conditions,
+                        lead_source: v === 'all' ? [] : [v]
+                      }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as origens</SelectItem>
+                      <SelectItem value="facebook_ads">Facebook Ads</SelectItem>
+                      <SelectItem value="website">Website</SelectItem>
+                      <SelectItem value="referral">Referência</SelectItem>
+                      <SelectItem value="direct_contact">Contacto Direto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Filtrar por tipo de lead (opcional)</Label>
+                  <Select
+                    value={sequenceForm.trigger_conditions.lead_type?.[0] || 'all'}
+                    onValueChange={(v) => setSequenceForm({
+                      ...sequenceForm,
+                      trigger_conditions: {
+                        ...sequenceForm.trigger_conditions,
+                        lead_type: v === 'all' ? [] : [v]
+                      }
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os tipos</SelectItem>
+                      <SelectItem value="comprador">Comprador</SelectItem>
+                      <SelectItem value="vendedor">Vendedor</SelectItem>
+                      <SelectItem value="parceiro_comprador">Parceiro Comprador</SelectItem>
+                      <SelectItem value="parceiro_vendedor">Parceiro Vendedor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Exit Conditions */}
+            <Collapsible open={showExitConditions} onOpenChange={setShowExitConditions}>
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full justify-between">
+                  <span className="flex items-center gap-2">
+                    <LogOut className="w-4 h-4" />
+                    Condições de Saída
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showExitConditions ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3 space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={sequenceForm.exit_conditions?.on_reply}
+                      onCheckedChange={(v) => setSequenceForm({
+                        ...sequenceForm,
+                        exit_conditions: { ...sequenceForm.exit_conditions, on_reply: v }
+                      })}
+                    />
+                    <Label className="text-sm">Sair quando lead responder/for contactada</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={sequenceForm.exit_conditions?.on_conversion}
+                      onCheckedChange={(v) => setSequenceForm({
+                        ...sequenceForm,
+                        exit_conditions: { ...sequenceForm.exit_conditions, on_conversion: v }
+                      })}
+                    />
+                    <Label className="text-sm">Sair quando converter em contacto</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={sequenceForm.exit_conditions?.on_appointment}
+                      onCheckedChange={(v) => setSequenceForm({
+                        ...sequenceForm,
+                        exit_conditions: { ...sequenceForm.exit_conditions, on_appointment: v }
+                      })}
+                    />
+                    <Label className="text-sm">Sair quando agendar visita</Label>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Máximo de dias na sequência (opcional)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Ex: 30"
+                    value={sequenceForm.exit_conditions?.max_days || ''}
+                    onChange={(e) => setSequenceForm({
+                      ...sequenceForm,
+                      exit_conditions: {
+                        ...sequenceForm.exit_conditions,
+                        max_days: e.target.value ? parseInt(e.target.value) : null
+                      }
+                    })}
+                  />
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
             {/* Steps */}
             <div className="border-t pt-4">
               <div className="flex items-center justify-between mb-3">
@@ -532,14 +782,24 @@ export default function LeadNurturing() {
                           {step.step_number}
                         </div>
                         <div className="flex-1 space-y-3">
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-4 gap-3">
                             <div>
-                              <Label className="text-xs">Atraso (dias)</Label>
+                              <Label className="text-xs">Dias</Label>
                               <Input
                                 type="number"
                                 min={0}
                                 value={step.delay_days}
                                 onChange={(e) => updateStep(idx, 'delay_days', parseInt(e.target.value) || 0)}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Horas</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                max={23}
+                                value={step.delay_hours || 0}
+                                onChange={(e) => updateStep(idx, 'delay_hours', parseInt(e.target.value) || 0)}
                               />
                             </div>
                             <div className="col-span-2">
@@ -575,9 +835,12 @@ export default function LeadNurturing() {
                                 <Textarea
                                   value={step.email_body || ''}
                                   onChange={(e) => updateStep(idx, 'email_body', e.target.value)}
-                                  placeholder="Use {{nome}} para personalizar..."
-                                  rows={3}
+                                  placeholder="Use {{nome}} para personalizar o nome, {{localizacao}} para localização..."
+                                  rows={4}
                                 />
+                                <p className="text-xs text-slate-500 mt-1">
+                                  Variáveis: {"{{nome}}"}, {"{{localizacao}}"}
+                                </p>
                               </div>
                             </>
                           )}
@@ -589,11 +852,39 @@ export default function LeadNurturing() {
                                 <Input
                                   value={step.task_title || ''}
                                   onChange={(e) => updateStep(idx, 'task_title', e.target.value)}
-                                  placeholder="Ex: Fazer follow-up..."
+                                  placeholder="Ex: Fazer follow-up com {{nome}}"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Descrição (opcional)</Label>
+                                <Textarea
+                                  value={step.task_description || ''}
+                                  onChange={(e) => updateStep(idx, 'task_description', e.target.value)}
+                                  placeholder="Detalhes da tarefa..."
+                                  rows={2}
                                 />
                               </div>
                             </>
                           )}
+
+                          {step.action_type === 'notification' && (
+                            <div>
+                              <Label className="text-xs">Mensagem da Notificação</Label>
+                              <Input
+                                value={step.notification_message || ''}
+                                onChange={(e) => updateStep(idx, 'notification_message', e.target.value)}
+                                placeholder="Ex: Follow-up necessário para {{nome}}"
+                              />
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 pt-2">
+                            <Checkbox
+                              checked={step.condition?.skip_if_contacted}
+                              onCheckedChange={(v) => updateStep(idx, 'condition', { ...step.condition, skip_if_contacted: v })}
+                            />
+                            <Label className="text-xs text-slate-600">Saltar se lead já foi contactada</Label>
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
