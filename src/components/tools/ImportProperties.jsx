@@ -582,7 +582,7 @@ export default function ImportProperties() {
       
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
       await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      toast.success(`${created.length} imóveis importados com sucesso!`);
+      toast.success(`${totalProcessed} imóveis importados com sucesso!`);
       setShowPreview(false); // Close the dialog on success
 
     } catch (error) {
@@ -689,7 +689,7 @@ export default function ImportProperties() {
       
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
       await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      toast.success(`${created.length} imóveis importados!`);
+      toast.success(`${totalProcessed} imóveis importados!`);
 
     } catch (error) {
       setResults({ success: false, message: error.message || "Erro ao processar JSON" });
@@ -989,7 +989,7 @@ IMPORTANTE:
       
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
       await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      toast.success(`${created.length} imóveis importados!`);
+      toast.success(`${totalProcessed} imóveis importados!`);
 
     } catch (error) {
       console.error("Standard import error:", error);
@@ -1119,8 +1119,8 @@ IMPORTANTE:
 
             await queryClient.invalidateQueries({ queryKey: ['properties'] });
             await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-            toast.success(`${created.length} imóveis importados!`);
-          } else {
+            toast.success(`${totalProcessed} imóveis importados!`);
+            } else {
             throw new Error(result.details || "Erro ao extrair dados do PDF");
           }
         } catch (error) {
@@ -1266,7 +1266,7 @@ IMPORTANTE:
 
         await queryClient.invalidateQueries({ queryKey: ['properties'] });
         await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-        toast.success(`${created.length} imóveis importados!`);
+        toast.success(`${totalProcessed} imóveis importados!`);
 
       } else {
         // Single property import
@@ -1523,7 +1523,7 @@ Retorna um array de objetos, mesmo que seja só um imóvel.`,
 
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
       await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      toast.success(`${created.length} imóveis importados!`);
+      toast.success(`${totalProcessed} imóveis importados!`);
       
       setShowTextPreview(false);
       setTextInput("");
