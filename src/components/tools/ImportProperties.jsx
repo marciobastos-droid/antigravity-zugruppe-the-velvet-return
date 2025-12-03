@@ -1033,6 +1033,167 @@ IMPORTANTE:
         }
       };
 
+  // Função usando Gemini API - suporta listagens e páginas individuais
+  const importFromURLWithGemini = async () => {
+    if (!url || !url.trim()) {
+      toast.error("Por favor, cole um link válido");
+      return;
+    }
+
+    setImporting(true);
+    setValidationDetails(null);
+    setResults(null);
+    const portal = detectPortal(url);
+    setProgress(`🤖 A analisar ${portal.name} com IA Avançada...`);
+    toast.info(`A processar link de ${portal.name}...`);
+
+    try {
+      const response = await base44.functions.invoke('searchPropertyAI', { url });
+      const data = response.data;
+
+      if (!data) {
+        throw new Error('Sem resposta do servidor. Tente novamente.');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || data.details || 'Erro ao extrair dados do portal');
+      }
+
+      // Check if it's a listing page with multiple properties
+      if (data.is_listing_page && data.properties && data.properties.length > 0) {
+        const properties = data.properties;
+        setProgress(`📋 Listagem detetada! ${properties.length} imóveis encontrados...`);
+        
+        // Validate properties
+        const validationResults = properties.map(prop => ({
+          property: prop,
+          validation: validateProperty(prop, portal.name)
+        }));
+
+        const validProperties = validationResults.filter(v => v.validation.isValid).map(v => v.property);
+        const invalidProperties = validationResults.filter(v => !v.validation.isValid);
+
+        setValidationDetails({
+          total: properties.length,
+          valid: validProperties.length,
+          invalid: invalidProperties.length,
+          details: validationResults
+        });
+
+        if (validProperties.length === 0) {
+          throw new Error(`Nenhum imóvel passou na validação. Verifica os dados extraídos.`);
+        }
+
+        setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
+        const propertiesWithTags = await Promise.all(
+          validProperties.map(async (p) => {
+            const tags = await generatePropertyTags(p);
+            return { ...p, tags };
+          })
+        );
+
+        setProgress("A guardar imóveis...");
+
+        // Generate ref_ids for all properties
+        const { data: refData } = await base44.functions.invoke('generateRefId', { 
+          entity_type: 'Property', 
+          count: propertiesWithTags.length 
+        });
+        const refIds = refData.ref_ids || [refData.ref_id];
+
+        const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+          ...p,
+          ref_id: refIds[index],
+          status: "active",
+          address: p.address || p.city,
+          state: p.state || p.city,
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+        }));
+
+        const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+
+        const countWithImages = created.filter(p => p.images?.length > 0).length;
+        const totalImages = created.reduce((sum, p) => sum + (p.images?.length || 0), 0);
+
+        setResults({
+          success: true,
+          count: created.length,
+          properties: created,
+          portal: portal,
+          stats: { withImages: countWithImages, totalImages },
+          message: `✅ ${created.length} imóveis importados!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados` : ''}`
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+        toast.success(`${created.length} imóveis importados!`);
+
+      } else {
+        // Single property import
+        const property = data.property;
+        setProgress("A gerar tags com IA...");
+
+        // Generate tags
+        const tags = await generatePropertyTags(property);
+        property.tags = tags;
+
+        setProgress("A guardar imóvel...");
+
+        // Generate ref_id
+        const { data: refData } = await base44.functions.invoke('generateRefId', { 
+          entity_type: 'Property', 
+          count: 1 
+        });
+
+        const propertyToCreate = {
+          ...property,
+          ref_id: refData.ref_id || refData.ref_ids?.[0],
+          status: "active",
+          address: property.address || property.city,
+          state: property.state || property.city,
+          is_partner_property: propertyOwnership === "partner",
+          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                        propertyOwnership === "private" ? privateOwnerName : undefined,
+          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+        };
+
+        const created = await base44.entities.Property.create(propertyToCreate);
+
+        setResults({
+          success: true,
+          count: 1,
+          properties: [created],
+          portal: portal,
+          stats: { withImages: created.images?.length > 0 ? 1 : 0, totalImages: created.images?.length || 0 },
+          message: `✅ Imóvel importado!\n📸 ${created.images?.length || 0} imagens encontradas`
+        });
+
+        await queryClient.invalidateQueries({ queryKey: ['properties'] });
+        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+        toast.success("Imóvel importado com sucesso!");
+      }
+
+    } catch (error) {
+      console.error("Advanced AI import error:", error);
+      const errorMessage = error.message || "Erro ao importar";
+      setResults({ 
+        success: false, 
+        message: `❌ ${errorMessage}\n\n💡 Sugestões:\n• Verifique se o link está correto\n• Tente o link de um imóvel individual\n• Use o botão "IA Padrão" como alternativa`,
+        portal: portal
+      });
+      toast.error(errorMessage);
+    }
+
+    setImporting(false);
+  };
+
   const detectedPortal = url ? detectPortal(url) : null;
 
   // Import from Text with AI
