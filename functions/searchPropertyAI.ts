@@ -284,7 +284,7 @@ Campos: title, description, property_type (apartment/house/land), listing_type (
 FORMATO EXACTO:
 {"title":"Titulo","description":"Descricao","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
 
-    // Call Gemini API
+    // Call Gemini API with JSON mode
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -295,8 +295,9 @@ FORMATO EXACTO:
             parts: [{ text: prompt }]
           }],
           generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 8192
+            temperature: 0,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json"
           }
         })
       }
