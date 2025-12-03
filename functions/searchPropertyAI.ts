@@ -224,6 +224,14 @@ function extractPropertyLinks(html, baseUrl) {
     quatru: [
       /href=["']([^"']*quatru\.pt\/[^"']*imovel[^"']*)["']/gi,
       /href=["']([^"']*\/anuncio\/\d+[^"']*)["']/gi
+    ],
+    luximos: [
+      /href=["']([^"']*luximos\.pt\/[^"']*imovel[^"']*)["']/gi,
+      /href=["']([^"']*\/property\/[^"']+)["']/gi
+    ],
+    jll: [
+      /href=["']([^"']*jll\.pt\/[^"']*propriedade[^"']*)["']/gi,
+      /href=["']([^"']*\/property\/[^"']+)["']/gi
     ]
   };
   
