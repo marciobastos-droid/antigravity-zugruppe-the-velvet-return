@@ -326,11 +326,15 @@ export default function AdvancedFilters({
         );
 
       case FILTER_TYPES.boolean:
+        // Normalizar valor para comparação (pode ser boolean ou string)
+        const boolValue = filters[key] === true || filters[key] === "true" ? "true" 
+                        : filters[key] === false || filters[key] === "false" ? "false" 
+                        : "all";
         return (
           <div key={key} className="space-y-2">
             <Label className="text-xs font-medium text-slate-600">{config.label}</Label>
             <Select
-              value={filters[key] === true ? "true" : filters[key] === false ? "false" : "all"}
+              value={boolValue}
               onValueChange={(v) => onFiltersChange({ 
                 ...filters, 
                 [key]: v === "true" ? true : v === "false" ? false : null 
