@@ -555,6 +555,8 @@ export default function MyListings() {
 
         {activeTab === "developments" ? (
           <DevelopmentsTab />
+        ) : activeTab === "byAgent" ? (
+          <PropertiesByAgentView />
         ) : (
         <>
         {/* Advanced Filters */}
