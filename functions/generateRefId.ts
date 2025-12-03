@@ -91,7 +91,11 @@ function extractRefIdNumber(refId, prefix) {
 }
 
 Deno.serve(async (req) => {
+  // Generate unique request ID for tracking
+  const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   let entityType = null;
+  
+  console.log(`[generateRefId] Request ${requestId} started`);
   
   try {
     const base44 = createClientFromRequest(req);
@@ -116,36 +120,43 @@ Deno.serve(async (req) => {
 
     const prefix = prefixes[entity_type];
 
-    // Try to acquire lock with retries
+    // Try to acquire lock with retries - increased attempts and wait time
     let lockAcquired = false;
-    for (let attempt = 0; attempt < 15; attempt++) {
-      if (acquireLock(entity_type)) {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      if (acquireLock(entity_type, requestId)) {
         lockAcquired = true;
         break;
       }
-      await sleep(200 + Math.random() * 300); // Wait 200-500ms with jitter
+      // Exponential backoff with jitter: 100-600ms
+      const waitTime = 100 + (attempt * 50) + Math.random() * 200;
+      console.log(`[generateRefId] Request ${requestId} waiting for lock, attempt ${attempt + 1}, waiting ${Math.round(waitTime)}ms`);
+      await sleep(waitTime);
     }
 
     if (!lockAcquired) {
-      return Response.json({ error: 'Could not acquire lock, try again' }, { status: 503 });
+      console.error(`[generateRefId] Request ${requestId} failed to acquire lock after 30 attempts`);
+      return Response.json({ error: 'System busy, please try again in a few seconds' }, { status: 503 });
     }
 
     // Get ALL existing records to find the highest ref_id
     const allRecords = await fetchAllRecords(base44, entity_type);
 
-    // Find the highest number from existing ref_ids and collect all existing ref_ids
+    // Build a complete set of existing ref_ids and find max number
     let maxNumber = 0;
     const existingRefIds = new Set();
-    
-    // Support both old format (ZU-00001) and any numeric pattern
-    const regexStrict = new RegExp(`^${prefix}-(\\d+)$`);
+    const existingNumbers = [];
     
     for (const record of allRecords) {
       if (record.ref_id) {
-        existingRefIds.add(record.ref_id);
-        const match = record.ref_id.match(regexStrict);
-        if (match) {
-          const num = parseInt(match[1], 10);
+        // Normalize and add to set
+        const normalizedRefId = record.ref_id.trim().toUpperCase();
+        existingRefIds.add(normalizedRefId);
+        existingRefIds.add(record.ref_id); // Keep original too
+        
+        // Extract number using robust function
+        const num = extractRefIdNumber(record.ref_id, prefix);
+        if (num > 0) {
+          existingNumbers.push(num);
           if (num > maxNumber) {
             maxNumber = num;
           }
@@ -153,52 +164,69 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log(`[generateRefId] Request ${requestId}: Found ${allRecords.length} records, max number: ${maxNumber}, unique ref_ids: ${existingRefIds.size}`);
+
     // Generate ref_ids (single or multiple), ensuring uniqueness
     const numToGenerate = Math.min(Math.max(1, parseInt(count) || 1), 100); // Max 100 at a time
     
-    if (numToGenerate === 1) {
-      // Single ref_id (backwards compatible)
-      let nextNumber = maxNumber + 1;
-      let ref_id = `${prefix}-${nextNumber.toString().padStart(5, '0')}`;
+    // Start from max + 1, never reuse a number
+    let currentNumber = maxNumber;
+    const ref_ids = [];
+    
+    for (let i = 0; i < numToGenerate; i++) {
+      currentNumber++;
+      let ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
       
-      // Check for collision and increment if needed (safety loop with limit)
+      // Double-check for collision - this should not happen but safety first
       let safetyCounter = 0;
-      while (existingRefIds.has(ref_id) && safetyCounter < 1000) {
-        nextNumber++;
-        ref_id = `${prefix}-${nextNumber.toString().padStart(5, '0')}`;
+      while (safetyCounter < 10000) {
+        const normalizedRefId = ref_id.toUpperCase();
+        const isDuplicate = existingRefIds.has(ref_id) || 
+                           existingRefIds.has(normalizedRefId) ||
+                           ref_ids.includes(ref_id);
+        
+        if (!isDuplicate) {
+          break;
+        }
+        
+        console.warn(`[generateRefId] Request ${requestId}: Collision detected for ${ref_id}, incrementing...`);
+        currentNumber++;
+        ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
         safetyCounter++;
       }
       
-      releaseLock(entity_type);
-      return Response.json({ ref_id, max_found: maxNumber, total_records: allRecords.length });
-    } else {
-      // Multiple ref_ids
-      const ref_ids = [];
-      let currentNumber = maxNumber;
-      
-      for (let i = 0; i < numToGenerate; i++) {
-        currentNumber++;
-        let ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
-        
-        // Check for collision and increment if needed
-        let safetyCounter = 0;
-        while ((existingRefIds.has(ref_id) || ref_ids.includes(ref_id)) && safetyCounter < 1000) {
-          currentNumber++;
-          ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
-          safetyCounter++;
-        }
-        
-        ref_ids.push(ref_id);
-        existingRefIds.add(ref_id); // Add to set to prevent duplicates within same batch
+      if (safetyCounter >= 10000) {
+        throw new Error(`Failed to generate unique ref_id after 10000 attempts`);
       }
       
-      releaseLock(entity_type);
-      return Response.json({ ref_ids, max_found: maxNumber, total_records: allRecords.length });
+      ref_ids.push(ref_id);
+      existingRefIds.add(ref_id); // Add to set to prevent duplicates within same batch
+    }
+
+    console.log(`[generateRefId] Request ${requestId}: Generated ${ref_ids.length} ref_ids: ${ref_ids.join(', ')}`);
+    
+    releaseLock(entity_type, requestId);
+    
+    if (numToGenerate === 1) {
+      return Response.json({ 
+        ref_id: ref_ids[0], 
+        max_found: maxNumber, 
+        total_records: allRecords.length,
+        request_id: requestId 
+      });
+    } else {
+      return Response.json({ 
+        ref_ids, 
+        max_found: maxNumber, 
+        total_records: allRecords.length,
+        request_id: requestId 
+      });
     }
   } catch (error) {
+    console.error(`[generateRefId] Request ${requestId} error:`, error.message);
     if (entityType) {
-      releaseLock(entityType);
+      releaseLock(entityType, requestId);
     }
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: error.message, request_id: requestId }, { status: 500 });
   }
 });
