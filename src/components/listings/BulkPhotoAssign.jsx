@@ -13,9 +13,16 @@ import { toast } from "sonner";
 export default function BulkPhotoAssign({ open, onOpenChange, selectedPropertyIds = [] }) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [selectedProperties, setSelectedProperties] = useState(selectedPropertyIds);
+  const [selectedProperties, setSelectedProperties] = useState([]);
   const [newImages, setNewImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // Sincronizar com selectedPropertyIds quando o dialog abre
+  React.useEffect(() => {
+    if (open) {
+      setSelectedProperties(selectedPropertyIds);
+    }
+  }, [open, selectedPropertyIds]);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['allProperties'],
