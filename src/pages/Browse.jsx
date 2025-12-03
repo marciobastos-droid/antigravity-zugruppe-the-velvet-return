@@ -43,6 +43,7 @@ export default function Browse() {
   const [parking, setParking] = React.useState("all");
   const [selectedAmenities, setSelectedAmenities] = React.useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
+  const [lastImportOnly, setLastImportOnly] = React.useState(false);
   
   // Debounced state for range inputs
   const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 10000]);
@@ -113,6 +114,20 @@ export default function Browse() {
   const activeProperties = properties.filter(p => p.status === 'active');
   const allCities = [...new Set(activeProperties.map(p => p.city).filter(Boolean))].sort();
   const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
+  
+  // Detectar última importação (imóveis criados no mesmo minuto mais recente)
+  const lastImportDate = React.useMemo(() => {
+    if (properties.length === 0) return null;
+    const sorted = [...properties].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    const mostRecent = new Date(sorted[0]?.created_date);
+    // Considerar "última importação" como imóveis criados nos últimos 5 minutos do mais recente
+    return new Date(mostRecent.getTime() - 5 * 60 * 1000);
+  }, [properties]);
+  
+  const lastImportCount = React.useMemo(() => {
+    if (!lastImportDate) return 0;
+    return properties.filter(p => new Date(p.created_date) >= lastImportDate).length;
+  }, [properties, lastImportDate]);
 
   const filteredProperties = activeProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||
@@ -157,11 +172,14 @@ export default function Browse() {
       selectedAmenities.every(amenity => 
         property.amenities?.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
       );
+    
+    const matchesLastImport = !lastImportOnly || 
+      (lastImportDate && new Date(property.created_date) >= lastImportDate);
 
     return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && 
            matchesBedrooms && matchesPrice && matchesCountry && matchesDistrict && 
            matchesAvailability && matchesPricePerSqm && matchesYearBuilt && 
-           matchesEnergyCert && matchesParking && matchesAmenities;
+           matchesEnergyCert && matchesParking && matchesAmenities && matchesLastImport;
   });
 
   const sortedProperties = [...filteredProperties].sort((a, b) => {
@@ -190,6 +208,7 @@ export default function Browse() {
     setEnergyCertificate("all");
     setParking("all");
     setSelectedAmenities([]);
+    setLastImportOnly(false);
     setCurrentPage(1);
   };
 
@@ -198,7 +217,8 @@ export default function Browse() {
     country !== "all" || district !== "all" || availability !== "all" ||
     pricePerSqmRange[0] > 0 || pricePerSqmRange[1] < 10000 ||
     yearBuiltRange[0] > 1900 || yearBuiltRange[1] < 2025 ||
-    energyCertificate !== "all" || parking !== "all" || selectedAmenities.length > 0;
+    energyCertificate !== "all" || parking !== "all" || selectedAmenities.length > 0 ||
+    lastImportOnly;
   
   const advancedFilterCount = [
     pricePerSqmRange[0] > 0 || pricePerSqmRange[1] < 10000,
@@ -210,7 +230,7 @@ export default function Browse() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities]);
+  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities, lastImportOnly]);
   
   const toggleAmenity = (amenity) => {
     setSelectedAmenities(prev => 
@@ -284,26 +304,35 @@ export default function Browse() {
                 {/* Quick Filter Tabs */}
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                   <Button 
-                    variant={listingType === "all" ? "default" : "outline"}
-                    onClick={() => setListingType("all")}
+                    variant={listingType === "all" && !lastImportOnly ? "default" : "outline"}
+                    onClick={() => { setListingType("all"); setLastImportOnly(false); }}
                     className="whitespace-nowrap"
                   >
                     Todos
                   </Button>
                   <Button 
                     variant={listingType === "sale" ? "default" : "outline"}
-                    onClick={() => setListingType("sale")}
+                    onClick={() => { setListingType("sale"); setLastImportOnly(false); }}
                     className="whitespace-nowrap"
                   >
                     🏷️ Comprar
                   </Button>
                   <Button 
                     variant={listingType === "rent" ? "default" : "outline"}
-                    onClick={() => setListingType("rent")}
+                    onClick={() => { setListingType("rent"); setLastImportOnly(false); }}
                     className="whitespace-nowrap"
                   >
                     🔑 Arrendar
                   </Button>
+                  {lastImportCount > 0 && (
+                    <Button 
+                      variant={lastImportOnly ? "default" : "outline"}
+                      onClick={() => setLastImportOnly(!lastImportOnly)}
+                      className="whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
+                    >
+                      ✨ Última Importação ({lastImportCount})
+                    </Button>
+                  )}
                 </div>
 
                 {/* Main Search */}
@@ -662,6 +691,12 @@ export default function Browse() {
                             <Badge variant="secondary" className="gap-1">
                               {availabilityLabels[availability]}
                               <X className="w-3 h-3 cursor-pointer" onClick={() => setAvailability("all")} />
+                            </Badge>
+                          )}
+                          {lastImportOnly && (
+                            <Badge variant="secondary" className="gap-1 bg-purple-100 text-purple-800">
+                              Última Importação
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setLastImportOnly(false)} />
                             </Badge>
                           )}
                           {energyCertificate !== "all" && (
