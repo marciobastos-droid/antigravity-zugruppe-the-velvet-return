@@ -1094,13 +1094,27 @@ IMPORTANTE:
 
         setProgress("A guardar imóveis...");
 
-        // Generate ref_ids for all properties
+        // Generate ref_ids for all properties - request exact count needed
+        const numProperties = propertiesWithTags.length;
         const { data: refData } = await base44.functions.invoke('generateRefId', { 
           entity_type: 'Property', 
-          count: propertiesWithTags.length 
+          count: numProperties
         });
-        const refIds = refData.ref_ids || [refData.ref_id];
+        
+        // Ensure we have an array of ref_ids
+        let refIds = [];
+        if (refData.ref_ids && Array.isArray(refData.ref_ids)) {
+          refIds = refData.ref_ids;
+        } else if (refData.ref_id) {
+          refIds = [refData.ref_id];
+        }
+        
+        // Validate we have enough ref_ids
+        if (refIds.length < numProperties) {
+          throw new Error(`Erro ao gerar referências: pedidos ${numProperties}, recebidos ${refIds.length}`);
+        }
 
+        // Create properties with unique ref_ids
         const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
           ...p,
           ref_id: refIds[index],
@@ -1114,6 +1128,9 @@ IMPORTANTE:
           internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
         }));
+        
+        // Log for debugging
+        console.log(`Creating ${numProperties} properties with ref_ids:`, refIds);
 
         const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
 
