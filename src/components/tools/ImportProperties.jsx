@@ -1665,23 +1665,43 @@ A IA extrai automaticamente todos os dados estruturados!`}
             </div>
           )}
           
-          <Button
-            onClick={importFromURL}
-            disabled={importing || !url}
-            className="w-full bg-slate-900 hover:bg-slate-800"
-          >
-            {importing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {progress}
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4 mr-2" />
-                Importar com IA
-              </>
-            )}
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={importFromURLWithGemini}
+              disabled={importing || !url}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {progress}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  IA Avançada
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={importFromURL}
+              disabled={importing || !url}
+              variant="outline"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ...
+                </>
+              ) : (
+                <>
+                  <Search className="w-4 h-4 mr-2" />
+                  IA Padrão
+                </>
+              )}
+            </Button>
+          </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-900 font-medium mb-1">🔒 Sistema Melhorado</p>
