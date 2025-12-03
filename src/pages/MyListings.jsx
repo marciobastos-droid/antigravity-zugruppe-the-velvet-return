@@ -121,6 +121,8 @@ export default function MyListings() {
   const [activeTab, setActiveTab] = useState("properties");
   const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "cards" : "table");
   const [filterLogic, setFilterLogic] = useState("AND");
+  const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
+  const [selectedDevelopment, setSelectedDevelopment] = useState("");
   
   const [filters, setFilters] = useState({
     search: "",
