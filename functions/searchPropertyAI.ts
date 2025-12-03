@@ -287,9 +287,38 @@ Deno.serve(async (req) => {
     // Extract images
     const images = extractImages(pageContent, url);
 
-    // Build a simpler, more robust prompt with strict JSON instructions
-    const prompt = pageType === 'listing' 
-      ? `Extrai APENAS os imóveis listados DIRETAMENTE nesta página. Portal: ${portal.name}
+    // Build prompts based on page type
+    let prompt;
+    
+    if (pageType === 'development') {
+      // Special prompt for development pages with unit tables
+      prompt = `Esta é uma página de um EMPREENDIMENTO imobiliário que lista várias UNIDADES/FRAÇÕES para venda.
+Portal: ${portal.name}
+URL: ${url}
+
+TEXTO DA PÁGINA:
+${textContent.substring(0, 22000)}
+
+INSTRUÇÕES CRÍTICAS:
+1. Esta página contém uma TABELA com várias unidades/apartamentos do MESMO empreendimento
+2. Extrai CADA LINHA da tabela como um imóvel separado
+3. Cada linha tem: Referência, Tipo (T1/T2/T3/T4), Área, Piso, Garagem, Preço
+4. O nome do empreendimento deve fazer parte do título de cada unidade
+5. Unidades marcadas como "Vendido" devem ser IGNORADAS (não extrair)
+6. Todas as unidades ficam na MESMA cidade/morada indicada na página
+
+IMPORTANTE: 
+- Extrai TODAS as unidades DISPONÍVEIS da tabela (não vendidas)
+- O external_id é a REFERÊNCIA da unidade (ex: LS05277-T1-42C)
+- bedrooms = número após o T (T1=1, T2=2, T3=3, T4=4)
+- Responde APENAS com JSON válido
+
+Campos por unidade: title, price (número), bedrooms (número), bathrooms (número), square_feet (área em número), city, state, property_type ("apartment"), listing_type ("sale"), external_id (referência), address
+
+FORMATO:
+{"properties":[{"title":"The Unique - Apartamento T1","price":445000,"bedrooms":1,"bathrooms":1,"square_feet":58.24,"city":"Aveiro","state":"Aveiro","property_type":"apartment","listing_type":"sale","external_id":"LS05277-T1-42C","address":"Cais da Fonte Nova"}]}`;
+    } else if (pageType === 'listing') {
+      prompt = `Extrai APENAS os imóveis listados DIRETAMENTE nesta página. Portal: ${portal.name}
 URL da página: ${url}
 
 TEXTO DA PÁGINA:
@@ -313,8 +342,9 @@ REGRAS CRÍTICAS - SEGUE À RISCA:
 Campos por imóvel: title, price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id
 
 FORMATO EXACTO:
-{"properties":[{"title":"Titulo","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123"}]}`
-      : `Extrai os dados deste imóvel. Portal: ${portal.name}
+{"properties":[{"title":"Titulo","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123"}]}`;
+    } else {
+      prompt = `Extrai os dados deste imóvel. Portal: ${portal.name}
 
 TEXTO:
 ${textContent.substring(0, 20000)}
@@ -329,6 +359,7 @@ Campos: title, description, property_type (apartment/house/land), listing_type (
 
 FORMATO EXACTO:
 {"title":"Titulo","description":"Descricao","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
+    }
 
     // Call Gemini API with JSON mode
     const geminiResponse = await fetch(
