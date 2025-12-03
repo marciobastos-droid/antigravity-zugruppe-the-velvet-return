@@ -78,6 +78,18 @@ function detectPageType(url) {
     return 'listing';
   }
   
+  // Luximos specific patterns
+  if (urlLower.includes('luximos.pt')) {
+    if (/\/imovel\/|\/property\/|\/pt\/[^\/]+\/[^\/]+\/\d+/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
+  // JLL specific patterns
+  if (urlLower.includes('jll.pt')) {
+    if (/\/imovel\/|\/property\/|\/propriedade\/|\/[^\/]+\/\d{5,}/.test(urlLower)) return 'detail';
+    return 'listing';
+  }
+  
   // Supercasa specific patterns
   if (urlLower.includes('supercasa.pt')) {
     if (/\/imovel\/\d|\/d\/\d/.test(urlLower)) return 'detail';
