@@ -125,6 +125,7 @@ export default function MyListings() {
   const [filterLogic, setFilterLogic] = useState("AND");
   const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
+  const [bulkPhotoDialogOpen, setBulkPhotoDialogOpen] = useState(false);
   
   const [filters, setFilters] = useState({
     search: "",
