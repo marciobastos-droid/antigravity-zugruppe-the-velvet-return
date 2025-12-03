@@ -706,26 +706,66 @@ Retorna APENAS o script completo de narração.`
             </DialogHeader>
             
             {youtubeResult ? (
-              <div className="space-y-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                  <p className="text-green-800 font-medium mb-2">✅ Vídeo publicado com sucesso!</p>
-                  <a 
-                    href={youtubeResult.videoUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    {youtubeResult.videoUrl}
-                  </a>
-                </div>
-                <Button 
-                  onClick={() => setYoutubeDialogOpen(false)}
-                  className="w-full"
-                >
-                  Fechar
-                </Button>
-              </div>
-            ) : (
+                                <div className="space-y-4">
+                                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                    <p className="text-green-800 font-medium mb-2">✅ Vídeo publicado com sucesso!</p>
+                                    <a 
+                                      href={youtubeResult.videoUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:underline text-sm"
+                                    >
+                                      {youtubeResult.videoUrl}
+                                    </a>
+                                  </div>
+                                  <Button 
+                                    onClick={() => setYoutubeDialogOpen(false)}
+                                    className="w-full"
+                                  >
+                                    Fechar
+                                  </Button>
+                                </div>
+                              ) : youtubeError ? (
+                                <div className="space-y-4">
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <p className="text-red-800 font-medium mb-2">❌ Erro ao publicar</p>
+                                    <p className="text-red-700 text-sm mb-3">{youtubeError.message}</p>
+                                    {youtubeError.actionUrl && (
+                                      <a 
+                                        href={youtubeError.actionUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                      >
+                                        {youtubeError.actionText}
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                      </a>
+                                    )}
+                                    {youtubeError.type === 'api_disabled' && (
+                                      <p className="text-xs text-red-600 mt-3">
+                                        Após ativar a API, aguarda alguns minutos e tenta novamente.
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant="outline"
+                                      onClick={() => setYoutubeDialogOpen(false)}
+                                      className="flex-1"
+                                    >
+                                      Fechar
+                                    </Button>
+                                    <Button 
+                                      onClick={() => { setYoutubeError(null); uploadToYoutube(); }}
+                                      className="flex-1 bg-red-600 hover:bg-red-700"
+                                    >
+                                      Tentar Novamente
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
               <div className="space-y-4">
                 <div>
                   <Label>Título do Vídeo</Label>
