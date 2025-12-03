@@ -854,6 +854,13 @@ export default function MyListings() {
           open={!!editingProperty}
           onOpenChange={(open) => !open && setEditingProperty(null)}
         />
+
+        {/* Bulk Photo Assign Dialog */}
+        <BulkPhotoAssign
+          open={bulkPhotoDialogOpen}
+          onOpenChange={setBulkPhotoDialogOpen}
+          selectedPropertyIds={selectedProperties}
+        />
         </>
         )}
       </div>
