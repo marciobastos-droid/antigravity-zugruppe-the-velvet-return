@@ -275,43 +275,105 @@ Retorna APENAS o script completo de narração.`
   };
 
   const uploadToYoutube = async () => {
-    if (!videoBlob) {
-      toast.error("Nenhum vídeo para publicar");
-      return;
-    }
+        if (!videoBlob) {
+          toast.error("Nenhum vídeo para publicar");
+          return;
+        }
 
-    setUploadingToYoutube(true);
-    setYoutubeResult(null);
+        setUploadingToYoutube(true);
+        setYoutubeResult(null);
+        setYoutubeError(null);
 
-    try {
-      // Convert blob to base64
-      const reader = new FileReader();
-      const videoBase64 = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(videoBlob);
-      });
+        try {
+          // Convert blob to base64
+          const reader = new FileReader();
+          const videoBase64 = await new Promise((resolve, reject) => {
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(videoBlob);
+          });
 
-      const response = await base44.functions.invoke('uploadToYoutube', {
-        videoBase64: videoBase64,
-        title: youtubeTitle,
-        description: youtubeDescription,
-        privacyStatus: youtubePrivacy
-      });
-      
-      if (response.data.error) {
-        throw new Error(response.data.details || response.data.error);
-      }
+          const response = await base44.functions.invoke('uploadToYoutube', {
+            videoBase64: videoBase64,
+            title: youtubeTitle,
+            description: youtubeDescription,
+            privacyStatus: youtubePrivacy
+          });
 
-      setYoutubeResult(response.data);
-      toast.success("Vídeo publicado no YouTube!");
-    } catch (error) {
-      console.error('YouTube upload error:', error);
-      toast.error("Erro ao publicar no YouTube: " + (error.message || "Erro desconhecido"));
-    }
+          if (response.data.error) {
+            // Parse error details for specific handling
+            let errorInfo = {
+              message: response.data.error,
+              type: 'unknown',
+              actionUrl: null,
+              actionText: null
+            };
 
-    setUploadingToYoutube(false);
-  };
+            try {
+              const details = typeof response.data.details === 'string' 
+                ? JSON.parse(response.data.details) 
+                : response.data.details;
+
+              const reason = details?.error?.errors?.[0]?.reason;
+              const errorMessage = details?.error?.message || response.data.error;
+
+              if (reason === 'accessNotConfigured' || errorMessage.includes('API v3 has not been used')) {
+                errorInfo = {
+                  message: 'A YouTube Data API v3 precisa de ser ativada no Google Cloud Console.',
+                  type: 'api_disabled',
+                  actionUrl: details?.error?.details?.find(d => d.activationUrl)?.activationUrl || 
+                            'https://console.developers.google.com/apis/api/youtube.googleapis.com/overview',
+                  actionText: 'Ativar YouTube API'
+                };
+              } else if (reason === 'youtubeSignupRequired') {
+                errorInfo = {
+                  message: 'É necessário criar um canal YouTube na conta Google associada.',
+                  type: 'no_channel',
+                  actionUrl: 'https://www.youtube.com/create_channel',
+                  actionText: 'Criar Canal YouTube'
+                };
+              } else if (reason === 'forbidden' || reason === 'insufficientPermissions') {
+                errorInfo = {
+                  message: 'Permissões insuficientes. Tenta reconectar a conta Google com permissões de YouTube.',
+                  type: 'permissions',
+                  actionUrl: null,
+                  actionText: null
+                };
+              } else if (reason === 'quotaExceeded') {
+                errorInfo = {
+                  message: 'Quota da API YouTube excedida. Tenta novamente mais tarde.',
+                  type: 'quota',
+                  actionUrl: null,
+                  actionText: null
+                };
+              } else {
+                errorInfo.message = errorMessage;
+              }
+            } catch (e) {
+              // Keep original error if parsing fails
+            }
+
+            setYoutubeError(errorInfo);
+            toast.error(errorInfo.message);
+            setUploadingToYoutube(false);
+            return;
+          }
+
+          setYoutubeResult(response.data);
+          toast.success("Vídeo publicado no YouTube!");
+        } catch (error) {
+          console.error('YouTube upload error:', error);
+          setYoutubeError({
+            message: error.message || "Erro desconhecido ao publicar",
+            type: 'unknown',
+            actionUrl: null,
+            actionText: null
+          });
+          toast.error("Erro ao publicar no YouTube");
+        }
+
+        setUploadingToYoutube(false);
+      };
 
   return (
     <div className="grid lg:grid-cols-3 gap-6">
