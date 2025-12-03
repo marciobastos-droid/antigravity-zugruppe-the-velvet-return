@@ -28,27 +28,23 @@ export const FILTER_TYPES = {
 // Componente para filtro de intervalo de datas
 function DateRangeFilter({ label, value, onChange }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Label className="text-xs font-medium text-slate-600">{label}</Label>
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Input
-            type="date"
-            value={value?.from || ""}
-            onChange={(e) => onChange({ ...value, from: e.target.value })}
-            className="text-sm"
-            placeholder="De"
-          />
-        </div>
-        <div className="flex-1">
-          <Input
-            type="date"
-            value={value?.to || ""}
-            onChange={(e) => onChange({ ...value, to: e.target.value })}
-            className="text-sm"
-            placeholder="Até"
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        <Input
+          type="date"
+          value={value?.from || ""}
+          onChange={(e) => onChange({ ...value, from: e.target.value })}
+          className="text-xs h-8 px-2"
+          placeholder="De"
+        />
+        <Input
+          type="date"
+          value={value?.to || ""}
+          onChange={(e) => onChange({ ...value, to: e.target.value })}
+          className="text-xs h-8 px-2"
+          placeholder="Até"
+        />
       </div>
     </div>
   );
