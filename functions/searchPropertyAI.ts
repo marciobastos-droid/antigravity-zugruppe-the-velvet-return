@@ -114,45 +114,48 @@ function safeParseJSON(text) {
   let cleaned = text
     .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
-    .replace(/[\x00-\x1F\x7F]/g, ' ')
+    .replace(/[\x00-\x1F\x7F]/g, ' ') // Remove control characters
     .trim();
-  
-  // Helper to fix common JSON issues
-  const fixJSON = (str) => {
-    return str
-      .replace(/,(\s*[}\]])/g, '$1')
-      .replace(/}(\s*){/g, '},$1{')
-      .replace(/"(\s*)"([a-zA-Z_])/g, '",$1"$2')
-      .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3')
-      .replace(/:\s*'([^']*)'/g, ':"$1"')
-      .replace(/,\s*"[^"]*$/g, '')
-      .replace(/,\s*$/g, '')
-      .replace(/[\x00-\x1F\x7F]/g, ' ')
-      .replace(/"\s*\n\s*"/g, '", "')
-      .replace(/:\s*,/g, ': null,')
-      .replace(/:\s*}/g, ': null}');
-  };
   
   // Strategy 1: Direct parse
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    console.log('[safeParseJSON] Direct parse failed');
+    console.log('[safeParseJSON] Direct parse failed:', e.message);
   }
   
-  // Strategy 2: Find JSON object and fix it
+  // Strategy 2: Find and parse JSON object with comprehensive fixes
   const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     let jsonStr = jsonMatch[0];
     
+    // Fix common JSON issues
+    const fixJSON = (str) => {
+      return str
+        // Fix trailing commas
+        .replace(/,(\s*[}\]])/g, '$1')
+        // Fix missing commas between properties
+        .replace(/}(\s*){/g, '},$1{')
+        .replace(/"(\s*)"([a-zA-Z_])/g, '",$1"$2')
+        // Fix unquoted keys
+        .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3')
+        // Fix single quotes to double quotes
+        .replace(/:\s*'([^']*)'/g, ':"$1"')
+        // Fix truncated strings (remove incomplete strings at end)
+        .replace(/,\s*"[^"]*$/g, '')
+        // Remove any remaining invalid characters
+        .replace(/[\x00-\x1F\x7F]/g, ' ');
+    };
+    
     try {
       return JSON.parse(fixJSON(jsonStr));
     } catch (e) {
-      console.log('[safeParseJSON] Fixed JSON parse failed');
+      console.log('[safeParseJSON] Fixed JSON parse failed:', e.message);
     }
     
-    // Strategy 3: Find balanced braces and truncate
+    // Strategy 3: Try to truncate at last valid closing brace
     try {
+      // Find balanced braces
       let depth = 0;
       let lastValidEnd = -1;
       let inString = false;
@@ -160,10 +163,12 @@ function safeParseJSON(text) {
       
       for (let i = 0; i < jsonStr.length; i++) {
         const char = jsonStr[i];
+        
         if (escaped) { escaped = false; continue; }
         if (char === '\\') { escaped = true; continue; }
         if (char === '"' && !escaped) { inString = !inString; continue; }
         if (inString) continue;
+        
         if (char === '{') depth++;
         else if (char === '}') {
           depth--;
@@ -172,75 +177,42 @@ function safeParseJSON(text) {
       }
       
       if (lastValidEnd > 0) {
-        const truncated = fixJSON(jsonStr.substring(0, lastValidEnd + 1));
-        return JSON.parse(truncated);
+        const truncated = jsonStr.substring(0, lastValidEnd + 1);
+        return JSON.parse(fixJSON(truncated));
       }
     } catch (e) {
-      console.log('[safeParseJSON] Truncated parse failed');
+      console.log('[safeParseJSON] Truncated parse failed:', e.message);
     }
-    
-    // Strategy 4: Extract complete property objects one by one
-    try {
-      const properties = [];
-      let bracketDepth = 0;
-      let currentObj = '';
-      let inStr = false;
-      let esc = false;
-      
-      for (let i = 0; i < jsonStr.length; i++) {
-        const char = jsonStr[i];
-        if (esc) { esc = false; currentObj += char; continue; }
-        if (char === '\\') { esc = true; currentObj += char; continue; }
-        if (char === '"') { inStr = !inStr; currentObj += char; continue; }
-        
-        if (!inStr) {
-          if (char === '{') {
-            if (bracketDepth > 0) currentObj += char;
-            bracketDepth++;
-          } else if (char === '}') {
-            bracketDepth--;
-            if (bracketDepth === 1) {
-              currentObj += char;
-              try {
-                const obj = JSON.parse(fixJSON(currentObj));
-                if (obj.title || obj.price || obj.city) {
-                  properties.push(obj);
-                }
-              } catch (e) {}
-              currentObj = '';
-            } else if (bracketDepth > 0) {
-              currentObj += char;
-            }
-          } else if (bracketDepth > 1) {
-            currentObj += char;
-          }
-        } else if (bracketDepth > 0) {
-          currentObj += char;
-        }
-      }
-      
-      if (properties.length > 0) {
-        console.log(`[safeParseJSON] Extracted ${properties.length} properties`);
-        return { properties };
-      }
-    } catch (e) {}
   }
   
-  // Strategy 5: Regex extraction
+  // Strategy 4: Extract properties array manually - object by object
   try {
     const properties = [];
-    const propRegex = /"title"\s*:\s*"([^"]+)"[^}]*?"price"\s*:\s*(\d+)/g;
+    const objRegex = /\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g;
     let match;
-    while ((match = propRegex.exec(cleaned)) !== null) {
-      properties.push({ title: match[1], price: parseInt(match[2]) });
+    
+    while ((match = objRegex.exec(cleaned)) !== null) {
+      try {
+        let objStr = match[0]
+          .replace(/,(\s*[}\]])/g, '$1')
+          .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3');
+        
+        const obj = JSON.parse(objStr);
+        if (obj.title || obj.price || obj.city) {
+          properties.push(obj);
+        }
+      } catch (e) {
+        // Skip invalid objects
+      }
     }
+    
     if (properties.length > 0) {
-      console.log(`[safeParseJSON] Regex extracted ${properties.length} properties`);
+      console.log(`[safeParseJSON] Extracted ${properties.length} properties manually`);
       return { properties };
     }
   } catch (e) {}
   
-  // Strategy 6: Single property extraction
+  // Strategy 5: Last resort - try to extract key-value pairs
   try {
     const titleMatch = cleaned.match(/"title"\s*:\s*"([^"]+)"/);
     const priceMatch = cleaned.match(/"price"\s*:\s*(\d+)/);
@@ -251,6 +223,8 @@ function safeParseJSON(text) {
       if (titleMatch) property.title = titleMatch[1];
       if (priceMatch) property.price = parseInt(priceMatch[1]);
       if (cityMatch) property.city = cityMatch[1];
+      
+      console.log('[safeParseJSON] Extracted single property from key-values');
       return { properties: [property] };
     }
   } catch (e) {}
