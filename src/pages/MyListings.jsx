@@ -170,6 +170,12 @@ export default function MyListings() {
     queryFn: () => base44.entities.Development.list('name')
   });
 
+  // Buscar agentes
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents'],
+    queryFn: () => base44.entities.Agent.list('full_name')
+  });
+
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['myProperties', user?.email],
     queryFn: async () => {
