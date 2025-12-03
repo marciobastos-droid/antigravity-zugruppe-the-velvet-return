@@ -1297,15 +1297,35 @@ IMPORTANTE:
                          `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
         };
 
-        const created = await base44.entities.Property.create(propertyToCreate);
+        // Verificar se já existe um imóvel com este ref_id
+        const existingProperties = await base44.entities.Property.filter({ ref_id: propertyToCreate.ref_id });
+        
+        let result;
+        let wasUpdated = false;
+        
+        if (existingProperties.length > 0) {
+          // Atualizar imóvel existente
+          const existing = existingProperties[0];
+          const { ref_id, ...updateData } = propertyToCreate;
+          await base44.entities.Property.update(existing.id, updateData);
+          result = { ...existing, ...updateData };
+          wasUpdated = true;
+          console.log(`[ImportProperties] ATUALIZADO: ${propertyToCreate.ref_id} - ${propertyToCreate.title}`);
+        } else {
+          // Criar novo imóvel
+          result = await base44.entities.Property.create(propertyToCreate);
+          console.log(`[ImportProperties] CRIADO: ${propertyToCreate.ref_id} - ${propertyToCreate.title}`);
+        }
 
         setResults({
           success: true,
           count: 1,
-          properties: [created],
+          properties: [result],
           portal: portal,
-          stats: { withImages: created.images?.length > 0 ? 1 : 0, totalImages: created.images?.length || 0 },
-          message: `✅ Imóvel importado!\n📸 ${created.images?.length || 0} imagens encontradas`
+          stats: { withImages: result.images?.length > 0 ? 1 : 0, totalImages: result.images?.length || 0 },
+          message: wasUpdated 
+            ? `🔄 Imóvel atualizado!\n📸 ${result.images?.length || 0} imagens`
+            : `✅ Imóvel criado!\n📸 ${result.images?.length || 0} imagens`
         });
 
         await queryClient.invalidateQueries({ queryKey: ['properties'] });
