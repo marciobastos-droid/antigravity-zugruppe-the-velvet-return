@@ -31,7 +31,8 @@ export default function VideoMaker() {
   const [youtubeDescription, setYoutubeDescription] = React.useState("");
   const [youtubePrivacy, setYoutubePrivacy] = React.useState("private");
   const [uploadingToYoutube, setUploadingToYoutube] = React.useState(false);
-  const [youtubeResult, setYoutubeResult] = React.useState(null);
+      const [youtubeResult, setYoutubeResult] = React.useState(null);
+      const [youtubeError, setYoutubeError] = React.useState(null);
   const canvasRef = React.useRef(null);
 
   const handleFileUpload = async (e) => {
