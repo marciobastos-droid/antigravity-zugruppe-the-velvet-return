@@ -240,6 +240,24 @@ export default function MyListings() {
     },
   });
 
+  const bulkAssignDevelopmentMutation = useMutation({
+    mutationFn: async ({ ids, developmentId, developmentName }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { 
+          development_id: developmentId,
+          development_name: developmentName
+        })
+      ));
+    },
+    onSuccess: (_, { ids, developmentName }) => {
+      toast.success(`${ids.length} imóveis atribuídos a "${developmentName}"`);
+      setSelectedProperties([]);
+      setAssignDevelopmentOpen(false);
+      setSelectedDevelopment("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
   const duplicatePropertyMutation = useMutation({
     mutationFn: async (property) => {
       const { id, created_date, updated_date, created_by, ...propertyData } = property;
