@@ -76,7 +76,7 @@ export default function PropertiesTable({
     {
       key: "title",
       label: "Título",
-      minWidth: "200px",
+      minWidth: "180px",
       alwaysVisible: true,
       render: (val, property) => (
         <div className="max-w-xs">
@@ -90,6 +90,17 @@ export default function PropertiesTable({
           </div>
         </div>
       )
+    },
+    {
+      key: "development_name",
+      label: "Empreendimento",
+      minWidth: "120px",
+      render: (val) => val ? (
+        <Badge variant="outline" className="text-xs truncate max-w-[120px]">
+          <Building2 className="w-3 h-3 mr-1 flex-shrink-0" />
+          <span className="truncate">{val}</span>
+        </Badge>
+      ) : <span className="text-slate-400">-</span>
     },
     {
       key: "price",
