@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, Sparkles, FileBarChart } from "lucide-react";
+import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, Sparkles, FileBarChart, Shield } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
@@ -54,6 +54,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
     { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
+    { name: "Admin", path: createPageUrl("AdminPanel"), icon: Shield, id: "nav-admin", visibility: ['admin'], pagePermKey: 'admin' },
     ];
 
   // Verificar se utilizador tem permissão para uma página específica
