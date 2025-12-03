@@ -470,10 +470,10 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
                       <SelectContent>
                         <SelectItem value="new">Novo</SelectItem>
                         <SelectItem value="contacted">Contactado</SelectItem>
-                        <SelectItem value="qualified">Qualificado</SelectItem>
+                        <SelectItem value="visit_scheduled">Visita Agendada</SelectItem>
                         <SelectItem value="proposal">Proposta</SelectItem>
                         <SelectItem value="negotiation">Negociação</SelectItem>
-                        <SelectItem value="won">Ganho</SelectItem>
+                        <SelectItem value="won">Fechado ✓</SelectItem>
                         <SelectItem value="lost">Perdido</SelectItem>
                       </SelectContent>
                     </Select>
@@ -492,6 +492,7 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
                         <SelectItem value="low">Baixa</SelectItem>
                         <SelectItem value="medium">Média</SelectItem>
                         <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="urgent">🔴 Urgente</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
