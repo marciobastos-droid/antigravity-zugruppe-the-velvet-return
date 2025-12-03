@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgentNames } from "../components/common/useAgentNames";
 import { toast } from "sonner";
 import ReportsTab from "../components/dashboard/ReportsTab";
+import PropertiesOverviewWidget from "../components/dashboard/PropertiesOverviewWidget";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
