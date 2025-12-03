@@ -110,94 +110,113 @@ function extractImages(html, baseUrl) {
 function safeParseJSON(text) {
   if (!text || typeof text !== 'string') return null;
   
-  // Clean the text
+  // Clean the text - remove markdown code blocks
   let cleaned = text
-    .replace(/```json\n?/gi, '')
-    .replace(/```\n?/g, '')
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
     .trim();
   
-  // Try direct parse first
+  // Strategy 1: Direct parse
   try {
     return JSON.parse(cleaned);
-  } catch (e) {
-    // Continue to fallbacks
+  } catch (e) {}
+  
+  // Strategy 2: Find and parse JSON object
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch (e) {}
+    
+    // Strategy 3: Fix common issues
+    let fixed = jsonMatch[0]
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+      .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3')
+      .replace(/:\s*'([^']*)'/g, ':"$1"')
+      .replace(/[\x00-\x1F]/g, ' ');
+    
+    try {
+      return JSON.parse(fixed);
+    } catch (e) {}
   }
   
-  // Try to extract JSON object from text
-  const jsonObjectMatch = cleaned.match(/\{[\s\S]*\}/);
-  if (jsonObjectMatch) {
-    let jsonStr = jsonObjectMatch[0];
-    
-    // Try direct parse of extracted JSON
-    try {
-      return JSON.parse(jsonStr);
-    } catch (e2) {
-      // Try fixing common issues
-    }
-    
-    // Fix common JSON issues
-    jsonStr = jsonStr
-      // Remove trailing commas before } or ]
-      .replace(/,(\s*[}\]])/g, '$1')
-      // Fix unquoted keys
-      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
-      // Fix single quotes to double quotes (but not inside strings)
-      .replace(/'/g, '"')
-      // Remove control characters
-      .replace(/[\x00-\x1F\x7F]/g, ' ')
-      // Fix escaped newlines in strings
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-      .replace(/\t/g, '\\t');
-    
-    try {
-      return JSON.parse(jsonStr);
-    } catch (e3) {
-      // Try more aggressive cleaning
-    }
-    
-    // More aggressive: try to rebuild properties array
-    const propertiesMatch = cleaned.match(/"properties"\s*:\s*\[([\s\S]*)\]/);
-    if (propertiesMatch) {
-      try {
-        // Try to parse individual property objects
-        const propsContent = propertiesMatch[1];
-        const propertyMatches = propsContent.match(/\{[^{}]*\}/g);
-        if (propertyMatches) {
-          const properties = [];
-          for (const propStr of propertyMatches) {
+  // Strategy 4: Extract properties array manually
+  try {
+    const propsMatch = cleaned.match(/"properties"\s*:\s*\[/);
+    if (propsMatch) {
+      // Find all individual property objects using balanced braces
+      const properties = [];
+      let depth = 0;
+      let start = -1;
+      let inString = false;
+      let escaped = false;
+      
+      for (let i = 0; i < cleaned.length; i++) {
+        const char = cleaned[i];
+        
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        
+        if (char === '\\') {
+          escaped = true;
+          continue;
+        }
+        
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        
+        if (inString) continue;
+        
+        if (char === '{') {
+          if (depth === 0) start = i;
+          depth++;
+        } else if (char === '}') {
+          depth--;
+          if (depth === 0 && start !== -1) {
+            const objStr = cleaned.substring(start, i + 1);
             try {
-              const fixedProp = propStr
-                .replace(/,(\s*})/g, '$1')
-                .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
-                .replace(/'/g, '"');
-              const prop = JSON.parse(fixedProp);
-              if (prop && typeof prop === 'object') {
-                properties.push(prop);
+              const obj = JSON.parse(objStr);
+              if (obj.title || obj.price) {
+                properties.push(obj);
               }
-            } catch (propError) {
-              // Skip malformed property
+            } catch (e) {
+              // Try to fix and parse
+              try {
+                const fixedObj = objStr
+                  .replace(/,\s*}/g, '}')
+                  .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3');
+                const obj = JSON.parse(fixedObj);
+                if (obj.title || obj.price) {
+                  properties.push(obj);
+                }
+              } catch (e2) {}
             }
-          }
-          if (properties.length > 0) {
-            return { properties };
+            start = -1;
           }
         }
-      } catch (e4) {
-        // Continue
+      }
+      
+      if (properties.length > 0) {
+        return { properties };
       }
     }
-  }
+  } catch (e) {}
   
-  // Last resort: try to find any valid JSON object
+  // Strategy 5: Single property extraction
   try {
-    const simpleMatch = cleaned.match(/\{[^{}]+\}/);
-    if (simpleMatch) {
-      return JSON.parse(simpleMatch[0]);
+    const singleMatch = cleaned.match(/\{[^{}]+\}/);
+    if (singleMatch) {
+      const fixed = singleMatch[0]
+        .replace(/,\s*}/g, '}')
+        .replace(/([{,]\s*)([a-zA-Z_]\w*)(\s*:)/g, '$1"$2"$3');
+      return JSON.parse(fixed);
     }
-  } catch (e5) {
-    // Give up
-  }
+  } catch (e) {}
   
   return null;
 }
