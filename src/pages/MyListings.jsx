@@ -697,6 +697,61 @@ export default function MyListings() {
                     <Building2 className="w-4 h-4 mr-2" />
                     Criar Empreendimento
                   </Button>
+                  <Popover open={assignAgentOpen} onOpenChange={setAssignAgentOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <Users className="w-4 h-4 mr-2" />
+                        Atribuir Agente
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" align="end">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-slate-900">Selecionar Agente</p>
+                        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Escolher agente..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {agents.filter(a => a.is_active !== false).map((agent) => (
+                              <SelectItem key={agent.id} value={agent.id}>
+                                {agent.full_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setAssignAgentOpen(false);
+                              setSelectedAgent("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            disabled={!selectedAgent || bulkAssignAgentMutation.isPending}
+                            onClick={() => {
+                              const agent = agents.find(a => a.id === selectedAgent);
+                              if (agent) {
+                                bulkAssignAgentMutation.mutate({
+                                  ids: selectedProperties,
+                                  agentId: agent.id,
+                                  agentName: agent.full_name
+                                });
+                              }
+                            }}
+                          >
+                            {bulkAssignAgentMutation.isPending ? "A atribuir..." : "Atribuir"}
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Popover open={assignDevelopmentOpen} onOpenChange={setAssignDevelopmentOpen}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="bg-white">
