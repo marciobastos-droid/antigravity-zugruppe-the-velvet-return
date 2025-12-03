@@ -287,12 +287,12 @@ export default function Browse() {
       {/* Hero Section */}
       <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')] bg-cover bg-center opacity-20" />
-        <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-8 sm:py-12 md:py-16 lg:py-24">
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-4">
               Encontre o Imóvel Perfeito
             </h1>
-            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-300 max-w-2xl mx-auto px-4">
               {activeProperties.length} imóveis disponíveis para si
             </p>
           </div>
@@ -300,84 +300,86 @@ export default function Browse() {
           {/* Search Card */}
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-2xl border-0">
-              <CardContent className="p-4 md:p-6">
+              <CardContent className="p-3 sm:p-4 md:p-6">
                 {/* Quick Filter Tabs */}
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4 overflow-x-auto pb-2 -mx-1 px-1">
                   <Button 
                     variant={listingType === "all" && !lastImportOnly ? "default" : "outline"}
                     onClick={() => { setListingType("all"); setLastImportOnly(false); }}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap text-xs sm:text-sm h-8 sm:h-10 px-2.5 sm:px-4"
                   >
                     Todos
                   </Button>
                   <Button 
                     variant={listingType === "sale" ? "default" : "outline"}
                     onClick={() => { setListingType("sale"); setLastImportOnly(false); }}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap text-xs sm:text-sm h-8 sm:h-10 px-2.5 sm:px-4"
                   >
-                    🏷️ Comprar
+                    <span className="hidden sm:inline">🏷️ </span>Comprar
                   </Button>
                   <Button 
                     variant={listingType === "rent" ? "default" : "outline"}
                     onClick={() => { setListingType("rent"); setLastImportOnly(false); }}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap text-xs sm:text-sm h-8 sm:h-10 px-2.5 sm:px-4"
                   >
-                    🔑 Arrendar
+                    <span className="hidden sm:inline">🔑 </span>Arrendar
                   </Button>
                   {lastImportCount > 0 && (
                     <Button 
                       variant={lastImportOnly ? "default" : "outline"}
                       onClick={() => setLastImportOnly(!lastImportOnly)}
-                      className="whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
+                      className="whitespace-nowrap text-xs sm:text-sm h-8 sm:h-10 px-2.5 sm:px-4 bg-purple-600 hover:bg-purple-700 text-white border-purple-600"
                     >
-                      ✨ Última Importação ({lastImportCount})
+                      <span className="hidden sm:inline">✨ </span>Última ({lastImportCount})
                     </Button>
                   )}
                 </div>
 
                 {/* Main Search */}
-                <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 sm:w-5 h-4 sm:h-5" />
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Pesquisar por localização, título..."
-                      className="pl-12 h-12 text-lg border-slate-200"
+                      placeholder="Pesquisar..."
+                      className="pl-9 sm:pl-12 h-10 sm:h-12 text-sm sm:text-base lg:text-lg border-slate-200"
                     />
                   </div>
-                  <Select value={city} onValueChange={setCity}>
-                    <SelectTrigger className="w-full md:w-48 h-12">
-                      <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                      <SelectValue placeholder="Cidade" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as Cidades</SelectItem>
-                      {allCities.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button 
-                    onClick={() => setShowFilters(!showFilters)}
-                    variant="outline"
-                    className="h-12 gap-2"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    <span className="hidden md:inline">Filtros</span>
-                    {hasActiveFilters && (
-                      <Badge className="bg-blue-600 text-white ml-1">
-                        {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 2000000].filter(Boolean).length}
-                      </Badge>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Select value={city} onValueChange={setCity}>
+                      <SelectTrigger className="flex-1 sm:w-36 md:w-48 h-10 sm:h-12 text-sm">
+                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-slate-400 flex-shrink-0" />
+                        <SelectValue placeholder="Cidade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as Cidades</SelectItem>
+                        {allCities.map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button 
+                      onClick={() => setShowFilters(!showFilters)}
+                      variant="outline"
+                      className="h-10 sm:h-12 gap-1.5 sm:gap-2 px-3 sm:px-4"
+                    >
+                      <SlidersHorizontal className="w-4 h-4" />
+                      <span className="hidden sm:inline">Filtros</span>
+                      {hasActiveFilters && (
+                        <Badge className="bg-blue-600 text-white ml-0.5 sm:ml-1 text-xs">
+                          {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 2000000].filter(Boolean).length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Extended Filters */}
                 {showFilters && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-200 space-y-3 sm:space-y-4">
                     {/* Row 1: Natureza, Quartos, Negócio, Disponibilidade */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                       <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">Natureza</label>
                         <Select value={propertyType} onValueChange={setPropertyType}>
@@ -440,7 +442,7 @@ export default function Browse() {
                     </div>
 
                     {/* Row 2: País, Distrito, Concelho */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                       <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">País</label>
                         <Select value={country} onValueChange={setCountry}>
@@ -758,35 +760,35 @@ export default function Browse() {
       )}
 
       {/* Results Section */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 md:py-8">
         {/* Results Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-slate-900">
               {filteredProperties.length} imóveis encontrados
             </h2>
             {hasActiveFilters && (
-              <p className="text-sm text-slate-600">Com os filtros aplicados</p>
+              <p className="text-xs sm:text-sm text-slate-600">Com os filtros aplicados</p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Ordenar por" />
+              <SelectTrigger className="w-32 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="recent">Mais Recentes</SelectItem>
-                <SelectItem value="price_asc">Preço: Menor → Maior</SelectItem>
-                <SelectItem value="price_desc">Preço: Maior → Menor</SelectItem>
+                <SelectItem value="price_asc">Preço ↑</SelectItem>
+                <SelectItem value="price_desc">Preço ↓</SelectItem>
                 <SelectItem value="area">Maior Área</SelectItem>
               </SelectContent>
             </Select>
-            <div className="hidden md:flex border rounded-lg overflow-hidden">
+            <div className="hidden sm:flex border rounded-lg overflow-hidden">
               <Button 
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
-                className="rounded-none"
+                className="rounded-none h-9 sm:h-10 px-2.5"
               >
                 <Grid3X3 className="w-4 h-4" />
               </Button>
@@ -794,7 +796,7 @@ export default function Browse() {
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("list")}
-                className="rounded-none"
+                className="rounded-none h-9 sm:h-10 px-2.5"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -806,8 +808,8 @@ export default function Browse() {
         {paginatedProperties.length > 0 ? (
           <>
             <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-              : "space-y-4"
+              ? "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-5"
+              : "space-y-3 sm:space-y-4"
             }>
               {paginatedProperties.map(property => (
                 viewMode === "grid" 
@@ -918,10 +920,10 @@ function PropertyCardCompact({ property, featured }) {
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
+      className="group bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] sm:aspect-[4/3] overflow-hidden bg-slate-100">
         {!imgError && images[imgIndex] ? (
           <img
             src={images[imgIndex]}
@@ -949,60 +951,60 @@ function PropertyCardCompact({ property, featured }) {
         )}
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1.5 sm:gap-2">
           {featured && (
-            <Badge className="bg-amber-400 text-slate-900 border-0">
-              <Star className="w-3 h-3 mr-1" />
-              Destaque
+            <Badge className="bg-amber-400 text-slate-900 border-0 text-xs px-1.5 sm:px-2 py-0.5">
+              <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3 mr-0.5 sm:mr-1" />
+              <span className="hidden sm:inline">Destaque</span>
             </Badge>
           )}
-          <Badge className="bg-white/95 text-slate-800 border-0">
-            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+          <Badge className="bg-white/95 text-slate-800 border-0 text-xs px-1.5 sm:px-2 py-0.5">
+            {property.listing_type === 'sale' ? 'Venda' : 'Arrend.'}
           </Badge>
         </div>
 
         {/* Price */}
-        <div className="absolute bottom-3 right-3">
-          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg font-bold">
+        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg font-bold text-sm sm:text-base">
             €{property.price?.toLocaleString()}
-            {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+            {property.listing_type === 'rent' && <span className="text-[10px] sm:text-xs font-normal">/mês</span>}
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
+      <div className="p-3 sm:p-4">
+        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-0.5 sm:mb-1 text-sm sm:text-base">
           {property.title}
         </h3>
-        <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
-          <MapPin className="w-3.5 h-3.5" />
-          {property.city}
+        <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mb-2 sm:mb-3">
+          <MapPin className="w-3 sm:w-3.5 h-3 sm:h-3.5 flex-shrink-0" />
+          <span className="truncate">{property.city}</span>
         </p>
         
-        <div className="flex items-center gap-4 text-sm text-slate-600">
+        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600">
           {property.bedrooms > 0 && (
-            <span className="flex items-center gap-1">
-              <Bed className="w-4 h-4" />
+            <span className="flex items-center gap-0.5 sm:gap-1">
+              <Bed className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
               T{property.bedrooms}
             </span>
           )}
           {property.bathrooms > 0 && (
-            <span className="flex items-center gap-1">
-              <Bath className="w-4 h-4" />
+            <span className="flex items-center gap-0.5 sm:gap-1">
+              <Bath className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
               {property.bathrooms}
             </span>
           )}
           {(property.useful_area || property.square_feet) > 0 && (
-            <span className="flex items-center gap-1">
-              <Maximize className="w-4 h-4" />
+            <span className="flex items-center gap-0.5 sm:gap-1">
+              <Maximize className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
               {property.useful_area || property.square_feet}m²
             </span>
           )}
         </div>
 
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <Badge variant="outline" className="text-xs">
+        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100">
+          <Badge variant="outline" className="text-[10px] sm:text-xs">
             {propertyTypeLabels[property.property_type] || property.property_type}
           </Badge>
         </div>
@@ -1024,10 +1026,10 @@ function PropertyCardList({ property }) {
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
+      className="group flex flex-col sm:flex-row bg-white rounded-lg sm:rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
     >
       {/* Image */}
-      <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
+      <div className="relative w-full sm:w-48 md:w-64 lg:w-72 h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-slate-100">
         {!imgError && image ? (
           <img
             src={image}
@@ -1046,57 +1048,57 @@ function PropertyCardList({ property }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-5 flex flex-col justify-between">
+      <div className="flex-1 p-3 sm:p-4 md:p-5 flex flex-col justify-between">
         <div>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                 {property.title}
               </h3>
-              <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                <MapPin className="w-4 h-4" />
-                {property.city}{property.address && `, ${property.address}`}
+              <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mt-0.5 sm:mt-1">
+                <MapPin className="w-3.5 sm:w-4 h-3.5 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{property.city}{property.address && `, ${property.address}`}</span>
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-slate-900">
+            <div className="text-left sm:text-right flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">
                 €{property.price?.toLocaleString()}
               </div>
               {property.listing_type === 'rent' && (
-                <span className="text-sm text-slate-500">/mês</span>
+                <span className="text-xs sm:text-sm text-slate-500">/mês</span>
               )}
             </div>
           </div>
           
           {property.description && (
-            <p className="text-sm text-slate-600 mt-3 line-clamp-2">
+            <p className="text-xs sm:text-sm text-slate-600 mt-2 sm:mt-3 line-clamp-2 hidden sm:block">
               {property.description}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-5 text-sm text-slate-600">
+        <div className="flex items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600">
             {property.bedrooms > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Bed className="w-4 h-4" />
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Bed className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 T{property.bedrooms}
               </span>
             )}
             {property.bathrooms > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Bath className="w-4 h-4" />
-                {property.bathrooms} WC
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Bath className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                {property.bathrooms}
               </span>
             )}
             {(property.useful_area || property.square_feet) > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Maximize className="w-4 h-4" />
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Maximize className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 {property.useful_area || property.square_feet}m²
               </span>
             )}
           </div>
-          <Badge variant="outline">
+          <Badge variant="outline" className="text-[10px] sm:text-xs">
             {propertyTypeLabels[property.property_type] || property.property_type}
           </Badge>
         </div>
