@@ -272,7 +272,8 @@ Retorna APENAS o script completo de narração.`
     setYoutubeTitle(`Imóvel - ${new Date().toLocaleDateString('pt-PT')}`);
     setYoutubeDescription(generatedAudioText || "Vídeo de apresentação de imóvel criado com ZuGruppe.");
     setYoutubeResult(null);
-    setYoutubeDialogOpen(true);
+              setYoutubeError(null);
+              setYoutubeDialogOpen(true);
   };
 
   const uploadToYoutube = async () => {
