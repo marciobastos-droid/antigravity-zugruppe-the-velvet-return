@@ -377,7 +377,26 @@ FORMATO EXACTO:
 
     // Handle listing page
     if (pageType === 'listing' && parsedData.properties) {
-      const properties = parsedData.properties.map(p => ({
+      // Filter out properties that likely don't belong to the main listing
+      const validProperties = parsedData.properties.filter(p => {
+        // Must have a price
+        if (!p.price || p.price <= 0) return false;
+        // Must have a title with some substance
+        if (!p.title || p.title.length < 5) return false;
+        // Must have location info
+        if (!p.city && !p.state) return false;
+        // Filter out obvious non-property entries
+        const titleLower = (p.title || '').toLowerCase();
+        if (titleLower.includes('publicidade') || 
+            titleLower.includes('patrocinado') ||
+            titleLower.includes('anúncio') ||
+            titleLower.includes('banner')) {
+          return false;
+        }
+        return true;
+      });
+      
+      const properties = validProperties.map(p => ({
         ...p,
         source_url: url,
         images: [],
