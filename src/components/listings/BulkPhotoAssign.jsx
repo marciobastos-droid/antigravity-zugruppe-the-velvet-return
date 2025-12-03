@@ -198,11 +198,18 @@ export default function BulkPhotoAssign({ open, onOpenChange, selectedPropertyId
                     className={`flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer ${
                       selectedProperties.includes(property.id) ? "bg-blue-50" : ""
                     }`}
-                    onClick={() => toggleProperty(property.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleProperty(property.id);
+                    }}
                   >
                     <Checkbox
                       checked={selectedProperties.includes(property.id)}
-                      onCheckedChange={() => toggleProperty(property.id)}
+                      onCheckedChange={(checked) => {
+                        toggleProperty(property.id);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
                     />
                     {property.images?.[0] ? (
                       <img
