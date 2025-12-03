@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Eye, Edit, Trash2, Star, Phone, Mail, MapPin, Euro, 
-  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake, UserCheck, MessageCircle
+  Calendar, User, Building2, Target, Flame, ThermometerSun, Snowflake, UserCheck, MessageCircle, CheckCircle, Circle
 } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -64,7 +64,8 @@ export default function OpportunitiesTable({
   onEdit,
   onDelete,
   onToggleImportant,
-  onAssign
+  onAssign,
+  onToggleRead
 }) {
   const { getAgentName, getAgentOptions } = useAgentNames();
   const agentOptions = getAgentOptions();
@@ -327,6 +328,28 @@ export default function OpportunitiesTable({
       render: (val) => val ? format(new Date(val), "dd/MM/yy") : '-'
     },
     {
+      key: "is_read",
+      label: "Lida",
+      minWidth: "80px",
+      render: (val, opp) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={`h-8 w-8 p-0 ${val ? 'text-green-600' : 'text-slate-400'}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleRead?.(opp);
+          }}
+        >
+          {val ? (
+            <CheckCircle className="w-5 h-5 fill-green-100" />
+          ) : (
+            <Circle className="w-5 h-5" />
+          )}
+        </Button>
+      )
+    },
+    {
       key: "converted",
       label: "Convertido",
       minWidth: "100px",
@@ -376,7 +399,7 @@ export default function OpportunitiesTable({
 
   const defaultVisibleColumns = [
     "buyer_name", "lead_type", "status", "qualification_status", 
-    "estimated_value", "probability", "buyer_phone", "assigned_to", "created_date", "converted", "actions"
+    "estimated_value", "probability", "buyer_phone", "assigned_to", "created_date", "is_read", "converted", "actions"
   ];
 
   // Pre-sort data by created_date (desc) then alphabetically by name
