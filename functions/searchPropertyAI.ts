@@ -108,39 +108,98 @@ function extractImages(html, baseUrl) {
 
 // Safe JSON parse with multiple fallback strategies
 function safeParseJSON(text) {
+  if (!text || typeof text !== 'string') return null;
+  
   // Clean the text
   let cleaned = text
-    .replace(/```json\n?/g, '')
+    .replace(/```json\n?/gi, '')
     .replace(/```\n?/g, '')
     .trim();
   
-  // Try direct parse
+  // Try direct parse first
   try {
     return JSON.parse(cleaned);
   } catch (e) {
-    // Try to find JSON object/array in the text
-    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        return JSON.parse(jsonMatch[0]);
-      } catch (e2) {
-        // Continue to other strategies
-      }
+    // Continue to fallbacks
+  }
+  
+  // Try to extract JSON object from text
+  const jsonObjectMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonObjectMatch) {
+    let jsonStr = jsonObjectMatch[0];
+    
+    // Try direct parse of extracted JSON
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e2) {
+      // Try fixing common issues
     }
     
-    // Try to fix common issues
-    cleaned = cleaned
-      .replace(/,\s*}/g, '}')
-      .replace(/,\s*]/g, ']')
+    // Fix common JSON issues
+    jsonStr = jsonStr
+      // Remove trailing commas before } or ]
+      .replace(/,(\s*[}\]])/g, '$1')
+      // Fix unquoted keys
+      .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+      // Fix single quotes to double quotes (but not inside strings)
       .replace(/'/g, '"')
-      .replace(/(\w+):/g, '"$1":');
+      // Remove control characters
+      .replace(/[\x00-\x1F\x7F]/g, ' ')
+      // Fix escaped newlines in strings
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
     
     try {
-      return JSON.parse(cleaned);
+      return JSON.parse(jsonStr);
     } catch (e3) {
-      return null;
+      // Try more aggressive cleaning
+    }
+    
+    // More aggressive: try to rebuild properties array
+    const propertiesMatch = cleaned.match(/"properties"\s*:\s*\[([\s\S]*)\]/);
+    if (propertiesMatch) {
+      try {
+        // Try to parse individual property objects
+        const propsContent = propertiesMatch[1];
+        const propertyMatches = propsContent.match(/\{[^{}]*\}/g);
+        if (propertyMatches) {
+          const properties = [];
+          for (const propStr of propertyMatches) {
+            try {
+              const fixedProp = propStr
+                .replace(/,(\s*})/g, '$1')
+                .replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3')
+                .replace(/'/g, '"');
+              const prop = JSON.parse(fixedProp);
+              if (prop && typeof prop === 'object') {
+                properties.push(prop);
+              }
+            } catch (propError) {
+              // Skip malformed property
+            }
+          }
+          if (properties.length > 0) {
+            return { properties };
+          }
+        }
+      } catch (e4) {
+        // Continue
+      }
     }
   }
+  
+  // Last resort: try to find any valid JSON object
+  try {
+    const simpleMatch = cleaned.match(/\{[^{}]+\}/);
+    if (simpleMatch) {
+      return JSON.parse(simpleMatch[0]);
+    }
+  } catch (e5) {
+    // Give up
+  }
+  
+  return null;
 }
 
 Deno.serve(async (req) => {
