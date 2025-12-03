@@ -140,7 +140,8 @@ export default function MyListings() {
     city: "all",
     created_date: {},
     updated_date: {},
-    featured: null
+    featured: null,
+    last_import: false
   });
   
   const ITEMS_PER_PAGE = 10;
@@ -440,11 +441,51 @@ export default function MyListings() {
       trueLabel: "Sim",
       falseLabel: "Não",
       advanced: true
+    },
+    last_import: {
+      type: FILTER_TYPES.boolean,
+      label: "Última Importação",
+      field: "last_import",
+      trueLabel: "Sim",
+      falseLabel: "Não",
+      advanced: true,
+      customFilter: true
     }
   }), [allStates, allCities, propertyTags]);
+  
+  // Calcular data/hora da última importação (imóveis com source_url)
+  const lastImportTimestamp = useMemo(() => {
+    const importedProperties = properties.filter(p => p.source_url);
+    if (importedProperties.length === 0) return null;
+    
+    // Agrupar por minuto de criação para identificar lotes de importação
+    const sortedByDate = [...importedProperties].sort((a, b) => 
+      new Date(b.created_date) - new Date(a.created_date)
+    );
+    
+    if (sortedByDate.length === 0) return null;
+    
+    // Pegar a data mais recente
+    const latestDate = new Date(sortedByDate[0].created_date);
+    // Considerar como "mesma importação" tudo criado nos últimos 5 minutos da última importação
+    return new Date(latestDate.getTime() - 5 * 60 * 1000);
+  }, [properties]);
 
   // Aplicar filtros avançados
-  const filteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
+  const baseFilteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
+  
+  // Aplicar filtro de última importação manualmente
+  const filteredProperties = useMemo(() => {
+    if (!filters.last_import || !lastImportTimestamp) {
+      return baseFilteredProperties;
+    }
+    
+    return baseFilteredProperties.filter(p => {
+      if (!p.source_url) return false;
+      const createdDate = new Date(p.created_date);
+      return createdDate >= lastImportTimestamp;
+    });
+  }, [baseFilteredProperties, filters.last_import, lastImportTimestamp]);
 
   const toggleSelectAll = useCallback(() => {
     setSelectedProperties(prev =>
