@@ -107,11 +107,34 @@ export default function BulkPhotoAssign({ open, onOpenChange, selectedPropertyId
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh]">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-8">
           <DialogTitle className="flex items-center gap-2">
             <Image className="w-5 h-5" />
             Aplicar Fotos a Múltiplos Imóveis
           </DialogTitle>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => applyMutation.mutate()}
+              disabled={applyMutation.isPending || selectedProperties.length === 0 || newImages.length === 0}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {applyMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A aplicar...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Aplicar ({selectedProperties.length})
+                </>
+              )}
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
