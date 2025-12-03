@@ -25,6 +25,7 @@ import MaintenanceManager from "../components/property/MaintenanceManager";
 import LeaseManager from "../components/property/LeaseManager";
 import DocumentManager from "../components/property/DocumentManager";
 import DocumentUploader from "../components/documents/DocumentUploader";
+import ScheduleViewing from "../components/property/ScheduleViewing";
 
 export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -716,6 +717,15 @@ export default function PropertyDetails() {
                     <p className="text-slate-600">Agente não atribuído</p>
                   </div>
                 )}
+
+                {/* Schedule Viewing Button */}
+                <div className="mt-6 pt-6 border-t">
+                  <ScheduleViewing 
+                    property={property}
+                    agentEmail={assignedAgent?.email || property.created_by}
+                    agentName={assignedAgent?.full_name || property.agent_name}
+                  />
+                </div>
 
                 {/* Contact Form */}
                 <div className="mt-6 pt-6 border-t">
