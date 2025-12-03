@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, Eye, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, Check, Eye, Trash2, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -60,6 +60,13 @@ export default function NotificationBell({ user }) {
 
   const markAsReadMutation = useMutation({
     mutationFn: (id) => base44.entities.Notification.update(id, { is_read: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.Notification.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
@@ -354,18 +361,30 @@ export default function NotificationBell({ user }) {
                                 {format(new Date(notif.created_date), "dd/MM/yyyy HH:mm")}
                               </p>
                             </div>
-                            {!notif.is_read && (
+                            <div className="flex gap-1">
+                              {!notif.is_read && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    markAsReadMutation.mutate(notif.id);
+                                  }}
+                                  className="p-1 hover:bg-slate-200 rounded"
+                                  title="Marcar como lida"
+                                >
+                                  <Eye className="w-3 h-3 text-slate-500" />
+                                </button>
+                              )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  markAsReadMutation.mutate(notif.id);
+                                  deleteMutation.mutate(notif.id);
                                 }}
-                                className="p-1.5 hover:bg-slate-200 rounded"
-                                title="Marcar como lida"
+                                className="p-1 hover:bg-red-100 rounded"
+                                title="Eliminar"
                               >
-                                <Eye className="w-4 h-4 text-slate-500" />
+                                <Trash2 className="w-3 h-3 text-red-500" />
                               </button>
-                            )}
+                            </div>
                           </div>
                         </div>
                       ))}
