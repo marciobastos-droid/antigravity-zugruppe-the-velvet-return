@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import LeadsTable from "./LeadsTable";
 import LeadDetailPanel from "./LeadDetailPanel";
 import PipelineView from "./PipelineView";
+import LeadsPipeline from "./LeadsPipeline";
 import OpportunitiesDashboard from "../opportunities/OpportunitiesDashboard";
 import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
@@ -155,10 +156,10 @@ export default function OpportunitiesContent() {
       options: [
         { value: "new", label: "Novo" },
         { value: "contacted", label: "Contactado" },
-        { value: "qualified", label: "Qualificado" },
+        { value: "visit_scheduled", label: "Visita Agendada" },
         { value: "proposal", label: "Proposta" },
         { value: "negotiation", label: "Negociação" },
-        { value: "won", label: "Ganho" },
+        { value: "won", label: "Fechado ✓" },
         { value: "lost", label: "Perdido" }
       ]
     },
@@ -212,6 +213,7 @@ export default function OpportunitiesContent() {
       label: "Prioridade",
       field: "priority",
       options: [
+        { value: "urgent", label: "🔴 Urgente" },
         { value: "high", label: "Alta" },
         { value: "medium", label: "Média" },
         { value: "low", label: "Baixa" }
@@ -368,7 +370,7 @@ export default function OpportunitiesContent() {
     if (!destination) return;
     
     const newStatus = destination.droppableId;
-    if (['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
+    if (['new', 'contacted', 'visit_scheduled', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
       updateMutation.mutate({
         id: draggableId,
         data: { status: newStatus }
@@ -816,9 +818,8 @@ export default function OpportunitiesContent() {
       )}
 
       {viewMode === "pipeline" && (
-        <PipelineView 
+        <LeadsPipeline 
           leads={filteredOpportunities}
-          onDragEnd={onDragEnd}
           onLeadClick={setSelectedLead}
         />
       )}
