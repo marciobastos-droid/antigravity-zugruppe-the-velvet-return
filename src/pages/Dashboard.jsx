@@ -603,6 +603,7 @@ export default function Dashboard() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+              <TabsTrigger value="properties">Imóveis</TabsTrigger>
               <TabsTrigger value="reports">Relatórios</TabsTrigger>
               <TabsTrigger value="adminboard">AdminBoard</TabsTrigger>
             </TabsList>
