@@ -222,11 +222,18 @@ export default function PropertiesTable({
       alwaysVisible: true,
       render: (_, property) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Eye className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.open(`${createPageUrl("PropertyDetails")}?id=${property.id}`, '_blank');
+            }}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onEdit(property)}>
             <Edit className="w-4 h-4" />
           </Button>
