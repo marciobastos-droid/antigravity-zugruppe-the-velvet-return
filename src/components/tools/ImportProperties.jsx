@@ -566,15 +566,18 @@ export default function ImportProperties() {
         internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
                        `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
       }));
-      const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+      
+      // Usar bulk create/update com verificação de duplicados
+      const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
       
       setImportProgress({ current: 100, total: 100, isRunning: false });
       
+      const totalProcessed = importResults.created.length + importResults.updated.length;
       setResults({
         success: true,
-        count: created.length,
-        properties: created,
-        message: `✅ ${created.length} imóveis importados de CSV com sucesso!\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
+        count: totalProcessed,
+        properties: [...importResults.created, ...importResults.updated],
+        message: `✅ ${totalProcessed} imóveis processados de CSV!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados${invalidProperties.length > 0 ? `\n⚠️ ${invalidProperties.length} rejeitados por validação` : ''}`
       });
       
       await queryClient.invalidateQueries({ queryKey: ['properties'] });
