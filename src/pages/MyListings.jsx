@@ -608,6 +608,61 @@ export default function MyListings() {
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <Popover open={assignDevelopmentOpen} onOpenChange={setAssignDevelopmentOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <Building2 className="w-4 h-4 mr-2" />
+                        Atribuir Empreendimento
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" align="end">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-slate-900">Selecionar Empreendimento</p>
+                        <Select value={selectedDevelopment} onValueChange={setSelectedDevelopment}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Escolher empreendimento..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {developments.map((dev) => (
+                              <SelectItem key={dev.id} value={dev.id}>
+                                {dev.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setAssignDevelopmentOpen(false);
+                              setSelectedDevelopment("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            disabled={!selectedDevelopment || bulkAssignDevelopmentMutation.isPending}
+                            onClick={() => {
+                              const dev = developments.find(d => d.id === selectedDevelopment);
+                              if (dev) {
+                                bulkAssignDevelopmentMutation.mutate({
+                                  ids: selectedProperties,
+                                  developmentId: dev.id,
+                                  developmentName: dev.name
+                                });
+                              }
+                            }}
+                          >
+                            {bulkAssignDevelopmentMutation.isPending ? "A atribuir..." : "Atribuir"}
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button
                     variant="destructive"
                     size="sm"
