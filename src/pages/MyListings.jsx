@@ -156,6 +156,12 @@ export default function MyListings() {
     return systemTags.filter(t => t.category === 'property' || t.category === 'general');
   }, [systemTags]);
 
+  // Buscar empreendimentos
+  const { data: developments = [] } = useQuery({
+    queryKey: ['developments'],
+    queryFn: () => base44.entities.Development.list('name')
+  });
+
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['myProperties', user?.email],
     queryFn: async () => {
