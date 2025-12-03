@@ -400,12 +400,32 @@ export default function OpportunitiesContent() {
     }
   };
 
-  const handleAssign = (lead, email) => {
-    updateMutation.mutate({
-      id: lead.id,
-      data: { assigned_to: email }
-    });
-  };
+  const handleAssign = async (lead, email) => {
+        // Update opportunity
+        updateMutation.mutate({
+          id: lead.id,
+          data: { assigned_to: email }
+        });
+
+        // Also update associated contact if exists
+        if (lead.contact_id) {
+          try {
+            await base44.entities.ClientContact.update(lead.contact_id, { assigned_agent: email });
+          } catch (e) {
+            console.error('Error updating contact agent:', e);
+          }
+        } else if (lead.buyer_email) {
+          // Try to find contact by email and update
+          try {
+            const contacts = await base44.entities.ClientContact.filter({ email: lead.buyer_email });
+            if (contacts.length > 0) {
+              await base44.entities.ClientContact.update(contacts[0].id, { assigned_agent: email });
+            }
+          } catch (e) {
+            console.error('Error updating contact agent by email:', e);
+          }
+        }
+      };
 
   const bulkAssignMutation = useMutation({
     mutationFn: async ({ leadIds, agentEmail }) => {
