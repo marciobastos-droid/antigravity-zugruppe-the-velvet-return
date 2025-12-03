@@ -141,7 +141,7 @@ export default function MyListings() {
     created_date: {},
     updated_date: {},
     featured: null,
-    last_import: false
+    last_import: null
   });
   
   const ITEMS_PER_PAGE = 10;
