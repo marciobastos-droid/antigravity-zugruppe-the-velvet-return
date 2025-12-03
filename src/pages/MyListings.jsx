@@ -206,7 +206,8 @@ export default function MyListings() {
     onSuccess: (_, ids) => {
       toast.success(`${ids.length} anúncios eliminados`);
       setSelectedProperties([]);
-      queryClient.invalidateQueries({ queryKey: ['myProperties', 'properties'] });
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
   });
 
