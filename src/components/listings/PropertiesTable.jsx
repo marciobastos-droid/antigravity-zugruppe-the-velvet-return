@@ -208,6 +208,16 @@ export default function PropertiesTable({
       )
     },
     {
+      key: "development_name",
+      label: "Empreendimento",
+      minWidth: "150px",
+      render: (val) => val ? (
+        <Badge variant="outline" className="text-xs">
+          {val}
+        </Badge>
+      ) : '-'
+    },
+    {
       key: "created_date",
       label: "Criado",
       minWidth: "100px",
