@@ -251,43 +251,38 @@ Deno.serve(async (req) => {
     // Extract images
     const images = extractImages(pageContent, url);
 
-    // Build a simpler, more robust prompt
+    // Build a simpler, more robust prompt with strict JSON instructions
     const prompt = pageType === 'listing' 
-      ? `Extrai TODOS os imóveis desta página de listagem do portal ${portal.name}.
+      ? `Extrai os imóveis desta página. Portal: ${portal.name}
 
-URL: ${url}
+TEXTO:
+${textContent.substring(0, 20000)}
 
-TEXTO DA PÁGINA:
-${textContent}
+REGRAS IMPORTANTES:
+1. Responde APENAS com JSON válido, sem texto adicional
+2. Usa aspas duplas para strings
+3. Números sem aspas e sem símbolos (495000 não "495.000€")
+4. Sem vírgulas no final antes de } ou ]
 
-Para cada imóvel encontrado, extrai:
-- title: título do anúncio
-- price: preço como número (495.000€ = 495000)
-- bedrooms: número de quartos (T3 = 3)
-- bathrooms: número de WCs
-- square_feet: área em m²
-- city: cidade
-- state: distrito
-- address: morada
-- property_type: apartment, house, land, building, farm, store, warehouse, office
-- listing_type: sale ou rent
-- external_id: referência do anúncio
-- description: descrição curta
+Campos por imóvel: title, price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id
 
-Responde apenas com JSON válido no formato:
-{"properties": [{"title": "...", "price": 0, ...}]}`
-      : `Extrai os dados deste imóvel do portal ${portal.name}.
+FORMATO EXACTO:
+{"properties":[{"title":"Titulo","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123"}]}`
+      : `Extrai os dados deste imóvel. Portal: ${portal.name}
 
-URL: ${url}
+TEXTO:
+${textContent.substring(0, 20000)}
 
-TEXTO DA PÁGINA:
-${textContent}
+REGRAS IMPORTANTES:
+1. Responde APENAS com JSON válido, sem texto adicional
+2. Usa aspas duplas para strings
+3. Números sem aspas e sem símbolos
+4. Sem vírgulas no final antes de } ou ]
 
-Extrai:
-- title, description, property_type, listing_type, price, bedrooms, bathrooms, square_feet, address, city, state, year_built, energy_certificate, amenities, external_id
+Campos: title, description, property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id
 
-Responde apenas com JSON válido no formato:
-{"title": "...", "price": 0, ...}`;
+FORMATO EXACTO:
+{"title":"Titulo","description":"Descricao","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
 
     // Call Gemini API
     const geminiResponse = await fetch(
