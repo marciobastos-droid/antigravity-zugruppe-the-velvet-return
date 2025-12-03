@@ -428,18 +428,38 @@ export default function OpportunitiesContent() {
       };
 
   const bulkAssignMutation = useMutation({
-    mutationFn: async ({ leadIds, agentEmail }) => {
-      await Promise.all(leadIds.map(id => 
-        base44.entities.Opportunity.update(id, { assigned_to: agentEmail })
-      ));
-    },
-    onSuccess: (_, { leadIds }) => {
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      toast.success(`${leadIds.length} lead${leadIds.length > 1 ? 's' : ''} atribuído${leadIds.length > 1 ? 's' : ''}`);
-      setSelectedLeads([]);
-      setBulkAssignAgent("");
-    },
-  });
+        mutationFn: async ({ leadIds, agentEmail }) => {
+          const leadsToUpdate = opportunities.filter(o => leadIds.includes(o.id));
+
+          // Update opportunities
+          await Promise.all(leadIds.map(id => 
+            base44.entities.Opportunity.update(id, { assigned_to: agentEmail })
+          ));
+
+          // Update associated contacts
+          for (const lead of leadsToUpdate) {
+            try {
+              if (lead.contact_id) {
+                await base44.entities.ClientContact.update(lead.contact_id, { assigned_agent: agentEmail });
+              } else if (lead.buyer_email) {
+                const contacts = await base44.entities.ClientContact.filter({ email: lead.buyer_email });
+                if (contacts.length > 0) {
+                  await base44.entities.ClientContact.update(contacts[0].id, { assigned_agent: agentEmail });
+                }
+              }
+            } catch (e) {
+              console.error('Error updating contact agent:', e);
+            }
+          }
+        },
+        onSuccess: (_, { leadIds }) => {
+          queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+          queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+          toast.success(`${leadIds.length} lead${leadIds.length > 1 ? 's' : ''} atribuído${leadIds.length > 1 ? 's' : ''}`);
+          setSelectedLeads([]);
+          setBulkAssignAgent("");
+        },
+      });
 
   const bulkConvertMutation = useMutation({
     mutationFn: async (leadIds) => {
