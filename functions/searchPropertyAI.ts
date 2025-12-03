@@ -35,9 +35,14 @@ function detectPortal(url) {
 function detectPageType(url) {
   const urlLower = url.toLowerCase();
   
-  // Listing page patterns
-  if (urlLower.includes('/novos-empreendimentos') || 
-      urlLower.includes('/comprar') || 
+  // Development/empreendimento page patterns - these have tables with multiple units
+  if (urlLower.includes('/novos-empreendimentos/') && 
+      !urlLower.includes('/imovel/')) {
+    return 'development';
+  }
+  
+  // Listing page patterns (search results)
+  if (urlLower.includes('/comprar') || 
       urlLower.includes('/arrendar') ||
       urlLower.includes('/pesquisa') ||
       urlLower.includes('/listagem') ||
