@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText, Sparkles, Search } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText, Search } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
@@ -666,166 +666,7 @@ export default function ImportProperties() {
     setImporting(false);
   };
 
-  // Nova função usando Gemini API - suporta listagens e páginas individuais
-  const importFromURLWithGemini = async () => {
-    if (!url || !url.trim()) {
-      toast.error("Por favor, cole um link válido");
-      return;
-    }
 
-    setImporting(true);
-    setValidationDetails(null);
-    setResults(null);
-    const portal = detectPortal(url);
-    setProgress(`🤖 A analisar ${portal.name} com Gemini AI...`);
-    toast.info(`A processar link de ${portal.name}...`);
-
-    try {
-      const response = await base44.functions.invoke('searchPropertyAI', { url });
-      const data = response.data;
-
-      if (!data) {
-        throw new Error('Sem resposta do servidor. Tente novamente.');
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || data.details || 'Erro ao extrair dados do portal');
-      }
-
-      // Check if it's a listing page with multiple properties
-      if (data.is_listing_page && data.properties && data.properties.length > 0) {
-        const properties = data.properties;
-        setProgress(`📋 Listagem detetada! ${properties.length} imóveis encontrados...`);
-        
-        // Validate properties
-        const validationResults = properties.map(prop => ({
-          property: prop,
-          validation: validateProperty(prop, portal.name)
-        }));
-
-        const validProperties = validationResults.filter(v => v.validation.isValid).map(v => v.property);
-        const invalidProperties = validationResults.filter(v => !v.validation.isValid);
-
-        setValidationDetails({
-          total: properties.length,
-          valid: validProperties.length,
-          invalid: invalidProperties.length,
-          details: validationResults
-        });
-
-        if (validProperties.length === 0) {
-          throw new Error(`Nenhum imóvel passou na validação. Verifica os dados extraídos.`);
-        }
-
-        setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
-        const propertiesWithTags = await Promise.all(
-          validProperties.map(async (p) => {
-            const tags = await generatePropertyTags(p);
-            return { ...p, tags };
-          })
-        );
-
-        setProgress("A guardar imóveis...");
-
-        // Generate ref_ids for all properties
-        const { data: refData } = await base44.functions.invoke('generateRefId', { 
-          entity_type: 'Property', 
-          count: propertiesWithTags.length 
-        });
-        const refIds = refData.ref_ids || [refData.ref_id];
-
-        const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
-          ...p,
-          ref_id: refIds[index],
-          status: "active",
-          address: p.address || p.city,
-          state: p.state || p.city,
-          is_partner_property: propertyOwnership === "partner",
-          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
-                        propertyOwnership === "private" ? privateOwnerName : undefined,
-          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
-                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-        }));
-
-        const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
-
-        const countWithImages = created.filter(p => p.images?.length > 0).length;
-        const totalImages = created.reduce((sum, p) => sum + (p.images?.length || 0), 0);
-
-        setResults({
-          success: true,
-          count: created.length,
-          properties: created,
-          portal: portal,
-          stats: { withImages: countWithImages, totalImages },
-          message: `✅ ${created.length} imóveis importados com Gemini AI!\n📸 ${countWithImages} com fotos (${totalImages} imagens)\n${invalidProperties.length > 0 ? `⚠️ ${invalidProperties.length} rejeitados` : ''}`
-        });
-
-        await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-        toast.success(`${created.length} imóveis importados!`);
-
-      } else {
-        // Single property import
-        const property = data.property;
-        setProgress("A gerar tags com IA...");
-
-        // Generate tags
-        const tags = await generatePropertyTags(property);
-        property.tags = tags;
-
-        setProgress("A guardar imóvel...");
-
-        // Generate ref_id
-        const { data: refData } = await base44.functions.invoke('generateRefId', { 
-          entity_type: 'Property', 
-          count: 1 
-        });
-
-        const propertyToCreate = {
-          ...property,
-          ref_id: refData.ref_id || refData.ref_ids?.[0],
-          status: "active",
-          address: property.address || property.city,
-          state: property.state || property.city,
-          is_partner_property: propertyOwnership === "partner",
-          partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
-          partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
-                        propertyOwnership === "private" ? privateOwnerName : undefined,
-          internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
-                         `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
-        };
-
-        const created = await base44.entities.Property.create(propertyToCreate);
-
-        setResults({
-          success: true,
-          count: 1,
-          properties: [created],
-          portal: portal,
-          stats: { withImages: created.images?.length > 0 ? 1 : 0, totalImages: created.images?.length || 0 },
-          message: `✅ Imóvel importado com Gemini AI!\n📸 ${created.images?.length || 0} imagens encontradas`
-        });
-
-        await queryClient.invalidateQueries({ queryKey: ['properties'] });
-        await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-        toast.success("Imóvel importado com sucesso!");
-      }
-
-    } catch (error) {
-      console.error("Gemini import error:", error);
-      const errorMessage = error.message || "Erro ao importar com Gemini";
-      setResults({ 
-        success: false, 
-        message: `❌ ${errorMessage}\n\n💡 Sugestões:\n• Verifique se o link está correto\n• Tente o link de um imóvel individual\n• Use o botão "IA Padrão" como alternativa`,
-        portal: portal
-      });
-      toast.error(errorMessage);
-    }
-
-    setImporting(false);
-  };
 
   const importFromURL = async () => {
     if (!url || !url.trim()) {
@@ -1824,43 +1665,23 @@ A IA extrai automaticamente todos os dados estruturados!`}
             </div>
           )}
           
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              onClick={importFromURLWithGemini}
-              disabled={importing || !url}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-            >
-              {importing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {progress}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Gemini AI
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={importFromURL}
-              disabled={importing || !url}
-              variant="outline"
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            >
-              {importing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ...
-                </>
-              ) : (
-                <>
-                  <Search className="w-4 h-4 mr-2" />
-                  IA Padrão
-                </>
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={importFromURL}
+            disabled={importing || !url}
+            className="w-full bg-slate-900 hover:bg-slate-800"
+          >
+            {importing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {progress}
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Importar com IA
+              </>
+            )}
+          </Button>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p className="text-xs text-blue-900 font-medium mb-1">🔒 Sistema Melhorado</p>
