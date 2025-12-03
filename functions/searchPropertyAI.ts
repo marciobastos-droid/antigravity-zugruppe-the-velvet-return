@@ -25,6 +25,8 @@ const SUPPORTED_PORTALS = {
   century21: { domain: 'century21.pt', name: 'Century 21', type: 'network' },
   kw: { domain: 'kwportugal.pt', name: 'Keller Williams', type: 'network' },
   coldwell: { domain: 'coldwellbanker.pt', name: 'Coldwell Banker', type: 'network' },
+  luximos: { domain: 'luximos.pt', name: 'Luximos', type: 'network' },
+  jll: { domain: 'jll.pt', name: 'JLL', type: 'network' },
   
   // Outros
   bpiexpressoimobiliario: { domain: 'bpiexpressoimobiliario.pt', name: 'BPI Imobiliário', type: 'bank' }
