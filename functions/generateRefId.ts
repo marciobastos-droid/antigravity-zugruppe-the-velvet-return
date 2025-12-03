@@ -172,26 +172,27 @@ Deno.serve(async (req) => {
     // Start from max + 1, never reuse a number
     let currentNumber = maxNumber;
     const ref_ids = [];
+    const generatedNumbers = new Set(); // Track numbers we generate in this batch
     
     for (let i = 0; i < numToGenerate; i++) {
       currentNumber++;
-      let ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
       
-      // Double-check for collision - this should not happen but safety first
+      // Ensure we don't reuse any number
       let safetyCounter = 0;
       while (safetyCounter < 10000) {
+        const ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
         const normalizedRefId = ref_id.toUpperCase();
-        const isDuplicate = existingRefIds.has(ref_id) || 
-                           existingRefIds.has(normalizedRefId) ||
-                           ref_ids.includes(ref_id);
         
-        if (!isDuplicate) {
+        // Check all possible collision sources
+        const existsInDatabase = existingRefIds.has(ref_id) || existingRefIds.has(normalizedRefId);
+        const existsInBatch = generatedNumbers.has(currentNumber);
+        
+        if (!existsInDatabase && !existsInBatch) {
           break;
         }
         
-        console.warn(`[generateRefId] Request ${requestId}: Collision detected for ${ref_id}, incrementing...`);
+        console.warn(`[generateRefId] Request ${requestId}: Number ${currentNumber} already exists, incrementing...`);
         currentNumber++;
-        ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
         safetyCounter++;
       }
       
@@ -199,8 +200,18 @@ Deno.serve(async (req) => {
         throw new Error(`Failed to generate unique ref_id after 10000 attempts`);
       }
       
+      const ref_id = `${prefix}-${currentNumber.toString().padStart(5, '0')}`;
       ref_ids.push(ref_id);
-      existingRefIds.add(ref_id); // Add to set to prevent duplicates within same batch
+      generatedNumbers.add(currentNumber);
+      existingRefIds.add(ref_id); // Add to set to prevent duplicates
+      existingRefIds.add(ref_id.toUpperCase());
+    }
+    
+    // Final validation - ensure all ref_ids are unique
+    const uniqueRefIds = new Set(ref_ids);
+    if (uniqueRefIds.size !== ref_ids.length) {
+      console.error(`[generateRefId] CRITICAL: Generated duplicate ref_ids!`, ref_ids);
+      throw new Error('Internal error: generated duplicate ref_ids');
     }
 
     console.log(`[generateRefId] Request ${requestId}: Generated ${ref_ids.length} ref_ids: ${ref_ids.join(', ')}`);
