@@ -620,6 +620,10 @@ export default function MyListings() {
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <Button variant="outline" size="sm" className="bg-white" onClick={() => setBulkPhotoDialogOpen(true)}>
+                    <Image className="w-4 h-4 mr-2" />
+                    Aplicar Fotos
+                  </Button>
                   <Popover open={assignDevelopmentOpen} onOpenChange={setAssignDevelopmentOpen}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="bg-white">
