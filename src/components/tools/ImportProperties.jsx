@@ -1106,13 +1106,15 @@ IMPORTANTE:
                              `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
             }));
 
-            const created = await base44.entities.Property.bulkCreate(propertiesWithRefIds);
+            // Usar bulk create/update com verificação de duplicados
+            const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
+            const totalProcessed = importResults.created.length + importResults.updated.length;
 
             setResults({
               success: true,
-              count: created.length,
-              properties: created,
-              message: `${created.length} imóveis importados de PDF!`
+              count: totalProcessed,
+              properties: [...importResults.created, ...importResults.updated],
+              message: `✅ ${totalProcessed} imóveis processados de PDF!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados`
             });
 
             await queryClient.invalidateQueries({ queryKey: ['properties'] });
