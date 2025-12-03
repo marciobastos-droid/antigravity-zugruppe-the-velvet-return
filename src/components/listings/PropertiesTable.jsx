@@ -273,8 +273,8 @@ export default function PropertiesTable({
   ];
 
   const defaultVisibleColumns = [
-    "image", "ref_id", "title", "price", "property_type", "bedrooms", 
-    "useful_area", "development_name", "status", "actions"
+    "image", "ref_id", "title", "development_name", "price", "property_type", 
+    "bedrooms", "useful_area", "status", "actions"
   ];
 
   return (
