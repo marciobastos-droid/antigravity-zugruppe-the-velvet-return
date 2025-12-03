@@ -935,6 +935,10 @@ export default function Dashboard() {
         </div>
             </TabsContent>
 
+            <TabsContent value="properties">
+              <PropertiesOverviewWidget properties={properties} />
+            </TabsContent>
+
             <TabsContent value="reports">
               <ReportsTab />
             </TabsContent>
