@@ -1,15 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-// Simple lock mechanism using timestamps to prevent race conditions
+// Global lock mechanism with unique request tracking
 const lockMap = new Map();
-const LOCK_TIMEOUT = 10000; // 10 seconds
+const LOCK_TIMEOUT = 30000; // 30 seconds - increased for safety
+const requestQueue = new Map(); // Queue for pending requests
 
-function acquireLock(entityType) {
+function acquireLock(entityType, requestId) {
   const now = Date.now();
   const existing = lockMap.get(entityType);
   
   // Clean expired lock
-  if (existing && (now - existing) > LOCK_TIMEOUT) {
+  if (existing && (now - existing.timestamp) > LOCK_TIMEOUT) {
+    console.log(`[generateRefId] Cleaning expired lock for ${entityType}`);
     lockMap.delete(entityType);
   }
   
@@ -17,12 +19,17 @@ function acquireLock(entityType) {
     return false;
   }
   
-  lockMap.set(entityType, now);
+  lockMap.set(entityType, { timestamp: now, requestId });
+  console.log(`[generateRefId] Lock acquired for ${entityType} by ${requestId}`);
   return true;
 }
 
-function releaseLock(entityType) {
-  lockMap.delete(entityType);
+function releaseLock(entityType, requestId) {
+  const existing = lockMap.get(entityType);
+  if (existing && existing.requestId === requestId) {
+    lockMap.delete(entityType);
+    console.log(`[generateRefId] Lock released for ${entityType} by ${requestId}`);
+  }
 }
 
 async function sleep(ms) {
@@ -32,9 +39,11 @@ async function sleep(ms) {
 // Function to fetch all records with pagination to ensure we get ALL records
 async function fetchAllRecords(base44, entity_type) {
   const allRecords = [];
-  const batchSize = 500;
+  const batchSize = 1000; // Increased batch size
   let offset = 0;
   let hasMore = true;
+  
+  console.log(`[generateRefId] Fetching all ${entity_type} records...`);
   
   while (hasMore) {
     let batch = [];
@@ -51,14 +60,34 @@ async function fetchAllRecords(base44, entity_type) {
     } else {
       allRecords.push(...batch);
       offset += batchSize;
-      // Safety limit: max 10000 records
-      if (offset >= 10000) {
+      // Safety limit: max 50000 records
+      if (offset >= 50000) {
         hasMore = false;
       }
     }
   }
   
+  console.log(`[generateRefId] Found ${allRecords.length} total ${entity_type} records`);
   return allRecords;
+}
+
+// Extract number from ref_id with support for multiple formats
+function extractRefIdNumber(refId, prefix) {
+  if (!refId || typeof refId !== 'string') return 0;
+  
+  // Try standard format: PREFIX-NNNNN
+  const standardMatch = refId.match(new RegExp(`^${prefix}-(\\d+)$`));
+  if (standardMatch) {
+    return parseInt(standardMatch[1], 10);
+  }
+  
+  // Try alternative formats: PREFIX_NNNNN, PREFIX NNNNN, PREFIXNNNNN
+  const altMatch = refId.match(new RegExp(`^${prefix}[_\\s-]?(\\d+)$`, 'i'));
+  if (altMatch) {
+    return parseInt(altMatch[1], 10);
+  }
+  
+  return 0;
 }
 
 Deno.serve(async (req) => {
