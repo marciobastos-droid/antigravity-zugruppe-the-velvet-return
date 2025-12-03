@@ -429,6 +429,19 @@ export default function OpportunitiesContent() {
         }
       };
 
+  const handleToggleRead = async (lead) => {
+    const newIsRead = !lead.is_read;
+    updateMutation.mutate({
+      id: lead.id,
+      data: { 
+        is_read: newIsRead,
+        read_at: newIsRead ? new Date().toISOString() : null,
+        read_by: newIsRead ? user?.email : null
+      }
+    });
+    toast.success(newIsRead ? "Lead marcada como lida" : "Lead marcada como não lida");
+  };
+
   const bulkAssignMutation = useMutation({
         mutationFn: async ({ leadIds, agentEmail }) => {
           const leadsToUpdate = opportunities.filter(o => leadIds.includes(o.id));
@@ -836,6 +849,7 @@ export default function OpportunitiesContent() {
           onDelete={handleDelete}
           onToggleImportant={handleToggleImportant}
           onAssign={handleAssign}
+          onToggleRead={handleToggleRead}
         />
       )}
 
