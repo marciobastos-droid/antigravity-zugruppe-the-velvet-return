@@ -411,8 +411,8 @@ FORMATO EXACTO:
       });
     }
 
-    // Handle listing page
-    if (pageType === 'listing' && parsedData.properties) {
+    // Handle listing or development page
+    if ((pageType === 'listing' || pageType === 'development') && parsedData.properties) {
       // Filter out properties that likely don't belong to the main listing
       const validProperties = parsedData.properties.filter(p => {
         // Must have a price
