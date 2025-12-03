@@ -110,8 +110,6 @@ export default function FacebookCampaignDashboard() {
     setSyncing(false);
   };
 
-  const [campaignStatuses, setCampaignStatuses] = React.useState({});
-
   const toggleCampaignStatus = async (campaignId, currentStatus) => {
     const action = currentStatus === 'ACTIVE' ? 'pause' : 'activate';
     setTogglingCampaign(campaignId);
@@ -124,11 +122,6 @@ export default function FacebookCampaignDashboard() {
       
       if (response.data.success) {
         toast.success(response.data.message);
-        // Atualizar estado local imediatamente
-        setCampaignStatuses(prev => ({
-          ...prev,
-          [campaignId]: response.data.new_status
-        }));
         queryClient.invalidateQueries({ queryKey: ['facebookLeads'] });
       } else {
         toast.error(response.data.error || 'Erro ao alterar estado da campanha');
@@ -138,11 +131,6 @@ export default function FacebookCampaignDashboard() {
     }
     
     setTogglingCampaign(null);
-  };
-
-  // Função para obter o estado atual da campanha (local ou original)
-  const getCampaignStatus = (campaign) => {
-    return campaignStatuses[campaign.id] || campaign.status;
   };
 
   const filteredCampaigns = React.useMemo(() => {
