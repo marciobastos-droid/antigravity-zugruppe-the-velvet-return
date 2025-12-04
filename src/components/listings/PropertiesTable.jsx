@@ -288,7 +288,7 @@ export default function PropertiesTable({
       selectedRows={selectedProperties}
       onToggleSelect={onToggleSelect}
       onToggleSelectAll={onToggleSelectAll}
-      onRowClick={(property) => window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      onRowClick={(property) => onEdit(property)}
       emptyMessage="Nenhum imóvel encontrado"
     />
   );
