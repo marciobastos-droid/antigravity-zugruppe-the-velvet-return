@@ -140,6 +140,35 @@ export default function FacebookCampaignDashboard() {
     setTogglingCampaign(null);
   };
 
+  // Sincronizar estado das campanhas com o Facebook ao carregar
+  const syncCampaignStatuses = async () => {
+    if (!fbSettings?.access_token || campaigns.length === 0) return;
+    
+    for (const campaign of campaigns) {
+      try {
+        const response = await base44.functions.invoke('manageFacebookCampaign', {
+          action: 'get_status',
+          campaign_id: campaign.id
+        });
+        
+        if (response.data.success && response.data.campaign?.status) {
+          setCampaignStatuses(prev => ({
+            ...prev,
+            [campaign.id]: response.data.campaign.status
+          }));
+        }
+      } catch (e) {
+        // Silently fail for individual campaigns
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (campaigns.length > 0 && fbSettings?.access_token) {
+      syncCampaignStatuses();
+    }
+  }, [campaigns.length, fbSettings?.access_token]);
+
   // Função para obter o estado atual da campanha (local ou original)
   const getCampaignStatus = (campaign) => {
     return campaignStatuses[campaign.id] || campaign.status;
