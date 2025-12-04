@@ -44,9 +44,8 @@ export default function TeamDashboard({ user }) {
     queryFn: () => base44.entities.CommunicationLog.list('-created_date'),
   });
 
-  const teamMembers = allUsers.filter(u => 
-    u.user_type === 'agente' || u.user_type === 'gestor' || u.role === 'admin'
-  );
+  // Incluir todos os utilizadores - filtrar apenas se tiverem is_active === false
+  const teamMembers = allUsers.filter(u => u.is_active !== false);
 
   const daysAgo = parseInt(dateRange);
   const cutoffDate = subDays(new Date(), daysAgo);
