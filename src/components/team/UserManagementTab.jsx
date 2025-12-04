@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff, Camera, Loader2 } from "lucide-react";
+import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff, Camera, Loader2, Clock } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 export default function UserManagementTab({ currentUser }) {
@@ -386,6 +388,12 @@ Equipa Zugruppe`
                         <span>{stats.opportunities} leads</span>
                         <span className="text-green-600">{stats.closed} fechados</span>
                       </div>
+                      {user.last_login_at && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          Último login: {format(new Date(user.last_login_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </div>
+                      )}
                     </div>
                   </div>
 

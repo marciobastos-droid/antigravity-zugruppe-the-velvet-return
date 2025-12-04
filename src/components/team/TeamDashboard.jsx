@@ -11,7 +11,7 @@ import {
   Building2, Phone, AlertCircle, Award, BarChart3
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { format, subDays, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
+import { format, subDays, startOfWeek, endOfWeek, isWithinInterval, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -90,6 +90,7 @@ export default function TeamDashboard({ user }) {
       email: member.email,
       name: member.display_name || member.full_name || member.email.split('@')[0],
       role: member.user_type || member.role,
+      lastLoginAt: member.last_login_at,
       totalTasks: memberTasks.length,
       completedTasks: completedTasks.length,
       pendingTasks: memberTasks.filter(t => t.status === 'pending').length,
@@ -305,6 +306,11 @@ export default function TeamDashboard({ user }) {
                   <div>
                     <p className="font-medium text-slate-900">{member.name}</p>
                     <p className="text-xs text-slate-500 capitalize">{member.role}</p>
+                    {member.lastLoginAt && (
+                      <p className="text-xs text-slate-400">
+                        Último login: {formatDistanceToNow(new Date(member.lastLoginAt), { addSuffix: true, locale: ptBR })}
+                      </p>
+                    )}
                   </div>
                 </div>
 
