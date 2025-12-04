@@ -117,11 +117,21 @@ Equipa Zugruppe`
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, data }) => base44.entities.User.update(userId, data),
-    onSuccess: () => {
+    mutationFn: async ({ userId, data }) => {
+      console.log("Updating user:", userId, data);
+      const result = await base44.entities.User.update(userId, data);
+      console.log("Update result:", result);
+      return result;
+    },
+    onSuccess: (data, variables) => {
+      console.log("Update success:", data, variables);
       toast.success("Utilizador atualizado");
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
+    onError: (error) => {
+      console.error("Update error:", error);
+      toast.error("Erro ao atualizar utilizador: " + (error.message || "Erro desconhecido"));
+    }
   });
 
   const deleteUserMutation = useMutation({
