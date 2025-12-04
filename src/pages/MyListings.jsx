@@ -170,25 +170,42 @@ export default function MyListings() {
     queryFn: () => base44.entities.Development.list('name')
   });
 
-  // Buscar agentes (Users que são agentes ou todos os users para atribuição)
+  // Buscar agentes (combinar Users com entidade Agent)
   const { data: agents = [] } = useQuery({
     queryKey: ['allUsersForAssignment'],
     queryFn: async () => {
-      try {
-        // Tentar buscar da entidade Agent primeiro
-        const agentsList = await base44.entities.Agent.list('full_name');
-        if (agentsList.length > 0) return agentsList;
-      } catch (e) {
-        // Se falhar (RLS), usar lista de Users
-      }
-      // Fallback: usar Users
+      // Buscar todos os Users primeiro
       const users = await base44.entities.User.list();
-      return users.map(u => ({
+      const usersList = users.map(u => ({
         id: u.id,
         full_name: u.display_name || u.full_name || u.email,
         email: u.email,
-        is_active: true
+        is_active: true,
+        source: 'user'
       }));
+      
+      // Tentar buscar também da entidade Agent (pode falhar por RLS)
+      try {
+        const agentsList = await base44.entities.Agent.list('full_name');
+        if (agentsList.length > 0) {
+          // Combinar, evitando duplicados por email
+          const userEmails = new Set(usersList.map(u => u.email));
+          const uniqueAgents = agentsList
+            .filter(a => !userEmails.has(a.email))
+            .map(a => ({
+              id: a.id,
+              full_name: a.full_name,
+              email: a.email,
+              is_active: a.is_active !== false,
+              source: 'agent'
+            }));
+          return [...usersList, ...uniqueAgents];
+        }
+      } catch (e) {
+        // RLS pode bloquear - ignorar
+      }
+      
+      return usersList;
     }
   });
 
