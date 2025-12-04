@@ -417,10 +417,14 @@ Equipa Zugruppe`
                        user.user_type === 'gestor' ? 'Gestor' : 'Agente'}
                     </Badge>
 
-                    {!isCurrentUser && (
+                    {!isCurrentUser && isFullAdmin && (
                       <Select
                         value={user.user_type || 'agente'}
-                        onValueChange={(value) => handleTypeChange(user.id, value)}
+                        onValueChange={(value) => {
+                          console.log("Changing user type to:", value, "for user:", user.id);
+                          handleTypeChange(user.id, value);
+                        }}
+                        disabled={updateUserMutation.isPending}
                       >
                         <SelectTrigger className="w-28 h-8">
                           <SelectValue />
