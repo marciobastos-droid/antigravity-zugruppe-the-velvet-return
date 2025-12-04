@@ -305,6 +305,25 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             </div>
           </div>
 
+          {/* Source URL - Link de Origem */}
+          {property?.source_url && (
+            <div className="p-4 bg-slate-50 rounded-lg border">
+              <Label className="text-slate-600 mb-2 block">Link de Origem</Label>
+              <a 
+                href={property.source_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm break-all"
+              >
+                <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                {property.source_url}
+              </a>
+              {property.external_id && (
+                <p className="text-xs text-slate-500 mt-1">ID Externo: {property.external_id}</p>
+              )}
+            </div>
+          )}
+
           {/* Basic Information */}
           <div className="grid md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -749,25 +768,6 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
               rows={3}
             />
           </div>
-
-          {/* Source URL - Link de Origem */}
-          {property?.source_url && (
-            <div className="p-4 bg-slate-50 rounded-lg border">
-              <Label className="text-slate-600 mb-2 block">Link de Origem</Label>
-              <a 
-                href={property.source_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm break-all"
-              >
-                <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                {property.source_url}
-              </a>
-              {property.external_id && (
-                <p className="text-xs text-slate-500 mt-1">ID Externo: {property.external_id}</p>
-              )}
-            </div>
-          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t">
