@@ -170,10 +170,26 @@ export default function MyListings() {
     queryFn: () => base44.entities.Development.list('name')
   });
 
-  // Buscar agentes
+  // Buscar agentes (Users que são agentes ou todos os users para atribuição)
   const { data: agents = [] } = useQuery({
-    queryKey: ['agents'],
-    queryFn: () => base44.entities.Agent.list('full_name')
+    queryKey: ['allUsersForAssignment'],
+    queryFn: async () => {
+      try {
+        // Tentar buscar da entidade Agent primeiro
+        const agentsList = await base44.entities.Agent.list('full_name');
+        if (agentsList.length > 0) return agentsList;
+      } catch (e) {
+        // Se falhar (RLS), usar lista de Users
+      }
+      // Fallback: usar Users
+      const users = await base44.entities.User.list();
+      return users.map(u => ({
+        id: u.id,
+        full_name: u.display_name || u.full_name || u.email,
+        email: u.email,
+        is_active: true
+      }));
+    }
   });
 
   const { data: properties = [], isLoading } = useQuery({
