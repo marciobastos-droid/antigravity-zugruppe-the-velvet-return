@@ -338,11 +338,12 @@ REGRAS CRÍTICAS - SEGUE À RISCA:
 6. Usa aspas duplas para strings
 7. Números sem aspas e sem símbolos (495000 não "495.000€")
 8. Sem vírgulas no final antes de } ou ]
+9. Extrai a DESCRIÇÃO de cada imóvel se disponível (texto descritivo do anúncio)
 
-Campos por imóvel: title, price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id
+Campos por imóvel: title, description (texto descritivo do anúncio), price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id
 
 FORMATO EXACTO:
-{"properties":[{"title":"Titulo","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123"}]}`;
+{"properties":[{"title":"Titulo","description":"Apartamento com vista mar, cozinha equipada, varanda...","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123"}]}`;
     } else {
       prompt = `Extrai os dados deste imóvel. Portal: ${portal.name}
 
@@ -354,11 +355,12 @@ REGRAS IMPORTANTES:
 2. Usa aspas duplas para strings
 3. Números sem aspas e sem símbolos
 4. Sem vírgulas no final antes de } ou ]
+5. Extrai a DESCRIÇÃO COMPLETA do imóvel (todo o texto descritivo do anúncio)
 
-Campos: title, description, property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id
+Campos: title, description (descrição completa do imóvel com todas as características mencionadas), property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id
 
 FORMATO EXACTO:
-{"title":"Titulo","description":"Descricao","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
+{"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
     }
 
     // Call Gemini API with JSON mode
