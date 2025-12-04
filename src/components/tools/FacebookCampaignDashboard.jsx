@@ -394,7 +394,7 @@ export default function FacebookCampaignDashboard() {
                         ) : (
                           <>
                             <Play className="w-4 h-4 mr-1" />
-                            Reativar
+                            Ativar
                           </>
                         )}
                       </Button>
