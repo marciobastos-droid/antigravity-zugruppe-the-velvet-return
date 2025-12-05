@@ -21,6 +21,7 @@ export default function DevelopmentsTab() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
+  const [developerFilter, setDeveloperFilter] = React.useState("all");
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingDev, setEditingDev] = React.useState(null);
   const [selectedDev, setSelectedDev] = React.useState(null);
@@ -30,6 +31,9 @@ export default function DevelopmentsTab() {
     name: "",
     description: "",
     developer: "",
+    developer_contact_id: "",
+    developer_email: "",
+    developer_phone: "",
     address: "",
     city: "",
     postal_code: "",
@@ -56,6 +60,11 @@ export default function DevelopmentsTab() {
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list()
+  });
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list()
   });
 
   // Imóveis com tipo "development" que não estão vinculados a um empreendimento existente
@@ -112,6 +121,9 @@ export default function DevelopmentsTab() {
       name: "",
       description: "",
       developer: "",
+      developer_contact_id: "",
+      developer_email: "",
+      developer_phone: "",
       address: "",
       city: "",
       postal_code: "",
@@ -139,6 +151,9 @@ export default function DevelopmentsTab() {
       name: dev.name || "",
       description: dev.description || "",
       developer: dev.developer || "",
+      developer_contact_id: dev.developer_contact_id || "",
+      developer_email: dev.developer_email || "",
+      developer_phone: dev.developer_phone || "",
       address: dev.address || "",
       city: dev.city || "",
       postal_code: dev.postal_code || "",
@@ -206,12 +221,23 @@ export default function DevelopmentsTab() {
     return properties.filter(p => p.development_id === devId);
   };
 
+  // Obter lista única de promotores
+  const developers = React.useMemo(() => {
+    const devs = new Set();
+    allDevelopments.forEach(d => {
+      if (d.developer) devs.add(d.developer);
+    });
+    return Array.from(devs).sort();
+  }, [allDevelopments]);
+
   const filteredDevelopments = allDevelopments.filter(d => {
     const matchesSearch = searchTerm === "" ||
       d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.city?.toLowerCase().includes(searchTerm.toLowerCase());
+      d.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.developer?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || d.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesDeveloper = developerFilter === "all" || d.developer === developerFilter;
+    return matchesSearch && matchesStatus && matchesDeveloper;
   });
 
   const statusLabels = {
@@ -265,11 +291,56 @@ export default function DevelopmentsTab() {
                 </div>
                 <div>
                   <Label>Promotor/Construtor</Label>
-                  <Input
-                    value={formData.developer}
-                    onChange={(e) => setFormData({...formData, developer: e.target.value})}
-                    placeholder="Nome da construtora"
-                  />
+                  <Select 
+                    value={formData.developer_contact_id || "manual"} 
+                    onValueChange={(value) => {
+                      if (value === "manual") {
+                        setFormData({
+                          ...formData, 
+                          developer_contact_id: "",
+                          developer: "",
+                          developer_email: "",
+                          developer_phone: ""
+                        });
+                      } else {
+                        const contact = contacts.find(c => c.id === value);
+                        if (contact) {
+                          setFormData({
+                            ...formData,
+                            developer_contact_id: value,
+                            developer: contact.full_name || contact.company_name || "",
+                            developer_email: contact.email || "",
+                            developer_phone: contact.phone || ""
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar da lista ou inserir manualmente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual">✍️ Inserir Manualmente</SelectItem>
+                      {contacts.filter(c => c.contact_type === 'partner' || c.company_name).map(contact => (
+                        <SelectItem key={contact.id} value={contact.id}>
+                          {contact.full_name || contact.company_name} {contact.company_name && contact.full_name ? `(${contact.company_name})` : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {(!formData.developer_contact_id || formData.developer_contact_id === "manual") && (
+                    <Input
+                      value={formData.developer}
+                      onChange={(e) => setFormData({...formData, developer: e.target.value})}
+                      placeholder="Nome da construtora"
+                      className="mt-2"
+                    />
+                  )}
+                  {formData.developer_contact_id && formData.developer_contact_id !== "manual" && (
+                    <div className="mt-2 p-2 bg-green-50 rounded-lg text-xs text-green-700">
+                      ✓ {formData.developer} {formData.developer_email && `• ${formData.developer_email}`}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -456,14 +527,14 @@ export default function DevelopmentsTab() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <Input
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar por nome ou cidade..."
+                  placeholder="Pesquisar por nome, cidade ou promotor..."
                   className="pl-10"
                 />
               </div>
@@ -479,6 +550,19 @@ export default function DevelopmentsTab() {
                   <SelectItem value="under_construction">Em Construção</SelectItem>
                   <SelectItem value="completed">Concluído</SelectItem>
                   <SelectItem value="selling">Em Comercialização</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Select value={developerFilter} onValueChange={setDeveloperFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Promotor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Promotores</SelectItem>
+                  {developers.map(dev => (
+                    <SelectItem key={dev} value={dev}>{dev}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
