@@ -3,14 +3,14 @@
 
 export function formatWhatsAppPropertyMessage(clientName, properties, appBaseUrl) {
   if (!properties || properties.length === 0) {
-    return `Olá ${clientName}!\n\nDe momento não temos imóveis que correspondam aos seus critérios, mas estamos sempre a atualizar a nossa carteira.\n\nEntraremos em contacto assim que surgirem novas oportunidades!\n\nCumprimentos,\nEquipa Zugruppe`;
+    return `Ola ${clientName}!\n\nDe momento nao temos imoveis que correspondam aos seus criterios, mas estamos sempre a atualizar a nossa carteira.\n\nEntraremos em contacto assim que surgirem novas oportunidades!\n\nCumprimentos,\nEquipa Zugruppe`;
   }
 
   const propertyCount = properties.length;
-  const propertyWord = propertyCount === 1 ? 'imóvel' : 'imóveis';
+  const propertyWord = propertyCount === 1 ? 'imovel' : 'imoveis';
   
-  let message = `Olá ${clientName}!\n\n`;
-  message += `Selecionámos ${propertyCount} ${propertyWord} que pode${propertyCount === 1 ? '' : 'm'} interessar-lhe:\n\n`;
+  let message = `Ola ${clientName}!\n\n`;
+  message += `Seleccionamos ${propertyCount} ${propertyWord} que pode${propertyCount === 1 ? '' : 'm'} interessar-lhe:\n\n`;
 
   properties.forEach((prop, index) => {
     const property = prop.property || prop;
@@ -19,15 +19,14 @@ export function formatWhatsAppPropertyMessage(clientName, properties, appBaseUrl
     // Build property type string
     const typeLabel = getPropertyTypeLabel(property.property_type);
     const bedrooms = property.bedrooms ? `T${property.bedrooms}` : '';
-    const listingType = property.listing_type === 'rent' ? 'para arrendar' : 'à venda';
     
     // Title line
     const title = property.title || `${typeLabel} ${bedrooms}`.trim();
     message += `${index + 1}. *${title}*\n`;
     
     // Price
-    const price = property.price ? formatPrice(property.price) : 'Preço sob consulta';
-    message += `   Preço: ${price}\n`;
+    const price = property.price ? formatPrice(property.price) : 'Preco sob consulta';
+    message += `   Preco: ${price}\n`;
     
     // Location and details
     const location = [property.city, property.state].filter(Boolean).join(', ');
@@ -40,24 +39,18 @@ export function formatWhatsAppPropertyMessage(clientName, properties, appBaseUrl
     // Area if available
     const area = property.useful_area || property.square_feet || property.gross_area;
     if (area) {
-      message += `   Área: ${area}m²\n`;
+      message += `   Area: ${area}m2\n`;
     }
     
-    // Match score if available
+    // Match score if available - use checkmark instead of special chars
     if (score && score >= 70) {
-      message += `   Compatibilidade: ${score}%\n`;
-    }
-    
-    // Property URL
-    if (appBaseUrl && property.id) {
-      const propertyUrl = `${appBaseUrl}/propertydetails?id=${property.id}`;
-      message += `   Ver: ${propertyUrl}\n`;
+      message += `   [v] Compatibilidade: ${score}%\n`;
     }
     
     message += '\n';
   });
 
-  message += `Tem interesse em algum destes imóveis?\n`;
+  message += `Tem interesse em algum destes imoveis?\n`;
   message += `Podemos agendar uma visita quando lhe for conveniente.\n\n`;
   message += `Cumprimentos,\nEquipa Zugruppe`;
 
@@ -65,13 +58,13 @@ export function formatWhatsAppPropertyMessage(clientName, properties, appBaseUrl
 }
 
 export function formatPrice(price) {
-  if (!price) return 'Preço sob consulta';
-  return new Intl.NumberFormat('pt-PT', {
-    style: 'currency',
-    currency: 'EUR',
+  if (!price) return 'Preco sob consulta';
+  // Format without special currency symbol to avoid encoding issues
+  const formatted = new Intl.NumberFormat('pt-PT', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(price);
+  return `${formatted} EUR`;
 }
 
 export function getPropertyTypeLabel(type) {
@@ -79,30 +72,30 @@ export function getPropertyTypeLabel(type) {
     apartment: 'Apartamento',
     house: 'Moradia',
     land: 'Terreno',
-    building: 'Prédio',
+    building: 'Predio',
     farm: 'Quinta',
     store: 'Loja',
-    warehouse: 'Armazém',
-    office: 'Escritório',
+    warehouse: 'Armazem',
+    office: 'Escritorio',
     hotel: 'Hotel',
     shop: 'Loja'
   };
-  return types[type] || 'Imóvel';
+  return types[type] || 'Imovel';
 }
 
 // Shorter version for SMS or character-limited messages
 export function formatShortPropertyMessage(clientName, properties, appBaseUrl) {
   if (!properties || properties.length === 0) {
-    return `Olá ${clientName}! Ainda não temos imóveis compatíveis, mas contactaremos assim que surgirem. Equipa Zugruppe`;
+    return `Ola ${clientName}! Ainda nao temos imoveis compativeis, mas contactaremos assim que surgirem. Equipa Zugruppe`;
   }
 
   const count = properties.length;
-  let message = `Olá ${clientName}! Encontrámos ${count} imóvel(is) para si:\n\n`;
+  let message = `Ola ${clientName}! Encontramos ${count} imovel(is) para si:\n\n`;
 
   properties.slice(0, 3).forEach((prop, i) => {
     const property = prop.property || prop;
     const price = property.price ? formatPrice(property.price) : 'Consultar';
-    message += `${i + 1}. ${property.title || 'Imóvel'} - ${price}\n`;
+    message += `${i + 1}. ${property.title || 'Imovel'} - ${price}\n`;
   });
 
   if (count > 3) {
