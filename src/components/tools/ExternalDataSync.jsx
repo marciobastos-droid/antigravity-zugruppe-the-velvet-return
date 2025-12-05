@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,22 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { 
   Globe, Loader2, Check, AlertTriangle, Building2, Users, Target,
-  Download, ExternalLink, Search, RefreshCw, FileJson, Eye, X
+  Download, ExternalLink, Search, RefreshCw, Eye, Plus, Settings,
+  Clock, Trash2, Play, Save, Calendar, Edit2, MoreVertical
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
 
 const dataTypes = [
   { value: "properties", label: "Imóveis", icon: Building2, entity: "Property" },
@@ -22,24 +33,78 @@ const dataTypes = [
   { value: "opportunities", label: "Oportunidades", icon: Target, entity: "Opportunity" }
 ];
 
+const frequencyOptions = [
+  { value: "daily", label: "Diariamente" },
+  { value: "weekly", label: "Semanalmente" },
+  { value: "monthly", label: "Mensalmente" }
+];
+
 export default function ExternalDataSync() {
   const queryClient = useQueryClient();
   const [url, setUrl] = useState("");
   const [dataType, setDataType] = useState("properties");
+  const [configName, setConfigName] = useState("");
   const [extractedData, setExtractedData] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
-  const [activeTab, setActiveTab] = useState("input");
+  const [activeTab, setActiveTab] = useState("sources");
   const [importResult, setImportResult] = useState(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [editingConfig, setEditingConfig] = useState(null);
+  const [selectedConfig, setSelectedConfig] = useState(null);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(false);
+  const [syncFrequency, setSyncFrequency] = useState("daily");
+
+  // Fetch saved configurations
+  const { data: savedConfigs = [], isLoading: loadingConfigs } = useQuery({
+    queryKey: ['syncConfigurations'],
+    queryFn: () => base44.entities.SyncConfiguration.list('-created_date')
+  });
+
+  // Save configuration mutation
+  const saveConfigMutation = useMutation({
+    mutationFn: async (data) => {
+      if (editingConfig) {
+        return await base44.entities.SyncConfiguration.update(editingConfig.id, data);
+      }
+      return await base44.entities.SyncConfiguration.create(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['syncConfigurations'] });
+      setShowSaveDialog(false);
+      setEditingConfig(null);
+      setConfigName("");
+      toast.success(editingConfig ? "Configuração atualizada" : "Configuração guardada");
+    }
+  });
+
+  // Delete configuration mutation
+  const deleteConfigMutation = useMutation({
+    mutationFn: (id) => base44.entities.SyncConfiguration.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['syncConfigurations'] });
+      toast.success("Configuração eliminada");
+    }
+  });
+
+  // Update config mutation (for toggling auto-sync)
+  const updateConfigMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.SyncConfiguration.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['syncConfigurations'] });
+    }
+  });
 
   const fetchMutation = useMutation({
-    mutationFn: async () => {
-      if (!url) throw new Error("URL é obrigatório");
+    mutationFn: async (configToUse) => {
+      const targetUrl = configToUse?.url || url;
+      const targetType = configToUse?.data_type || dataType;
+      
+      if (!targetUrl) throw new Error("URL é obrigatório");
 
-      // Use LLM to extract structured data from the URL
-      const typeConfig = dataTypes.find(t => t.value === dataType);
+      const typeConfig = dataTypes.find(t => t.value === targetType);
       
       let schema;
-      if (dataType === "properties") {
+      if (targetType === "properties") {
         schema = {
           type: "object",
           properties: {
@@ -70,7 +135,7 @@ export default function ExternalDataSync() {
             total_found: { type: "number" }
           }
         };
-      } else if (dataType === "contacts") {
+      } else if (targetType === "contacts") {
         schema = {
           type: "object",
           properties: {
@@ -122,7 +187,7 @@ export default function ExternalDataSync() {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analisa o conteúdo desta página web e extrai TODOS os dados de ${typeConfig.label.toLowerCase()} que encontrares.
 
-URL: ${url}
+URL: ${targetUrl}
 
 INSTRUÇÕES:
 - Extrai TODOS os registos que encontrares na página
@@ -138,11 +203,12 @@ Retorna os dados estruturados no formato JSON especificado.`,
         response_json_schema: schema
       });
 
-      return result;
+      return { data: result, config: configToUse };
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data, config }) => {
       setExtractedData(data);
       setSelectedItems(data.items?.map((_, idx) => idx) || []);
+      setSelectedConfig(config);
       setActiveTab("preview");
       toast.success(`${data.items?.length || 0} registos encontrados`);
     },
@@ -159,11 +225,11 @@ Retorna os dados estruturados no formato JSON especificado.`,
 
       const itemsToImport = extractedData.items.filter((_, idx) => selectedItems.includes(idx));
       const results = { created: 0, errors: [], items: [] };
+      const targetType = selectedConfig?.data_type || dataType;
 
       for (const item of itemsToImport) {
         try {
-          if (dataType === "properties") {
-            // Generate ref_id
+          if (targetType === "properties") {
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
             
             const propertyData = {
@@ -183,7 +249,7 @@ Retorna os dados estruturados no formato JSON especificado.`,
               images: item.images || [],
               amenities: item.amenities || [],
               external_id: item.external_id || "",
-              source_url: item.source_url || url,
+              source_url: item.source_url || selectedConfig?.url || url,
               status: "active",
               availability_status: "available"
             };
@@ -192,8 +258,7 @@ Retorna os dados estruturados no formato JSON especificado.`,
             results.created++;
             results.items.push({ name: item.title, status: "success" });
 
-          } else if (dataType === "contacts") {
-            // Check for duplicates
+          } else if (targetType === "contacts") {
             if (item.email) {
               const existing = await base44.entities.ClientContact.filter({ email: item.email });
               if (existing.length > 0) {
@@ -212,7 +277,7 @@ Retorna os dados estruturados no formato JSON especificado.`,
               company_name: item.company_name || "",
               job_title: item.job_title || "",
               city: item.city || "",
-              notes: item.notes || `Importado de: ${url}`,
+              notes: item.notes || `Importado de: ${selectedConfig?.url || url}`,
               source: "other",
               contact_type: "client"
             };
@@ -221,7 +286,7 @@ Retorna os dados estruturados no formato JSON especificado.`,
             results.created++;
             results.items.push({ name: item.full_name, status: "success" });
 
-          } else if (dataType === "opportunities") {
+          } else if (targetType === "opportunities") {
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
             
             const oppData = {
@@ -233,9 +298,9 @@ Retorna os dados estruturados no formato JSON especificado.`,
               location: item.location || "",
               budget: item.budget || 0,
               property_type_interest: item.property_type_interest || "",
-              message: item.message || `Importado de: ${url}`,
+              message: item.message || `Importado de: ${selectedConfig?.url || url}`,
               lead_source: "other",
-              source_url: url,
+              source_url: selectedConfig?.url || url,
               status: "new"
             };
 
@@ -243,7 +308,6 @@ Retorna os dados estruturados no formato JSON especificado.`,
             results.created++;
             results.items.push({ name: item.buyer_name, status: "success" });
 
-            // Notify about new lead
             try {
               await base44.functions.invoke('notifyNewLead', {
                 lead: { ...oppData, id: created.id },
@@ -259,6 +323,17 @@ Retorna os dados estruturados no formato JSON especificado.`,
           results.errors.push({ item: item.title || item.full_name || item.buyer_name, error: error.message });
           results.items.push({ name: item.title || item.full_name || item.buyer_name, status: "error" });
         }
+      }
+
+      // Update config with sync stats if using saved config
+      if (selectedConfig) {
+        await base44.entities.SyncConfiguration.update(selectedConfig.id, {
+          last_sync_date: new Date().toISOString(),
+          last_sync_status: results.errors.length > 0 ? "error" : "success",
+          last_sync_count: results.created,
+          total_synced: (selectedConfig.total_synced || 0) + results.created
+        });
+        queryClient.invalidateQueries({ queryKey: ['syncConfigurations'] });
       }
 
       return results;
@@ -309,7 +384,52 @@ Retorna os dados estruturados no formato JSON especificado.`,
     setExtractedData(null);
     setSelectedItems([]);
     setImportResult(null);
-    setActiveTab("input");
+    setSelectedConfig(null);
+    setActiveTab("sources");
+  };
+
+  const handleSaveConfig = () => {
+    saveConfigMutation.mutate({
+      name: configName || `Sync ${dataTypes.find(t => t.value === dataType)?.label}`,
+      url,
+      data_type: dataType,
+      auto_sync_enabled: autoSyncEnabled,
+      sync_frequency: autoSyncEnabled ? syncFrequency : undefined,
+      is_active: true
+    });
+  };
+
+  const handleEditConfig = (config) => {
+    setEditingConfig(config);
+    setConfigName(config.name);
+    setUrl(config.url);
+    setDataType(config.data_type);
+    setAutoSyncEnabled(config.auto_sync_enabled || false);
+    setSyncFrequency(config.sync_frequency || "daily");
+    setShowSaveDialog(true);
+  };
+
+  const handleUpdateConfig = () => {
+    saveConfigMutation.mutate({
+      name: configName,
+      url,
+      data_type: dataType,
+      auto_sync_enabled: autoSyncEnabled,
+      sync_frequency: autoSyncEnabled ? syncFrequency : undefined
+    });
+  };
+
+  const handleRunSync = (config) => {
+    setSelectedConfig(config);
+    fetchMutation.mutate(config);
+  };
+
+  const handleToggleAutoSync = (config, enabled) => {
+    updateConfigMutation.mutate({
+      id: config.id,
+      data: { auto_sync_enabled: enabled }
+    });
+    toast.success(enabled ? "Sincronização automática ativada" : "Sincronização automática desativada");
   };
 
   const typeConfig = dataTypes.find(t => t.value === dataType);
@@ -327,13 +447,131 @@ Retorna os dados estruturados no formato JSON especificado.`,
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="input">Configurar</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="sources">Fontes Guardadas</TabsTrigger>
+            <TabsTrigger value="new">Nova Sincronização</TabsTrigger>
             <TabsTrigger value="preview" disabled={!extractedData}>Pré-visualizar</TabsTrigger>
             <TabsTrigger value="result" disabled={!importResult}>Resultado</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="input" className="space-y-6 mt-6">
+          {/* Saved Sources Tab */}
+          <TabsContent value="sources" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-semibold">Fontes de Dados Configuradas</h3>
+                <Button onClick={() => setActiveTab("new")} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nova Fonte
+                </Button>
+              </div>
+
+              {loadingConfigs ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                </div>
+              ) : savedConfigs.length === 0 ? (
+                <div className="text-center py-12 bg-slate-50 rounded-lg">
+                  <Globe className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-600 mb-4">Nenhuma fonte configurada</p>
+                  <Button onClick={() => setActiveTab("new")}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Primeira Fonte
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {savedConfigs.map((config) => {
+                    const TypeIcon = dataTypes.find(t => t.value === config.data_type)?.icon || Globe;
+                    return (
+                      <div
+                        key={config.id}
+                        className="p-4 border rounded-lg hover:border-indigo-300 transition-all bg-white"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-indigo-100 rounded-lg">
+                              <TypeIcon className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{config.name}</h4>
+                              <p className="text-sm text-slate-500 truncate max-w-md">{config.url}</p>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="secondary">
+                                  {dataTypes.find(t => t.value === config.data_type)?.label}
+                                </Badge>
+                                {config.auto_sync_enabled && (
+                                  <Badge className="bg-green-100 text-green-800">
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {frequencyOptions.find(f => f.value === config.sync_frequency)?.label}
+                                  </Badge>
+                                )}
+                                {config.last_sync_date && (
+                                  <Badge variant="outline">
+                                    Última: {format(new Date(config.last_sync_date), "dd/MM HH:mm", { locale: pt })}
+                                  </Badge>
+                                )}
+                                {config.total_synced > 0 && (
+                                  <Badge variant="outline">
+                                    {config.total_synced} importados
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleRunSync(config)}
+                              disabled={fetchMutation.isPending}
+                            >
+                              {fetchMutation.isPending && selectedConfig?.id === config.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Play className="w-4 h-4" />
+                              )}
+                            </Button>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditConfig(config)}>
+                                  <Edit2 className="w-4 h-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleToggleAutoSync(config, !config.auto_sync_enabled)}>
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  {config.auto_sync_enabled ? "Desativar Auto-Sync" : "Ativar Auto-Sync"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.open(config.url, '_blank')}>
+                                  <ExternalLink className="w-4 h-4 mr-2" />
+                                  Abrir URL
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => deleteConfigMutation.mutate(config.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* New Sync Tab */}
+          <TabsContent value="new" className="space-y-6 mt-6">
             {/* Data Type Selection */}
             <div>
               <Label className="mb-3 block">Tipo de Dados a Importar</Label>
@@ -378,12 +616,47 @@ Retorna os dados estruturados no formato JSON especificado.`,
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-2">
-                Cole o URL de uma página com listagem de {typeConfig?.label.toLowerCase()}
-              </p>
             </div>
 
-            {/* Examples */}
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button
+                onClick={() => {
+                  setSelectedConfig(null);
+                  fetchMutation.mutate(null);
+                }}
+                disabled={!url || fetchMutation.isPending}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+              >
+                {fetchMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    A extrair...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4 mr-2" />
+                    Extrair Dados
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfigName("");
+                  setAutoSyncEnabled(false);
+                  setSyncFrequency("daily");
+                  setEditingConfig(null);
+                  setShowSaveDialog(true);
+                }}
+                disabled={!url}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Guardar Fonte
+              </Button>
+            </div>
+
+            {/* Help */}
             <Alert>
               <Search className="w-4 h-4" />
               <AlertDescription>
@@ -392,40 +665,19 @@ Retorna os dados estruturados no formato JSON especificado.`,
                   <li>Páginas de resultados de portais imobiliários</li>
                   <li>Listagens de imóveis de agências</li>
                   <li>Diretórios de contactos profissionais</li>
-                  <li>Páginas de leads/formulários preenchidos</li>
                 </ul>
               </AlertDescription>
             </Alert>
-
-            {/* Fetch Button */}
-            <Button
-              onClick={() => fetchMutation.mutate()}
-              disabled={!url || fetchMutation.isPending}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
-              size="lg"
-            >
-              {fetchMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  A extrair dados com IA...
-                </>
-              ) : (
-                <>
-                  <Search className="w-5 h-5 mr-2" />
-                  Extrair Dados da Página
-                </>
-              )}
-            </Button>
           </TabsContent>
 
+          {/* Preview Tab */}
           <TabsContent value="preview" className="mt-6">
             {extractedData && (
               <div className="space-y-4">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-lg">
-                      {extractedData.items?.length || 0} {typeConfig?.label} Encontrados
+                      {extractedData.items?.length || 0} Registos Encontrados
                     </h3>
                     {extractedData.source_name && (
                       <p className="text-sm text-slate-500">Fonte: {extractedData.source_name}</p>
@@ -433,15 +685,12 @@ Retorna os dados estruturados no formato JSON especificado.`,
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={toggleAll}>
-                      {selectedItems.length === extractedData.items?.length ? "Desmarcar Todos" : "Selecionar Todos"}
+                      {selectedItems.length === extractedData.items?.length ? "Desmarcar" : "Selecionar"} Todos
                     </Button>
-                    <Badge variant="secondary">
-                      {selectedItems.length} selecionados
-                    </Badge>
+                    <Badge variant="secondary">{selectedItems.length} selecionados</Badge>
                   </div>
                 </div>
 
-                {/* Items List */}
                 <div className="max-h-96 overflow-y-auto space-y-2 border rounded-lg p-2">
                   {extractedData.items?.map((item, idx) => (
                     <div
@@ -454,39 +703,33 @@ Retorna os dados estruturados no formato JSON especificado.`,
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedItems.includes(idx)}
-                          onCheckedChange={() => toggleItem(idx)}
-                        />
+                        <Checkbox checked={selectedItems.includes(idx)} />
                         <div className="flex-1 min-w-0">
-                          {dataType === "properties" && (
+                          {(selectedConfig?.data_type || dataType) === "properties" && (
                             <>
                               <p className="font-medium truncate">{item.title || "Sem título"}</p>
                               <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
                                 {item.price > 0 && <span>€{item.price.toLocaleString()}</span>}
                                 {item.city && <span>• {item.city}</span>}
                                 {item.bedrooms > 0 && <span>• T{item.bedrooms}</span>}
-                                {item.area > 0 && <span>• {item.area}m²</span>}
                               </div>
                             </>
                           )}
-                          {dataType === "contacts" && (
+                          {(selectedConfig?.data_type || dataType) === "contacts" && (
                             <>
                               <p className="font-medium">{item.full_name || "Sem nome"}</p>
-                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                              <div className="text-sm text-slate-600">
                                 {item.email && <span>{item.email}</span>}
-                                {item.phone && <span>• {item.phone}</span>}
-                                {item.company_name && <span>• {item.company_name}</span>}
+                                {item.phone && <span> • {item.phone}</span>}
                               </div>
                             </>
                           )}
-                          {dataType === "opportunities" && (
+                          {(selectedConfig?.data_type || dataType) === "opportunities" && (
                             <>
                               <p className="font-medium">{item.buyer_name || "Sem nome"}</p>
-                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                              <div className="text-sm text-slate-600">
                                 {item.buyer_email && <span>{item.buyer_email}</span>}
-                                {item.location && <span>• {item.location}</span>}
-                                {item.budget > 0 && <span>• €{item.budget.toLocaleString()}</span>}
+                                {item.location && <span> • {item.location}</span>}
                               </div>
                             </>
                           )}
@@ -496,11 +739,10 @@ Retorna os dados estruturados no formato JSON especificado.`,
                   ))}
                 </div>
 
-                {/* Actions */}
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setActiveTab("input")} className="flex-1">
+                  <Button variant="outline" onClick={resetForm} className="flex-1">
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Nova Pesquisa
+                    Voltar
                   </Button>
                   <Button
                     onClick={() => importMutation.mutate()}
@@ -508,37 +750,27 @@ Retorna os dados estruturados no formato JSON especificado.`,
                     className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     {importMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        A importar...
-                      </>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                      <>
-                        <Download className="w-4 h-4 mr-2" />
-                        Importar {selectedItems.length} {typeConfig?.label}
-                      </>
+                      <Download className="w-4 h-4 mr-2" />
                     )}
+                    Importar {selectedItems.length}
                   </Button>
                 </div>
               </div>
             )}
           </TabsContent>
 
+          {/* Result Tab */}
           <TabsContent value="result" className="mt-6">
             {importResult && (
               <div className="space-y-4">
-                {/* Summary */}
                 <div className="text-center py-6 bg-green-50 rounded-lg border border-green-200">
                   <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                  <h3 className="text-xl font-bold text-green-900">
-                    Importação Concluída
-                  </h3>
-                  <p className="text-green-700">
-                    {importResult.created} {typeConfig?.label.toLowerCase()} importados com sucesso
-                  </p>
+                  <h3 className="text-xl font-bold text-green-900">Importação Concluída</h3>
+                  <p className="text-green-700">{importResult.created} registos importados</p>
                 </div>
 
-                {/* Items Status */}
                 <div className="max-h-64 overflow-y-auto space-y-2">
                   {importResult.items?.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
@@ -555,22 +787,15 @@ Retorna os dados estruturados no formato JSON especificado.`,
                   ))}
                 </div>
 
-                {/* Errors */}
                 {importResult.errors?.length > 0 && (
                   <Alert variant="destructive">
                     <AlertTriangle className="w-4 h-4" />
                     <AlertDescription>
-                      <strong>{importResult.errors.length} erros:</strong>
-                      <ul className="list-disc ml-4 mt-1">
-                        {importResult.errors.slice(0, 5).map((err, idx) => (
-                          <li key={idx}>{err.item}: {err.error}</li>
-                        ))}
-                      </ul>
+                      {importResult.errors.length} erros durante a importação
                     </AlertDescription>
                   </Alert>
                 )}
 
-                {/* Actions */}
                 <Button onClick={resetForm} className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Nova Importação
@@ -580,6 +805,60 @@ Retorna os dados estruturados no formato JSON especificado.`,
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Save Configuration Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingConfig ? "Editar Fonte" : "Guardar Fonte de Dados"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="configName">Nome da Configuração</Label>
+              <Input
+                id="configName"
+                value={configName}
+                onChange={(e) => setConfigName(e.target.value)}
+                placeholder="Ex: Imóveis Idealista Lisboa"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Sincronização Automática</Label>
+                <p className="text-sm text-slate-500">Executar automaticamente</p>
+              </div>
+              <Switch
+                checked={autoSyncEnabled}
+                onCheckedChange={setAutoSyncEnabled}
+              />
+            </div>
+
+            {autoSyncEnabled && (
+              <div>
+                <Label>Frequência</Label>
+                <Select value={syncFrequency} onValueChange={setSyncFrequency}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {frequencyOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>Cancelar</Button>
+            <Button onClick={editingConfig ? handleUpdateConfig : handleSaveConfig} disabled={saveConfigMutation.isPending}>
+              {saveConfigMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              {editingConfig ? "Atualizar" : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
