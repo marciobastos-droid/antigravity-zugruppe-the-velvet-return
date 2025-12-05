@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Building2, Hash, ExternalLink } from "lucide-react";
+import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Building2, Hash, ExternalLink, User } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
 
