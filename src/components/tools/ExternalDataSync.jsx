@@ -220,7 +220,10 @@ Retorna os dados estruturados no formato JSON especificado.`,
       toast.success(`${data.items?.length || 0} registos encontrados`);
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao extrair dados");
+      console.error('Fetch error:', error);
+      toast.error(error.message || "Erro ao extrair dados", { duration: 10000 });
+      setExtractedData({ error: true, errorMessage: error.message || "Erro desconhecido ao extrair dados da página" });
+      setActiveTab("preview");
     }
   });
 
@@ -731,7 +734,25 @@ Extrai: descrição completa, todas as características, certificado energético
 
           {/* Preview Tab */}
           <TabsContent value="preview" className="mt-6">
-            {extractedData && (
+            {extractedData?.error && (
+              <div className="space-y-4">
+                <Alert variant="destructive">
+                  <AlertTriangle className="w-5 h-5" />
+                  <AlertDescription>
+                    <strong className="block mb-2">Erro ao extrair dados</strong>
+                    <p className="text-sm">{extractedData.errorMessage}</p>
+                    <div className="mt-3 p-3 bg-red-50 rounded text-xs font-mono overflow-auto max-h-32">
+                      {extractedData.errorDetails || "Verifique se o URL está acessível e contém dados estruturados."}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+                <Button onClick={resetForm} variant="outline" className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Tentar Novamente
+                </Button>
+              </div>
+            )}
+            {extractedData && !extractedData.error && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -856,7 +877,14 @@ Extrai: descrição completa, todas as características, certificado energético
                   <Alert variant="destructive">
                     <AlertTriangle className="w-4 h-4" />
                     <AlertDescription>
-                      {importResult.errors.length} erros durante a importação
+                      <strong className="block mb-2">{importResult.errors.length} erros durante a importação:</strong>
+                      <ul className="list-disc ml-4 text-sm space-y-1 max-h-32 overflow-auto">
+                        {importResult.errors.map((err, idx) => (
+                          <li key={idx}>
+                            <span className="font-medium">{err.item}:</span> {err.error}
+                          </li>
+                        ))}
+                      </ul>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -869,6 +897,17 @@ Extrai: descrição completa, todas as características, certificado energético
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Global Error Display */}
+        {(fetchMutation.error || importMutation.error) && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="w-4 h-4" />
+            <AlertDescription>
+              <strong>Erro: </strong>
+              {fetchMutation.error?.message || importMutation.error?.message || "Ocorreu um erro inesperado"}
+            </AlertDescription>
+          </Alert>
+        )}
       </CardContent>
 
       {/* Save Configuration Dialog */}
