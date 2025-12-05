@@ -192,18 +192,35 @@ export default function ExternalDataSync() {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Analisa o conteúdo desta página web e extrai TODOS os dados de ${typeConfig.label.toLowerCase()} que encontrares.
 
-URL: ${targetUrl}
+URL DA PÁGINA DE LISTAGEM: ${targetUrl}
 
-INSTRUÇÕES:
-- Extrai TODOS os registos que encontrares na página
+INSTRUÇÕES CRÍTICAS:
+- Extrai TODOS os registos/imóveis que encontrares na página
 - Mantém os dados o mais completos possível
-- Se for uma lista, extrai cada item individualmente
-- Inclui o nome/fonte do site em source_name
-- Para imóveis: extrai preço, tipo, localização, área, quartos, fotos, E MUITO IMPORTANTE: o URL/link direto para cada imóvel individual (source_url)
-- Para contactos: extrai nome, email, telefone, empresa
-- Para oportunidades: extrai dados do lead/interessado
 
-IMPORTANTE para imóveis: Cada imóvel deve ter o seu próprio source_url que é o link direto para a página desse imóvel específico no site de origem.
+MUITO IMPORTANTE - EXTRAÇÃO DE URLs INDIVIDUAIS:
+Para cada imóvel na listagem, DEVES extrair o URL/link direto que leva à página de detalhes desse imóvel específico.
+- Procura por links nos títulos, imagens ou botões "Ver mais", "Detalhes", etc.
+- O source_url de cada imóvel deve ser o link COMPLETO (com https://) para a página individual desse imóvel
+- NÃO uses o URL da página de listagem como source_url dos imóveis
+- Se o link for relativo (ex: /imovel/123), converte para absoluto baseado no domínio do site
+
+DADOS A EXTRAIR PARA CADA IMÓVEL:
+- title: título do anúncio
+- price: preço (número)
+- property_type: tipo (apartamento, moradia, terreno, etc.)
+- listing_type: venda ou arrendamento
+- bedrooms, bathrooms: número de quartos e casas de banho
+- area: área em m²
+- address, city, state: localização
+- images: URLs das imagens
+- source_url: URL DIRETO para a página deste imóvel específico (OBRIGATÓRIO)
+- external_id: ID do imóvel no site de origem (se visível)
+- energy_certificate: certificado energético se visível
+- amenities: características/comodidades
+
+Para contactos: extrai nome, email, telefone, empresa
+Para oportunidades: extrai dados do lead/interessado
 
 Retorna os dados estruturados no formato JSON especificado.`,
         add_context_from_internet: true,
@@ -244,13 +261,50 @@ Retorna os dados estruturados no formato JSON especificado.`,
             
             // Se o imóvel tem URL próprio, tentar obter mais detalhes
             let enrichedData = {};
-            if (item.source_url && item.source_url !== selectedConfig?.url && item.source_url !== url) {
+            const hasValidSourceUrl = item.source_url && 
+              item.source_url.startsWith('http') && 
+              item.source_url !== selectedConfig?.url && 
+              item.source_url !== url &&
+              !item.source_url.includes('undefined');
+              
+            if (hasValidSourceUrl) {
               try {
+                console.log(`Enriching property from: ${item.source_url}`);
                 const detailResult = await base44.integrations.Core.InvokeLLM({
-                  prompt: `Analisa a página deste imóvel e extrai TODOS os detalhes disponíveis:
-URL: ${item.source_url}
+                  prompt: `Analisa a página de detalhes deste imóvel e extrai TODOS os dados disponíveis.
 
-Extrai: descrição completa, todas as características, certificado energético, ano de construção, andar, estacionamento, estado de conservação, todas as fotos/imagens, comodidades, e qualquer outra informação relevante.`,
+URL DO IMÓVEL: ${item.source_url}
+
+EXTRAI OS SEGUINTES DADOS (se disponíveis):
+
+DESCRIÇÃO:
+- description: descrição completa do imóvel (texto integral do anúncio)
+
+CARACTERÍSTICAS PRINCIPAIS:
+- bedrooms: número de quartos (T1=1, T2=2, etc.)
+- bathrooms: número de casas de banho
+- useful_area: área útil em m²
+- gross_area: área bruta em m²
+
+DETALHES TÉCNICOS:
+- energy_certificate: certificado energético (A+, A, B, B-, C, D, E, F ou isento)
+- year_built: ano de construção (número)
+- floor: andar (ex: "3º", "R/C", "Cave", etc.)
+- parking: estacionamento/garagem (ex: "1 lugar", "Box", "2 lugares", "Sem garagem")
+- condition: estado de conservação (ex: "Novo", "Usado", "Renovado", "Para recuperar")
+
+IMAGENS:
+- images: array com URLs de TODAS as fotos do imóvel (em alta resolução se possível)
+
+COMODIDADES:
+- amenities: array com todas as características (ex: ["Varanda", "Elevador", "Ar condicionado", "Arrecadação"])
+
+LOCALIZAÇÃO:
+- address: morada completa
+- city: cidade/concelho
+- state: distrito
+
+Extrai o máximo de informação possível da página.`,
                   add_context_from_internet: true,
                   response_json_schema: {
                     type: "object",
@@ -266,16 +320,30 @@ Extrai: descrição completa, todas as características, certificado energético
                       gross_area: { type: "number" },
                       useful_area: { type: "number" },
                       bedrooms: { type: "number" },
-                      bathrooms: { type: "number" }
+                      bathrooms: { type: "number" },
+                      address: { type: "string" },
+                      city: { type: "string" },
+                      state: { type: "string" }
                     }
                   }
                 });
                 enrichedData = detailResult || {};
+                console.log(`Enriched data for ${item.title}:`, enrichedData);
               } catch (e) {
                 console.error('Failed to enrich property:', e);
+                results.items.push({ name: item.title, status: "success", note: "Sem dados adicionais" });
               }
             }
             
+            // Mapear certificado energético
+            const mapEnergyCert = (cert) => {
+              if (!cert) return undefined;
+              const upper = cert.toUpperCase().trim();
+              if (["A+", "A", "B", "B-", "C", "D", "E", "F"].includes(upper)) return upper;
+              if (upper.includes("ISENTO") || upper.includes("EXEMPT")) return "isento";
+              return undefined;
+            };
+
             const propertyData = {
               ref_id: refData.ref_id,
               title: item.title || "Imóvel importado",
@@ -288,17 +356,18 @@ Extrai: descrição completa, todas as características, certificado energético
               useful_area: enrichedData.useful_area || item.area || 0,
               gross_area: enrichedData.gross_area || 0,
               square_feet: enrichedData.useful_area || item.area || 0,
-              address: item.address || "",
-              city: item.city || "",
-              state: item.state || "",
+              address: enrichedData.address || item.address || "",
+              city: enrichedData.city || item.city || "",
+              state: enrichedData.state || item.state || "",
               images: (enrichedData.images?.length > 0 ? enrichedData.images : item.images) || [],
               amenities: [...new Set([...(item.amenities || []), ...(enrichedData.amenities || [])])],
               external_id: item.external_id || "",
-              source_url: item.source_url || selectedConfig?.url || url,
-              energy_certificate: enrichedData.energy_certificate || item.energy_certificate || undefined,
+              source_url: hasValidSourceUrl ? item.source_url : (selectedConfig?.url || url),
+              energy_certificate: mapEnergyCert(enrichedData.energy_certificate || item.energy_certificate),
               year_built: enrichedData.year_built || item.year_built || undefined,
               finishes: enrichedData.condition || item.condition || undefined,
               garage: mapGarage(enrichedData.parking || item.parking),
+              internal_notes: enrichedData.floor ? `Andar: ${enrichedData.floor}` : undefined,
               status: "active",
               availability_status: "available"
             };
@@ -793,10 +862,22 @@ Extrai: descrição completa, todas as características, certificado energético
                                 {item.city && <span>• {item.city}</span>}
                                 {item.bedrooms > 0 && <span>• T{item.bedrooms}</span>}
                               </div>
-                              {item.source_url && (
-                                <div className="flex items-center gap-1 mt-1 text-xs text-indigo-600">
+                              {item.source_url && item.source_url.startsWith('http') && (
+                                <a 
+                                  href={item.source_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 mt-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                                >
                                   <ExternalLink className="w-3 h-3" />
-                                  <span className="truncate max-w-xs">{item.source_url}</span>
+                                  <span className="truncate max-w-xs">Ver página do imóvel</span>
+                                </a>
+                              )}
+                              {(!item.source_url || !item.source_url.startsWith('http')) && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-amber-600">
+                                  <AlertTriangle className="w-3 h-3" />
+                                  <span>URL individual não encontrado</span>
                                 </div>
                               )}
                             </>
