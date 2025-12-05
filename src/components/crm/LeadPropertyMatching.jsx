@@ -696,6 +696,107 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
               }
             </p>
           )}
+
+          {/* Send Actions */}
+          {selectedForSend.length > 0 && (
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <span className="text-sm text-blue-800 font-medium">
+                {selectedForSend.length} imóvel(is) selecionado(s)
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSendByEmail}
+                  disabled={!lead.buyer_email || isSending}
+                  className="h-7 text-xs"
+                >
+                  {isSending ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <Mail className="w-3 h-3 mr-1" />
+                  )}
+                  Email
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSendByWhatsApp}
+                  disabled={!lead.buyer_phone}
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                >
+                  <MessageSquare className="w-3 h-3 mr-1" />
+                  WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Saved/Associated Properties */}
+          {associatedProperties.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+                <Save className="w-4 h-4" />
+                Imóveis Guardados ({associatedProperties.length})
+              </h4>
+              <div className="space-y-2">
+                {associatedProperties.map((ap, idx) => {
+                  const prop = properties.find(p => p.id === ap.property_id);
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Checkbox
+                          checked={selectedForSend.includes(ap.property_id)}
+                          onCheckedChange={() => toggleSelectForSend(ap.property_id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{ap.property_title}</p>
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            {prop?.price && <span>€{prop.price.toLocaleString()}</span>}
+                            {ap.match_score && (
+                              <Badge variant="outline" className="text-[10px]">
+                                {ap.match_score}% match
+                              </Badge>
+                            )}
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[10px] ${
+                                ap.status === 'visited' ? 'bg-green-50 text-green-700' :
+                                ap.status === 'rejected' ? 'bg-red-50 text-red-700' :
+                                ap.status === 'negotiating' ? 'bg-amber-50 text-amber-700' :
+                                'bg-blue-50 text-blue-700'
+                              }`}
+                            >
+                              {ap.status === 'interested' ? 'Interessado' :
+                               ap.status === 'visited' ? 'Visitado' :
+                               ap.status === 'rejected' ? 'Rejeitado' : 'Negociando'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => window.open(`/PropertyDetails?id=${ap.property_id}`, '_blank')}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleRemoveFromAssociated(ap.property_id)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>
