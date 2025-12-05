@@ -375,80 +375,85 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
           )}
 
           {/* Basic Information */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <Label>Título *</Label>
-              <Input
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                placeholder="Ex: Apartamento T2 no Centro"
-              />
-            </div>
+          <Collapsible open={openSections.basic} onOpenChange={() => toggleSection('basic')}>
+            <SectionHeader section="basic" title="Informação Básica" icon={Home} />
+            <CollapsibleContent className="pt-4 space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label>Título *</Label>
+                  <Input
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    placeholder="Ex: Apartamento T2 no Centro"
+                  />
+                </div>
 
-            <div>
-              <Label>Tipo de Imóvel *</Label>
-              <Select value={formData.property_type} onValueChange={(v) => setFormData({...formData, property_type: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="house">Moradia</SelectItem>
-                  <SelectItem value="apartment">Apartamento</SelectItem>
-                  <SelectItem value="condo">Condomínio</SelectItem>
-                  <SelectItem value="townhouse">Casa Geminada</SelectItem>
-                  <SelectItem value="building">Prédio</SelectItem>
-                  <SelectItem value="land">Terreno</SelectItem>
-                  <SelectItem value="commercial">Comercial</SelectItem>
-                  <SelectItem value="warehouse">Armazém</SelectItem>
-                  <SelectItem value="office">Escritório</SelectItem>
-                  <SelectItem value="store">Loja</SelectItem>
-                  <SelectItem value="farm">Quinta</SelectItem>
-                  <SelectItem value="development">Empreendimento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label>Tipo de Imóvel *</Label>
+                  <Select value={formData.property_type} onValueChange={(v) => setFormData({...formData, property_type: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="house">Moradia</SelectItem>
+                      <SelectItem value="apartment">Apartamento</SelectItem>
+                      <SelectItem value="condo">Condomínio</SelectItem>
+                      <SelectItem value="townhouse">Casa Geminada</SelectItem>
+                      <SelectItem value="building">Prédio</SelectItem>
+                      <SelectItem value="land">Terreno</SelectItem>
+                      <SelectItem value="commercial">Comercial</SelectItem>
+                      <SelectItem value="warehouse">Armazém</SelectItem>
+                      <SelectItem value="office">Escritório</SelectItem>
+                      <SelectItem value="store">Loja</SelectItem>
+                      <SelectItem value="farm">Quinta</SelectItem>
+                      <SelectItem value="development">Empreendimento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label>Tipo de Anúncio *</Label>
-              <Select value={formData.listing_type} onValueChange={(v) => setFormData({...formData, listing_type: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sale">Venda</SelectItem>
-                  <SelectItem value="rent">Arrendamento</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label>Tipo de Anúncio *</Label>
+                  <Select value={formData.listing_type} onValueChange={(v) => setFormData({...formData, listing_type: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sale">Venda</SelectItem>
+                      <SelectItem value="rent">Arrendamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div>
-              <Label>Preço (€) *</Label>
-              <Input
-                type="number"
-                required
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: e.target.value})}
-                placeholder="250000"
-              />
-            </div>
+                <ValidatedInput
+                  id="edit-price"
+                  label="Preço (€)"
+                  type="number"
+                  required
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  placeholder="250000"
+                  validator="price"
+                />
 
-            <div>
-              <Label>Estado</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="pending">Pendente</SelectItem>
-                  <SelectItem value="sold">Vendido</SelectItem>
-                  <SelectItem value="rented">Arrendado</SelectItem>
-                  <SelectItem value="off_market">Desativado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                <div>
+                  <Label>Estado</Label>
+                  <Select value={formData.status} onValueChange={(v) => setFormData({...formData, status: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="sold">Vendido</SelectItem>
+                      <SelectItem value="rented">Arrendado</SelectItem>
+                      <SelectItem value="off_market">Desativado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Consultant & Visibility */}
           <div className="grid md:grid-cols-2 gap-4">
