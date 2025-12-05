@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson } from "lucide-react";
 import { toast } from "sonner";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
@@ -47,6 +47,7 @@ import DuplicateClientsCleaner from "../components/tools/DuplicateClientsCleaner
 import PropertyPerformanceDashboard from "../components/tools/PropertyPerformanceDashboard";
 import ImageValidator from "../components/tools/ImageValidator";
 import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
+import JSONProcessor from "../components/tools/JSONProcessor";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -171,6 +172,7 @@ export default function Tools() {
                 <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
                 <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
                 <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
+                <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
               </div>
               </CardContent>
               </Card>
@@ -311,6 +313,7 @@ export default function Tools() {
         {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
         {activeTab === "imageValidator" && <ImageValidator />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
+        {activeTab === "jsonProcessor" && <JSONProcessor />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
