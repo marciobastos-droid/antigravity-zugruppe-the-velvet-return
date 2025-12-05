@@ -318,18 +318,20 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         });
       }
 
-      // Create notification for imported lead
-      if (user) {
-        await base44.entities.Notification.create({
-          title: "Novo Lead Importado",
-          message: `Lead "${extracted.buyer_name}" foi importado com sucesso`,
-          type: "lead",
-          priority: "medium",
-          user_email: user.email,
-          related_type: "Opportunity",
-          related_id: createdOpportunity.id,
-          action_url: "/CRMAdvanced"
+      // Notify admins and assigned agents about new lead
+      try {
+        await base44.functions.invoke('notifyNewLead', {
+          lead: {
+            ...opportunityData,
+            id: createdOpportunity.id
+          },
+          source: 'import',
+          notify_admins: true,
+          notify_assigned: true,
+          send_email: false
         });
+      } catch (notifyError) {
+        console.error('Failed to send notifications:', notifyError);
       }
 
       const requirementsExtracted = (
