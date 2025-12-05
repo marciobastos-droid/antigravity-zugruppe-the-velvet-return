@@ -166,6 +166,7 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" />
+                <ToolButton toolId="casafariSync" icon={RefreshCw} label="Sync Casafari" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
                 <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
                 <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
