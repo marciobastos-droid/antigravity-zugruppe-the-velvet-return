@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Users, X } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, Users, X, FileUp, Type, Sparkles } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
@@ -38,6 +39,9 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
   const [results, setResults] = React.useState(null);
   const [assignedAgent, setAssignedAgent] = React.useState("");
   const [users, setUsers] = React.useState([]);
+  const [importMethod, setImportMethod] = React.useState("file"); // "file" or "text"
+  const [textInput, setTextInput] = React.useState("");
+  const [processingText, setProcessingText] = React.useState(false);
   
   // Preview state
   const [previewData, setPreviewData] = React.useState([]);
@@ -67,6 +71,8 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
     setResults(null);
     setProgress("");
     setAssignedAgent("");
+    setImportMethod("file");
+    setTextInput("");
   };
 
   const handleClose = () => {
@@ -376,6 +382,76 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
     setImporting(false);
   };
 
+  const handleTextImport = async () => {
+    if (!textInput.trim()) {
+      toast.error("Insira o texto com os contactos");
+      return;
+    }
+
+    setProcessingText(true);
+    setProgress("A processar texto com IA...");
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Extrai TODOS os contactos desta lista de texto. Cada contacto pode ter nome, email, telefone, empresa, cargo, etc.
+
+TEXTO:
+${textInput}
+
+Extrai todos os contactos encontrados no formato JSON. Para cada contacto extrai:
+- full_name (obrigatório)
+- email (se disponível)
+- phone (se disponível, normalizar para formato português)
+- company_name (se disponível)
+- job_title (se disponível)
+- city (se disponível)
+- notes (qualquer informação adicional)
+
+Retorna um array com TODOS os contactos encontrados.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            contacts: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  full_name: { type: "string" },
+                  email: { type: "string" },
+                  phone: { type: "string" },
+                  company_name: { type: "string" },
+                  job_title: { type: "string" },
+                  city: { type: "string" },
+                  notes: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      const contacts = result.contacts || [];
+      
+      if (contacts.length === 0) {
+        toast.error("Nenhum contacto encontrado no texto");
+        setProcessingText(false);
+        return;
+      }
+
+      setPreviewData(contacts);
+      setSelectedRows(contacts.map((_, idx) => idx));
+      setShowPreview(true);
+      setFileType('text');
+      toast.success(`${contacts.length} contactos extraídos do texto`);
+
+    } catch (error) {
+      toast.error("Erro ao processar texto");
+      console.error(error);
+    }
+
+    setProcessingText(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
@@ -389,9 +465,42 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
         <div className="space-y-4 overflow-y-auto flex-1">
           {!showPreview ? (
             <>
+              {/* Import Method Selection */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setImportMethod("file")}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    importMethod === "file"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <FileUp className={`w-8 h-8 mx-auto mb-2 ${
+                    importMethod === "file" ? "text-blue-600" : "text-slate-400"
+                  }`} />
+                  <p className="font-medium text-sm">Importar Ficheiro</p>
+                  <p className="text-xs text-slate-500 mt-1">CSV, VCF, XML</p>
+                </button>
+                <button
+                  onClick={() => setImportMethod("text")}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    importMethod === "text"
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-slate-200 hover:border-slate-300"
+                  }`}
+                >
+                  <Type className={`w-8 h-8 mx-auto mb-2 ${
+                    importMethod === "text" ? "text-blue-600" : "text-slate-400"
+                  }`} />
+                  <p className="font-medium text-sm">Importar Texto</p>
+                  <p className="text-xs text-slate-500 mt-1">Cole lista de contactos</p>
+                </button>
+              </div>
+
               {/* File Upload */}
-              <Card>
-                <CardContent className="p-6">
+              {importMethod === "file" && (
+                <Card>
+                  <CardContent className="p-6">
                   <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-slate-400 transition-colors">
                     <input
                       type="file"
@@ -425,6 +534,47 @@ export default function ImportContactsDialog({ open, onOpenChange }) {
                   </div>
                 </CardContent>
               </Card>
+              )}
+
+              {/* Text Import */}
+              {importMethod === "text" && (
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <Label className="mb-2 block">Cole a lista de contactos</Label>
+                      <Textarea
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        placeholder={`Exemplo:
+João Silva - joao@empresa.pt - 912345678 - Construções Silva
+Maria Santos - maria@email.com - 963456789
+Pedro Costa - pedro.costa@gmail.com - 911222333 - Imobiliária XYZ - Diretor Comercial
+
+Pode colar contactos em qualquer formato. A IA irá extrair automaticamente os dados.`}
+                        rows={12}
+                        className="font-mono text-sm"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleTextImport}
+                      disabled={!textInput.trim() || processingText}
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      {processingText ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          A processar com IA...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Extrair Contactos
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </>
           ) : (
             <>
