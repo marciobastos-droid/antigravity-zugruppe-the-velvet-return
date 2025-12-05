@@ -387,10 +387,26 @@ export default function MyListings() {
       }, [deleteMutation, properties, executeWithUndo, queryClient]);
 
   const handleBulkDelete = useCallback(() => {
-    if (window.confirm(`Eliminar ${selectedProperties.length} anúncios selecionados?`)) {
-      bulkDeleteMutation.mutate(selectedProperties);
-    }
-  }, [selectedProperties, bulkDeleteMutation]);
+        const propertiesToDelete = properties.filter(p => selectedProperties.includes(p.id));
+        const propertiesData = propertiesToDelete.map(p => {
+          const data = { ...p };
+          delete data.id;
+          delete data.created_date;
+          delete data.updated_date;
+          return data;
+        });
+
+        executeWithUndo({
+          action: () => bulkDeleteMutation.mutate(selectedProperties),
+          undoAction: async () => {
+            await base44.entities.Property.bulkCreate(propertiesData);
+            queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          },
+          successMessage: `${selectedProperties.length} imóveis eliminados`,
+          undoMessage: `${selectedProperties.length} imóveis restaurados`
+        });
+      }, [selectedProperties, bulkDeleteMutation, properties, executeWithUndo, queryClient]);
 
   const statusLabelsMap = useMemo(() => ({
     active: "Ativo",
