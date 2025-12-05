@@ -74,34 +74,37 @@ Equipa Zugruppe`;
         body: emailBody
       });
 
-      // Registar matches enviados
-      for (const match of topMatches) {
-        await base44.entities.SentMatch.create({
-          contact_id: profile.id,
-          contact_name: profile.buyer_name,
-          contact_email: profile.buyer_email,
-          property_id: match.property.id,
-          property_title: match.property.title,
-          property_price: match.property.price,
-          property_city: match.property.city,
-          property_image: match.property.images?.[0],
-          match_score: match.score,
-          compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
-          key_strengths: match.reasons,
-          sent_by: profile.assigned_agent || 'system',
-          sent_date: new Date().toISOString()
-        });
+      // Registar matches enviados (não bloqueia se falhar)
+      try {
+        for (const match of topMatches) {
+          await base44.entities.SentMatch.create({
+            contact_id: profile.id,
+            contact_name: profile.buyer_name,
+            contact_email: profile.buyer_email,
+            property_id: match.property.id,
+            property_title: match.property.title,
+            property_price: match.property.price,
+            property_city: match.property.city,
+            property_image: match.property.images?.[0],
+            match_score: match.score,
+            compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
+            key_strengths: match.reasons,
+            sent_by: profile.assigned_agent || 'system',
+            sent_date: new Date().toISOString()
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
+      } catch (e) {
+        console.error('Erro ao registar matches enviados:', e);
       }
-
-      queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
 
       return { profile, matchCount: matches.length };
     },
     onSuccess: ({ profile, matchCount }) => {
       toast.success(`Email enviado para ${profile.buyer_name} com ${matchCount} matches`);
     },
-    onError: () => {
-      toast.error("Erro ao enviar email");
+    onError: (error) => {
+      toast.error(error.message || "Erro ao enviar email");
     }
   });
 
@@ -126,26 +129,29 @@ Equipa Zugruppe`;
         throw new Error(response.data?.error || "Erro ao enviar WhatsApp");
       }
 
-      // Registar matches enviados
-      for (const match of topMatches) {
-        await base44.entities.SentMatch.create({
-          contact_id: profile.id,
-          contact_name: profile.buyer_name,
-          contact_email: profile.buyer_email,
-          property_id: match.property.id,
-          property_title: match.property.title,
-          property_price: match.property.price,
-          property_city: match.property.city,
-          property_image: match.property.images?.[0],
-          match_score: match.score,
-          compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
-          key_strengths: match.reasons,
-          sent_by: profile.assigned_agent || 'system',
-          sent_date: new Date().toISOString()
-        });
+      // Registar matches enviados (não bloqueia se falhar)
+      try {
+        for (const match of topMatches) {
+          await base44.entities.SentMatch.create({
+            contact_id: profile.id,
+            contact_name: profile.buyer_name,
+            contact_email: profile.buyer_email,
+            property_id: match.property.id,
+            property_title: match.property.title,
+            property_price: match.property.price,
+            property_city: match.property.city,
+            property_image: match.property.images?.[0],
+            match_score: match.score,
+            compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
+            key_strengths: match.reasons,
+            sent_by: profile.assigned_agent || 'system',
+            sent_date: new Date().toISOString()
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
+      } catch (e) {
+        console.error('Erro ao registar matches enviados:', e);
       }
-
-      queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
 
       return { profile, matchCount: topMatches.length };
     },
