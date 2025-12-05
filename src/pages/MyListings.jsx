@@ -23,6 +23,7 @@ import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
+import { useUndoAction } from "@/components/common/useUndoAction";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
