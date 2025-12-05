@@ -8,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Image as ImageIcon, Sparkles, ExternalLink } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, Sparkles, ExternalLink, Home, Building2, MapPin, Settings, ChevronDown, ChevronRight } from "lucide-react";
 import PropertyTagger from "../property/PropertyTagger";
 import AIPropertyTools from "../property/AIPropertyTools";
+import LocationAutocomplete from "../property/LocationAutocomplete";
+import ValidatedInput from "../property/ValidatedInput";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
