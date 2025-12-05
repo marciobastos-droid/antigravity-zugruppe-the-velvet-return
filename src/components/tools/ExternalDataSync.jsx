@@ -127,7 +127,12 @@ export default function ExternalDataSync() {
                   images: { type: "array", items: { type: "string" } },
                   amenities: { type: "array", items: { type: "string" } },
                   external_id: { type: "string" },
-                  source_url: { type: "string" }
+                  source_url: { type: "string", description: "URL direto para a página do imóvel" },
+                  energy_certificate: { type: "string" },
+                  year_built: { type: "number" },
+                  floor: { type: "string" },
+                  parking: { type: "string" },
+                  condition: { type: "string" }
                 }
               }
             },
@@ -194,9 +199,11 @@ INSTRUÇÕES:
 - Mantém os dados o mais completos possível
 - Se for uma lista, extrai cada item individualmente
 - Inclui o nome/fonte do site em source_name
-- Para imóveis: extrai preço, tipo, localização, área, quartos, fotos
+- Para imóveis: extrai preço, tipo, localização, área, quartos, fotos, E MUITO IMPORTANTE: o URL/link direto para cada imóvel individual (source_url)
 - Para contactos: extrai nome, email, telefone, empresa
 - Para oportunidades: extrai dados do lead/interessado
+
+IMPORTANTE para imóveis: Cada imóvel deve ter o seu próprio source_url que é o link direto para a página desse imóvel específico no site de origem.
 
 Retorna os dados estruturados no formato JSON especificado.`,
         add_context_from_internet: true,
@@ -232,24 +239,63 @@ Retorna os dados estruturados no formato JSON especificado.`,
           if (targetType === "properties") {
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
             
+            // Se o imóvel tem URL próprio, tentar obter mais detalhes
+            let enrichedData = {};
+            if (item.source_url && item.source_url !== selectedConfig?.url && item.source_url !== url) {
+              try {
+                const detailResult = await base44.integrations.Core.InvokeLLM({
+                  prompt: `Analisa a página deste imóvel e extrai TODOS os detalhes disponíveis:
+URL: ${item.source_url}
+
+Extrai: descrição completa, todas as características, certificado energético, ano de construção, andar, estacionamento, estado de conservação, todas as fotos/imagens, comodidades, e qualquer outra informação relevante.`,
+                  add_context_from_internet: true,
+                  response_json_schema: {
+                    type: "object",
+                    properties: {
+                      description: { type: "string" },
+                      images: { type: "array", items: { type: "string" } },
+                      amenities: { type: "array", items: { type: "string" } },
+                      energy_certificate: { type: "string" },
+                      year_built: { type: "number" },
+                      floor: { type: "string" },
+                      parking: { type: "string" },
+                      condition: { type: "string" },
+                      gross_area: { type: "number" },
+                      useful_area: { type: "number" },
+                      bedrooms: { type: "number" },
+                      bathrooms: { type: "number" }
+                    }
+                  }
+                });
+                enrichedData = detailResult || {};
+              } catch (e) {
+                console.error('Failed to enrich property:', e);
+              }
+            }
+            
             const propertyData = {
               ref_id: refData.ref_id,
               title: item.title || "Imóvel importado",
-              description: item.description || "",
+              description: enrichedData.description || item.description || "",
               price: item.price || 0,
               property_type: mapPropertyType(item.property_type),
               listing_type: item.listing_type?.toLowerCase()?.includes("arrend") ? "rent" : "sale",
-              bedrooms: item.bedrooms || 0,
-              bathrooms: item.bathrooms || 0,
-              useful_area: item.area || 0,
-              square_feet: item.area || 0,
+              bedrooms: enrichedData.bedrooms || item.bedrooms || 0,
+              bathrooms: enrichedData.bathrooms || item.bathrooms || 0,
+              useful_area: enrichedData.useful_area || item.area || 0,
+              gross_area: enrichedData.gross_area || 0,
+              square_feet: enrichedData.useful_area || item.area || 0,
               address: item.address || "",
               city: item.city || "",
               state: item.state || "",
-              images: item.images || [],
-              amenities: item.amenities || [],
+              images: (enrichedData.images?.length > 0 ? enrichedData.images : item.images) || [],
+              amenities: [...new Set([...(item.amenities || []), ...(enrichedData.amenities || [])])],
               external_id: item.external_id || "",
               source_url: item.source_url || selectedConfig?.url || url,
+              energy_certificate: enrichedData.energy_certificate || item.energy_certificate || undefined,
+              year_built: enrichedData.year_built || item.year_built || undefined,
+              finishes: enrichedData.condition || item.condition || undefined,
+              garage: mapGarage(enrichedData.parking || item.parking),
               status: "active",
               availability_status: "available"
             };
@@ -363,6 +409,19 @@ Retorna os dados estruturados no formato JSON especificado.`,
     if (lower.includes("préd") || lower.includes("build")) return "building";
     if (lower.includes("quint") || lower.includes("herd") || lower.includes("farm")) return "farm";
     return "apartment";
+  };
+
+  const mapGarage = (parking) => {
+    if (!parking) return undefined;
+    const lower = parking.toLowerCase();
+    if (lower.includes("box")) return "box";
+    if (lower.includes("exterior")) return "exterior";
+    if (lower.includes("4") || lower.includes("quatro")) return "4+";
+    if (lower.includes("3") || lower.includes("três")) return "3";
+    if (lower.includes("2") || lower.includes("dois") || lower.includes("duas")) return "2";
+    if (lower.includes("1") || lower.includes("um") || lower.includes("uma") || lower.includes("sim") || lower.includes("yes")) return "1";
+    if (lower.includes("não") || lower.includes("no") || lower.includes("sem")) return "none";
+    return undefined;
   };
 
   const toggleItem = (idx) => {
@@ -713,6 +772,12 @@ Retorna os dados estruturados no formato JSON especificado.`,
                                 {item.city && <span>• {item.city}</span>}
                                 {item.bedrooms > 0 && <span>• T{item.bedrooms}</span>}
                               </div>
+                              {item.source_url && (
+                                <div className="flex items-center gap-1 mt-1 text-xs text-indigo-600">
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span className="truncate max-w-xs">{item.source_url}</span>
+                                </div>
+                              )}
                             </>
                           )}
                           {(selectedConfig?.data_type || dataType) === "contacts" && (
