@@ -9,9 +9,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   MessageSquare, Send, RefreshCw, CheckCheck, Check, 
   Clock, Image, FileText, Mic, Video, MapPin, Loader2,
-  Phone, AlertCircle
+  Phone, AlertCircle, ChevronDown
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, differenceInDays } from "date-fns";
+import { pt } from "date-fns/locale";
 import { toast } from "sonner";
 
 export default function WhatsAppConversation({ contact, onMessageSent }) {
@@ -19,14 +20,20 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
   const [message, setMessage] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [useTemplate, setUseTemplate] = React.useState(false);
+  const [page, setPage] = React.useState(1);
+  const [hasMore, setHasMore] = React.useState(true);
   const messagesEndRef = React.useRef(null);
+  const scrollAreaRef = React.useRef(null);
+  const [isLoadingMore, setIsLoadingMore] = React.useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: messages = [], isLoading, refetch } = useQuery({
+  const MESSAGES_PER_PAGE = 20;
+
+  const { data: allMessages = [], isLoading, refetch } = useQuery({
     queryKey: ['whatsappMessages', contact?.id],
     queryFn: async () => {
       if (!contact?.phone) return [];
@@ -42,8 +49,72 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
     refetchInterval: 10000 // Atualizar a cada 10 segundos
   });
 
+  // Paginated messages
+  const messages = React.useMemo(() => {
+    return allMessages.slice(0, page * MESSAGES_PER_PAGE);
+  }, [allMessages, page]);
+
+  // Check if there are more messages to load
   React.useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setHasMore(messages.length < allMessages.length);
+  }, [messages.length, allMessages.length]);
+
+  // Scroll to bottom on new messages
+  React.useEffect(() => {
+    if (!isLoadingMore) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages.length, isLoadingMore]);
+
+  // Handle scroll to load more
+  const handleScroll = (event) => {
+    const target = event.target;
+    if (target.scrollTop === 0 && hasMore && !isLoadingMore) {
+      loadMoreMessages();
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    setIsLoadingMore(true);
+    const previousHeight = scrollAreaRef.current?.scrollHeight || 0;
+    
+    setTimeout(() => {
+      setPage(prev => prev + 1);
+      setIsLoadingMore(false);
+      
+      // Maintain scroll position
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const newHeight = scrollAreaRef.current.scrollHeight;
+          scrollAreaRef.current.scrollTop = newHeight - previousHeight;
+        }
+      }, 100);
+    }, 500);
+  };
+
+  // Group messages by date
+  const groupedMessages = React.useMemo(() => {
+    const groups = {};
+    messages.forEach(msg => {
+      const date = new Date(msg.timestamp);
+      let dateKey;
+      
+      if (isToday(date)) {
+        dateKey = 'Hoje';
+      } else if (isYesterday(date)) {
+        dateKey = 'Ontem';
+      } else if (differenceInDays(new Date(), date) <= 7) {
+        dateKey = format(date, "EEEE", { locale: pt });
+      } else {
+        dateKey = format(date, "d 'de' MMMM", { locale: pt });
+      }
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(msg);
+    });
+    return groups;
   }, [messages]);
 
   // WhatsApp is configured via environment variables on the backend
@@ -177,7 +248,11 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
         </div>
       </CardHeader>
 
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea 
+        className="flex-1 p-4" 
+        ref={scrollAreaRef}
+        onScroll={handleScroll}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 animate-spin text-green-600" />
@@ -189,52 +264,84 @@ export default function WhatsAppConversation({ contact, onMessageSent }) {
             <p className="text-xs mt-1">Inicie uma conversa</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {messages.map((msg) => {
-              const Icon = messageTypeIcons[msg.message_type] || MessageSquare;
-              const isOutbound = msg.direction === 'outbound';
-              
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      isOutbound
-                        ? 'bg-green-500 text-white rounded-br-none'
-                        : 'bg-slate-100 text-slate-900 rounded-bl-none'
-                    }`}
+          <div className="space-y-4">
+            {/* Load More Indicator */}
+            {hasMore && (
+              <div className="flex justify-center py-2">
+                {isLoadingMore ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={loadMoreMessages}
+                    className="text-xs text-slate-500"
                   >
-                    {msg.message_type !== 'text' && (
-                      <div className="flex items-center gap-1 text-xs opacity-75 mb-1">
-                        <Icon className="w-3 h-3" />
-                        {msg.message_type}
-                      </div>
-                    )}
-                    
-                    {msg.media_url && msg.message_type === 'image' && (
-                      <img 
-                        src={msg.media_url} 
-                        alt="" 
-                        className="max-w-full rounded mb-2"
-                      />
-                    )}
-                    
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    
-                    <div className={`flex items-center gap-1 mt-1 text-xs ${
-                      isOutbound ? 'justify-end text-green-100' : 'text-slate-500'
-                    }`}>
-                      <span>
-                        {format(new Date(msg.timestamp), 'HH:mm')}
-                      </span>
-                      {isOutbound && statusIcons[msg.status]}
-                    </div>
+                    <ChevronDown className="w-3 h-3 mr-1" />
+                    Carregar mensagens antigas ({allMessages.length - messages.length} restantes)
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Messages grouped by date */}
+            {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
+              <div key={dateKey} className="space-y-3">
+                {/* Date separator */}
+                <div className="flex items-center justify-center">
+                  <div className="bg-slate-200 text-slate-600 text-xs px-3 py-1 rounded-full">
+                    {dateKey}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Messages for this date */}
+                {dateMessages.map((msg) => {
+                  const Icon = messageTypeIcons[msg.message_type] || MessageSquare;
+                  const isOutbound = msg.direction === 'outbound';
+                  
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] rounded-lg p-3 shadow-sm ${
+                          isOutbound
+                            ? 'bg-green-500 text-white rounded-br-none'
+                            : 'bg-white text-slate-900 rounded-bl-none border border-slate-200'
+                        }`}
+                      >
+                        {msg.message_type !== 'text' && (
+                          <div className="flex items-center gap-1 text-xs opacity-75 mb-1">
+                            <Icon className="w-3 h-3" />
+                            {msg.message_type}
+                          </div>
+                        )}
+                        
+                        {msg.media_url && msg.message_type === 'image' && (
+                          <img 
+                            src={msg.media_url} 
+                            alt="" 
+                            className="max-w-full rounded mb-2"
+                          />
+                        )}
+                        
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                        
+                        <div className={`flex items-center gap-1 mt-1 text-xs ${
+                          isOutbound ? 'justify-end text-green-100' : 'text-slate-500'
+                        }`}>
+                          <span>
+                            {format(new Date(msg.timestamp), 'HH:mm')}
+                          </span>
+                          {isOutbound && statusIcons[msg.status]}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
             <div ref={messagesEndRef} />
           </div>
         )}
