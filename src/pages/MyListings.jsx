@@ -119,7 +119,8 @@ const PropertyCard = memo(function PropertyCard({
 
 export default function MyListings() {
   const queryClient = useQueryClient();
-  const [selectedProperties, setSelectedProperties] = useState([]);
+      const { executeWithUndo } = useUndoAction();
+      const [selectedProperties, setSelectedProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingNotes, setViewingNotes] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
