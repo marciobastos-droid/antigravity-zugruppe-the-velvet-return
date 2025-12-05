@@ -49,6 +49,7 @@ import ImageValidator from "../components/tools/ImageValidator";
 import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
+import AuditLogViewer from "../components/audit/AuditLogViewer";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -317,6 +318,7 @@ export default function Tools() {
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
         {activeTab === "jsonProcessor" && <JSONProcessor />}
             {activeTab === "externalSync" && <ExternalDataSync />}
+            {activeTab === "auditLog" && <AuditLogViewer />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
