@@ -271,6 +271,7 @@ export default function Tools() {
                 <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
                 <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
+                <ToolButton toolId="auditLog" icon={FileText} label="Log de Auditoria" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
               </div>
               </CardContent>
               </Card>
