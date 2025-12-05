@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
 // Supported portals configuration
 const SUPPORTED_PORTALS = {
@@ -363,44 +363,53 @@ FORMATO EXACTO:
 {"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
     }
 
-    // Call Gemini API with JSON mode
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    // Call OpenAI API with JSON mode
+    const openaiResponse = await fetch(
+      'https://api.openai.com/v1/chat/completions',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
         body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 8192,
-            responseMimeType: "application/json"
-          }
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: 'Tu es um especialista em extração de dados imobiliários. Responde APENAS com JSON válido, sem markdown ou texto adicional.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0,
+          max_tokens: 8192,
+          response_format: { type: "json_object" }
         })
       }
     );
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text();
       return Response.json({ 
         success: false,
-        error: 'Erro na API Gemini. Tente novamente.',
+        error: 'Erro na API OpenAI. Tente novamente.',
         details: errorText.substring(0, 200)
       });
     }
 
-    const geminiData = await geminiResponse.json();
+    const openaiData = await openaiResponse.json();
     
-    if (!geminiData.candidates || geminiData.candidates.length === 0) {
+    if (!openaiData.choices || openaiData.choices.length === 0) {
       return Response.json({ 
         success: false,
         error: 'A API não retornou dados. Tente novamente.'
       });
     }
     
-    const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const responseText = openaiData.choices?.[0]?.message?.content || '';
     
     // Parse response with fallback strategies
     const parsedData = safeParseJSON(responseText);
