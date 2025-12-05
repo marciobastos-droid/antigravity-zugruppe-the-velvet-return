@@ -918,23 +918,34 @@ export default function MyListings() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex border rounded-lg overflow-hidden">
-                  <Button
-                    variant={viewMode === "table" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("table")}
-                    className="rounded-none"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "cards" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("cards")}
-                    className="rounded-none"
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </Button>
-                </div>
+                                        <Button
+                                          variant={viewMode === "table" ? "default" : "ghost"}
+                                          size="sm"
+                                          onClick={() => setViewMode("table")}
+                                          className="rounded-none"
+                                          title="Vista Tabela"
+                                        >
+                                          <List className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          variant={viewMode === "cards" ? "default" : "ghost"}
+                                          size="sm"
+                                          onClick={() => setViewMode("cards")}
+                                          className="rounded-none"
+                                          title="Vista Cards"
+                                        >
+                                          <LayoutGrid className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                          variant={viewMode === "grouped" ? "default" : "ghost"}
+                                          size="sm"
+                                          onClick={() => setViewMode("grouped")}
+                                          className="rounded-none"
+                                          title="Vista Agrupada"
+                                        >
+                                          <Layers className="w-4 h-4" />
+                                        </Button>
+                                      </div>
                 {totalPages > 1 && viewMode === "cards" && (
                   <p className="text-sm text-slate-600">
                     Página {currentPage} de {totalPages}
