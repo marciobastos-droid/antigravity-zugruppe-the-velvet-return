@@ -602,27 +602,69 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
               </div>
 
           {/* Energy Certificate */}
-          <div>
-            <Label>Certificado Energético</Label>
-            <Select 
-              value={formData.energy_certificate} 
-              onValueChange={(v) => setFormData({...formData, energy_certificate: v})}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a classe energética" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="A+">A+</SelectItem>
-                <SelectItem value="A">A</SelectItem>
-                <SelectItem value="B">B</SelectItem>
-                <SelectItem value="B-">B-</SelectItem>
-                <SelectItem value="C">C</SelectItem>
-                <SelectItem value="D">D</SelectItem>
-                <SelectItem value="E">E</SelectItem>
-                <SelectItem value="F">F</SelectItem>
-                <SelectItem value="isento">Isento</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <Label>Certificado Energético</Label>
+              <Select 
+                value={formData.energy_certificate} 
+                onValueChange={(v) => setFormData({...formData, energy_certificate: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="A+">A+</SelectItem>
+                  <SelectItem value="A">A</SelectItem>
+                  <SelectItem value="B">B</SelectItem>
+                  <SelectItem value="B-">B-</SelectItem>
+                  <SelectItem value="C">C</SelectItem>
+                  <SelectItem value="D">D</SelectItem>
+                  <SelectItem value="E">E</SelectItem>
+                  <SelectItem value="F">F</SelectItem>
+                  <SelectItem value="isento">Isento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Garagem</Label>
+              <Select 
+                value={formData.garage} 
+                onValueChange={(v) => setFormData({...formData, garage: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem garagem</SelectItem>
+                  <SelectItem value="1">1 lugar</SelectItem>
+                  <SelectItem value="2">2 lugares</SelectItem>
+                  <SelectItem value="3">3 lugares</SelectItem>
+                  <SelectItem value="4+">4+ lugares</SelectItem>
+                  <SelectItem value="box">Box</SelectItem>
+                  <SelectItem value="exterior">Exterior</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Exposição Solar</Label>
+              <Select 
+                value={formData.sun_exposure} 
+                onValueChange={(v) => setFormData({...formData, sun_exposure: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="north">Norte</SelectItem>
+                  <SelectItem value="south">Sul</SelectItem>
+                  <SelectItem value="east">Nascente</SelectItem>
+                  <SelectItem value="west">Poente</SelectItem>
+                  <SelectItem value="north_south">Norte/Sul</SelectItem>
+                  <SelectItem value="east_west">Nascente/Poente</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Description with AI Improvement */}
