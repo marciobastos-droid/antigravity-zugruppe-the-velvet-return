@@ -502,6 +502,9 @@ Extrai:
         <div className="flex-1 overflow-y-auto p-4 pb-20" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-0 space-y-4">
+            {/* Contact Requirements - busca os requisitos do contacto associado */}
+            <ContactRequirementsFromLead lead={lead} />
+            
             {/* Key Metrics */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-3 bg-blue-50 rounded-lg">
@@ -698,9 +701,6 @@ Extrai:
 
           {/* Matching Tab */}
           <TabsContent value="matching" className="mt-0 space-y-4">
-            {/* Contact Requirements - busca contacto pelo email ou linked_opportunity_ids */}
-            <ContactRequirementsFromLead lead={lead} />
-            
             <LeadPropertyMatching 
               lead={lead}
               onAssociateProperty={handleAssociateProperty}
