@@ -667,38 +667,38 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
               </div>
             </div>
 
-            {/* Description with AI Improvement */}
-            <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label>Descrição</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleImproveDescription}
-                disabled={improvingDescription}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50"
-              >
-                {improvingDescription ? (
-                  <>
-                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                    A melhorar...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3 h-3 mr-2" />
-                    Melhorar com IA
-                  </>
-                )}
-              </Button>
-            </div>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Descreva o imóvel..."
-                rows={6}
-              />
-            </div>
+              {/* Description with AI Improvement */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImproveDescription}
+                    disabled={improvingDescription}
+                    className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                  >
+                    {improvingDescription ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                        A melhorar...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 mr-2" />
+                        Melhorar com IA
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="Descreva o imóvel..."
+                  rows={6}
+                />
+              </div>
             </CollapsibleContent>
           </Collapsible>
 
