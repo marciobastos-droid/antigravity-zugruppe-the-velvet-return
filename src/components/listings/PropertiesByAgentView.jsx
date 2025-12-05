@@ -32,11 +32,15 @@ export default function PropertiesByAgentView() {
     queryFn: () => base44.entities.User.list(),
   });
 
-  // Criar mapa de agentes
+  // Criar mapa de agentes (por email e por ID)
   const agentMap = useMemo(() => {
     const map = {};
     users.forEach(u => {
-      map[u.email] = u.display_name || u.full_name || u.email.split('@')[0];
+      const name = u.display_name || u.full_name || u.email.split('@')[0];
+      map[u.email] = name;
+      if (u.id) {
+        map[u.id] = name;
+      }
     });
     return map;
   }, [users]);
