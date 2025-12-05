@@ -5,16 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  Globe, Download, Loader2, Check, AlertTriangle, 
-  Building2, Users, Target, RefreshCw, ExternalLink,
-  FileJson, CheckCircle, XCircle, Eye, Save
+  Globe, Loader2, Check, AlertTriangle, Building2, Users, Target,
+  Download, ExternalLink, Search, RefreshCw, FileJson, Eye, X
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,225 +22,318 @@ const dataTypes = [
   { value: "opportunities", label: "Oportunidades", icon: Target, entity: "Opportunity" }
 ];
 
-const propertyFieldMappings = {
-  title: ["title", "name", "titulo", "nome", "property_name"],
-  description: ["description", "descricao", "desc", "details"],
-  price: ["price", "preco", "valor", "value", "amount"],
-  bedrooms: ["bedrooms", "quartos", "rooms", "beds"],
-  bathrooms: ["bathrooms", "casas_de_banho", "wc", "baths"],
-  square_feet: ["area", "square_feet", "size", "metros", "m2", "sqm"],
-  address: ["address", "morada", "endereco", "location"],
-  city: ["city", "cidade", "concelho", "locality"],
-  state: ["state", "distrito", "region", "province"],
-  property_type: ["property_type", "tipo", "type", "category"],
-  listing_type: ["listing_type", "transaction", "negocio", "operation"]
-};
-
-const contactFieldMappings = {
-  buyer_name: ["name", "nome", "full_name", "buyer_name", "contact_name"],
-  buyer_email: ["email", "e-mail", "buyer_email", "contact_email"],
-  buyer_phone: ["phone", "telefone", "mobile", "buyer_phone", "contact_phone"],
-  profile_type: ["type", "tipo", "profile_type", "category"]
-};
-
-const opportunityFieldMappings = {
-  buyer_name: ["name", "nome", "lead_name", "contact_name", "buyer_name"],
-  buyer_email: ["email", "e-mail", "lead_email", "buyer_email"],
-  buyer_phone: ["phone", "telefone", "lead_phone", "buyer_phone"],
-  lead_type: ["type", "tipo", "lead_type"],
-  status: ["status", "estado", "stage"],
-  message: ["message", "mensagem", "notes", "comments"]
-};
-
 export default function ExternalDataSync() {
+  const queryClient = useQueryClient();
   const [url, setUrl] = useState("");
   const [dataType, setDataType] = useState("properties");
-  const [fetchedData, setFetchedData] = useState(null);
-  const [mappedData, setMappedData] = useState([]);
-  const [activeTab, setActiveTab] = useState("fetch");
-  const [importProgress, setImportProgress] = useState(0);
-  const [importResults, setImportResults] = useState(null);
-  
-  const queryClient = useQueryClient();
+  const [extractedData, setExtractedData] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [activeTab, setActiveTab] = useState("input");
+  const [importResult, setImportResult] = useState(null);
 
   const fetchMutation = useMutation({
     mutationFn: async () => {
-      // Use LLM to fetch and parse the data from URL
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Fetch and extract structured data from this URL: ${url}
-        
-The data should be extracted as ${dataType}. 
+      if (!url) throw new Error("URL é obrigatório");
 
-For properties, extract: title, description, price, bedrooms, bathrooms, area/size, address, city, state/district, property type, listing type (sale/rent).
-
-For contacts, extract: name, email, phone, type (buyer/seller/partner).
-
-For opportunities/leads, extract: name, email, phone, type, status, message/notes.
-
-Return ONLY a valid JSON object with this structure:
-{
-  "success": true/false,
-  "source": "website name or domain",
-  "total_records": number,
-  "data": [array of extracted records],
-  "errors": ["any extraction errors"]
-}
-
-If the URL cannot be accessed or no data found, return success: false with appropriate error message.`,
-        add_context_from_internet: true,
-        response_json_schema: {
+      // Use LLM to extract structured data from the URL
+      const typeConfig = dataTypes.find(t => t.value === dataType);
+      
+      let schema;
+      if (dataType === "properties") {
+        schema = {
           type: "object",
           properties: {
-            success: { type: "boolean" },
-            source: { type: "string" },
-            total_records: { type: "number" },
-            data: { 
+            items: {
               type: "array",
-              items: { type: "object" }
+              items: {
+                type: "object",
+                properties: {
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  price: { type: "number" },
+                  property_type: { type: "string" },
+                  listing_type: { type: "string" },
+                  bedrooms: { type: "number" },
+                  bathrooms: { type: "number" },
+                  area: { type: "number" },
+                  address: { type: "string" },
+                  city: { type: "string" },
+                  state: { type: "string" },
+                  images: { type: "array", items: { type: "string" } },
+                  amenities: { type: "array", items: { type: "string" } },
+                  external_id: { type: "string" },
+                  source_url: { type: "string" }
+                }
+              }
             },
-            errors: { 
+            source_name: { type: "string" },
+            total_found: { type: "number" }
+          }
+        };
+      } else if (dataType === "contacts") {
+        schema = {
+          type: "object",
+          properties: {
+            items: {
               type: "array",
-              items: { type: "string" }
-            }
-          },
-          required: ["success", "data"]
-        }
+              items: {
+                type: "object",
+                properties: {
+                  full_name: { type: "string" },
+                  email: { type: "string" },
+                  phone: { type: "string" },
+                  company_name: { type: "string" },
+                  job_title: { type: "string" },
+                  city: { type: "string" },
+                  notes: { type: "string" }
+                }
+              }
+            },
+            source_name: { type: "string" },
+            total_found: { type: "number" }
+          }
+        };
+      } else {
+        schema = {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  buyer_name: { type: "string" },
+                  buyer_email: { type: "string" },
+                  buyer_phone: { type: "string" },
+                  location: { type: "string" },
+                  budget: { type: "number" },
+                  property_type_interest: { type: "string" },
+                  message: { type: "string" },
+                  lead_source: { type: "string" }
+                }
+              }
+            },
+            source_name: { type: "string" },
+            total_found: { type: "number" }
+          }
+        };
+      }
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analisa o conteúdo desta página web e extrai TODOS os dados de ${typeConfig.label.toLowerCase()} que encontrares.
+
+URL: ${url}
+
+INSTRUÇÕES:
+- Extrai TODOS os registos que encontrares na página
+- Mantém os dados o mais completos possível
+- Se for uma lista, extrai cada item individualmente
+- Inclui o nome/fonte do site em source_name
+- Para imóveis: extrai preço, tipo, localização, área, quartos, fotos
+- Para contactos: extrai nome, email, telefone, empresa
+- Para oportunidades: extrai dados do lead/interessado
+
+Retorna os dados estruturados no formato JSON especificado.`,
+        add_context_from_internet: true,
+        response_json_schema: schema
       });
 
-      return response;
+      return result;
     },
     onSuccess: (data) => {
-      setFetchedData(data);
-      if (data.success && data.data?.length > 0) {
-        const mapped = mapDataToEntity(data.data, dataType);
-        setMappedData(mapped);
-        setActiveTab("preview");
-        toast.success(`${data.total_records || data.data.length} registos encontrados!`);
-      } else {
-        toast.error(data.errors?.[0] || "Nenhum dado encontrado");
-      }
+      setExtractedData(data);
+      setSelectedItems(data.items?.map((_, idx) => idx) || []);
+      setActiveTab("preview");
+      toast.success(`${data.items?.length || 0} registos encontrados`);
     },
     onError: (error) => {
-      toast.error("Erro ao obter dados: " + error.message);
+      toast.error(error.message || "Erro ao extrair dados");
     }
   });
 
-  const mapDataToEntity = (data, type) => {
-    const mappings = type === "properties" ? propertyFieldMappings :
-                     type === "contacts" ? contactFieldMappings :
-                     opportunityFieldMappings;
-
-    return data.map(item => {
-      const mapped = {};
-      
-      for (const [targetField, sourceFields] of Object.entries(mappings)) {
-        for (const sourceField of sourceFields) {
-          const value = item[sourceField] || item[sourceField.toLowerCase()] || 
-                       item[sourceField.toUpperCase()];
-          if (value !== undefined && value !== null && value !== "") {
-            mapped[targetField] = value;
-            break;
-          }
-        }
-      }
-
-      // Add unmapped fields to a notes/description field
-      const mappedKeys = Object.values(mappings).flat();
-      const unmappedFields = Object.entries(item)
-        .filter(([key]) => !mappedKeys.some(mk => 
-          mk.toLowerCase() === key.toLowerCase()))
-        .map(([key, value]) => `${key}: ${value}`)
-        .join("\n");
-
-      if (unmappedFields && type === "properties") {
-        mapped.internal_notes = unmappedFields;
-      } else if (unmappedFields && type === "opportunities") {
-        mapped.message = (mapped.message || "") + "\n\nDados adicionais:\n" + unmappedFields;
-      }
-
-      return mapped;
-    });
-  };
-
   const importMutation = useMutation({
     mutationFn: async () => {
-      const entityType = dataTypes.find(d => d.value === dataType)?.entity;
-      const results = { created: 0, errors: [] };
-      
-      for (let i = 0; i < mappedData.length; i++) {
-        try {
-          const record = { ...mappedData[i] };
-          
-          // Add defaults based on entity type
-          if (entityType === "Property") {
-            record.status = record.status || "active";
-            record.listing_type = record.listing_type || "sale";
-            record.property_type = record.property_type || "apartment";
-            record.source_url = url;
-            if (record.price) record.price = parseFloat(String(record.price).replace(/[^\d.]/g, "")) || 0;
-            if (record.bedrooms) record.bedrooms = parseInt(record.bedrooms) || 0;
-            if (record.bathrooms) record.bathrooms = parseInt(record.bathrooms) || 0;
-            if (record.square_feet) record.square_feet = parseFloat(String(record.square_feet).replace(/[^\d.]/g, "")) || 0;
-          } else if (entityType === "Opportunity") {
-            record.lead_type = record.lead_type || "comprador";
-            record.status = record.status || "new";
-            record.lead_source = "website";
-            record.source_url = url;
-          } else if (entityType === "ClientContact") {
-            record.profile_type = record.profile_type || "cliente_comprador";
-          }
+      if (!extractedData?.items?.length || selectedItems.length === 0) {
+        throw new Error("Nenhum item selecionado para importar");
+      }
 
-          await base44.entities[entityType].create(record);
-          results.created++;
+      const itemsToImport = extractedData.items.filter((_, idx) => selectedItems.includes(idx));
+      const results = { created: 0, errors: [], items: [] };
+
+      for (const item of itemsToImport) {
+        try {
+          if (dataType === "properties") {
+            // Generate ref_id
+            const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
+            
+            const propertyData = {
+              ref_id: refData.ref_id,
+              title: item.title || "Imóvel importado",
+              description: item.description || "",
+              price: item.price || 0,
+              property_type: mapPropertyType(item.property_type),
+              listing_type: item.listing_type?.toLowerCase()?.includes("arrend") ? "rent" : "sale",
+              bedrooms: item.bedrooms || 0,
+              bathrooms: item.bathrooms || 0,
+              useful_area: item.area || 0,
+              square_feet: item.area || 0,
+              address: item.address || "",
+              city: item.city || "",
+              state: item.state || "",
+              images: item.images || [],
+              amenities: item.amenities || [],
+              external_id: item.external_id || "",
+              source_url: item.source_url || url,
+              status: "active",
+              availability_status: "available"
+            };
+
+            await base44.entities.Property.create(propertyData);
+            results.created++;
+            results.items.push({ name: item.title, status: "success" });
+
+          } else if (dataType === "contacts") {
+            // Check for duplicates
+            if (item.email) {
+              const existing = await base44.entities.ClientContact.filter({ email: item.email });
+              if (existing.length > 0) {
+                results.items.push({ name: item.full_name, status: "duplicate" });
+                continue;
+              }
+            }
+
+            const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
+            
+            const contactData = {
+              ref_id: refData.ref_id,
+              full_name: item.full_name || "Contacto importado",
+              email: item.email || "",
+              phone: item.phone || "",
+              company_name: item.company_name || "",
+              job_title: item.job_title || "",
+              city: item.city || "",
+              notes: item.notes || `Importado de: ${url}`,
+              source: "other",
+              contact_type: "client"
+            };
+
+            await base44.entities.ClientContact.create(contactData);
+            results.created++;
+            results.items.push({ name: item.full_name, status: "success" });
+
+          } else if (dataType === "opportunities") {
+            const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+            
+            const oppData = {
+              ref_id: refData.ref_id,
+              lead_type: "comprador",
+              buyer_name: item.buyer_name || "Lead importado",
+              buyer_email: item.buyer_email || "",
+              buyer_phone: item.buyer_phone || "",
+              location: item.location || "",
+              budget: item.budget || 0,
+              property_type_interest: item.property_type_interest || "",
+              message: item.message || `Importado de: ${url}`,
+              lead_source: "other",
+              source_url: url,
+              status: "new"
+            };
+
+            const created = await base44.entities.Opportunity.create(oppData);
+            results.created++;
+            results.items.push({ name: item.buyer_name, status: "success" });
+
+            // Notify about new lead
+            try {
+              await base44.functions.invoke('notifyNewLead', {
+                lead: { ...oppData, id: created.id },
+                source: 'import',
+                notify_admins: true,
+                send_email: false
+              });
+            } catch (e) {
+              console.error('Notification failed:', e);
+            }
+          }
         } catch (error) {
-          results.errors.push(`Registo ${i + 1}: ${error.message}`);
+          results.errors.push({ item: item.title || item.full_name || item.buyer_name, error: error.message });
+          results.items.push({ name: item.title || item.full_name || item.buyer_name, status: "error" });
         }
-        
-        setImportProgress(Math.round(((i + 1) / mappedData.length) * 100));
       }
 
       return results;
     },
     onSuccess: (results) => {
-      setImportResults(results);
-      setActiveTab("results");
-      queryClient.invalidateQueries();
-      toast.success(`${results.created} registos importados com sucesso!`);
+      setImportResult(results);
+      setActiveTab("result");
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`${results.created} registos importados com sucesso`);
     },
     onError: (error) => {
-      toast.error("Erro na importação: " + error.message);
+      toast.error(error.message || "Erro na importação");
     }
   });
 
-  const resetSync = () => {
-    setUrl("");
-    setFetchedData(null);
-    setMappedData([]);
-    setImportProgress(0);
-    setImportResults(null);
-    setActiveTab("fetch");
+  const mapPropertyType = (type) => {
+    if (!type) return "apartment";
+    const lower = type.toLowerCase();
+    if (lower.includes("apart") || lower.includes("t1") || lower.includes("t2") || lower.includes("t3") || lower.includes("t4")) return "apartment";
+    if (lower.includes("morad") || lower.includes("vivend") || lower.includes("casa") || lower.includes("house")) return "house";
+    if (lower.includes("terren") || lower.includes("land")) return "land";
+    if (lower.includes("loja") || lower.includes("comerc") || lower.includes("store") || lower.includes("shop")) return "store";
+    if (lower.includes("escrit") || lower.includes("office")) return "office";
+    if (lower.includes("armaz") || lower.includes("warehouse")) return "warehouse";
+    if (lower.includes("préd") || lower.includes("build")) return "building";
+    if (lower.includes("quint") || lower.includes("herd") || lower.includes("farm")) return "farm";
+    return "apartment";
   };
+
+  const toggleItem = (idx) => {
+    setSelectedItems(prev => 
+      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+    );
+  };
+
+  const toggleAll = () => {
+    if (selectedItems.length === extractedData?.items?.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(extractedData?.items?.map((_, idx) => idx) || []);
+    }
+  };
+
+  const resetForm = () => {
+    setUrl("");
+    setExtractedData(null);
+    setSelectedItems([]);
+    setImportResult(null);
+    setActiveTab("input");
+  };
+
+  const typeConfig = dataTypes.find(t => t.value === dataType);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe className="w-6 h-6 text-blue-600" />
+          <Globe className="w-6 h-6 text-indigo-600" />
           Sincronização de Dados Externos
         </CardTitle>
         <CardDescription>
-          Importe dados de websites externos diretamente para o sistema
+          Importe dados de websites externos automaticamente usando IA
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="fetch">1. Obter Dados</TabsTrigger>
-            <TabsTrigger value="preview" disabled={!fetchedData?.success}>2. Pré-visualizar</TabsTrigger>
-            <TabsTrigger value="results" disabled={!importResults}>3. Resultados</TabsTrigger>
+            <TabsTrigger value="input">Configurar</TabsTrigger>
+            <TabsTrigger value="preview" disabled={!extractedData}>Pré-visualizar</TabsTrigger>
+            <TabsTrigger value="result" disabled={!importResult}>Resultado</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="fetch" className="space-y-6 mt-6">
+          <TabsContent value="input" className="space-y-6 mt-6">
             {/* Data Type Selection */}
             <div>
               <Label className="mb-3 block">Tipo de Dados a Importar</Label>
@@ -253,12 +344,12 @@ If the URL cannot be accessed or no data found, return success: false with appro
                     onClick={() => setDataType(type.value)}
                     className={`p-4 rounded-lg border-2 text-center transition-all ${
                       dataType === type.value
-                        ? "border-blue-500 bg-blue-50"
+                        ? "border-indigo-500 bg-indigo-50"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
                     <type.icon className={`w-8 h-8 mx-auto mb-2 ${
-                      dataType === type.value ? "text-blue-600" : "text-slate-400"
+                      dataType === type.value ? "text-indigo-600" : "text-slate-400"
                     }`} />
                     <p className="font-medium">{type.label}</p>
                   </button>
@@ -268,220 +359,222 @@ If the URL cannot be accessed or no data found, return success: false with appro
 
             {/* URL Input */}
             <div>
-              <Label htmlFor="sync-url">URL do Website</Label>
-              <div className="flex gap-2 mt-2">
+              <Label htmlFor="url" className="mb-2 block">URL da Página</Label>
+              <div className="flex gap-2">
                 <Input
-                  id="sync-url"
+                  id="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://exemplo.com/imoveis ou https://exemplo.com/api/data"
+                  placeholder="https://exemplo.com/imoveis"
                   className="flex-1"
                 />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => url && window.open(url, '_blank')}
-                  disabled={!url}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
+                {url && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => window.open(url, '_blank')}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Introduza o URL de uma página web, feed RSS, ou endpoint API com dados estruturados
+              <p className="text-xs text-slate-500 mt-2">
+                Cole o URL de uma página com listagem de {typeConfig?.label.toLowerCase()}
               </p>
             </div>
+
+            {/* Examples */}
+            <Alert>
+              <Search className="w-4 h-4" />
+              <AlertDescription>
+                <strong>Exemplos de URLs suportados:</strong>
+                <ul className="list-disc ml-4 mt-2 text-sm">
+                  <li>Páginas de resultados de portais imobiliários</li>
+                  <li>Listagens de imóveis de agências</li>
+                  <li>Diretórios de contactos profissionais</li>
+                  <li>Páginas de leads/formulários preenchidos</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
 
             {/* Fetch Button */}
             <Button
               onClick={() => fetchMutation.mutate()}
               disabled={!url || fetchMutation.isPending}
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-indigo-600 hover:bg-indigo-700"
               size="lg"
             >
               {fetchMutation.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  A obter dados...
+                  A extrair dados com IA...
                 </>
               ) : (
                 <>
-                  <Download className="w-5 h-5 mr-2" />
-                  Obter e Analisar Dados
+                  <Search className="w-5 h-5 mr-2" />
+                  Extrair Dados da Página
                 </>
               )}
             </Button>
-
-            {/* Error Display */}
-            {fetchedData && !fetchedData.success && (
-              <Alert variant="destructive">
-                <AlertTriangle className="w-4 h-4" />
-                <AlertDescription>
-                  {fetchedData.errors?.join(", ") || "Não foi possível obter dados do URL fornecido"}
-                </AlertDescription>
-              </Alert>
-            )}
           </TabsContent>
 
           <TabsContent value="preview" className="mt-6">
-            {fetchedData?.success && (
+            {extractedData && (
               <div className="space-y-4">
-                {/* Summary */}
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Badge className="bg-green-100 text-green-800">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      {mappedData.length} Registos
-                    </Badge>
-                    <Badge variant="outline">
-                      Fonte: {fetchedData.source || new URL(url).hostname}
-                    </Badge>
-                    <Badge variant="outline">
-                      {dataTypes.find(d => d.value === dataType)?.label}
-                    </Badge>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={resetSync}>
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Recomeçar
-                  </Button>
-                </div>
-
-                {/* Data Preview */}
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="bg-slate-100 px-4 py-2 border-b">
-                    <h4 className="font-medium flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      Pré-visualização dos Dados Mapeados
-                    </h4>
-                  </div>
-                  <div className="max-h-96 overflow-auto">
-                    {mappedData.slice(0, 10).map((item, idx) => (
-                      <div key={idx} className="p-4 border-b last:border-b-0 hover:bg-slate-50">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium text-slate-900">
-                              {item.title || item.buyer_name || `Registo ${idx + 1}`}
-                            </p>
-                            {item.price && (
-                              <p className="text-green-600 font-semibold">€{Number(item.price).toLocaleString()}</p>
-                            )}
-                            {item.buyer_email && (
-                              <p className="text-sm text-slate-600">{item.buyer_email}</p>
-                            )}
-                            {item.city && (
-                              <p className="text-sm text-slate-500">{item.city}{item.state ? `, ${item.state}` : ''}</p>
-                            )}
-                          </div>
-                          <Badge variant="secondary" className="text-xs">
-                            #{idx + 1}
-                          </Badge>
-                        </div>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {Object.entries(item).slice(0, 5).map(([key, value]) => (
-                            <Badge key={key} variant="outline" className="text-xs">
-                              {key}: {String(value).substring(0, 20)}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                    {mappedData.length > 10 && (
-                      <div className="p-4 text-center text-slate-500 bg-slate-50">
-                        ... e mais {mappedData.length - 10} registos
-                      </div>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-lg">
+                      {extractedData.items?.length || 0} {typeConfig?.label} Encontrados
+                    </h3>
+                    {extractedData.source_name && (
+                      <p className="text-sm text-slate-500">Fonte: {extractedData.source_name}</p>
                     )}
                   </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={toggleAll}>
+                      {selectedItems.length === extractedData.items?.length ? "Desmarcar Todos" : "Selecionar Todos"}
+                    </Button>
+                    <Badge variant="secondary">
+                      {selectedItems.length} selecionados
+                    </Badge>
+                  </div>
                 </div>
 
-                {/* Import Button */}
-                <Button
-                  onClick={() => importMutation.mutate()}
-                  disabled={importMutation.isPending || mappedData.length === 0}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  size="lg"
-                >
-                  {importMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      A importar... {importProgress}%
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5 mr-2" />
-                      Importar {mappedData.length} Registos
-                    </>
-                  )}
-                </Button>
+                {/* Items List */}
+                <div className="max-h-96 overflow-y-auto space-y-2 border rounded-lg p-2">
+                  {extractedData.items?.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => toggleItem(idx)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                        selectedItems.includes(idx)
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedItems.includes(idx)}
+                          onCheckedChange={() => toggleItem(idx)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          {dataType === "properties" && (
+                            <>
+                              <p className="font-medium truncate">{item.title || "Sem título"}</p>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                                {item.price > 0 && <span>€{item.price.toLocaleString()}</span>}
+                                {item.city && <span>• {item.city}</span>}
+                                {item.bedrooms > 0 && <span>• T{item.bedrooms}</span>}
+                                {item.area > 0 && <span>• {item.area}m²</span>}
+                              </div>
+                            </>
+                          )}
+                          {dataType === "contacts" && (
+                            <>
+                              <p className="font-medium">{item.full_name || "Sem nome"}</p>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                                {item.email && <span>{item.email}</span>}
+                                {item.phone && <span>• {item.phone}</span>}
+                                {item.company_name && <span>• {item.company_name}</span>}
+                              </div>
+                            </>
+                          )}
+                          {dataType === "opportunities" && (
+                            <>
+                              <p className="font-medium">{item.buyer_name || "Sem nome"}</p>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                                {item.buyer_email && <span>{item.buyer_email}</span>}
+                                {item.location && <span>• {item.location}</span>}
+                                {item.budget > 0 && <span>• €{item.budget.toLocaleString()}</span>}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-                {importMutation.isPending && (
-                  <Progress value={importProgress} className="w-full" />
-                )}
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setActiveTab("input")} className="flex-1">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Nova Pesquisa
+                  </Button>
+                  <Button
+                    onClick={() => importMutation.mutate()}
+                    disabled={selectedItems.length === 0 || importMutation.isPending}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                  >
+                    {importMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        A importar...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Importar {selectedItems.length} {typeConfig?.label}
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="results" className="mt-6">
-            {importResults && (
+          <TabsContent value="result" className="mt-6">
+            {importResult && (
               <div className="space-y-4">
-                {/* Success Summary */}
-                <div className="text-center py-8">
-                  <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
-                    importResults.errors.length === 0 ? 'bg-green-100' : 'bg-amber-100'
-                  }`}>
-                    {importResults.errors.length === 0 ? (
-                      <CheckCircle className="w-8 h-8 text-green-600" />
-                    ) : (
-                      <AlertTriangle className="w-8 h-8 text-amber-600" />
-                    )}
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                {/* Summary */}
+                <div className="text-center py-6 bg-green-50 rounded-lg border border-green-200">
+                  <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
+                  <h3 className="text-xl font-bold text-green-900">
                     Importação Concluída
                   </h3>
-                  <p className="text-slate-600">
-                    {importResults.created} de {mappedData.length} registos importados com sucesso
+                  <p className="text-green-700">
+                    {importResult.created} {typeConfig?.label.toLowerCase()} importados com sucesso
                   </p>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <p className="text-3xl font-bold text-green-600">{importResults.created}</p>
-                      <p className="text-sm text-slate-500">Importados</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <p className="text-3xl font-bold text-red-600">{importResults.errors.length}</p>
-                      <p className="text-sm text-slate-500">Erros</p>
-                    </CardContent>
-                  </Card>
+                {/* Items Status */}
+                <div className="max-h-64 overflow-y-auto space-y-2">
+                  {importResult.items?.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
+                      <span className="truncate">{item.name}</span>
+                      <Badge className={
+                        item.status === "success" ? "bg-green-100 text-green-800" :
+                        item.status === "duplicate" ? "bg-yellow-100 text-yellow-800" :
+                        "bg-red-100 text-red-800"
+                      }>
+                        {item.status === "success" ? "Importado" :
+                         item.status === "duplicate" ? "Duplicado" : "Erro"}
+                      </Badge>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Errors */}
-                {importResults.errors.length > 0 && (
+                {importResult.errors?.length > 0 && (
                   <Alert variant="destructive">
                     <AlertTriangle className="w-4 h-4" />
                     <AlertDescription>
-                      <strong>Erros encontrados:</strong>
-                      <ul className="list-disc ml-4 mt-2">
-                        {importResults.errors.slice(0, 5).map((err, i) => (
-                          <li key={i}>{err}</li>
+                      <strong>{importResult.errors.length} erros:</strong>
+                      <ul className="list-disc ml-4 mt-1">
+                        {importResult.errors.slice(0, 5).map((err, idx) => (
+                          <li key={idx}>{err.item}: {err.error}</li>
                         ))}
                       </ul>
-                      {importResults.errors.length > 5 && (
-                        <p className="mt-2">... e mais {importResults.errors.length - 5} erros</p>
-                      )}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-3">
-                  <Button onClick={resetSync} variant="outline" className="flex-1">
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Nova Sincronização
-                  </Button>
-                </div>
+                <Button onClick={resetForm} className="w-full">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Nova Importação
+                </Button>
               </div>
             )}
           </TabsContent>

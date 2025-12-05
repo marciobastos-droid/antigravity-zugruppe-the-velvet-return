@@ -174,7 +174,7 @@ export default function Tools() {
                 <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
                 <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
                 <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
+                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
               </div>
               </CardContent>
               </Card>
