@@ -4,8 +4,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
 const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
 
+// Shorten URL using TinyURL
+async function shortenUrl(url) {
+  try {
+    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+    if (response.ok) {
+      const shortUrl = await response.text();
+      return shortUrl.trim();
+    }
+  } catch (e) {
+    console.log('URL shortening failed, using original:', e.message);
+  }
+  return url;
+}
+
 // Format properties for WhatsApp message (no special characters to avoid encoding issues)
-function formatPropertiesMessage(clientName, properties) {
+async function formatPropertiesMessage(clientName, properties, baseUrl) {
   if (!properties || properties.length === 0) {
     return `Ola ${clientName}!\n\nDe momento nao temos imoveis que correspondam aos seus criterios.\n\nEntraremos em contacto assim que surgirem novas oportunidades!\n\nCumprimentos,\nEquipa Zugruppe`;
   }
@@ -16,7 +30,8 @@ function formatPropertiesMessage(clientName, properties) {
   let msg = `Ola ${clientName}!\n\n`;
   msg += `Seleccionamos ${count} ${word} que pode${count === 1 ? '' : 'm'} interessar-lhe:\n\n`;
 
-  properties.forEach((prop, i) => {
+  for (let i = 0; i < properties.length; i++) {
+    const prop = properties[i];
     const p = prop.property || prop;
     const score = prop.score || prop.match_score;
     
@@ -48,8 +63,16 @@ function formatPropertiesMessage(clientName, properties) {
       msg += `   [v] Compatibilidade: ${score}%\n`;
     }
     
+    // Short link to property details
+    const propertyId = p.id || prop.id;
+    if (propertyId && baseUrl) {
+      const fullUrl = `${baseUrl}/PropertyDetails?id=${propertyId}`;
+      const shortLink = await shortenUrl(fullUrl);
+      msg += `   Ver: ${shortLink}\n`;
+    }
+    
     msg += '\n';
-  });
+  }
 
   msg += `Tem interesse em algum destes imoveis?\n`;
   msg += `Podemos agendar uma visita quando lhe for conveniente.\n\n`;
@@ -81,15 +104,15 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { phoneNumber, message, contactId, contactName, properties, clientName } = body;
+    const { phoneNumber, message, contactId, contactName, properties, clientName, baseUrl } = body;
     console.log('Request params - phone:', phoneNumber, 'message length:', message?.length, 'properties count:', properties?.length);
 
     // If properties array is provided, format the message
     let finalMessage = message;
     
     if (properties && properties.length > 0 && !message) {
-      // Format properties message
-      finalMessage = formatPropertiesMessage(clientName || contactName || 'Cliente', properties);
+      // Format properties message with shortened links
+      finalMessage = await formatPropertiesMessage(clientName || contactName || 'Cliente', properties, baseUrl);
     }
 
     if (!phoneNumber || !finalMessage) {
