@@ -313,6 +313,7 @@ export default function Tools() {
         {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
         {activeTab === "imageValidator" && <ImageValidator />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
+        {activeTab === "casafariSync" && <CasafariSync />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
