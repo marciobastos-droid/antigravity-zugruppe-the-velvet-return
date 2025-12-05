@@ -223,55 +223,69 @@ export default function ExternalDataSync() {
         };
       }
 
+      // First, fetch the actual page content
+      let pageContent = "";
+      try {
+        const fetchResult = await fetch(`https://r.jina.ai/${encodeURIComponent(targetUrl)}`);
+        if (fetchResult.ok) {
+          pageContent = await fetchResult.text();
+          // Limit content size to avoid token limits
+          if (pageContent.length > 50000) {
+            pageContent = pageContent.substring(0, 50000);
+          }
+        }
+      } catch (e) {
+        console.log("Could not fetch page directly, using LLM with internet context");
+      }
+
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analisa o conteúdo desta página web e extrai TODOS os dados de ${typeConfig.label.toLowerCase()} que encontrares.
+        prompt: `Analisa CUIDADOSAMENTE o conteúdo desta página web e extrai TODOS os ${typeConfig.label.toLowerCase()} listados.
 
-URL DA PÁGINA DE LISTAGEM: ${targetUrl}
+URL: ${targetUrl}
 
-INSTRUÇÕES CRÍTICAS:
-- Extrai TODOS os registos/imóveis que encontrares na página
-- Mantém os dados o mais completos possível
+${pageContent ? `CONTEÚDO DA PÁGINA:
+${pageContent}
 
-MUITO IMPORTANTE - EXTRAÇÃO DE URLs INDIVIDUAIS:
-Para cada imóvel na listagem, DEVES extrair o URL/link direto que leva à página de detalhes desse imóvel específico.
-- Procura por links nos títulos, imagens ou botões "Ver mais", "Detalhes", etc.
-- O source_url de cada imóvel deve ser o link COMPLETO (com https://) para a página individual desse imóvel
-- NÃO uses o URL da página de listagem como source_url dos imóveis
-- Se o link for relativo (ex: /imovel/123), converte para absoluto baseado no domínio do site
+` : ""}INSTRUÇÕES CRÍTICAS:
+1. Procura por TODOS os cards/itens de listagem na página
+2. Cada card representa um imóvel ou empreendimento diferente
+3. Extrai os dados de CADA UM separadamente
+4. Se houver 10 imóveis na página, deves retornar 10 itens no array
+5. Não inventes dados - extrai apenas o que está visível
 
-DADOS A EXTRAIR PARA CADA IMÓVEL:
-- title: título do anúncio
-- price: preço (número)
-- property_type: tipo (apartamento, moradia, terreno, etc.)
-- listing_type: venda ou arrendamento
-- bedrooms, bathrooms: número de quartos e casas de banho
+PARA IMÓVEIS - EXTRAI DE CADA CARD:
+- title: título/nome do anúncio
+- price: preço em número (remove € e pontos)
+- property_type: apartamento, moradia, terreno, loja, etc.
+- listing_type: "sale" ou "rent"
+- bedrooms: número de quartos (T2=2, T3=3)
+- bathrooms: casas de banho
 - area: área em m²
-- address, city, state: localização
-- images: URLs das imagens
-- source_url: URL DIRETO para a página deste imóvel específico (OBRIGATÓRIO)
-- external_id: ID do imóvel no site de origem (se visível)
-- energy_certificate: certificado energético se visível
-- amenities: características/comodidades
+- city: cidade/concelho
+- state: distrito
+- address: morada se disponível
+- images: array com URLs das fotos
+- source_url: link COMPLETO para a página de detalhes deste imóvel
+- external_id: referência/ID do anúncio
 
-DADOS A EXTRAIR PARA EMPREENDIMENTOS:
+PARA EMPREENDIMENTOS:
 - name: nome do empreendimento
-- description: descrição do projeto
-- developer_name: nome do promotor/construtor
-- address, city, state: localização
-- total_units: número total de frações
-- available_units: frações disponíveis
-- price_from, price_to: faixa de preços
-- completion_date: data de conclusão prevista
-- status: estado (Em construção, Concluído, Em planta)
-- property_types: tipos de frações disponíveis (T0, T1, T2, etc.)
-- amenities: comodidades do empreendimento
-- images: URLs das imagens
-- source_url: URL DIRETO para a página do empreendimento
+- developer_name: promotor/construtor
+- city, state: localização
+- total_units: número de frações
+- price_from: preço mínimo
+- price_to: preço máximo
+- status: em construção, concluído, em planta
+- property_types: tipologias disponíveis (T1, T2, T3, etc.)
+- images: fotos
+- source_url: link para página do empreendimento
 
-Para contactos: extrai nome, email, telefone, empresa
-Para oportunidades: extrai dados do lead/interessado
+IMPORTANTE:
+- Retorna TODOS os itens encontrados, não apenas alguns
+- Se um dado não estiver disponível, omite o campo
+- URLs devem ser completos (começar com https://)
 
-Retorna os dados estruturados no formato JSON especificado.`,
+Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
         add_context_from_internet: true,
         response_json_schema: schema
       });
