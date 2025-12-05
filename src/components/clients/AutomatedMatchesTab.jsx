@@ -87,12 +87,13 @@ Equipa Zugruppe`;
 
       const topMatches = matches.slice(0, 5);
       
-      // Send properties array directly - backend will format the message
+      // Send properties array directly - backend will format the message with short links
       const response = await base44.functions.invoke('sendWhatsApp', {
         phoneNumber: profile.buyer_phone,
         properties: topMatches,
         clientName: profile.buyer_name,
-        contactName: profile.buyer_name
+        contactName: profile.buyer_name,
+        baseUrl: window.location.origin
       });
 
       if (!response.data?.success) {
