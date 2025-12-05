@@ -417,16 +417,24 @@ export default function MyListings() {
   }), []);
 
   const handleStatusChange = useCallback(async (propertyId, newStatus) => {
-    try {
-      await base44.entities.Property.update(propertyId, { status: newStatus });
-      toast.success(`Estado alterado para "${statusLabelsMap[newStatus]}"`);
-      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-    } catch (error) {
-      console.error("Erro ao alterar estado:", error);
-      toast.error("Erro ao alterar estado do imóvel");
-    }
-  }, [queryClient, statusLabelsMap]);
+        const property = properties.find(p => p.id === propertyId);
+        const previousStatus = property?.status;
+
+        executeWithUndo({
+          action: async () => {
+            await base44.entities.Property.update(propertyId, { status: newStatus });
+            queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          },
+          undoAction: async () => {
+            await base44.entities.Property.update(propertyId, { status: previousStatus });
+            queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          },
+          successMessage: `Estado alterado para "${statusLabelsMap[newStatus]}"`,
+          undoMessage: `Estado revertido para "${statusLabelsMap[previousStatus]}"`
+        });
+      }, [queryClient, statusLabelsMap, properties, executeWithUndo]);
 
   const handleToggleFeatured = useCallback((property) => {
     updatePropertyMutation.mutate(
