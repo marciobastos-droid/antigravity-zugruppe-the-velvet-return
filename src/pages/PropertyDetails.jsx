@@ -1,6 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Loader2 as Loader2Icon } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -74,7 +76,26 @@ export default function PropertyDetails() {
 
   const { data: agents = [] } = useQuery({
     queryKey: ['agents'],
-    queryFn: () => base44.entities.Agent.list(),
+    queryFn: async () => {
+      try {
+        return await base44.entities.Agent.list();
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const updatePropertyMutation = useMutation({
+    mutationFn: (data) => base44.entities.Property.update(propertyId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
+      toast.success("Imóvel atualizado!");
+    },
   });
 
   const queryClient = useQueryClient();
@@ -183,10 +204,22 @@ export default function PropertyDetails() {
     )
     .slice(0, 3);
 
-  const isOwner = user && property.created_by === user.email;
-  
-  // Find assigned agent
-  const assignedAgent = agents.find(a => a.id === property.agent_id || a.email === property.agent_id);
+  const isOwner = user && (property.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
+
+    // Find assigned agent
+    const assignedAgent = agents.find(a => a.id === property.agent_id || a.email === property.agent_id);
+
+    const handleAgentChange = (agentId) => {
+      const agent = allUsers.find(u => u.id === agentId) || agents.find(a => a.id === agentId);
+      updatePropertyMutation.mutate({
+        agent_id: agentId || null,
+        agent_name: agent?.full_name || null
+      });
+    };
+
+    const handleVisibilityChange = (visibility) => {
+      updatePropertyMutation.mutate({ visibility });
+    };
 
   const energyCertificateColors = {
     'A+': 'bg-green-600 text-white',
@@ -645,12 +678,52 @@ export default function PropertyDetails() {
           {/* Sidebar - Right Column */}
           <div className="space-y-6">
             {/* Agent Card */}
-            <Card className="sticky top-24">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Agente Responsável</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {assignedAgent ? (
+                              <Card className="sticky top-24">
+                                <CardHeader className="pb-4">
+                                  <CardTitle className="text-lg">Agente Responsável</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  {/* Agent Assignment (only for owners/admins) */}
+                                  {isOwner && (
+                                    <div className="mb-4 pb-4 border-b">
+                                      <Label className="text-xs text-slate-500 mb-1 block">Atribuir Agente</Label>
+                                      <Select 
+                                        value={property.agent_id || ""} 
+                                        onValueChange={handleAgentChange}
+                                        disabled={updatePropertyMutation.isPending}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Selecionar agente..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value={null}>Nenhum</SelectItem>
+                                          {allUsers.map((u) => (
+                                            <SelectItem key={u.id} value={u.id}>
+                                              {u.full_name || u.email}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+
+                                      <Label className="text-xs text-slate-500 mb-1 mt-3 block">Visibilidade</Label>
+                                      <Select 
+                                        value={property.visibility || "public"} 
+                                        onValueChange={handleVisibilityChange}
+                                        disabled={updatePropertyMutation.isPending}
+                                      >
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="public">Público</SelectItem>
+                                          <SelectItem value="team_only">Apenas Equipa</SelectItem>
+                                          <SelectItem value="private">Privado</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+
+                                  {assignedAgent ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       {assignedAgent.photo_url ? (
