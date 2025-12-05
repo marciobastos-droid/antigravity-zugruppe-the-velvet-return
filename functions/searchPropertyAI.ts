@@ -350,17 +350,22 @@ FORMATO EXACTO:
 TEXTO:
 ${textContent.substring(0, 20000)}
 
+URLS DE IMAGENS ENCONTRADAS NO HTML:
+${images.slice(0, 15).join('\n')}
+
 REGRAS IMPORTANTES:
 1. Responde APENAS com JSON válido, sem texto adicional
 2. Usa aspas duplas para strings
 3. Números sem aspas e sem símbolos
 4. Sem vírgulas no final antes de } ou ]
 5. Extrai a DESCRIÇÃO COMPLETA do imóvel (todo o texto descritivo do anúncio)
+6. IMPORTANTE: Extrai APENAS URLs de imagens DO IMÓVEL (fotos do interior, exterior, vistas). NÃO incluas logos, ícones, avatares, banners, publicidade ou imagens de outros imóveis relacionados/sugeridos.
+7. Das URLs fornecidas acima, seleciona APENAS as que são claramente fotos do imóvel principal desta página.
 
-Campos: title, description (descrição completa do imóvel com todas as características mencionadas), property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id
+Campos: title, description (descrição completa do imóvel com todas as características mencionadas), property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id, images (array com URLs APENAS das fotos do imóvel, excluindo logos/ícones/publicidade)
 
 FORMATO EXACTO:
-{"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123"}`;
+{"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123","images":["url1.jpg","url2.jpg"]}`;
     }
 
     // Call OpenAI API with JSON mode
@@ -463,7 +468,10 @@ FORMATO EXACTO:
     // Handle single property
     const property = parsedData.properties?.[0] || parsedData;
     property.source_url = url;
-    property.images = images;
+    // Use AI-extracted images if available, otherwise fallback to HTML extraction
+    if (!property.images || property.images.length === 0) {
+      property.images = images;
+    }
     property.portal = portal.name;
 
     if (!property.title || property.title.length < 3) {
