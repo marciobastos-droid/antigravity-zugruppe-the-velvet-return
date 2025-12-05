@@ -246,7 +246,11 @@ URL: ${targetUrl}
 ${pageContent ? `CONTEÚDO DA PÁGINA:
 ${pageContent}
 
-` : ""}INSTRUÇÕES CRÍTICAS:
+` : ""}FILTROS IMPORTANTES:
+- NÃO incluir imóveis/empreendimentos com status "Vendido", "Sold", "Reservado", "Reserved" ou similares
+- Apenas extrair imóveis DISPONÍVEIS para venda ou arrendamento
+
+INSTRUÇÕES CRÍTICAS:
 1. Procura por TODOS os cards/itens de listagem na página
 2. Cada card representa um imóvel ou empreendimento diferente
 3. Extrai os dados de CADA UM separadamente
