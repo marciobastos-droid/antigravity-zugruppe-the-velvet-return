@@ -19,6 +19,11 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMatching, setIsMatching] = React.useState(false);
   const [matches, setMatches] = React.useState([]);
+  const [selectedForSend, setSelectedForSend] = React.useState([]);
+  const [isSending, setIsSending] = React.useState(false);
+
+  // Carregar imóveis já associados
+  const associatedProperties = lead.associated_properties || [];
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
