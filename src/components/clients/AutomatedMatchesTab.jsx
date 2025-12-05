@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Bell, RefreshCw, Search, TrendingUp, Mail, User, MapPin, Euro, Bed, Bath, Maximize, ExternalLink, Building2 } from "lucide-react";
+import { Sparkles, Bell, RefreshCw, Search, TrendingUp, Mail, User, MapPin, Euro, Bed, Bath, Maximize, ExternalLink, Building2, MessageSquare, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatWhatsAppPropertyMessage } from "../matching/WhatsAppPropertyMessage";
 
 export default function AutomatedMatchesTab({ profiles }) {
   const queryClient = useQueryClient();
@@ -46,13 +47,13 @@ MELHORES MATCHES:
 
 ${topMatches.map((m, i) => `
 ${i + 1}. ${m.property.title}
-   📍 ${m.property.city}, ${m.property.state}
-   💰 €${m.property.price?.toLocaleString() || 'N/A'}
-   🛏️ ${m.property.bedrooms || 0} quartos • 🚿 ${m.property.bathrooms || 0} WC • 📐 ${(m.property.useful_area || m.property.square_feet || 0)}m²
-   ⭐ Match: ${m.score}%
+   Local: ${m.property.city}, ${m.property.state}
+   Preço: ${m.property.price?.toLocaleString() || 'N/A'} EUR
+   Detalhes: ${m.property.bedrooms || 0} quartos, ${m.property.bathrooms || 0} WC, ${(m.property.useful_area || m.property.square_feet || 0)}m²
+   Compatibilidade: ${m.score}%
    
-   ✅ Porquê este imóvel:
-   ${m.reasons.map(r => `   • ${r}`).join('\n')}
+   Porquê este imóvel:
+   ${m.reasons.map(r => `   - ${r}`).join('\n')}
    
    Ver detalhes: ${window.location.origin}${createPageUrl("PropertyDetails")}?id=${m.property.id}
 `).join('\n---\n')}
@@ -64,7 +65,7 @@ Equipa Zugruppe`;
 
       await base44.integrations.Core.SendEmail({
         to: profile.buyer_email,
-        subject: `🏠 ${matches.length} Imóveis Perfeitos Para Si!`,
+        subject: `${matches.length} Imóveis Perfeitos Para Si`,
         body: emailBody
       });
 
@@ -75,6 +76,36 @@ Equipa Zugruppe`;
     },
     onError: () => {
       toast.error("Erro ao enviar email");
+    }
+  });
+
+  const sendWhatsAppMutation = useMutation({
+    mutationFn: async ({ profile, matches }) => {
+      if (!profile.buyer_phone) {
+        throw new Error("Cliente não tem número de telefone");
+      }
+
+      const topMatches = matches.slice(0, 5);
+      const appBaseUrl = window.location.origin;
+      const message = formatWhatsAppPropertyMessage(profile.buyer_name, topMatches, appBaseUrl);
+
+      const response = await base44.functions.invoke('sendWhatsApp', {
+        phoneNumber: profile.buyer_phone,
+        message: message,
+        contactName: profile.buyer_name
+      });
+
+      if (!response.data?.success) {
+        throw new Error(response.data?.error || "Erro ao enviar WhatsApp");
+      }
+
+      return { profile, matchCount: topMatches.length };
+    },
+    onSuccess: ({ profile, matchCount }) => {
+      toast.success(`WhatsApp enviado para ${profile.buyer_name} com ${matchCount} imóveis`);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao enviar WhatsApp");
     }
   });
 
@@ -308,12 +339,12 @@ Equipa Zugruppe`;
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     onClick={() => setExpandedProfile(expandedProfile === profile.id ? null : profile.id)}
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 min-w-[120px]"
                   >
                     {expandedProfile === profile.id ? 'Ocultar' : 'Ver'} Matches ({matchCount})
                   </Button>
@@ -321,11 +352,34 @@ Equipa Zugruppe`;
                     onClick={() => notifyClientMutation.mutate({ profile, matches })}
                     disabled={notifyClientMutation.isPending || matchCount === 0}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Notificar Cliente
+                    {notifyClientMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
+                      </>
+                    )}
                   </Button>
+                  {profile.buyer_phone && (
+                    <Button
+                      onClick={() => sendWhatsAppMutation.mutate({ profile, matches })}
+                      disabled={sendWhatsAppMutation.isPending || matchCount === 0}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {sendWhatsAppMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          WhatsApp
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 {expandedProfile === profile.id && (
