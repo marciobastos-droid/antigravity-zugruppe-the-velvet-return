@@ -664,11 +664,11 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value="all">Todas</SelectItem>
                 </SelectContent>
               </Select>
+              </div>
             </div>
-          </div>
 
-          {/* Description with AI Improvement */}
-          <div>
+            {/* Description with AI Improvement */}
+            <div>
             <div className="flex items-center justify-between mb-2">
               <Label>Descrição</Label>
               <Button
