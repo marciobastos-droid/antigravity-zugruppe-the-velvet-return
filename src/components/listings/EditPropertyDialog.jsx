@@ -541,62 +541,65 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
           </div>
 
           {/* Property Details */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <Label>Quartos</Label>
-              <Input
-                type="number"
-                value={formData.bedrooms}
-                onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
-                placeholder="3"
-              />
-            </div>
-            <div>
-              <Label>Casas de Banho</Label>
-              <Input
-                type="number"
-                value={formData.bathrooms}
-                onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
-                placeholder="2"
-              />
-            </div>
-            <div>
-              <Label>Área (m²)</Label>
-              <Input
-                type="number"
-                value={formData.square_feet}
-                onChange={(e) => setFormData({...formData, square_feet: e.target.value})}
-                placeholder="120"
-              />
-            </div>
-            <div>
-              <Label>Área Bruta (m²)</Label>
-              <Input
-                type="number"
-                value={formData.gross_area}
-                onChange={(e) => setFormData({...formData, gross_area: e.target.value})}
-                placeholder="150"
-              />
-            </div>
-            <div>
-              <Label>Área Útil (m²)</Label>
-              <Input
-                type="number"
-                value={formData.useful_area}
-                onChange={(e) => setFormData({...formData, useful_area: e.target.value})}
-                placeholder="120"
-              />
-            </div>
-            <div>
-              <Label>Nº de Frentes</Label>
-              <Input
-                type="number"
-                value={formData.front_count}
-                onChange={(e) => setFormData({...formData, front_count: e.target.value})}
-                placeholder="2"
-              />
-            </div>
-          </div>
+          <Collapsible open={openSections.details} onOpenChange={() => toggleSection('details')}>
+            <SectionHeader section="details" title="Detalhes do Imóvel" icon={Building2} />
+            <CollapsibleContent className="pt-4 space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <ValidatedInput
+                  id="edit-bedrooms"
+                  label="Quartos"
+                  type="number"
+                  value={formData.bedrooms}
+                  onChange={(e) => setFormData({...formData, bedrooms: e.target.value})}
+                  placeholder="3"
+                  validator="integer"
+                />
+                <ValidatedInput
+                  id="edit-bathrooms"
+                  label="Casas de Banho"
+                  type="number"
+                  value={formData.bathrooms}
+                  onChange={(e) => setFormData({...formData, bathrooms: e.target.value})}
+                  placeholder="2"
+                  validator="integer"
+                />
+                <ValidatedInput
+                  id="edit-square_feet"
+                  label="Área (m²)"
+                  type="number"
+                  value={formData.square_feet}
+                  onChange={(e) => setFormData({...formData, square_feet: e.target.value})}
+                  placeholder="120"
+                  validator="positiveNumber"
+                />
+                <ValidatedInput
+                  id="edit-gross_area"
+                  label="Área Bruta (m²)"
+                  type="number"
+                  value={formData.gross_area}
+                  onChange={(e) => setFormData({...formData, gross_area: e.target.value})}
+                  placeholder="150"
+                  validator="positiveNumber"
+                />
+                <ValidatedInput
+                  id="edit-useful_area"
+                  label="Área Útil (m²)"
+                  type="number"
+                  value={formData.useful_area}
+                  onChange={(e) => setFormData({...formData, useful_area: e.target.value})}
+                  placeholder="120"
+                  validator="positiveNumber"
+                />
+                <ValidatedInput
+                  id="edit-front_count"
+                  label="Nº de Frentes"
+                  type="number"
+                  value={formData.front_count}
+                  onChange={(e) => setFormData({...formData, front_count: e.target.value})}
+                  placeholder="2"
+                  validator="integer"
+                />
+              </div>
 
           {/* Energy Certificate */}
           <div>
