@@ -1,17 +1,21 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Home, Sparkles, Loader2, Euro, Bed, Bath, Maximize, 
-  MapPin, Check, X, Eye, Plus, ChevronDown, ChevronUp 
+  MapPin, Check, X, Eye, Plus, ChevronDown, ChevronUp,
+  Send, Mail, MessageSquare, Save, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
-export default function LeadPropertyMatching({ lead, onAssociateProperty }) {
+export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpdate }) {
+  const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const [isMatching, setIsMatching] = React.useState(false);
   const [matches, setMatches] = React.useState([]);
