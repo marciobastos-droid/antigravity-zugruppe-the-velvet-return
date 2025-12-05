@@ -955,18 +955,31 @@ export default function MyListings() {
             </div>
 
             {viewMode === "table" ? (
-              <PropertiesTable
-                properties={filteredProperties}
-                selectedProperties={selectedProperties}
-                onToggleSelect={toggleSelect}
-                onToggleSelectAll={toggleSelectAll}
-                onStatusChange={handleStatusChange}
-                onEdit={setEditingProperty}
-                onDelete={handleDelete}
-                onToggleFeatured={handleToggleFeatured}
-                onDuplicate={handleDuplicate}
-              />
-            ) : (
+                                <PropertiesTable
+                                  properties={filteredProperties}
+                                  selectedProperties={selectedProperties}
+                                  onToggleSelect={toggleSelect}
+                                  onToggleSelectAll={toggleSelectAll}
+                                  onStatusChange={handleStatusChange}
+                                  onEdit={setEditingProperty}
+                                  onDelete={handleDelete}
+                                  onToggleFeatured={handleToggleFeatured}
+                                  onDuplicate={handleDuplicate}
+                                />
+                              ) : viewMode === "grouped" ? (
+                                <GroupedPropertiesView
+                                  properties={filteredProperties}
+                                  selectedProperties={selectedProperties}
+                                  onToggleSelect={toggleSelect}
+                                  onEdit={setEditingProperty}
+                                  onStatusChange={handleStatusChange}
+                                  onToggleFeatured={handleToggleFeatured}
+                                  onDuplicate={handleDuplicate}
+                                  onDelete={handleDelete}
+                                  groupBy={groupBy}
+                                  onGroupByChange={setGroupBy}
+                                />
+                              ) : (
             <>
             <div className="grid grid-cols-1 gap-6">
               {paginatedProperties.map((property) => (
