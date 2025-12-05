@@ -601,8 +601,8 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                 />
               </div>
 
-          {/* Energy Certificate */}
-          <div className="grid md:grid-cols-3 gap-4">
+              {/* Energy Certificate */}
+              <div className="grid md:grid-cols-3 gap-4">
             <div>
               <Label>Certificado Energético</Label>
               <Select 
