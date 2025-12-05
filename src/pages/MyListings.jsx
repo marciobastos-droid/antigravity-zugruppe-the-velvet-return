@@ -18,6 +18,7 @@ import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import PropertiesTable from "../components/listings/PropertiesTable";
 import DevelopmentsTab from "../components/developments/DevelopmentsTab";
 import PropertiesByAgentView from "../components/listings/PropertiesByAgentView";
+import GroupedPropertiesView from "../components/listings/GroupedPropertiesView";
 import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
