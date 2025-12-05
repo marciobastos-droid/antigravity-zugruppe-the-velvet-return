@@ -699,6 +699,8 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
               rows={6}
             />
           </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* AI Property Tagger */}
           <PropertyTagger 
