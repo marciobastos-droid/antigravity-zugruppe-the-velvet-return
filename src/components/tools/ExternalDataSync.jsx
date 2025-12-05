@@ -297,11 +297,30 @@ Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
       return { data: result, config: configToUse };
     },
     onSuccess: ({ data, config }) => {
-      setExtractedData(data);
-      setSelectedItems(data.items?.map((_, idx) => idx) || []);
+      // Filter out sold/reserved items
+      const filteredItems = (data.items || []).filter(item => {
+        const status = (item.status || item.availability_status || "").toLowerCase();
+        const title = (item.title || item.name || "").toLowerCase();
+        const isSoldOrReserved = 
+          status.includes("vendido") || status.includes("sold") ||
+          status.includes("reservado") || status.includes("reserved") ||
+          title.includes("vendido") || title.includes("sold") ||
+          title.includes("reservado") || title.includes("reserved");
+        return !isSoldOrReserved;
+      });
+      
+      const filteredData = { ...data, items: filteredItems };
+      setExtractedData(filteredData);
+      setSelectedItems(filteredItems.map((_, idx) => idx) || []);
       setSelectedConfig(config);
       setActiveTab("preview");
-      toast.success(`${data.items?.length || 0} registos encontrados`);
+      
+      const removedCount = (data.items?.length || 0) - filteredItems.length;
+      if (removedCount > 0) {
+        toast.success(`${filteredItems.length} registos encontrados (${removedCount} vendidos/reservados excluídos)`);
+      } else {
+        toast.success(`${filteredItems.length} registos encontrados`);
+      }
     },
     onError: (error) => {
       console.error('Fetch error:', error);
