@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Bell, RefreshCw, Search, TrendingUp, Mail, User, MapPin, Euro, Bed, Bath, Maximize, ExternalLink, Building2, MessageSquare, Loader2 } from "lucide-react";
+import { Sparkles, Bell, RefreshCw, Search, TrendingUp, Mail, User, MapPin, Euro, Bed, Bath, Maximize, ExternalLink, Building2, MessageSquare, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -21,6 +21,11 @@ export default function AutomatedMatchesTab({ profiles }) {
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date'),
+  });
+
+  const { data: sentMatches = [] } = useQuery({
+    queryKey: ['sentMatches'],
+    queryFn: () => base44.entities.SentMatch.list('-sent_date'),
   });
 
   const processMatchesMutation = useMutation({
@@ -69,6 +74,27 @@ Equipa Zugruppe`;
         body: emailBody
       });
 
+      // Registar matches enviados
+      for (const match of topMatches) {
+        await base44.entities.SentMatch.create({
+          contact_id: profile.id,
+          contact_name: profile.buyer_name,
+          contact_email: profile.buyer_email,
+          property_id: match.property.id,
+          property_title: match.property.title,
+          property_price: match.property.price,
+          property_city: match.property.city,
+          property_image: match.property.images?.[0],
+          match_score: match.score,
+          compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
+          key_strengths: match.reasons,
+          sent_by: profile.assigned_agent || 'system',
+          sent_date: new Date().toISOString()
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
+
       return { profile, matchCount: matches.length };
     },
     onSuccess: ({ profile, matchCount }) => {
@@ -99,6 +125,27 @@ Equipa Zugruppe`;
       if (!response.data?.success) {
         throw new Error(response.data?.error || "Erro ao enviar WhatsApp");
       }
+
+      // Registar matches enviados
+      for (const match of topMatches) {
+        await base44.entities.SentMatch.create({
+          contact_id: profile.id,
+          contact_name: profile.buyer_name,
+          contact_email: profile.buyer_email,
+          property_id: match.property.id,
+          property_title: match.property.title,
+          property_price: match.property.price,
+          property_city: match.property.city,
+          property_image: match.property.images?.[0],
+          match_score: match.score,
+          compatibility_level: match.score >= 90 ? 'excellent' : match.score >= 75 ? 'good' : 'moderate',
+          key_strengths: match.reasons,
+          sent_by: profile.assigned_agent || 'system',
+          sent_date: new Date().toISOString()
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['sentMatches'] });
 
       return { profile, matchCount: topMatches.length };
     },
@@ -385,26 +432,50 @@ Equipa Zugruppe`;
 
                 {expandedProfile === profile.id && (
                   <div className="grid gap-3 pt-4 border-t">
-                    {matches.map((match) => (
-                      <Card key={match.property.id} className="border-l-4 border-blue-500">
-                        <CardContent className="p-4">
-                          <div className="flex gap-3">
-                            {match.property.images?.[0] && (
-                              <img 
-                                src={match.property.images[0]} 
-                                alt={match.property.title}
-                                className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <h4 className="font-semibold text-slate-900 truncate">
-                                  {match.property.title}
-                                </h4>
-                                <Badge className={getScoreColor(match.score)}>
-                                  {match.score}%
-                                </Badge>
-                              </div>
+                    {matches.map((match) => {
+                      const wasSent = sentMatches.some(sm => 
+                        sm.property_id === match.property.id && 
+                        sm.contact_id === profile.id
+                      );
+                      const sentRecord = sentMatches.find(sm => 
+                        sm.property_id === match.property.id && 
+                        sm.contact_id === profile.id
+                      );
+                      
+                      return (
+                        <Card key={match.property.id} className={`border-l-4 ${wasSent ? 'border-green-500 bg-green-50/30' : 'border-blue-500'}`}>
+                          <CardContent className="p-4">
+                            <div className="flex gap-3">
+                              {match.property.images?.[0] && (
+                                <img 
+                                  src={match.property.images[0]} 
+                                  alt={match.property.title}
+                                  className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                  <h4 className="font-semibold text-slate-900 truncate">
+                                    {match.property.title}
+                                  </h4>
+                                  <div className="flex items-center gap-2">
+                                    {wasSent && (
+                                      <Badge className="bg-green-600 text-white">
+                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                        Enviado
+                                      </Badge>
+                                    )}
+                                    <Badge className={getScoreColor(match.score)}>
+                                      {match.score}%
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {wasSent && sentRecord && (
+                                  <p className="text-xs text-green-700 mb-2">
+                                    Enviado em {format(new Date(sentRecord.sent_date), "d 'de' MMM 'às' HH:mm", { locale: ptBR })}
+                                    {sentRecord.client_response !== 'pending' && ` • ${sentRecord.client_response === 'interested' ? 'Interessado' : sentRecord.client_response === 'visited' ? 'Visitou' : sentRecord.client_response === 'not_interested' ? 'Não interessado' : sentRecord.client_response}`}
+                                  </p>
+                                )}
                               <div className="text-sm text-slate-600 space-y-1">
                                 <div className="flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
@@ -459,7 +530,8 @@ Equipa Zugruppe`;
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    );
+                  })}
                   </div>
                 )}
 
