@@ -153,6 +153,17 @@ export default function MyListings() {
     queryFn: () => base44.auth.me(),
   });
 
+  // Buscar permissões do utilizador
+  const { data: userPermissions } = useQuery({
+    queryKey: ['myUserPermissions', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const perms = await base44.entities.UserPermission.filter({ user_email: user.email });
+      return perms[0]?.permissions || null;
+    },
+    enabled: !!user?.email
+  });
+
   // Buscar tags criadas nas ferramentas
   const { data: systemTags = [] } = useQuery({
     queryKey: ['tags'],
