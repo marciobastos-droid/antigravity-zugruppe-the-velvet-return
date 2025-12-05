@@ -338,6 +338,171 @@ Para cada imóvel, dá um score de 0-100 e uma breve razão. Ordena do mais comp
     }
   };
 
+  // Adicionar imóvel à lista de associated_properties
+  const handleAddToAssociated = async (property) => {
+    const existing = lead.associated_properties || [];
+    const alreadyExists = existing.some(ap => ap.property_id === property.id);
+    
+    if (alreadyExists) {
+      toast.info("Este imóvel já está na lista de matching");
+      return;
+    }
+
+    const newAssociated = [
+      ...existing,
+      {
+        property_id: property.id,
+        property_title: property.title,
+        added_date: new Date().toISOString(),
+        status: "interested",
+        match_score: property.finalScore || property.score
+      }
+    ];
+
+    try {
+      await base44.entities.Opportunity.update(lead.id, { 
+        associated_properties: newAssociated 
+      });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`"${property.title}" adicionado à lista de matching`);
+    } catch (error) {
+      toast.error("Erro ao guardar imóvel");
+    }
+  };
+
+  // Remover imóvel da lista de associated_properties
+  const handleRemoveFromAssociated = async (propertyId) => {
+    const existing = lead.associated_properties || [];
+    const newAssociated = existing.filter(ap => ap.property_id !== propertyId);
+
+    try {
+      await base44.entities.Opportunity.update(lead.id, { 
+        associated_properties: newAssociated 
+      });
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success("Imóvel removido da lista");
+    } catch (error) {
+      toast.error("Erro ao remover imóvel");
+    }
+  };
+
+  // Alternar seleção para envio
+  const toggleSelectForSend = (propertyId) => {
+    setSelectedForSend(prev => 
+      prev.includes(propertyId) 
+        ? prev.filter(id => id !== propertyId)
+        : [...prev, propertyId]
+    );
+  };
+
+  // Enviar imóveis selecionados por email
+  const handleSendByEmail = async () => {
+    if (!lead.buyer_email) {
+      toast.error("Este lead não tem email");
+      return;
+    }
+
+    if (selectedForSend.length === 0) {
+      toast.error("Selecione pelo menos um imóvel para enviar");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const propertiesToSend = properties.filter(p => selectedForSend.includes(p.id));
+      
+      const propertiesHtml = propertiesToSend.map(p => `
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          ${p.images?.[0] ? `<img src="${p.images[0]}" alt="${p.title}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 12px;" />` : ''}
+          <h3 style="margin: 0 0 8px 0; color: #1e293b;">${p.title}</h3>
+          <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #059669;">€${p.price?.toLocaleString()}</p>
+          <p style="margin: 0 0 8px 0; color: #64748b;">
+            ${p.city}, ${p.state}
+            ${p.bedrooms ? ` • T${p.bedrooms}` : ''}
+            ${p.useful_area || p.square_feet ? ` • ${p.useful_area || p.square_feet}m²` : ''}
+          </p>
+          ${p.description ? `<p style="margin: 0; color: #475569; font-size: 14px;">${p.description.substring(0, 200)}${p.description.length > 200 ? '...' : ''}</p>` : ''}
+        </div>
+      `).join('');
+
+      await base44.integrations.Core.SendEmail({
+        to: lead.buyer_email,
+        subject: `${propertiesToSend.length} Imóveis Selecionados para Si`,
+        body: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e293b;">Olá ${lead.buyer_name}!</h2>
+            <p style="color: #475569;">Com base nas suas preferências, selecionámos ${propertiesToSend.length} imóvel${propertiesToSend.length > 1 ? 'is' : ''} que podem interessar-lhe:</p>
+            
+            ${propertiesHtml}
+            
+            <p style="color: #475569;">Se tiver interesse em algum destes imóveis ou quiser agendar uma visita, não hesite em contactar-nos!</p>
+            
+            <p style="color: #475569;">Cumprimentos,<br/>Equipa Zugruppe</p>
+          </div>
+        `
+      });
+
+      // Registar envio no histórico de comunicação
+      const communication = {
+        type: "email",
+        subject: `Envio de ${propertiesToSend.length} imóveis de matching`,
+        message: `Enviados: ${propertiesToSend.map(p => p.title).join(', ')}`,
+        sent_at: new Date().toISOString(),
+        sent_by: lead.assigned_to || "sistema",
+        status: "sent"
+      };
+
+      const existingHistory = lead.communication_history || [];
+      await base44.entities.Opportunity.update(lead.id, {
+        communication_history: [...existingHistory, communication],
+        last_contact_date: new Date().toISOString()
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`${propertiesToSend.length} imóvel(is) enviado(s) para ${lead.buyer_email}`);
+      setSelectedForSend([]);
+    } catch (error) {
+      console.error("Erro ao enviar:", error);
+      toast.error("Erro ao enviar imóveis por email");
+    }
+
+    setIsSending(false);
+  };
+
+  // Enviar por WhatsApp
+  const handleSendByWhatsApp = () => {
+    if (!lead.buyer_phone) {
+      toast.error("Este lead não tem telefone");
+      return;
+    }
+
+    if (selectedForSend.length === 0) {
+      toast.error("Selecione pelo menos um imóvel para enviar");
+      return;
+    }
+
+    const propertiesToSend = properties.filter(p => selectedForSend.includes(p.id));
+    
+    const message = `Olá ${lead.buyer_name}! 👋
+
+Selecionámos ${propertiesToSend.length} imóvel(is) que podem interessar-lhe:
+
+${propertiesToSend.map((p, i) => `${i + 1}. *${p.title}*
+   💰 €${p.price?.toLocaleString()}
+   📍 ${p.city}${p.bedrooms ? ` | T${p.bedrooms}` : ''}${p.useful_area ? ` | ${p.useful_area}m²` : ''}
+   🔗 ${window.location.origin}${createPageUrl('PropertyDetails')}?id=${p.id}
+`).join('\n')}
+
+Tem interesse em algum? Podemos agendar uma visita! 🏠`;
+
+    const phone = lead.buyer_phone.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    setSelectedForSend([]);
+  };
+
   const propertyTypeLabels = {
     apartment: "Apartamento",
     house: "Moradia",
