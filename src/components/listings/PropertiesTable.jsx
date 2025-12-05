@@ -177,6 +177,20 @@ export default function PropertiesTable({
       minWidth: "120px"
     },
     {
+      key: "agent_name",
+      label: "Agente",
+      minWidth: "120px",
+      render: (val, property) => {
+        const agentName = val || property.assigned_consultant_name;
+        return agentName ? (
+          <span className="flex items-center gap-1 text-sm">
+            <User className="w-3.5 h-3.5 text-slate-400" />
+            <span className="truncate max-w-[100px]">{agentName}</span>
+          </span>
+        ) : <span className="text-slate-400">-</span>;
+      }
+    },
+    {
       key: "status",
       label: "Estado",
       minWidth: "130px",
