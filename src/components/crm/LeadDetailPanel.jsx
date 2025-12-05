@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import AIAssistant from "./AIAssistant";
 import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
+import AICommunicationAssistant from "./AICommunicationAssistant";
 import SendEmailDialog from "../email/SendEmailDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
@@ -905,6 +906,14 @@ Extrai:
 
           {/* AI Tab */}
           <TabsContent value="ai" className="mt-0 space-y-4">
+            {/* AI Communication Assistant */}
+            <AICommunicationAssistant 
+              contact={null}
+              opportunity={lead}
+              communications={communications}
+              properties={properties}
+            />
+            
             <AILeadScoring opportunity={lead} />
             
             <AIAssistant 
