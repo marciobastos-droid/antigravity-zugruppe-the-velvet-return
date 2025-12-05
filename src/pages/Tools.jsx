@@ -48,6 +48,7 @@ import PropertyPerformanceDashboard from "../components/tools/PropertyPerformanc
 import ImageValidator from "../components/tools/ImageValidator";
 import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
+import ExternalDataSync from "../components/tools/ExternalDataSync";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -173,6 +174,7 @@ export default function Tools() {
                 <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
                 <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
                 <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
+                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
               </div>
               </CardContent>
               </Card>
@@ -314,6 +316,7 @@ export default function Tools() {
         {activeTab === "imageValidator" && <ImageValidator />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
         {activeTab === "jsonProcessor" && <JSONProcessor />}
+            {activeTab === "externalSync" && <ExternalDataSync />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
