@@ -221,21 +221,25 @@ export default function MyListings() {
   });
 
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['myProperties', user?.email],
+    queryKey: ['myProperties', user?.email, userPermissions],
     queryFn: async () => {
       if (!user) return [];
       const allProperties = await base44.entities.Property.list('-updated_date');
       
       const userType = user.user_type?.toLowerCase() || '';
-      const permissions = user.permissions || {};
       
       // Admin/Gestor vê todos os imóveis
       if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
         return allProperties;
       }
       
-      // Verifica permissão canViewAllProperties
-      if (permissions.canViewAllProperties === true) {
+      // Verifica permissão canViewAllProperties na entidade UserPermission
+      if (userPermissions?.canViewAllProperties === true) {
+        return allProperties;
+      }
+      
+      // Verifica permissão no user.permissions (fallback)
+      if (user.permissions?.canViewAllProperties === true) {
         return allProperties;
       }
       
