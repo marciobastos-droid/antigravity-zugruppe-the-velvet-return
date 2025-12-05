@@ -4,6 +4,69 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
 const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
 
+// Format properties for WhatsApp message (no special characters to avoid encoding issues)
+function formatPropertiesMessage(clientName, properties) {
+  if (!properties || properties.length === 0) {
+    return `Ola ${clientName}!\n\nDe momento nao temos imoveis que correspondam aos seus criterios.\n\nEntraremos em contacto assim que surgirem novas oportunidades!\n\nCumprimentos,\nEquipa Zugruppe`;
+  }
+
+  const count = properties.length;
+  const word = count === 1 ? 'imovel' : 'imoveis';
+  
+  let msg = `Ola ${clientName}!\n\n`;
+  msg += `Seleccionamos ${count} ${word} que pode${count === 1 ? '' : 'm'} interessar-lhe:\n\n`;
+
+  properties.forEach((prop, i) => {
+    const p = prop.property || prop;
+    const score = prop.score || prop.match_score;
+    
+    // Title
+    const bedrooms = p.bedrooms ? `T${p.bedrooms}` : '';
+    const title = p.title || `Imovel ${bedrooms}`.trim();
+    msg += `${i + 1}. *${title}*\n`;
+    
+    // Price
+    const price = p.price ? formatPriceSimple(p.price) : 'Preco sob consulta';
+    msg += `   Preco: ${price}\n`;
+    
+    // Location
+    const loc = [p.city, p.state].filter(Boolean).join(', ');
+    if (loc) {
+      msg += `   Local: ${loc}`;
+      if (bedrooms) msg += ` | ${bedrooms}`;
+      msg += '\n';
+    }
+    
+    // Area
+    const area = p.useful_area || p.square_feet || p.gross_area;
+    if (area) {
+      msg += `   Area: ${area}m2\n`;
+    }
+    
+    // Score
+    if (score && score >= 70) {
+      msg += `   [v] Compatibilidade: ${score}%\n`;
+    }
+    
+    msg += '\n';
+  });
+
+  msg += `Tem interesse em algum destes imoveis?\n`;
+  msg += `Podemos agendar uma visita quando lhe for conveniente.\n\n`;
+  msg += `Cumprimentos,\nEquipa Zugruppe`;
+
+  return msg;
+}
+
+function formatPriceSimple(price) {
+  if (!price) return 'Preco sob consulta';
+  const formatted = new Intl.NumberFormat('pt-PT', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price);
+  return `${formatted} EUR`;
+}
+
 Deno.serve(async (req) => {
   console.log('=== sendWhatsApp function called ===');
   
@@ -18,11 +81,19 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { phoneNumber, message, contactId, contactName } = body;
-    console.log('Request params - phone:', phoneNumber, 'message length:', message?.length);
+    const { phoneNumber, message, contactId, contactName, properties, clientName } = body;
+    console.log('Request params - phone:', phoneNumber, 'message length:', message?.length, 'properties count:', properties?.length);
 
-    if (!phoneNumber || !message) {
-      return Response.json({ success: false, error: 'Número e mensagem são obrigatórios' });
+    // If properties array is provided, format the message
+    let finalMessage = message;
+    
+    if (properties && properties.length > 0 && !message) {
+      // Format properties message
+      finalMessage = formatPropertiesMessage(clientName || contactName || 'Cliente', properties);
+    }
+
+    if (!phoneNumber || !finalMessage) {
+      return Response.json({ success: false, error: 'Numero e mensagem sao obrigatorios' });
     }
 
     // Try environment variables first, then user config
@@ -94,7 +165,7 @@ Deno.serve(async (req) => {
         type: 'text',
         text: { 
           preview_url: false,
-          body: message 
+          body: finalMessage 
         }
       };
     }
@@ -142,7 +213,7 @@ Deno.serve(async (req) => {
       agent_email: user.email,
       direction: 'outbound',
       message_type: 'text',
-      content: message,
+      content: finalMessage,
       status: 'sent',
       timestamp: new Date().toISOString()
     });
@@ -154,7 +225,7 @@ Deno.serve(async (req) => {
         contact_name: contactName || 'Desconhecido',
         communication_type: 'whatsapp',
         direction: 'outbound',
-        summary: message.substring(0, 200),
+        summary: finalMessage.substring(0, 200),
         communication_date: new Date().toISOString(),
         agent_email: user.email
       });
