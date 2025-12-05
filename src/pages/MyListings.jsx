@@ -233,7 +233,12 @@ export default function MyListings() {
         return allProperties;
       }
       
-      // Verifica permissão canViewAllProperties na entidade UserPermission
+      // Verifica permissão properties.view_all na entidade UserPermission
+      if (userPermissions?.properties?.view_all === true) {
+        return allProperties;
+      }
+      
+      // Verifica permissão canViewAllProperties (fallback)
       if (userPermissions?.canViewAllProperties === true) {
         return allProperties;
       }
