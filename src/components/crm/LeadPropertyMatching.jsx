@@ -659,6 +659,10 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
 
               {/* Actions */}
               <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                <Checkbox
+                  checked={selectedForSend.includes(property.id)}
+                  onCheckedChange={() => toggleSelectForSend(property.id)}
+                />
                 <Progress value={property.finalScore} className="flex-1 h-1.5" />
                 <Button 
                   size="sm" 
@@ -671,11 +675,13 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
                 </Button>
                 <Button 
                   size="sm" 
-                  onClick={() => handleAssociate(property)}
-                  className="h-7 text-xs bg-purple-600 hover:bg-purple-700"
+                  variant="outline"
+                  onClick={() => handleAddToAssociated(property)}
+                  className="h-7 text-xs"
+                  disabled={associatedProperties.some(ap => ap.property_id === property.id)}
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Associar
+                  <Save className="w-3 h-3 mr-1" />
+                  Guardar
                 </Button>
               </div>
             </div>
