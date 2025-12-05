@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { formatWhatsAppPropertyMessage } from "../matching/WhatsAppPropertyMessage";
+// Message formatting is now done in the backend function
 
 export default function AutomatedMatchesTab({ profiles }) {
   const queryClient = useQueryClient();
@@ -82,16 +82,16 @@ Equipa Zugruppe`;
   const sendWhatsAppMutation = useMutation({
     mutationFn: async ({ profile, matches }) => {
       if (!profile.buyer_phone) {
-        throw new Error("Cliente não tem número de telefone");
+        throw new Error("Cliente nao tem numero de telefone");
       }
 
       const topMatches = matches.slice(0, 5);
-      const appBaseUrl = window.location.origin;
-      const message = formatWhatsAppPropertyMessage(profile.buyer_name, topMatches, appBaseUrl);
-
+      
+      // Send properties array directly - backend will format the message
       const response = await base44.functions.invoke('sendWhatsApp', {
         phoneNumber: profile.buyer_phone,
-        message: message,
+        properties: topMatches,
+        clientName: profile.buyer_name,
         contactName: profile.buyer_name
       });
 
@@ -102,7 +102,7 @@ Equipa Zugruppe`;
       return { profile, matchCount: topMatches.length };
     },
     onSuccess: ({ profile, matchCount }) => {
-      toast.success(`WhatsApp enviado para ${profile.buyer_name} com ${matchCount} imóveis`);
+      toast.success(`WhatsApp enviado para ${profile.buyer_name} com ${matchCount} imoveis`);
     },
     onError: (error) => {
       toast.error(error.message || "Erro ao enviar WhatsApp");
