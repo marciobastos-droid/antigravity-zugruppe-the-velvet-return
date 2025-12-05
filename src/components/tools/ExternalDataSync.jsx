@@ -29,6 +29,7 @@ import { pt } from "date-fns/locale";
 
 const dataTypes = [
   { value: "properties", label: "Imóveis", icon: Building2, entity: "Property" },
+  { value: "developments", label: "Empreendimentos", icon: Building2, entity: "Development" },
   { value: "contacts", label: "Contactos", icon: Users, entity: "ClientContact" },
   { value: "opportunities", label: "Oportunidades", icon: Target, entity: "Opportunity" }
 ];
@@ -140,6 +141,39 @@ export default function ExternalDataSync() {
             total_found: { type: "number" }
           }
         };
+      } else if (targetType === "developments") {
+        schema = {
+          type: "object",
+          properties: {
+            items: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string", description: "Nome do empreendimento" },
+                  description: { type: "string" },
+                  developer_name: { type: "string", description: "Nome do promotor/construtor" },
+                  address: { type: "string" },
+                  city: { type: "string" },
+                  state: { type: "string" },
+                  total_units: { type: "number", description: "Número total de frações" },
+                  available_units: { type: "number" },
+                  price_from: { type: "number", description: "Preço mínimo" },
+                  price_to: { type: "number", description: "Preço máximo" },
+                  completion_date: { type: "string", description: "Data de conclusão prevista" },
+                  status: { type: "string", description: "Em construção, Concluído, Em planta, etc." },
+                  property_types: { type: "array", items: { type: "string" }, description: "Tipos de frações (T0, T1, T2, etc.)" },
+                  amenities: { type: "array", items: { type: "string" } },
+                  images: { type: "array", items: { type: "string" } },
+                  source_url: { type: "string", description: "URL direto para a página do empreendimento" },
+                  external_id: { type: "string" }
+                }
+              }
+            },
+            source_name: { type: "string" },
+            total_found: { type: "number" }
+          }
+        };
       } else if (targetType === "contacts") {
         schema = {
           type: "object",
@@ -218,6 +252,21 @@ DADOS A EXTRAIR PARA CADA IMÓVEL:
 - external_id: ID do imóvel no site de origem (se visível)
 - energy_certificate: certificado energético se visível
 - amenities: características/comodidades
+
+DADOS A EXTRAIR PARA EMPREENDIMENTOS:
+- name: nome do empreendimento
+- description: descrição do projeto
+- developer_name: nome do promotor/construtor
+- address, city, state: localização
+- total_units: número total de frações
+- available_units: frações disponíveis
+- price_from, price_to: faixa de preços
+- completion_date: data de conclusão prevista
+- status: estado (Em construção, Concluído, Em planta)
+- property_types: tipos de frações disponíveis (T0, T1, T2, etc.)
+- amenities: comodidades do empreendimento
+- images: URLs das imagens
+- source_url: URL DIRETO para a página do empreendimento
 
 Para contactos: extrai nome, email, telefone, empresa
 Para oportunidades: extrai dados do lead/interessado
@@ -404,6 +453,32 @@ Extrai o máximo de informação possível da página.`,
             results.created++;
             results.items.push({ name: item.full_name, status: "success" });
 
+          } else if (targetType === "developments") {
+            // Create Development
+            const developmentData = {
+              name: item.name || "Empreendimento importado",
+              description: item.description || "",
+              developer_name: item.developer_name || "",
+              address: item.address || "",
+              city: item.city || "",
+              district: item.state || "",
+              total_units: item.total_units || 0,
+              available_units: item.available_units || item.total_units || 0,
+              price_from: item.price_from || 0,
+              price_to: item.price_to || 0,
+              completion_date: item.completion_date || undefined,
+              status: mapDevelopmentStatus(item.status),
+              property_types: item.property_types || [],
+              amenities: item.amenities || [],
+              images: item.images || [],
+              source_url: item.source_url || selectedConfig?.url || url,
+              external_id: item.external_id || ""
+            };
+
+            await base44.entities.Development.create(developmentData);
+            results.created++;
+            results.items.push({ name: item.name, status: "success" });
+
           } else if (targetType === "opportunities") {
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
             
@@ -494,6 +569,16 @@ Extrai o máximo de informação possível da página.`,
     if (lower.includes("1") || lower.includes("um") || lower.includes("uma") || lower.includes("sim") || lower.includes("yes")) return "1";
     if (lower.includes("não") || lower.includes("no") || lower.includes("sem")) return "none";
     return undefined;
+  };
+
+  const mapDevelopmentStatus = (status) => {
+    if (!status) return "under_construction";
+    const lower = status.toLowerCase();
+    if (lower.includes("conclu") || lower.includes("pronto") || lower.includes("finished") || lower.includes("complete")) return "completed";
+    if (lower.includes("planta") || lower.includes("projeto") || lower.includes("planned")) return "planned";
+    if (lower.includes("constru") || lower.includes("obra") || lower.includes("building")) return "under_construction";
+    if (lower.includes("vend") || lower.includes("sold")) return "sold_out";
+    return "under_construction";
   };
 
   const toggleItem = (idx) => {
@@ -889,6 +974,28 @@ Extrai o máximo de informação possível da página.`,
                                 {item.email && <span>{item.email}</span>}
                                 {item.phone && <span> • {item.phone}</span>}
                               </div>
+                            </>
+                          )}
+                          {(selectedConfig?.data_type || dataType) === "developments" && (
+                            <>
+                              <p className="font-medium truncate">{item.name || "Sem nome"}</p>
+                              <div className="flex flex-wrap gap-2 mt-1 text-sm text-slate-600">
+                                {item.city && <span>{item.city}</span>}
+                                {item.total_units > 0 && <span>• {item.total_units} frações</span>}
+                                {item.price_from > 0 && <span>• desde €{item.price_from.toLocaleString()}</span>}
+                              </div>
+                              {item.source_url && item.source_url.startsWith('http') && (
+                                <a 
+                                  href={item.source_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 mt-1 text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  <span className="truncate max-w-xs">Ver página do empreendimento</span>
+                                </a>
+                              )}
                             </>
                           )}
                           {(selectedConfig?.data_type || dataType) === "opportunities" && (
