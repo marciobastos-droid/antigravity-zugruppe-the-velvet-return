@@ -68,12 +68,20 @@ export default function Tools() {
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
   
   // Get user's tool permissions
-  const userToolPermissions = userPermissions.find(p => p.user_email === currentUser?.email)?.permissions?.tools || {};
+  const userPerm = userPermissions.find(p => p.user_email === currentUser?.email);
+  const userToolPermissions = userPerm?.permissions?.tools || {};
+  const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true;
   
   // Helper to check if tool is allowed
   const isToolAllowed = (toolId) => {
     if (isAdmin) return true;
-    return userToolPermissions[toolId] !== false; // Default to true if not explicitly set
+    // Se tem acesso à página tools mas sem permissões específicas de ferramentas, permitir todas
+    if (hasToolsPageAccess && Object.keys(userToolPermissions).length === 0) return true;
+    // Se tem permissões específicas de ferramentas
+    if (Object.keys(userToolPermissions).length > 0) {
+      return userToolPermissions[toolId] === true;
+    }
+    return false;
   };
 
   // Helper to render tool button with permission check - oculta se não permitido
