@@ -124,6 +124,7 @@ export default function MyListings() {
   const [editingProperty, setEditingProperty] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
   const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "cards" : "table");
+    const [groupBy, setGroupBy] = useState("none");
   const [filterLogic, setFilterLogic] = useState("AND");
   const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
