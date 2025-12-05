@@ -223,31 +223,27 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Criar notificação para o responsável atribuído ou para o utilizador atual
+    // Notify about new leads using the notification system
     if (newLeads.length > 0) {
-      const notificationRecipient = assigned_to || user.email;
-
-      await base44.entities.Notification.create({
-        title: 'Novos Leads do Facebook',
-        message: `${newLeads.length} novo(s) lead(s) da campanha "${campaign_name || campaign_id}"`,
-        type: 'lead',
-        priority: 'high',
-        user_email: notificationRecipient,
-        related_type: 'FacebookLead',
-        action_url: '/Tools'
-      });
-
-      // Se houver responsável, também notificar o utilizador que sincronizou
-      if (assigned_to && assigned_to !== user.email) {
-        await base44.entities.Notification.create({
-          title: 'Leads Sincronizados',
-          message: `${newLeads.length} novo(s) lead(s) sincronizado(s) da campanha "${campaign_name || campaign_id}" (atribuída a ${assigned_to})`,
-          type: 'lead',
-          priority: 'medium',
-          user_email: user.email,
-          related_type: 'FacebookLead',
-          action_url: '/Tools'
-        });
+      for (const lead of newLeads) {
+        try {
+          await base44.asServiceRole.functions.invoke('notifyNewLead', {
+            lead: {
+              buyer_name: lead.full_name,
+              buyer_email: lead.email,
+              buyer_phone: lead.phone,
+              location: lead.location,
+              budget: lead.budget,
+              assigned_to: assigned_to
+            },
+            source: 'facebook_ads',
+            notify_admins: true,
+            notify_assigned: !!assigned_to,
+            send_email: false
+          });
+        } catch (notifyError) {
+          console.error('Failed to send lead notification:', notifyError);
+        }
       }
     }
 
