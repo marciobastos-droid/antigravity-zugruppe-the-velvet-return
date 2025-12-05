@@ -66,6 +66,53 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     queryFn: () => base44.entities.User.list()
   });
 
+  // Fetch existing properties for autocomplete
+  const { data: existingProperties = [] } = useQuery({
+    queryKey: ['propertiesForAutocomplete'],
+    queryFn: () => base44.entities.Property.list('-created_date', 500)
+  });
+
+  const existingCities = React.useMemo(() => 
+    [...new Set(existingProperties.map(p => p.city).filter(Boolean))].sort()
+  , [existingProperties]);
+
+  const existingStates = React.useMemo(() => 
+    [...new Set(existingProperties.map(p => p.state).filter(Boolean))].sort()
+  , [existingProperties]);
+
+  // Collapsible sections state
+  const [openSections, setOpenSections] = useState({
+    basic: true,
+    details: true,
+    location: true,
+    media: false,
+    management: false
+  });
+
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const SectionHeader = ({ section, title, icon: Icon }) => (
+    <CollapsibleTrigger asChild>
+      <button
+        type="button"
+        onClick={() => toggleSection(section)}
+        className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors"
+      >
+        <div className="flex items-center gap-2 font-semibold text-slate-900">
+          {Icon && <Icon className="w-5 h-5 text-slate-600" />}
+          {title}
+        </div>
+        {openSections[section] ? (
+          <ChevronDown className="w-5 h-5 text-slate-400" />
+        ) : (
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        )}
+      </button>
+    </CollapsibleTrigger>
+  );
+
   useEffect(() => {
     if (property) {
       setFormData({
