@@ -765,118 +765,80 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Garage & Sun Exposure */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Garagem</Label>
-              <Select 
-                value={formData.garage} 
-                onValueChange={(v) => setFormData({...formData, garage: v})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem garagem</SelectItem>
-                  <SelectItem value="1">1 lugar</SelectItem>
-                  <SelectItem value="2">2 lugares</SelectItem>
-                  <SelectItem value="3">3 lugares</SelectItem>
-                  <SelectItem value="4+">4+ lugares</SelectItem>
-                  <SelectItem value="box">Box</SelectItem>
-                  <SelectItem value="exterior">Exterior</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Exposição Solar</Label>
-              <Select 
-                value={formData.sun_exposure} 
-                onValueChange={(v) => setFormData({...formData, sun_exposure: v})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="north">Norte</SelectItem>
-                  <SelectItem value="south">Sul</SelectItem>
-                  <SelectItem value="east">Nascente</SelectItem>
-                  <SelectItem value="west">Poente</SelectItem>
-                  <SelectItem value="north_south">Norte/Sul</SelectItem>
-                  <SelectItem value="east_west">Nascente/Poente</SelectItem>
-                  <SelectItem value="all">Todas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* Management & Notes */}
+          <Collapsible open={openSections.management} onOpenChange={() => toggleSection('management')}>
+            <SectionHeader section="management" title="Gestão e Notas" icon={Settings} />
+            <CollapsibleContent className="pt-4 space-y-4">
+              {/* Years & Dates */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <ValidatedInput
+                  id="edit-year_built"
+                  label="Ano de Construção"
+                  type="number"
+                  value={formData.year_built}
+                  onChange={(e) => setFormData({...formData, year_built: e.target.value})}
+                  placeholder="2020"
+                  validator="year"
+                />
+                <ValidatedInput
+                  id="edit-year_renovated"
+                  label="Ano de Renovação"
+                  type="number"
+                  value={formData.year_renovated}
+                  onChange={(e) => setFormData({...formData, year_renovated: e.target.value})}
+                  placeholder="2023"
+                  validator="year"
+                />
+                <div>
+                  <Label>Data de Construção</Label>
+                  <Input
+                    type="date"
+                    value={formData.construction_date}
+                    onChange={(e) => setFormData({...formData, construction_date: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Data de Conclusão</Label>
+                  <Input
+                    type="date"
+                    value={formData.completion_date}
+                    onChange={(e) => setFormData({...formData, completion_date: e.target.value})}
+                  />
+                </div>
+              </div>
 
-          {/* Years & Dates */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label>Ano de Construção</Label>
-              <Input
-                type="number"
-                value={formData.year_built}
-                onChange={(e) => setFormData({...formData, year_built: e.target.value})}
-                placeholder="2020"
-              />
-            </div>
-            <div>
-              <Label>Ano de Renovação</Label>
-              <Input
-                type="number"
-                value={formData.year_renovated}
-                onChange={(e) => setFormData({...formData, year_renovated: e.target.value})}
-                placeholder="2023"
-              />
-            </div>
-            <div>
-              <Label>Data de Construção</Label>
-              <Input
-                type="date"
-                value={formData.construction_date}
-                onChange={(e) => setFormData({...formData, construction_date: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label>Data de Conclusão</Label>
-              <Input
-                type="date"
-                value={formData.completion_date}
-                onChange={(e) => setFormData({...formData, completion_date: e.target.value})}
-              />
-            </div>
-          </div>
+              {/* Amenities */}
+              <div>
+                <Label>Comodidades (separadas por vírgula)</Label>
+                <Input
+                  value={formData.amenities.join(", ")}
+                  onChange={(e) => setFormData({...formData, amenities: e.target.value.split(",").map(a => a.trim()).filter(Boolean)})}
+                  placeholder="Piscina, Garagem, Jardim"
+                />
+              </div>
 
-          {/* Amenities */}
-          <div>
-            <Label>Comodidades (separadas por vírgula)</Label>
-            <Input
-              value={formData.amenities.join(", ")}
-              onChange={(e) => setFormData({...formData, amenities: e.target.value.split(",").map(a => a.trim()).filter(Boolean)})}
-              placeholder="Piscina, Garagem, Jardim"
-            />
-          </div>
+              {/* Finishes */}
+              <div>
+                <Label>Acabamentos</Label>
+                <Input
+                  value={formData.finishes}
+                  onChange={(e) => setFormData({...formData, finishes: e.target.value})}
+                  placeholder="Descrição dos acabamentos"
+                />
+              </div>
 
-          {/* Finishes */}
-          <div>
-            <Label>Acabamentos</Label>
-            <Input
-              value={formData.finishes}
-              onChange={(e) => setFormData({...formData, finishes: e.target.value})}
-              placeholder="Descrição dos acabamentos"
-            />
-          </div>
-
-          {/* Internal Notes */}
-          <div>
-            <Label>Notas Internas (privadas)</Label>
-            <Textarea
-              value={formData.internal_notes}
-              onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
-              placeholder="Notas privadas sobre o imóvel..."
-              rows={3}
-            />
-          </div>
+              {/* Internal Notes */}
+              <div>
+                <Label>Notas Internas (privadas)</Label>
+                <Textarea
+                  value={formData.internal_notes}
+                  onChange={(e) => setFormData({...formData, internal_notes: e.target.value})}
+                  placeholder="Notas privadas sobre o imóvel..."
+                  rows={3}
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t">
