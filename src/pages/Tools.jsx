@@ -47,6 +47,7 @@ import DuplicateClientsCleaner from "../components/tools/DuplicateClientsCleaner
 import PropertyPerformanceDashboard from "../components/tools/PropertyPerformanceDashboard";
 import ImageValidator from "../components/tools/ImageValidator";
 import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
+import CasafariSync from "../components/tools/CasafariSync";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
