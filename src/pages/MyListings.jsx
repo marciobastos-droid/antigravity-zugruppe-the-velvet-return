@@ -437,11 +437,19 @@ export default function MyListings() {
       }, [queryClient, statusLabelsMap, properties, executeWithUndo]);
 
   const handleToggleFeatured = useCallback((property) => {
-    updatePropertyMutation.mutate(
-      { id: property.id, data: { featured: !property.featured } },
-      { onSuccess: () => toast.success(property.featured ? "Removido dos destaques" : "Marcado como destaque") }
-    );
-  }, [updatePropertyMutation]);
+        const wasFeatured = property.featured;
+
+        executeWithUndo({
+          action: () => updatePropertyMutation.mutate({ id: property.id, data: { featured: !wasFeatured } }),
+          undoAction: async () => {
+            await base44.entities.Property.update(property.id, { featured: wasFeatured });
+            queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          },
+          successMessage: wasFeatured ? "Removido dos destaques" : "Marcado como destaque",
+          undoMessage: wasFeatured ? "Restaurado como destaque" : "Removido dos destaques"
+        });
+      }, [updatePropertyMutation, executeWithUndo, queryClient]);
 
   const handleDuplicate = useCallback((property) => {
     if (window.confirm(`Duplicar o imóvel "${property.title}"?`)) {
