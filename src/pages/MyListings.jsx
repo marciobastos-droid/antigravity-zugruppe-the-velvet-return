@@ -364,11 +364,27 @@ export default function MyListings() {
     },
   });
 
-  const handleDelete = useCallback((id) => {
-    if (window.confirm("Tem a certeza que deseja eliminar este anúncio?")) {
-      deleteMutation.mutate(id);
-    }
-  }, [deleteMutation]);
+  const handleDelete = useCallback(async (id) => {
+        const propertyToDelete = properties.find(p => p.id === id);
+        if (!propertyToDelete) return;
+
+        // Store property data for potential undo
+        const propertyData = { ...propertyToDelete };
+        delete propertyData.id;
+        delete propertyData.created_date;
+        delete propertyData.updated_date;
+
+        executeWithUndo({
+          action: () => deleteMutation.mutate(id),
+          undoAction: async () => {
+            await base44.entities.Property.create(propertyData);
+            queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          },
+          successMessage: "Imóvel eliminado",
+          undoMessage: "Imóvel restaurado"
+        });
+      }, [deleteMutation, properties, executeWithUndo, queryClient]);
 
   const handleBulkDelete = useCallback(() => {
     if (window.confirm(`Eliminar ${selectedProperties.length} anúncios selecionados?`)) {
