@@ -692,13 +692,13 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                 )}
               </Button>
             </div>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Descreva o imóvel..."
-              rows={6}
-            />
-          </div>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Descreva o imóvel..."
+                rows={6}
+              />
+            </div>
             </CollapsibleContent>
           </Collapsible>
 
