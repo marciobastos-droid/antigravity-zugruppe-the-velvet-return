@@ -720,43 +720,50 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
           )}
 
           {/* Location */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <Label>Morada *</Label>
-              <Input
-                required
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                placeholder="Rua Principal, 123"
-              />
-            </div>
-            <div>
-              <Label>Cidade *</Label>
-              <Input
-                required
-                value={formData.city}
-                onChange={(e) => setFormData({...formData, city: e.target.value})}
-                placeholder="Lisboa"
-              />
-            </div>
-            <div>
-              <Label>Distrito/Região *</Label>
-              <Input
-                required
-                value={formData.state}
-                onChange={(e) => setFormData({...formData, state: e.target.value})}
-                placeholder="Lisboa"
-              />
-            </div>
-            <div>
-              <Label>Código Postal</Label>
-              <Input
-                value={formData.zip_code}
-                onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
-                placeholder="1000-001"
-              />
-            </div>
-          </div>
+          <Collapsible open={openSections.location} onOpenChange={() => toggleSection('location')}>
+            <SectionHeader section="location" title="Localização" icon={MapPin} />
+            <CollapsibleContent className="pt-4 space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <Label>Morada *</Label>
+                  <Input
+                    required
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    placeholder="Rua Principal, 123"
+                  />
+                </div>
+                <LocationAutocomplete
+                  field="state"
+                  label="Distrito"
+                  value={formData.state}
+                  onChange={(val) => setFormData({...formData, state: val})}
+                  placeholder="Lisboa"
+                  required
+                  existingData={existingStates}
+                />
+                <LocationAutocomplete
+                  field="city"
+                  label="Concelho"
+                  value={formData.city}
+                  onChange={(val) => setFormData({...formData, city: val})}
+                  placeholder="Lisboa"
+                  required
+                  otherFieldValue={formData.state}
+                  existingData={existingCities}
+                />
+                <ValidatedInput
+                  id="edit-zip_code"
+                  label="Código Postal"
+                  value={formData.zip_code}
+                  onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
+                  placeholder="1000-001"
+                  validator="postalCode"
+                  hint="Formato: 1234-567"
+                />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Garage & Sun Exposure */}
           <div className="grid md:grid-cols-2 gap-4">
