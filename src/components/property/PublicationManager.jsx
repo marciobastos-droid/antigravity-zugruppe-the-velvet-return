@@ -32,7 +32,7 @@ function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   };
 
-  const togglePortal = React.useCallback((portalId) => {
+  const togglePortal = (portalId) => {
     const newPortals = publishedPortals.includes(portalId)
       ? publishedPortals.filter(p => p !== portalId)
       : [...publishedPortals, portalId];
@@ -42,9 +42,9 @@ function PublicationManager({ property, onChange }) {
       published_pages: publishedPages,
       publication_config: config
     });
-  }, [publishedPortals, publishedPages, config, onChange]);
+  };
 
-  const togglePage = React.useCallback((pageId) => {
+  const togglePage = (pageId) => {
     const newPages = publishedPages.includes(pageId)
       ? publishedPages.filter(p => p !== pageId)
       : [...publishedPages, pageId];
@@ -54,7 +54,7 @@ function PublicationManager({ property, onChange }) {
       published_pages: newPages,
       publication_config: config
     });
-  }, [publishedPortals, publishedPages, config, onChange]);
+  };
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -197,10 +197,4 @@ function PublicationManager({ property, onChange }) {
   );
 }
 
-export default React.memo(PublicationManager, (prevProps, nextProps) => {
-  return (
-    JSON.stringify(prevProps.property?.published_portals?.sort()) === JSON.stringify(nextProps.property?.published_portals?.sort()) &&
-    JSON.stringify(prevProps.property?.published_pages?.sort()) === JSON.stringify(nextProps.property?.published_pages?.sort()) &&
-    JSON.stringify(prevProps.property?.publication_config) === JSON.stringify(nextProps.property?.publication_config)
-  );
-});
+export default React.memo(PublicationManager);
