@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import GroupedPropertiesView from "../components/listings/GroupedPropertiesView"
 import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import BulkPublicationDialog from "../components/listings/BulkPublicationDialog";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
+import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
@@ -37,7 +38,9 @@ const PropertyCard = memo(function PropertyCard({
   onDuplicate,
   onDelete,
   onViewNotes,
-  propertyTypeLabels
+  propertyTypeLabels,
+  setSelectedPropertyForAI,
+  setAiEnhancerOpen
 }) {
   const handleClick = useCallback(() => onEdit(property), [property, onEdit]);
   const handleSelect = useCallback((e) => {
@@ -108,6 +111,18 @@ const PropertyCard = memo(function PropertyCard({
                 <Star className={`w-4 h-4 mr-2 ${property.featured ? "fill-current" : ""}`} />{property.featured ? "Destaque" : "Destacar"}
               </Button>
               <Button variant="outline" size="sm" onClick={() => onDuplicate(property)}><Copy className="w-4 h-4 mr-2" />Duplicar</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPropertyForAI(property);
+                  setAiEnhancerOpen(true);
+                }}
+                className="border-purple-300 text-purple-600 hover:bg-purple-50"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />Melhorar com IA
+              </Button>
               {property.internal_notes && <Button variant="outline" size="sm" onClick={() => onViewNotes(property)}><FileText className="w-4 h-4 mr-2" />Notas</Button>}
               <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4 mr-2" />Eliminar</Button>
             </div>
@@ -136,6 +151,8 @@ export default function MyListings() {
   const [createDevelopmentDialogOpen, setCreateDevelopmentDialogOpen] = useState(false);
   const [assignAgentOpen, setAssignAgentOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState("");
+  const [aiEnhancerOpen, setAiEnhancerOpen] = useState(false);
+  const [selectedPropertyForAI, setSelectedPropertyForAI] = useState(null);
   
   const [filters, setFilters] = useState({
     search: "",
@@ -1051,6 +1068,8 @@ export default function MyListings() {
                   onDelete={handleDelete}
                   onViewNotes={setViewingNotes}
                   propertyTypeLabels={propertyTypeLabels}
+                  setSelectedPropertyForAI={setSelectedPropertyForAI}
+                  setAiEnhancerOpen={setAiEnhancerOpen}
                 />
               ))}
             </div>
@@ -1145,6 +1164,13 @@ export default function MyListings() {
             setSelectedProperties([]);
             setActiveTab("developments");
           }}
+        />
+
+        {/* AI Property Enhancer Dialog */}
+        <AIPropertyEnhancer
+          open={aiEnhancerOpen}
+          onOpenChange={setAiEnhancerOpen}
+          property={selectedPropertyForAI}
         />
         </>
         )}
