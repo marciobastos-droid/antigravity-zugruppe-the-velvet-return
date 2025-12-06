@@ -19,8 +19,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { debounce } from "lodash";
 import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common/PortugalLocations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ZuGruppe() {
+  const [activeTab, setActiveTab] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [listingType, setListingType] = React.useState("all");
@@ -110,11 +112,25 @@ export default function ZuGruppe() {
     queryFn: () => base44.entities.Property.list('-created_date')
   });
 
+  const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
+  const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
+
   const activeProperties = properties.filter(p => p.status === 'active');
-  const allCities = [...new Set(activeProperties.map(p => p.city).filter(Boolean))].sort();
+  
+  // Filtrar por tab ativa
+  const tabFilteredProperties = React.useMemo(() => {
+    if (activeTab === "residential") {
+      return activeProperties.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
+    } else if (activeTab === "commercial") {
+      return activeProperties.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
+    }
+    return activeProperties;
+  }, [activeTab, activeProperties]);
+
+  const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
   const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
 
-  const filteredProperties = activeProperties.filter((property) => {
+  const filteredProperties = tabFilteredProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||
       property.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
       property.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
@@ -210,7 +226,7 @@ export default function ZuGruppe() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities]);
+  }, [activeTab, listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities]);
   
   const toggleAmenity = (amenity) => {
     setSelectedAmenities(prev => 
@@ -265,14 +281,32 @@ export default function ZuGruppe() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')] bg-cover bg-center opacity-20" />
+      <div className={`relative overflow-hidden ${
+        activeTab === "residential" 
+          ? "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#d22630]"
+          : activeTab === "commercial"
+          ? "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#75787b]"
+          : "bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900"
+      }`}>
+        <div className={`absolute inset-0 bg-cover bg-center opacity-20 ${
+          activeTab === "residential"
+            ? "bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')]"
+            : activeTab === "commercial"
+            ? "bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')]"
+            : "bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')]"
+        }`} />
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
-                alt="ZuGruppe"
+                src={
+                  activeTab === "residential"
+                    ? "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a0e94a9a1_ZUHAUS_branco_vermelho-trasnparente_c-slogan.png"
+                    : activeTab === "commercial"
+                    ? "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/fbf7ef631_WaterMarkZuHandel.png"
+                    : "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
+                }
+                alt={activeTab === "residential" ? "ZuHaus" : activeTab === "commercial" ? "ZuHandel" : "ZuGruppe"}
                 className="h-24 md:h-32 lg:h-40 w-auto object-contain"
               />
             </div>
@@ -282,6 +316,24 @@ export default function ZuGruppe() {
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-2xl border-0">
               <CardContent className="p-4 md:p-6">
+                {/* Tabs de Categoria */}
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
+                  <TabsList className="grid grid-cols-3 w-full">
+                    <TabsTrigger value="all" className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      Todos os Imóveis
+                    </TabsTrigger>
+                    <TabsTrigger value="residential" className="flex items-center gap-2">
+                      <Home className="w-4 h-4" />
+                      Residencial
+                    </TabsTrigger>
+                    <TabsTrigger value="commercial" className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      Comercial
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
                 {/* Quick Filter Tabs */}
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                   <Button 
@@ -704,7 +756,7 @@ export default function ZuGruppe() {
       </div>
 
       {/* Featured Properties */}
-      {featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
+      {featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && activeTab === "all" && (
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-amber-100 rounded-lg">
@@ -729,7 +781,7 @@ export default function ZuGruppe() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-xl font-bold text-slate-900">
-              {filteredProperties.length} imóveis encontrados
+              {filteredProperties.length} {activeTab === "residential" ? "imóveis residenciais" : activeTab === "commercial" ? "imóveis comerciais" : "imóveis"} encontrados
             </h2>
             {hasActiveFilters && (
               <p className="text-sm text-slate-600">Com os filtros aplicados</p>
@@ -846,16 +898,40 @@ export default function ZuGruppe() {
       </div>
 
       {/* Contact CTA */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-12 mt-12">
+      <div className={`py-12 mt-12 ${
+        activeTab === "residential"
+          ? "bg-gradient-to-r from-[#d22630] to-[#a01d26]"
+          : activeTab === "commercial"
+          ? "bg-gradient-to-r from-[#75787b] to-[#5a5c5e]"
+          : "bg-gradient-to-r from-blue-600 to-blue-700"
+      }`}>
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-            Não encontrou o que procura?
+            {activeTab === "residential" 
+              ? "Procura a sua casa de sonho?"
+              : activeTab === "commercial"
+              ? "Procura um espaço comercial específico?"
+              : "Não encontrou o que procura?"
+            }
           </h2>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-            A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto connosco!
+          <p className={`mb-6 max-w-2xl mx-auto ${
+            activeTab === "residential" ? "text-slate-200" : activeTab === "commercial" ? "text-slate-200" : "text-blue-100"
+          }`}>
+            {activeTab === "residential"
+              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel residencial ideal para si e para a sua família."
+              : activeTab === "commercial"
+              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal para o seu negócio."
+              : "A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto connosco!"
+            }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+            <Button size="lg" className={
+              activeTab === "residential"
+                ? "bg-white text-[#d22630] hover:bg-slate-100"
+                : activeTab === "commercial"
+                ? "bg-white text-[#75787b] hover:bg-slate-100"
+                : "bg-white text-blue-600 hover:bg-blue-50"
+            }>
               <Phone className="w-5 h-5 mr-2" />
               Contactar
             </Button>

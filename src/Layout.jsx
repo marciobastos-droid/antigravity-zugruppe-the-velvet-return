@@ -47,10 +47,8 @@ export default function Layout({ children, currentPageName }) {
   // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
-    { name: "ZuGruppe", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
-    { name: "ZuHaus", path: createPageUrl("ZuHaus"), icon: Home, id: "nav-zuhaus", visibility: 'all', pagePermKey: 'browse' },
-    { name: "ZuHandel", path: createPageUrl("ZuHandel"), icon: Building2, id: "nav-zuhandel", visibility: 'all', pagePermKey: 'browse' },
-    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
+    { name: "Imóveis", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
+    { name: "Os Meus Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
