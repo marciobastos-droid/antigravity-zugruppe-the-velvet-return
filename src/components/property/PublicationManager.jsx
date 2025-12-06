@@ -25,52 +25,36 @@ const AVAILABLE_PAGES = [
 ];
 
 function PublicationManager({ property, onChange }) {
-  const [localPortals, setLocalPortals] = React.useState(property?.published_portals || []);
-  const [localPages, setLocalPages] = React.useState(property?.published_pages || ["zugruppe"]);
-  const [localConfig, setLocalConfig] = React.useState(property?.publication_config || {
+  const publishedPortals = property?.published_portals || [];
+  const publishedPages = property?.published_pages || ["zugruppe"];
+  const config = property?.publication_config || {
     auto_publish: false,
     exclude_from_feeds: false
-  });
+  };
 
-  // Sync with parent only when component mounts or property ID changes
-  React.useEffect(() => {
-    setLocalPortals(property?.published_portals || []);
-    setLocalPages(property?.published_pages || ["zugruppe"]);
-    setLocalConfig(property?.publication_config || {
-      auto_publish: false,
-      exclude_from_feeds: false
-    });
-  }, [property?.id]);
-
-  const togglePortal = (portalId) => {
-    const newPortals = localPortals.includes(portalId)
-      ? localPortals.filter(p => p !== portalId)
-      : [...localPortals, portalId];
+  const togglePortal = React.useCallback((portalId) => {
+    const newPortals = publishedPortals.includes(portalId)
+      ? publishedPortals.filter(p => p !== portalId)
+      : [...publishedPortals, portalId];
     
-    setLocalPortals(newPortals);
     onChange({
       published_portals: newPortals,
-      published_pages: localPages,
-      publication_config: localConfig
+      published_pages: publishedPages,
+      publication_config: config
     });
-  };
+  }, [publishedPortals, publishedPages, config, onChange]);
 
-  const togglePage = (pageId) => {
-    const newPages = localPages.includes(pageId)
-      ? localPages.filter(p => p !== pageId)
-      : [...localPages, pageId];
+  const togglePage = React.useCallback((pageId) => {
+    const newPages = publishedPages.includes(pageId)
+      ? publishedPages.filter(p => p !== pageId)
+      : [...publishedPages, pageId];
     
-    setLocalPages(newPages);
     onChange({
-      published_portals: localPortals,
+      published_portals: publishedPortals,
       published_pages: newPages,
-      publication_config: localConfig
+      publication_config: config
     });
-  };
-
-  const publishedPortals = localPortals;
-  const publishedPages = localPages;
-  const config = localConfig;
+  }, [publishedPortals, publishedPages, config, onChange]);
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -182,12 +166,10 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.auto_publish}
               onCheckedChange={(checked) => {
-                const newConfig = { ...config, auto_publish: checked };
-                setLocalConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: newConfig
+                  publication_config: { ...config, auto_publish: checked }
                 });
               }}
             />
@@ -201,12 +183,10 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.exclude_from_feeds}
               onCheckedChange={(checked) => {
-                const newConfig = { ...config, exclude_from_feeds: checked };
-                setLocalConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: newConfig
+                  publication_config: { ...config, exclude_from_feeds: checked }
                 });
               }}
             />
@@ -217,4 +197,10 @@ function PublicationManager({ property, onChange }) {
   );
 }
 
-export default PublicationManager;
+export default React.memo(PublicationManager, (prevProps, nextProps) => {
+  return (
+    JSON.stringify(prevProps.property?.published_portals?.sort()) === JSON.stringify(nextProps.property?.published_portals?.sort()) &&
+    JSON.stringify(prevProps.property?.published_pages?.sort()) === JSON.stringify(nextProps.property?.published_pages?.sort()) &&
+    JSON.stringify(prevProps.property?.publication_config) === JSON.stringify(nextProps.property?.publication_config)
+  );
+});
