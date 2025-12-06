@@ -278,13 +278,16 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
   const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => {
-      // Only update if values actually changed
-      const hasChanges = 
-        JSON.stringify(prev.published_portals) !== JSON.stringify(publicationData.published_portals) ||
-        JSON.stringify(prev.published_pages) !== JSON.stringify(publicationData.published_pages) ||
-        JSON.stringify(prev.publication_config) !== JSON.stringify(publicationData.publication_config);
+      // Check if any value actually changed
+      const portalsChanged = JSON.stringify(prev.published_portals?.sort()) !== JSON.stringify(publicationData.published_portals?.sort());
+      const pagesChanged = JSON.stringify(prev.published_pages?.sort()) !== JSON.stringify(publicationData.published_pages?.sort());
+      const configChanged = JSON.stringify(prev.publication_config) !== JSON.stringify(publicationData.publication_config);
       
-      return hasChanges ? { ...prev, ...publicationData } : prev;
+      if (!portalsChanged && !pagesChanged && !configChanged) {
+        return prev; // Return same reference to prevent re-render
+      }
+      
+      return { ...prev, ...publicationData };
     });
   }, []);
 
@@ -746,7 +749,11 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           {/* Publication Manager */}
           <PublicationManager
-            property={formData}
+            property={{
+              published_portals: formData.published_portals,
+              published_pages: formData.published_pages,
+              publication_config: formData.publication_config
+            }}
             onChange={handlePublicationUpdate}
           />
 
