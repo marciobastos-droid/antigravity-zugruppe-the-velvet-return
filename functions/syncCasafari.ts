@@ -114,12 +114,34 @@ Deno.serve(async (req) => {
 
         // Autenticação inicial se token não existir
         if (!token) {
-            token = await getCasafariToken();
+            console.log("Token não existe, a autenticar...");
+            try {
+                token = await getCasafariToken();
+                console.log("Autenticação bem sucedida");
+            } catch (authError) {
+                console.error("Erro na autenticação:", authError.message);
+                return Response.json({ 
+                    success: false,
+                    error: `Erro na autenticação Casafari: ${authError.message}`
+                }, { status: 500 });
+            }
         }
 
         const initialUrl = `https://api.casafari.com/api/v1/listing-alerts/feeds/${feedId}?created_at_from=${checkpoint}&limit=100&order_by=created_at`;
+        console.log("URL inicial:", initialUrl);
         
-        const { allAlerts } = await fetchCasafariAlerts(token, initialUrl);
+        let allAlerts;
+        try {
+            const result = await fetchCasafariAlerts(token, initialUrl);
+            allAlerts = result.allAlerts;
+            console.log(`Alertas buscados: ${allAlerts.length}`);
+        } catch (fetchError) {
+            console.error("Erro ao buscar alertas:", fetchError.message);
+            return Response.json({ 
+                success: false,
+                error: `Erro ao buscar alertas: ${fetchError.message}`
+            }, { status: 500 });
+        }
         
         if (allAlerts.length === 0) {
             console.log("Nenhum novo imóvel ou atualização encontrado.");
@@ -136,42 +158,47 @@ Deno.serve(async (req) => {
         console.log(`Iniciando Upsert para ${allAlerts.length} alertas/imóveis.`);
 
         for (const alerta of allAlerts) {
-            const casafariID = alerta.property_id;
-            
-            const dadosImovel = {
-                CasafariID: casafariID, 
-                UltimaAtualizacao: alerta.updated_at,
-                DataCriacaoAlerta: alerta.created_at,
-                Titulo: alerta.description,
-                Tipo: alerta.type,
-                StatusVenda: alerta.sale_status,
-                PrecoVenda: alerta.sale_price,
-                AreaTotal: alerta.total_area,
-                Quartos: alerta.bedrooms,
-                Banheiros: alerta.bathrooms,
-                AnoConstrucao: alerta.construction_year,
-                Latitude: alerta.coordinates ? alerta.coordinates.latitude : null,
-                Longitude: alerta.coordinates ? alerta.coordinates.longitude : null,
-                URLFotos: alerta.pictures ? alerta.pictures.join(';') : '', 
-            };
+            try {
+                const casafariID = alerta.property_id;
+                
+                const dadosImovel = {
+                    CasafariID: casafariID, 
+                    UltimaAtualizacao: alerta.updated_at,
+                    DataCriacaoAlerta: alerta.created_at,
+                    Titulo: alerta.description,
+                    Tipo: alerta.type,
+                    StatusVenda: alerta.sale_status,
+                    PrecoVenda: alerta.sale_price,
+                    AreaTotal: alerta.total_area,
+                    Quartos: alerta.bedrooms,
+                    Banheiros: alerta.bathrooms,
+                    AnoConstrucao: alerta.construction_year,
+                    Latitude: alerta.coordinates ? alerta.coordinates.latitude : null,
+                    Longitude: alerta.coordinates ? alerta.coordinates.longitude : null,
+                    URLFotos: alerta.pictures ? alerta.pictures.join(';') : '', 
+                };
 
-            const imoveisExistentes = await base44.asServiceRole.entities.ImoveisCasafari.filter({ 
-                CasafariID: casafariID 
-            });
+                const imoveisExistentes = await base44.asServiceRole.entities.ImoveisCasafari.filter({ 
+                    CasafariID: casafariID 
+                });
 
-            if (imoveisExistentes.length > 0) {
-                await base44.asServiceRole.entities.ImoveisCasafari.update(
-                    imoveisExistentes[0].id, 
-                    dadosImovel
-                );
-            } else {
-                await base44.asServiceRole.entities.ImoveisCasafari.create(dadosImovel);
-            }
-            
-            upsertCount++;
-            
-            if (alerta.created_at > novoCheckpoint) {
-                novoCheckpoint = alerta.created_at;
+                if (imoveisExistentes.length > 0) {
+                    await base44.asServiceRole.entities.ImoveisCasafari.update(
+                        imoveisExistentes[0].id, 
+                        dadosImovel
+                    );
+                } else {
+                    await base44.asServiceRole.entities.ImoveisCasafari.create(dadosImovel);
+                }
+                
+                upsertCount++;
+                
+                if (alerta.created_at > novoCheckpoint) {
+                    novoCheckpoint = alerta.created_at;
+                }
+            } catch (upsertError) {
+                console.error(`Erro ao processar imóvel ${alerta.property_id}:`, upsertError.message);
+                // Continua com o próximo
             }
         }
         
