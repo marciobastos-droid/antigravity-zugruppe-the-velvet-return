@@ -32,29 +32,35 @@ function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   };
 
-  const togglePortal = (portalId) => {
-    const newPortals = publishedPortals.includes(portalId)
-      ? publishedPortals.filter(p => p !== portalId)
-      : [...publishedPortals, portalId];
+  const togglePortal = React.useCallback((portalId) => {
+    const currentPortals = property?.published_portals || [];
+    const newPortals = currentPortals.includes(portalId)
+      ? currentPortals.filter(p => p !== portalId)
+      : [...currentPortals, portalId];
     
-    onChange({
-      published_portals: newPortals,
-      published_pages: publishedPages,
-      publication_config: config
-    });
-  };
+    if (JSON.stringify(currentPortals.sort()) !== JSON.stringify(newPortals.sort())) {
+      onChange({
+        published_portals: newPortals,
+        published_pages: property?.published_pages || ["zugruppe"],
+        publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+      });
+    }
+  }, [property, onChange]);
 
-  const togglePage = (pageId) => {
-    const newPages = publishedPages.includes(pageId)
-      ? publishedPages.filter(p => p !== pageId)
-      : [...publishedPages, pageId];
+  const togglePage = React.useCallback((pageId) => {
+    const currentPages = property?.published_pages || ["zugruppe"];
+    const newPages = currentPages.includes(pageId)
+      ? currentPages.filter(p => p !== pageId)
+      : [...currentPages, pageId];
     
-    onChange({
-      published_portals: publishedPortals,
-      published_pages: newPages,
-      publication_config: config
-    });
-  };
+    if (JSON.stringify(currentPages.sort()) !== JSON.stringify(newPages.sort())) {
+      onChange({
+        published_portals: property?.published_portals || [],
+        published_pages: newPages,
+        publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+      });
+    }
+  }, [property, onChange]);
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -197,4 +203,13 @@ function PublicationManager({ property, onChange }) {
   );
 }
 
-export default React.memo(PublicationManager);
+export default React.memo(PublicationManager, (prevProps, nextProps) => {
+  const prevPortals = JSON.stringify([...(prevProps.property?.published_portals || [])].sort());
+  const nextPortals = JSON.stringify([...(nextProps.property?.published_portals || [])].sort());
+  const prevPages = JSON.stringify([...(prevProps.property?.published_pages || [])].sort());
+  const nextPages = JSON.stringify([...(nextProps.property?.published_pages || [])].sort());
+  const prevConfig = JSON.stringify(prevProps.property?.publication_config || {});
+  const nextConfig = JSON.stringify(nextProps.property?.publication_config || {});
+  
+  return prevPortals === nextPortals && prevPages === nextPages && prevConfig === nextConfig;
+});
