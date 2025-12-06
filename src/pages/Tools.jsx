@@ -46,6 +46,7 @@ import OrphanDataCleaner from "../components/tools/OrphanDataCleaner";
 import DuplicateClientsCleaner from "../components/tools/DuplicateClientsCleaner";
 import PropertyPerformanceDashboard from "../components/tools/PropertyPerformanceDashboard";
 import ImageValidator from "../components/tools/ImageValidator";
+import DeedCostsCalculator from "../components/tools/DeedCostsCalculator";
 import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
