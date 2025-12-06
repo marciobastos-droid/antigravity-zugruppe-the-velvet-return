@@ -50,6 +50,7 @@ import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
+import CasafariSync from "../components/tools/CasafariSync";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -176,6 +177,7 @@ export default function Tools() {
                 <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
                 <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                       <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
+                <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
               </div>
               </CardContent>
               </Card>
@@ -320,6 +322,7 @@ export default function Tools() {
         {activeTab === "jsonProcessor" && <JSONProcessor />}
             {activeTab === "externalSync" && <ExternalDataSync />}
             {activeTab === "auditLog" && <AuditLogViewer />}
+        {activeTab === "casafariSync" && <CasafariSync />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
