@@ -119,12 +119,12 @@ export default function ZuHandel() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#75787b] overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-20" />
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <Briefcase className="w-12 h-12 text-emerald-400" />
+              <Briefcase className="w-12 h-12 text-[#75787b]" />
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
                 ZuHandel
               </h1>
@@ -197,7 +197,7 @@ export default function ZuHandel() {
                     <SlidersHorizontal className="w-4 h-4" />
                     <span className="hidden md:inline">Filtros</span>
                     {hasActiveFilters && (
-                      <Badge className="bg-emerald-600 text-white ml-1">
+                      <Badge className="bg-[#75787b] text-white ml-1">
                         {[listingType !== "all", propertyType !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 5000000].filter(Boolean).length}
                       </Badge>
                     )}
@@ -395,16 +395,16 @@ export default function ZuHandel() {
       </div>
 
       {/* Contact CTA */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 py-12 mt-12">
+      <div className="bg-gradient-to-r from-[#75787b] to-[#5a5c5e] py-12 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
             Procura um espaço comercial específico?
           </h2>
-          <p className="text-emerald-100 mb-6 max-w-2xl mx-auto">
+          <p className="text-slate-200 mb-6 max-w-2xl mx-auto">
             A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal para o seu negócio.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className="bg-white text-emerald-600 hover:bg-emerald-50">
+            <Button size="lg" className="bg-white text-[#75787b] hover:bg-slate-100">
               <Phone className="w-5 h-5 mr-2" />
               Contactar
             </Button>
@@ -489,7 +489,7 @@ function PropertyCard({ property }) {
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-emerald-600 transition-colors mb-1">
+        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-[#75787b] transition-colors mb-1">
           {property.title}
         </h3>
         <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
@@ -555,7 +555,7 @@ function PropertyCardList({ property }) {
         <div>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors line-clamp-1">
+              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-[#75787b] transition-colors line-clamp-1">
                 {property.title}
               </h3>
               <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
