@@ -42,18 +42,17 @@ const PropertyCard = memo(function PropertyCard({
   setSelectedPropertyForAI,
   setAiEnhancerOpen
 }) {
-  const handleClick = useCallback(() => onEdit(property), [property, onEdit]);
   const handleSelect = useCallback((e) => {
     e.stopPropagation();
     onToggleSelect(property.id);
   }, [property.id, onToggleSelect]);
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200 cursor-pointer" onClick={handleClick}>
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
       <CardContent className="p-0">
         <div className="flex flex-col md:flex-row">
           <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50" onClick={handleSelect}>
-            <Checkbox checked={isSelected} onCheckedChange={() => onToggleSelect(property.id)} />
+            <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
           </div>
           <div className="md:w-80 h-64 md:h-auto relative">
             <img
@@ -71,7 +70,7 @@ const PropertyCard = memo(function PropertyCard({
               </div>
             )}
           </div>
-          <div className="flex-1 p-6">
+          <div className="flex-1 p-6" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">{property.title}</h3>

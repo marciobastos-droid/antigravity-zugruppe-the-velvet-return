@@ -21,7 +21,7 @@ const AVAILABLE_PORTALS = [
 ];
 
 const AVAILABLE_PAGES = [
-  { id: "browse", name: "Página Navegar", icon: Building2, description: "Listagem principal de imóveis" },
+  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal de imóveis" },
   { id: "zuhaus", name: "ZuHaus - Residencial", icon: Home, description: "Página dedicada a imóveis residenciais" },
   { id: "zuhandel", name: "ZuHandel - Comercial", icon: Building2, description: "Página dedicada a imóveis comerciais" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
