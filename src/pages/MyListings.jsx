@@ -653,7 +653,9 @@ export default function MyListings() {
   }, [filteredProperties, currentPage]);
   
   // Reset to page 1 when filters change
-  useEffect(() => { setCurrentPage(1); }, [filters]);
+  useEffect(() => { 
+    setCurrentPage(1); 
+  }, [filters.search, filters.status, filters.property_type, filters.listing_type, filters.state, filters.city, filters.featured, filters.last_import]);
 
   // Reset city filter when state changes
   useEffect(() => {
