@@ -20,6 +20,7 @@ import DevelopmentsTab from "../components/developments/DevelopmentsTab";
 import PropertiesByAgentView from "../components/listings/PropertiesByAgentView";
 import GroupedPropertiesView from "../components/listings/GroupedPropertiesView";
 import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
+import BulkPublicationDialog from "../components/listings/BulkPublicationDialog";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
@@ -131,6 +132,7 @@ export default function MyListings() {
   const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
   const [bulkPhotoDialogOpen, setBulkPhotoDialogOpen] = useState(false);
+  const [bulkPublicationDialogOpen, setBulkPublicationDialogOpen] = useState(false);
   const [createDevelopmentDialogOpen, setCreateDevelopmentDialogOpen] = useState(false);
   const [assignAgentOpen, setAssignAgentOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState("");
@@ -801,6 +803,10 @@ export default function MyListings() {
                     <Image className="w-4 h-4 mr-2" />
                     Aplicar Fotos
                   </Button>
+                  <Button variant="outline" size="sm" className="bg-white" onClick={() => setBulkPublicationDialogOpen(true)}>
+                    <Globe className="w-4 h-4 mr-2" />
+                    Gerir Publicação
+                  </Button>
                   <Button variant="outline" size="sm" className="bg-white" onClick={() => setCreateDevelopmentDialogOpen(true)}>
                     <Building2 className="w-4 h-4 mr-2" />
                     Criar Empreendimento
@@ -1120,6 +1126,14 @@ export default function MyListings() {
           open={bulkPhotoDialogOpen}
           onOpenChange={setBulkPhotoDialogOpen}
           selectedPropertyIds={selectedProperties}
+        />
+
+        {/* Bulk Publication Dialog */}
+        <BulkPublicationDialog
+          open={bulkPublicationDialogOpen}
+          onOpenChange={setBulkPublicationDialogOpen}
+          selectedPropertyIds={selectedProperties}
+          properties={properties}
         />
 
         {/* Create Development from Properties Dialog */}
