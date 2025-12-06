@@ -276,32 +276,13 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
-  const publicationProperty = React.useMemo(() => ({
-    published_portals: formData.published_portals,
-    published_pages: formData.published_pages,
-    publication_config: formData.publication_config
-  }), [formData.published_portals, formData.published_pages, formData.publication_config]);
-
   const handlePublicationUpdate = React.useCallback((publicationData) => {
-    setFormData(prev => {
-      const portalsStr = JSON.stringify([...(prev.published_portals || [])].sort());
-      const newPortalsStr = JSON.stringify([...(publicationData.published_portals || [])].sort());
-      const pagesStr = JSON.stringify([...(prev.published_pages || [])].sort());
-      const newPagesStr = JSON.stringify([...(publicationData.published_pages || [])].sort());
-      const configStr = JSON.stringify(prev.publication_config);
-      const newConfigStr = JSON.stringify(publicationData.publication_config);
-      
-      if (portalsStr === newPortalsStr && pagesStr === newPagesStr && configStr === newConfigStr) {
-        return prev;
-      }
-      
-      return { 
-        ...prev, 
-        published_portals: publicationData.published_portals,
-        published_pages: publicationData.published_pages,
-        publication_config: publicationData.publication_config
-      };
-    });
+    setFormData(prev => ({ 
+      ...prev, 
+      published_portals: publicationData.published_portals,
+      published_pages: publicationData.published_pages,
+      publication_config: publicationData.publication_config
+    }));
   }, []);
 
   const handleSubmit = (e) => {
@@ -762,7 +743,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           {/* Publication Manager */}
           <PublicationManager
-            property={publicationProperty}
+            property={formData}
             onChange={handlePublicationUpdate}
           />
 
