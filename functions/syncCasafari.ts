@@ -99,6 +99,12 @@ Deno.serve(async (req) => {
         const feedId = Deno.env.get('CASAFARI_FEED_ID');
         let checkpoint = Deno.env.get('LAST_SYNC_CHECKPOINT');
         
+        console.log("Configuração lida:", { 
+            hasToken: !!token, 
+            feedId: feedId ? `${feedId.substring(0, 8)}...` : null,
+            checkpoint 
+        });
+        
         if (!feedId || !checkpoint) {
             return Response.json({ 
                 success: false,
@@ -183,9 +189,11 @@ Deno.serve(async (req) => {
 
     } catch (error) {
         console.error("❌ ERRO CRÍTICO NA SINCRONIZAÇÃO:", error.message);
+        console.error("Stack trace:", error.stack);
         return Response.json({ 
             success: false,
-            error: error.message 
+            error: error.message,
+            details: error.stack?.substring(0, 500)
         }, { status: 500 });
     }
 });
