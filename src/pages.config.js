@@ -19,6 +19,7 @@ import Franchising from './pages/Franchising';
 import GmailCallback from './pages/GmailCallback';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ZuHandel from './pages/ZuHandel';
+import ZuHaus from './pages/ZuHaus';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "GmailCallback": GmailCallback,
     "PrivacyPolicy": PrivacyPolicy,
     "ZuHandel": ZuHandel,
+    "ZuHaus": ZuHaus,
 }
 
 export const pagesConfig = {
