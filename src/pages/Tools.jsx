@@ -232,7 +232,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <TrendingUp className="w-5 h-5 text-amber-600" />
                 <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
-                <span className="text-sm text-amber-600">(3 ferramentas)</span>
+                <span className="text-sm text-amber-600">(5 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -240,6 +240,7 @@ export default function Tools() {
                 <ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" />
                 <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" />
+                <ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
               </div>
               </CardContent>
               </Card>
@@ -306,6 +307,7 @@ export default function Tools() {
         {activeTab === "documents" && <DocumentsAndContracts />}
         {activeTab === "devNotes" && <DevelopmentNotes />}
         {activeTab === "creditSimulator" && <CreditSimulator />}
+        {activeTab === "deedCosts" && <DeedCostsCalculator />}
         {activeTab === "reportsExporter" && <ReportsExporter />}
         {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
         {activeTab === "portalIntegrations" && <PortalIntegrations />}
