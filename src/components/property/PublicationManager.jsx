@@ -24,46 +24,59 @@ const AVAILABLE_PAGES = [
   { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
 ];
 
-function PublicationManager({ property, onChange }) {
-  const publishedPortals = property?.published_portals || [];
-  const publishedPages = property?.published_pages || ["zugruppe"];
-  const config = property?.publication_config || {
-    auto_publish: false,
-    exclude_from_feeds: false
+export default function PublicationManager({ property, onChange }) {
+  const portals = property?.published_portals || [];
+  const pages = property?.published_pages || ["zugruppe"];
+  const autoPublish = property?.publication_config?.auto_publish || false;
+  const excludeFromFeeds = property?.publication_config?.exclude_from_feeds || false;
+
+  const handlePortalToggle = (portalId) => {
+    const isSelected = portals.includes(portalId);
+    const newPortals = isSelected
+      ? portals.filter(p => p !== portalId)
+      : [...portals, portalId];
+    
+    onChange({
+      published_portals: newPortals,
+      published_pages: pages,
+      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+    });
   };
 
-  const propertyRef = React.useRef(property);
-  propertyRef.current = property;
-
-  const togglePortal = React.useCallback((portalId) => {
-    const currentPortals = propertyRef.current?.published_portals || [];
-    const newPortals = currentPortals.includes(portalId)
-      ? currentPortals.filter(p => p !== portalId)
-      : [...currentPortals, portalId];
+  const handlePageToggle = (pageId) => {
+    const isSelected = pages.includes(pageId);
+    const newPages = isSelected
+      ? pages.filter(p => p !== pageId)
+      : [...pages, pageId];
     
-    if (JSON.stringify([...currentPortals].sort()) !== JSON.stringify([...newPortals].sort())) {
-      onChange({
-        published_portals: newPortals,
-        published_pages: propertyRef.current?.published_pages || ["zugruppe"],
-        publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
-      });
-    }
-  }, [onChange]);
+    onChange({
+      published_portals: portals,
+      published_pages: newPages,
+      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+    });
+  };
 
-  const togglePage = React.useCallback((pageId) => {
-    const currentPages = propertyRef.current?.published_pages || ["zugruppe"];
-    const newPages = currentPages.includes(pageId)
-      ? currentPages.filter(p => p !== pageId)
-      : [...currentPages, pageId];
-    
-    if (JSON.stringify([...currentPages].sort()) !== JSON.stringify([...newPages].sort())) {
-      onChange({
-        published_portals: propertyRef.current?.published_portals || [],
-        published_pages: newPages,
-        publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
-      });
-    }
-  }, [onChange]);
+  const handleAutoPublishToggle = (checked) => {
+    onChange({
+      published_portals: portals,
+      published_pages: pages,
+      publication_config: {
+        auto_publish: checked,
+        exclude_from_feeds: excludeFromFeeds
+      }
+    });
+  };
+
+  const handleExcludeToggle = (checked) => {
+    onChange({
+      published_portals: portals,
+      published_pages: pages,
+      publication_config: {
+        auto_publish: autoPublish,
+        exclude_from_feeds: checked
+      }
+    });
+  };
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -83,12 +96,12 @@ function PublicationManager({ property, onChange }) {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {AVAILABLE_PORTALS.map((portal) => {
               const Icon = portal.icon;
-              const isSelected = publishedPortals.includes(portal.id);
+              const isSelected = portals.includes(portal.id);
               
               return (
                 <div
                   key={portal.id}
-                  onClick={() => togglePortal(portal.id)}
+                  onClick={() => handlePortalToggle(portal.id)}
                   className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
                       ? "border-blue-500 bg-blue-50"
@@ -97,7 +110,7 @@ function PublicationManager({ property, onChange }) {
                 >
                   <Checkbox
                     checked={isSelected}
-                    onCheckedChange={() => togglePortal(portal.id)}
+                    onCheckedChange={() => handlePortalToggle(portal.id)}
                   />
                   <Icon className={`w-5 h-5 ${isSelected ? portal.color : "text-slate-400"}`} />
                   <span className={`font-medium ${isSelected ? "text-slate-900" : "text-slate-600"}`}>
@@ -108,10 +121,10 @@ function PublicationManager({ property, onChange }) {
             })}
           </div>
           
-          {publishedPortals.length > 0 && (
+          {portals.length > 0 && (
             <div className="mt-3 flex items-center gap-2">
               <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                {publishedPortals.length} {publishedPortals.length === 1 ? "portal selecionado" : "portais selecionados"}
+                {portals.length} {portals.length === 1 ? "portal selecionado" : "portais selecionados"}
               </Badge>
             </div>
           )}
@@ -125,12 +138,12 @@ function PublicationManager({ property, onChange }) {
           <div className="space-y-2">
             {AVAILABLE_PAGES.map((page) => {
               const Icon = page.icon;
-              const isSelected = publishedPages.includes(page.id);
+              const isSelected = pages.includes(page.id);
               
               return (
                 <div
                   key={page.id}
-                  onClick={() => togglePage(page.id)}
+                  onClick={() => handlePageToggle(page.id)}
                   className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
                       ? "border-green-500 bg-green-50"
@@ -139,7 +152,7 @@ function PublicationManager({ property, onChange }) {
                 >
                   <Checkbox
                     checked={isSelected}
-                    onCheckedChange={() => togglePage(page.id)}
+                    onCheckedChange={() => handlePageToggle(page.id)}
                     className="mt-0.5"
                   />
                   <Icon className={`w-5 h-5 mt-0.5 ${isSelected ? "text-green-600" : "text-slate-400"}`} />
@@ -154,10 +167,10 @@ function PublicationManager({ property, onChange }) {
             })}
           </div>
           
-          {publishedPages.length > 0 && (
+          {pages.length > 0 && (
             <div className="mt-3 flex items-center gap-2">
               <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                {publishedPages.length} {publishedPages.length === 1 ? "página selecionada" : "páginas selecionadas"}
+                {pages.length} {pages.length === 1 ? "página selecionada" : "páginas selecionadas"}
               </Badge>
             </div>
           )}
@@ -173,16 +186,8 @@ function PublicationManager({ property, onChange }) {
               <p className="text-sm text-slate-500">Publicar automaticamente em novos portais/páginas</p>
             </div>
             <Switch
-              checked={config.auto_publish}
-              onCheckedChange={(checked) => {
-                if (propertyRef.current?.publication_config?.auto_publish !== checked) {
-                  onChange({
-                    published_portals: propertyRef.current?.published_portals || [],
-                    published_pages: propertyRef.current?.published_pages || ["zugruppe"],
-                    publication_config: { ...(propertyRef.current?.publication_config || {}), auto_publish: checked }
-                  });
-                }
-              }}
+              checked={autoPublish}
+              onCheckedChange={handleAutoPublishToggle}
             />
           </div>
           
@@ -192,16 +197,8 @@ function PublicationManager({ property, onChange }) {
               <p className="text-sm text-slate-500">Não incluir em feeds XML/API automáticos</p>
             </div>
             <Switch
-              checked={config.exclude_from_feeds}
-              onCheckedChange={(checked) => {
-                if (propertyRef.current?.publication_config?.exclude_from_feeds !== checked) {
-                  onChange({
-                    published_portals: propertyRef.current?.published_portals || [],
-                    published_pages: propertyRef.current?.published_pages || ["zugruppe"],
-                    publication_config: { ...(propertyRef.current?.publication_config || {}), exclude_from_feeds: checked }
-                  });
-                }
-              }}
+              checked={excludeFromFeeds}
+              onCheckedChange={handleExcludeToggle}
             />
           </div>
         </div>
@@ -209,14 +206,3 @@ function PublicationManager({ property, onChange }) {
     </Card>
   );
 }
-
-export default React.memo(PublicationManager, (prevProps, nextProps) => {
-  const prevPortals = JSON.stringify([...(prevProps.property?.published_portals || [])].sort());
-  const nextPortals = JSON.stringify([...(nextProps.property?.published_portals || [])].sort());
-  const prevPages = JSON.stringify([...(prevProps.property?.published_pages || [])].sort());
-  const nextPages = JSON.stringify([...(nextProps.property?.published_pages || [])].sort());
-  const prevConfig = JSON.stringify(prevProps.property?.publication_config || {});
-  const nextConfig = JSON.stringify(nextProps.property?.publication_config || {});
-  
-  return prevPortals === nextPortals && prevPages === nextPages && prevConfig === nextConfig;
-});
