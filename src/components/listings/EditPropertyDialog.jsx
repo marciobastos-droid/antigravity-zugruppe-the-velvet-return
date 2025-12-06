@@ -289,7 +289,12 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
         return prev;
       }
       
-      return { ...prev, ...publicationData };
+      return { 
+        ...prev, 
+        published_portals: publicationData.published_portals,
+        published_pages: publicationData.published_pages,
+        publication_config: publicationData.publication_config
+      };
     });
   }, []);
 
@@ -751,11 +756,11 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           {/* Publication Manager */}
           <PublicationManager
-            property={{
+            property={React.useMemo(() => ({
               published_portals: formData.published_portals,
               published_pages: formData.published_pages,
               publication_config: formData.publication_config
-            }}
+            }), [formData.published_portals, formData.published_pages, formData.publication_config])}
             onChange={handlePublicationUpdate}
           />
 
