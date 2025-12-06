@@ -1,4 +1,3 @@
-import Browse from './pages/Browse';
 import PropertyDetails from './pages/PropertyDetails';
 import AddListing from './pages/AddListing';
 import MyListings from './pages/MyListings';
@@ -20,11 +19,11 @@ import GmailCallback from './pages/GmailCallback';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import ZuGruppe from './pages/ZuGruppe';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Browse": Browse,
     "PropertyDetails": PropertyDetails,
     "AddListing": AddListing,
     "MyListings": MyListings,
@@ -46,6 +45,7 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "ZuGruppe": ZuGruppe,
 }
 
 export const pagesConfig = {
