@@ -276,29 +276,29 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
-  // Refs para armazenar valores anteriores e prevenir loops
-  const prevPublicationDataRef = React.useRef(null);
+  // Ref para prevenir loops infinitos
+  const updateCountRef = React.useRef(0);
+  const lastUpdateRef = React.useRef(Date.now());
 
   const handlePublicationUpdate = React.useCallback((publicationData) => {
-    // Criar chave única para comparação
-    const newKey = JSON.stringify({
-      portals: publicationData.published_portals,
-      pages: publicationData.published_pages,
-      config: publicationData.publication_config
-    });
-
-    // Se for exatamente igual ao anterior, não fazer nada
-    if (prevPublicationDataRef.current === newKey) {
-      return;
+    // Proteção contra loops infinitos
+    const now = Date.now();
+    if (now - lastUpdateRef.current < 100) {
+      updateCountRef.current++;
+      if (updateCountRef.current > 5) {
+        console.warn('PublicationManager: Loop detectado, ignorando atualização');
+        return;
+      }
+    } else {
+      updateCountRef.current = 0;
     }
-
-    prevPublicationDataRef.current = newKey;
+    lastUpdateRef.current = now;
 
     setFormData(prev => {
       // Verificar se realmente mudou algo
-      const portalsChanged = JSON.stringify(prev.published_portals) !== JSON.stringify(publicationData.published_portals);
-      const pagesChanged = JSON.stringify(prev.published_pages) !== JSON.stringify(publicationData.published_pages);
-      const configChanged = JSON.stringify(prev.publication_config) !== JSON.stringify(publicationData.publication_config);
+      const portalsChanged = JSON.stringify(prev.published_portals || []) !== JSON.stringify(publicationData.published_portals || []);
+      const pagesChanged = JSON.stringify(prev.published_pages || []) !== JSON.stringify(publicationData.published_pages || []);
+      const configChanged = JSON.stringify(prev.publication_config || {}) !== JSON.stringify(publicationData.publication_config || {});
       
       if (!portalsChanged && !pagesChanged && !configChanged) {
         return prev;
@@ -306,27 +306,23 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
       
       return { 
         ...prev, 
-        published_portals: publicationData.published_portals,
-        published_pages: publicationData.published_pages,
-        publication_config: publicationData.publication_config
+        published_portals: publicationData.published_portals || [],
+        published_pages: publicationData.published_pages || [],
+        publication_config: publicationData.publication_config || { auto_publish: false, exclude_from_feeds: false }
       };
     });
   }, []);
 
-  // Usar useMemo com dependências estáveis
-  const publicationPropsKey = React.useMemo(() => 
-    JSON.stringify({
-      portals: formData.published_portals || [],
-      pages: formData.published_pages || [],
-      config: formData.publication_config || {}
-    })
-  , [formData.published_portals, formData.published_pages, formData.publication_config]);
-
+  // Props estáveis para o PublicationManager
   const publicationProps = React.useMemo(() => ({
     published_portals: formData.published_portals || [],
     published_pages: formData.published_pages || [],
     publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false }
-  }), [publicationPropsKey]);
+  }), [
+    JSON.stringify(formData.published_portals || []),
+    JSON.stringify(formData.published_pages || []),
+    JSON.stringify(formData.publication_config || {})
+  ]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

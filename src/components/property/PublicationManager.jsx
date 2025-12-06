@@ -25,8 +25,12 @@ const AVAILABLE_PAGES = [
 ];
 
 const PublicationManagerComponent = ({ property, onChange }) => {
+  // Usar ref para manter referência estável dos valores
+  const propertyRef = React.useRef(property);
+  propertyRef.current = property;
+
   const handlePortalToggle = React.useCallback((portalId) => {
-    const currentPortals = property?.published_portals || [];
+    const currentPortals = propertyRef.current?.published_portals || [];
     const isSelected = currentPortals.includes(portalId);
     const newPortals = isSelected
       ? currentPortals.filter(p => p !== portalId)
@@ -34,46 +38,46 @@ const PublicationManagerComponent = ({ property, onChange }) => {
     
     onChange({
       published_portals: newPortals,
-      published_pages: property?.published_pages || ["zugruppe"],
-      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+      publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
     });
-  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
+  }, [onChange]);
 
   const handlePageToggle = React.useCallback((pageId) => {
-    const currentPages = property?.published_pages || ["zugruppe"];
+    const currentPages = propertyRef.current?.published_pages || ["zugruppe"];
     const isSelected = currentPages.includes(pageId);
     const newPages = isSelected
       ? currentPages.filter(p => p !== pageId)
       : [...currentPages, pageId];
     
     onChange({
-      published_portals: property?.published_portals || [],
+      published_portals: propertyRef.current?.published_portals || [],
       published_pages: newPages,
-      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+      publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
     });
-  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
+  }, [onChange]);
 
   const handleAutoPublishToggle = React.useCallback((checked) => {
     onChange({
-      published_portals: property?.published_portals || [],
-      published_pages: property?.published_pages || ["zugruppe"],
+      published_portals: propertyRef.current?.published_portals || [],
+      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
       publication_config: {
         auto_publish: checked,
-        exclude_from_feeds: property?.publication_config?.exclude_from_feeds || false
+        exclude_from_feeds: propertyRef.current?.publication_config?.exclude_from_feeds || false
       }
     });
-  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
+  }, [onChange]);
 
   const handleExcludeToggle = React.useCallback((checked) => {
     onChange({
-      published_portals: property?.published_portals || [],
-      published_pages: property?.published_pages || ["zugruppe"],
+      published_portals: propertyRef.current?.published_portals || [],
+      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
       publication_config: {
-        auto_publish: property?.publication_config?.auto_publish || false,
+        auto_publish: propertyRef.current?.publication_config?.auto_publish || false,
         exclude_from_feeds: checked
       }
     });
-  }, [property?.publication_config, property?.published_portals, property?.published_pages, onChange]);
+  }, [onChange]);
 
   const portals = property?.published_portals || [];
   const pages = property?.published_pages || ["zugruppe"];
