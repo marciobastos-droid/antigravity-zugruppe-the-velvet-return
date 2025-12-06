@@ -25,36 +25,52 @@ const AVAILABLE_PAGES = [
 ];
 
 function PublicationManager({ property, onChange }) {
-  const publishedPortals = property?.published_portals || [];
-  const publishedPages = property?.published_pages || ["zugruppe"];
-  const config = property?.publication_config || {
+  const [localPortals, setLocalPortals] = React.useState(property?.published_portals || []);
+  const [localPages, setLocalPages] = React.useState(property?.published_pages || ["zugruppe"]);
+  const [localConfig, setLocalConfig] = React.useState(property?.publication_config || {
     auto_publish: false,
     exclude_from_feeds: false
-  };
+  });
+
+  // Sync with parent only when component mounts or property ID changes
+  React.useEffect(() => {
+    setLocalPortals(property?.published_portals || []);
+    setLocalPages(property?.published_pages || ["zugruppe"]);
+    setLocalConfig(property?.publication_config || {
+      auto_publish: false,
+      exclude_from_feeds: false
+    });
+  }, [property?.id]);
 
   const togglePortal = (portalId) => {
-    const newPortals = publishedPortals.includes(portalId)
-      ? publishedPortals.filter(p => p !== portalId)
-      : [...publishedPortals, portalId];
+    const newPortals = localPortals.includes(portalId)
+      ? localPortals.filter(p => p !== portalId)
+      : [...localPortals, portalId];
     
+    setLocalPortals(newPortals);
     onChange({
       published_portals: newPortals,
-      published_pages: publishedPages,
-      publication_config: config
+      published_pages: localPages,
+      publication_config: localConfig
     });
   };
 
   const togglePage = (pageId) => {
-    const newPages = publishedPages.includes(pageId)
-      ? publishedPages.filter(p => p !== pageId)
-      : [...publishedPages, pageId];
+    const newPages = localPages.includes(pageId)
+      ? localPages.filter(p => p !== pageId)
+      : [...localPages, pageId];
     
+    setLocalPages(newPages);
     onChange({
-      published_portals: publishedPortals,
+      published_portals: localPortals,
       published_pages: newPages,
-      publication_config: config
+      publication_config: localConfig
     });
   };
+
+  const publishedPortals = localPortals;
+  const publishedPages = localPages;
+  const config = localConfig;
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -166,10 +182,12 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.auto_publish}
               onCheckedChange={(checked) => {
+                const newConfig = { ...config, auto_publish: checked };
+                setLocalConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: { ...config, auto_publish: checked }
+                  publication_config: newConfig
                 });
               }}
             />
@@ -183,10 +201,12 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.exclude_from_feeds}
               onCheckedChange={(checked) => {
+                const newConfig = { ...config, exclude_from_feeds: checked };
+                setLocalConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: { ...config, exclude_from_feeds: checked }
+                  publication_config: newConfig
                 });
               }}
             />
