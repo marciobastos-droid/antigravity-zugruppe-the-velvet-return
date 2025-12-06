@@ -32,28 +32,17 @@ export default function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   });
 
-  const updateParent = React.useCallback(() => {
-    onChange({
-      published_portals: publishedPortals,
-      published_pages: publishedPages,
-      publication_config: config
-    });
-  }, [publishedPortals, publishedPages, config, onChange]);
-
   const togglePortal = (portalId) => {
     setPublishedPortals(prev => {
       const newPortals = prev.includes(portalId)
         ? prev.filter(p => p !== portalId)
         : [...prev, portalId];
       
-      // Update parent immediately
-      setTimeout(() => {
-        onChange({
-          published_portals: newPortals,
-          published_pages: publishedPages,
-          publication_config: config
-        });
-      }, 0);
+      onChange({
+        published_portals: newPortals,
+        published_pages: publishedPages,
+        publication_config: config
+      });
       
       return newPortals;
     });
@@ -65,14 +54,11 @@ export default function PublicationManager({ property, onChange }) {
         ? prev.filter(p => p !== pageId)
         : [...prev, pageId];
       
-      // Update parent immediately
-      setTimeout(() => {
-        onChange({
-          published_portals: publishedPortals,
-          published_pages: newPages,
-          publication_config: config
-        });
-      }, 0);
+      onChange({
+        published_portals: publishedPortals,
+        published_pages: newPages,
+        publication_config: config
+      });
       
       return newPages;
     });
@@ -190,13 +176,11 @@ export default function PublicationManager({ property, onChange }) {
               onCheckedChange={(checked) => {
                 const newConfig = { ...config, auto_publish: checked };
                 setConfig(newConfig);
-                setTimeout(() => {
-                  onChange({
-                    published_portals: publishedPortals,
-                    published_pages: publishedPages,
-                    publication_config: newConfig
-                  });
-                }, 0);
+                onChange({
+                  published_portals: publishedPortals,
+                  published_pages: publishedPages,
+                  publication_config: newConfig
+                });
               }}
             />
           </div>
@@ -211,13 +195,11 @@ export default function PublicationManager({ property, onChange }) {
               onCheckedChange={(checked) => {
                 const newConfig = { ...config, exclude_from_feeds: checked };
                 setConfig(newConfig);
-                setTimeout(() => {
-                  onChange({
-                    published_portals: publishedPortals,
-                    published_pages: publishedPages,
-                    publication_config: newConfig
-                  });
-                }, 0);
+                onChange({
+                  published_portals: publishedPortals,
+                  published_pages: publishedPages,
+                  publication_config: newConfig
+                });
               }}
             />
           </div>
