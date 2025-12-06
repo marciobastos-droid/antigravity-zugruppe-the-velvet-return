@@ -197,7 +197,7 @@ export default function ZuHandel() {
                     <SlidersHorizontal className="w-4 h-4" />
                     <span className="hidden md:inline">Filtros</span>
                     {hasActiveFilters && (
-                      <Badge className="bg-[#75787b] text-white ml-1">
+                      <Badge className="ml-1 bg-[#75787b] text-white">
                         {[listingType !== "all", propertyType !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 5000000].filter(Boolean).length}
                       </Badge>
                     )}

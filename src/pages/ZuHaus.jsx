@@ -157,24 +157,21 @@ export default function ZuHaus() {
                   <Button 
                     variant={listingType === "all" ? "default" : "outline"}
                     onClick={() => setListingType("all")}
-                    className="whitespace-nowrap"
-                    style={listingType === "all" ? { backgroundColor: '#d22630', color: 'white' } : {}}
+                    className={`whitespace-nowrap ${listingType === "all" ? "bg-[#d22630] hover:bg-[#a01d26] text-white" : ""}`}
                   >
                     Todos
                   </Button>
                   <Button 
                     variant={listingType === "sale" ? "default" : "outline"}
                     onClick={() => setListingType("sale")}
-                    className="whitespace-nowrap"
-                    style={listingType === "sale" ? { backgroundColor: '#d22630', color: 'white' } : {}}
+                    className={`whitespace-nowrap ${listingType === "sale" ? "bg-[#d22630] hover:bg-[#a01d26] text-white" : ""}`}
                   >
                     🏷️ Comprar
                   </Button>
                   <Button 
                     variant={listingType === "rent" ? "default" : "outline"}
                     onClick={() => setListingType("rent")}
-                    className="whitespace-nowrap"
-                    style={listingType === "rent" ? { backgroundColor: '#d22630', color: 'white' } : {}}
+                    className={`whitespace-nowrap ${listingType === "rent" ? "bg-[#d22630] hover:bg-[#a01d26] text-white" : ""}`}
                   >
                     🔑 Arrendar
                   </Button>
@@ -211,7 +208,7 @@ export default function ZuHaus() {
                     <SlidersHorizontal className="w-4 h-4" />
                     <span className="hidden md:inline">Filtros</span>
                     {hasActiveFilters && (
-                      <Badge style={{ backgroundColor: '#d22630', color: 'white' }} className="ml-1">
+                      <Badge className="ml-1 bg-[#d22630] text-white">
                         {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 2000000].filter(Boolean).length}
                       </Badge>
                     )}
@@ -396,8 +393,7 @@ export default function ZuHaus() {
                         variant={currentPage === page ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setCurrentPage(page)}
-                        className="w-10"
-                        style={currentPage === page ? { backgroundColor: '#d22630', color: 'white' } : {}}
+                        className={`w-10 ${currentPage === page ? "bg-[#d22630] hover:bg-[#a01d26] text-white" : ""}`}
                       >
                         {page}
                       </Button>
