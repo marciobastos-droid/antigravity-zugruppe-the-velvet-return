@@ -206,8 +206,9 @@ export default function PropertyDetails() {
 
   const isOwner = user && (property.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
 
-    // Find assigned agent
-    const assignedAgent = agents.find(a => a.id === property.agent_id || a.email === property.agent_id);
+    // Find assigned agent - check both Agent entity and User entity
+    const assignedAgent = agents.find(a => a.id === property.agent_id || a.email === property.agent_id) 
+      || allUsers.find(u => u.id === property.agent_id || u.email === property.agent_id);
 
     const handleAgentChange = (agentId) => {
       const agent = allUsers.find(u => u.id === agentId) || agents.find(a => a.id === agentId);
