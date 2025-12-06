@@ -731,8 +731,12 @@ Extrai:
                 <CardContent className="space-y-2">
                   {lead.associated_properties.map((ap, idx) => {
                     const prop = properties.find(p => p.id === ap.property_id);
+                    const isPresentedOrSent = ap.status === 'visited' || ap.presented_date;
+                    
                     return (
-                      <div key={idx} className="flex items-center gap-3 p-2 border rounded-lg">
+                      <div key={idx} className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                        isPresentedOrSent ? 'bg-blue-50 border-blue-200' : 'bg-white'
+                      }`}>
                         <div className="w-12 h-10 rounded overflow-hidden bg-slate-200 flex-shrink-0">
                           {prop?.images?.[0] ? (
                             <img src={prop.images[0]} alt="" className="w-full h-full object-cover" />
@@ -744,12 +748,47 @@ Extrai:
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{ap.property_title}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {ap.status === 'interested' ? 'Interessado' :
-                             ap.status === 'visited' ? 'Visitado' :
-                             ap.status === 'rejected' ? 'Rejeitado' : 'Negociando'}
-                          </Badge>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {ap.status === 'interested' ? 'Interessado' :
+                               ap.status === 'visited' ? 'Visitado' :
+                               ap.status === 'rejected' ? 'Rejeitado' : 'Negociando'}
+                            </Badge>
+                            {ap.presented_date && (
+                              <Badge className="text-xs bg-blue-600">
+                                <Send className="w-3 h-3 mr-1" />
+                                Enviado {format(new Date(ap.presented_date), "d MMM", { locale: pt })}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
+                        <Button
+                          size="sm"
+                          variant={isPresentedOrSent ? "outline" : "default"}
+                          className={`h-7 text-xs ${!isPresentedOrSent ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                          onClick={async () => {
+                            const updated = [...(lead.associated_properties || [])];
+                            updated[idx] = {
+                              ...ap,
+                              presented_date: isPresentedOrSent ? null : new Date().toISOString(),
+                              status: isPresentedOrSent ? 'interested' : 'visited'
+                            };
+                            await onUpdate(lead.id, { associated_properties: updated });
+                            toast.success(isPresentedOrSent ? 'Marcado como não enviado' : 'Marcado como enviado');
+                          }}
+                        >
+                          {isPresentedOrSent ? (
+                            <>
+                              <X className="w-3 h-3 mr-1" />
+                              Desfazer
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-3 h-3 mr-1" />
+                              Marcar Enviado
+                            </>
+                          )}
+                        </Button>
                       </div>
                     );
                   })}
