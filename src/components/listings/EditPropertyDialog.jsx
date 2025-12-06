@@ -276,11 +276,6 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
-  const formDataRef = React.useRef(formData);
-  React.useEffect(() => {
-    formDataRef.current = formData;
-  }, [formData]);
-
   const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => {
       // Verificar se realmente mudou algo
@@ -300,6 +295,16 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
       };
     });
   }, []);
+
+  const publicationProps = React.useMemo(() => ({
+    published_portals: formData.published_portals,
+    published_pages: formData.published_pages,
+    publication_config: formData.publication_config
+  }), [
+    JSON.stringify(formData.published_portals),
+    JSON.stringify(formData.published_pages),
+    JSON.stringify(formData.publication_config)
+  ]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -759,7 +764,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           {/* Publication Manager */}
           <PublicationManager
-            property={formData}
+            property={publicationProps}
             onChange={handlePublicationUpdate}
           />
 
