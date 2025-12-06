@@ -35,14 +35,11 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
   const [selectedPages, setSelectedPages] = React.useState([]);
   const [mode, setMode] = React.useState("add"); // "add" or "replace"
   
-  const selectedPropertiesData = React.useMemo(() => 
-    properties.filter(p => selectedPropertyIds.includes(p.id)),
-    [properties, selectedPropertyIds]
-  );
-
   const updateMutation = useMutation({
     mutationFn: async ({ portals, pages, mode }) => {
-      const updates = selectedPropertiesData.map(property => {
+      const selectedProperties = properties.filter(p => selectedPropertyIds.includes(p.id));
+      
+      const updates = selectedProperties.map(property => {
         let newPortals, newPages;
         
         if (mode === "add") {
