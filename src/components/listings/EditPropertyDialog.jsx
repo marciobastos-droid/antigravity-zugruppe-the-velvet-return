@@ -276,13 +276,16 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
-  const handlePublicationUpdate = React.useCallback((publicationData) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      published_portals: publicationData.published_portals,
-      published_pages: publicationData.published_pages,
-      publication_config: publicationData.publication_config
-    }));
+  const handlePublicationUpdate = React.useCallback((updateFn) => {
+    setFormData(prev => {
+      const updated = typeof updateFn === 'function' ? updateFn(prev) : updateFn;
+      return { 
+        ...prev, 
+        published_portals: updated.published_portals,
+        published_pages: updated.published_pages,
+        publication_config: updated.publication_config
+      };
+    });
   }, []);
 
   const handleSubmit = (e) => {
