@@ -32,35 +32,38 @@ function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   };
 
+  const propertyRef = React.useRef(property);
+  propertyRef.current = property;
+
   const togglePortal = React.useCallback((portalId) => {
-    const currentPortals = property?.published_portals || [];
+    const currentPortals = propertyRef.current?.published_portals || [];
     const newPortals = currentPortals.includes(portalId)
       ? currentPortals.filter(p => p !== portalId)
       : [...currentPortals, portalId];
     
-    if (JSON.stringify(currentPortals.sort()) !== JSON.stringify(newPortals.sort())) {
+    if (JSON.stringify([...currentPortals].sort()) !== JSON.stringify([...newPortals].sort())) {
       onChange({
         published_portals: newPortals,
-        published_pages: property?.published_pages || ["zugruppe"],
-        publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+        published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+        publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
       });
     }
-  }, [property, onChange]);
+  }, [onChange]);
 
   const togglePage = React.useCallback((pageId) => {
-    const currentPages = property?.published_pages || ["zugruppe"];
+    const currentPages = propertyRef.current?.published_pages || ["zugruppe"];
     const newPages = currentPages.includes(pageId)
       ? currentPages.filter(p => p !== pageId)
       : [...currentPages, pageId];
     
-    if (JSON.stringify(currentPages.sort()) !== JSON.stringify(newPages.sort())) {
+    if (JSON.stringify([...currentPages].sort()) !== JSON.stringify([...newPages].sort())) {
       onChange({
-        published_portals: property?.published_portals || [],
+        published_portals: propertyRef.current?.published_portals || [],
         published_pages: newPages,
-        publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+        publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
       });
     }
-  }, [property, onChange]);
+  }, [onChange]);
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -172,11 +175,13 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.auto_publish}
               onCheckedChange={(checked) => {
-                onChange({
-                  published_portals: publishedPortals,
-                  published_pages: publishedPages,
-                  publication_config: { ...config, auto_publish: checked }
-                });
+                if (propertyRef.current?.publication_config?.auto_publish !== checked) {
+                  onChange({
+                    published_portals: propertyRef.current?.published_portals || [],
+                    published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+                    publication_config: { ...(propertyRef.current?.publication_config || {}), auto_publish: checked }
+                  });
+                }
               }}
             />
           </div>
@@ -189,11 +194,13 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.exclude_from_feeds}
               onCheckedChange={(checked) => {
-                onChange({
-                  published_portals: publishedPortals,
-                  published_pages: publishedPages,
-                  publication_config: { ...config, exclude_from_feeds: checked }
-                });
+                if (propertyRef.current?.publication_config?.exclude_from_feeds !== checked) {
+                  onChange({
+                    published_portals: propertyRef.current?.published_portals || [],
+                    published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+                    publication_config: { ...(propertyRef.current?.publication_config || {}), exclude_from_feeds: checked }
+                  });
+                }
               }}
             />
           </div>
