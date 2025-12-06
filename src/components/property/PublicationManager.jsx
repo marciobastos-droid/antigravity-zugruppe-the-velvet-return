@@ -197,4 +197,4 @@ function PublicationManager({ property, onChange }) {
   );
 }
 
-export default React.memo(PublicationManager);
+export default PublicationManager;
