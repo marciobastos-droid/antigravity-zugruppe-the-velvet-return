@@ -24,7 +24,7 @@ const AVAILABLE_PAGES = [
   { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
 ];
 
-export default function PublicationManager({ property, onChange }) {
+function PublicationManager({ property, onChange }) {
   const publishedPortals = property?.published_portals || [];
   const publishedPages = property?.published_pages || ["zugruppe"];
   const config = property?.publication_config || {
@@ -196,3 +196,11 @@ export default function PublicationManager({ property, onChange }) {
     </Card>
   );
 }
+
+export default React.memo(PublicationManager, (prevProps, nextProps) => {
+  return (
+    JSON.stringify(prevProps.property?.published_portals) === JSON.stringify(nextProps.property?.published_portals) &&
+    JSON.stringify(prevProps.property?.published_pages) === JSON.stringify(nextProps.property?.published_pages) &&
+    JSON.stringify(prevProps.property?.publication_config) === JSON.stringify(nextProps.property?.publication_config)
+  );
+});
