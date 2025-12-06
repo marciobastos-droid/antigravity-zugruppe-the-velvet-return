@@ -359,11 +359,18 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Editar Imóvel</DialogTitle>
-            {property?.id && (
-              <Badge variant="outline" className="text-xs font-mono">
-                ID: {property.id}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {property?.ref_id && (
+                <Badge variant="outline" className="text-xs font-mono">
+                  REF: {property.ref_id}
+                </Badge>
+              )}
+              {property?.id && (
+                <Badge variant="outline" className="text-xs font-mono">
+                  ID: {property.id}
+                </Badge>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
