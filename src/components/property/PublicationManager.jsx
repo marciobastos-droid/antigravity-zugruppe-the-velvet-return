@@ -24,7 +24,7 @@ const AVAILABLE_PAGES = [
   { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
 ];
 
-export default function PublicationManager({ property, onChange }) {
+const PublicationManagerComponent = ({ property, onChange }) => {
   const handlePortalToggle = (portalId) => {
     const currentPortals = property?.published_portals || [];
     const isSelected = currentPortals.includes(portalId);
