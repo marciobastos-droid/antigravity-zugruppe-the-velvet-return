@@ -356,7 +356,14 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar Imóvel</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Editar Imóvel</DialogTitle>
+            {property?.id && (
+              <Badge variant="outline" className="text-xs font-mono">
+                ID: {property.id}
+              </Badge>
+            )}
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
