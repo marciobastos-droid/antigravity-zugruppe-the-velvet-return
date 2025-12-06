@@ -504,6 +504,12 @@ export default function MyListings() {
       placeholder: "Título, cidade, morada...",
       searchFields: ["title", "city", "address", "ref_id"]
     },
+    created_by: {
+      type: FILTER_TYPES.text,
+      label: "Criado Por",
+      field: "created_by",
+      advanced: true
+    },
     status: {
       type: FILTER_TYPES.select,
       label: "Estado",
@@ -761,6 +767,28 @@ export default function MyListings() {
           <PropertiesByAgentView />
         ) : (
         <>
+        {/* Quick Filters */}
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant={filters.created_by === user?.email ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              if (filters.created_by === user?.email) {
+                // Remove filter
+                const { created_by, ...rest } = filters;
+                setFilters(rest);
+              } else {
+                // Add filter
+                setFilters(prev => ({ ...prev, created_by: user?.email }));
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" />
+            Apenas os Meus Imóveis
+          </Button>
+        </div>
+
         {/* Advanced Filters */}
         <AdvancedFilters
           filterConfig={filterConfig}
