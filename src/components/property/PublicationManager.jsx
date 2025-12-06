@@ -25,42 +25,34 @@ const AVAILABLE_PAGES = [
 ];
 
 export default function PublicationManager({ property, onChange }) {
-  const [publishedPortals, setPublishedPortals] = React.useState(property?.published_portals || []);
-  const [publishedPages, setPublishedPages] = React.useState(property?.published_pages || ["zugruppe"]);
-  const [config, setConfig] = React.useState(property?.publication_config || {
+  const publishedPortals = property?.published_portals || [];
+  const publishedPages = property?.published_pages || ["zugruppe"];
+  const config = property?.publication_config || {
     auto_publish: false,
     exclude_from_feeds: false
-  });
+  };
 
   const togglePortal = (portalId) => {
-    setPublishedPortals(prev => {
-      const newPortals = prev.includes(portalId)
-        ? prev.filter(p => p !== portalId)
-        : [...prev, portalId];
-      
-      onChange({
-        published_portals: newPortals,
-        published_pages: publishedPages,
-        publication_config: config
-      });
-      
-      return newPortals;
+    const newPortals = publishedPortals.includes(portalId)
+      ? publishedPortals.filter(p => p !== portalId)
+      : [...publishedPortals, portalId];
+    
+    onChange({
+      published_portals: newPortals,
+      published_pages: publishedPages,
+      publication_config: config
     });
   };
 
   const togglePage = (pageId) => {
-    setPublishedPages(prev => {
-      const newPages = prev.includes(pageId)
-        ? prev.filter(p => p !== pageId)
-        : [...prev, pageId];
-      
-      onChange({
-        published_portals: publishedPortals,
-        published_pages: newPages,
-        publication_config: config
-      });
-      
-      return newPages;
+    const newPages = publishedPages.includes(pageId)
+      ? publishedPages.filter(p => p !== pageId)
+      : [...publishedPages, pageId];
+    
+    onChange({
+      published_portals: publishedPortals,
+      published_pages: newPages,
+      publication_config: config
     });
   };
 
@@ -174,12 +166,10 @@ export default function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.auto_publish}
               onCheckedChange={(checked) => {
-                const newConfig = { ...config, auto_publish: checked };
-                setConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: newConfig
+                  publication_config: { ...config, auto_publish: checked }
                 });
               }}
             />
@@ -193,12 +183,10 @@ export default function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.exclude_from_feeds}
               onCheckedChange={(checked) => {
-                const newConfig = { ...config, exclude_from_feeds: checked };
-                setConfig(newConfig);
                 onChange({
                   published_portals: publishedPortals,
                   published_pages: publishedPages,
-                  publication_config: newConfig
+                  publication_config: { ...config, exclude_from_feeds: checked }
                 });
               }}
             />
