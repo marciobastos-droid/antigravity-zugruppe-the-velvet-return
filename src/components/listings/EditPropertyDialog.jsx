@@ -276,7 +276,24 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
+  // Refs para armazenar valores anteriores e prevenir loops
+  const prevPublicationDataRef = React.useRef(null);
+
   const handlePublicationUpdate = React.useCallback((publicationData) => {
+    // Criar chave única para comparação
+    const newKey = JSON.stringify({
+      portals: publicationData.published_portals,
+      pages: publicationData.published_pages,
+      config: publicationData.publication_config
+    });
+
+    // Se for exatamente igual ao anterior, não fazer nada
+    if (prevPublicationDataRef.current === newKey) {
+      return;
+    }
+
+    prevPublicationDataRef.current = newKey;
+
     setFormData(prev => {
       // Verificar se realmente mudou algo
       const portalsChanged = JSON.stringify(prev.published_portals) !== JSON.stringify(publicationData.published_portals);
@@ -296,15 +313,20 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     });
   }, []);
 
+  // Usar useMemo com dependências estáveis
+  const publicationPropsKey = React.useMemo(() => 
+    JSON.stringify({
+      portals: formData.published_portals || [],
+      pages: formData.published_pages || [],
+      config: formData.publication_config || {}
+    })
+  , [formData.published_portals, formData.published_pages, formData.publication_config]);
+
   const publicationProps = React.useMemo(() => ({
-    published_portals: formData.published_portals,
-    published_pages: formData.published_pages,
-    publication_config: formData.publication_config
-  }), [
-    JSON.stringify(formData.published_portals),
-    JSON.stringify(formData.published_pages),
-    JSON.stringify(formData.publication_config)
-  ]);
+    published_portals: formData.published_portals || [],
+    published_pages: formData.published_pages || [],
+    publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false }
+  }), [publicationPropsKey]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

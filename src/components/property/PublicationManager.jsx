@@ -25,7 +25,7 @@ const AVAILABLE_PAGES = [
 ];
 
 const PublicationManagerComponent = ({ property, onChange }) => {
-  const handlePortalToggle = (portalId) => {
+  const handlePortalToggle = React.useCallback((portalId) => {
     const currentPortals = property?.published_portals || [];
     const isSelected = currentPortals.includes(portalId);
     const newPortals = isSelected
@@ -37,9 +37,9 @@ const PublicationManagerComponent = ({ property, onChange }) => {
       published_pages: property?.published_pages || ["zugruppe"],
       publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
     });
-  };
+  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
 
-  const handlePageToggle = (pageId) => {
+  const handlePageToggle = React.useCallback((pageId) => {
     const currentPages = property?.published_pages || ["zugruppe"];
     const isSelected = currentPages.includes(pageId);
     const newPages = isSelected
@@ -51,9 +51,9 @@ const PublicationManagerComponent = ({ property, onChange }) => {
       published_pages: newPages,
       publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
     });
-  };
+  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
 
-  const handleAutoPublishToggle = (checked) => {
+  const handleAutoPublishToggle = React.useCallback((checked) => {
     onChange({
       published_portals: property?.published_portals || [],
       published_pages: property?.published_pages || ["zugruppe"],
@@ -62,9 +62,9 @@ const PublicationManagerComponent = ({ property, onChange }) => {
         exclude_from_feeds: property?.publication_config?.exclude_from_feeds || false
       }
     });
-  };
+  }, [property?.published_portals, property?.published_pages, property?.publication_config, onChange]);
 
-  const handleExcludeToggle = (checked) => {
+  const handleExcludeToggle = React.useCallback((checked) => {
     onChange({
       published_portals: property?.published_portals || [],
       published_pages: property?.published_pages || ["zugruppe"],
@@ -73,7 +73,7 @@ const PublicationManagerComponent = ({ property, onChange }) => {
         exclude_from_feeds: checked
       }
     });
-  };
+  }, [property?.publication_config, property?.published_portals, property?.published_pages, onChange]);
 
   const portals = property?.published_portals || [];
   const pages = property?.published_pages || ["zugruppe"];
@@ -210,9 +210,11 @@ const PublicationManagerComponent = ({ property, onChange }) => {
 };
 
 export default React.memo(PublicationManagerComponent, (prevProps, nextProps) => {
-  return (
-    JSON.stringify(prevProps.property?.published_portals) === JSON.stringify(nextProps.property?.published_portals) &&
-    JSON.stringify(prevProps.property?.published_pages) === JSON.stringify(nextProps.property?.published_pages) &&
-    JSON.stringify(prevProps.property?.publication_config) === JSON.stringify(nextProps.property?.publication_config)
-  );
+  // Comparação profunda e estável
+  const portalsEqual = JSON.stringify(prevProps.property?.published_portals || []) === JSON.stringify(nextProps.property?.published_portals || []);
+  const pagesEqual = JSON.stringify(prevProps.property?.published_pages || []) === JSON.stringify(nextProps.property?.published_pages || []);
+  const configEqual = JSON.stringify(prevProps.property?.publication_config || {}) === JSON.stringify(nextProps.property?.publication_config || {});
+  const onChangeEqual = prevProps.onChange === nextProps.onChange;
+
+  return portalsEqual && pagesEqual && configEqual && onChangeEqual;
 });
