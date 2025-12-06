@@ -730,7 +730,7 @@ export default function PropertyDetails() {
                       {assignedAgent.photo_url ? (
                         <img 
                           src={assignedAgent.photo_url} 
-                          alt={assignedAgent.full_name}
+                          alt={assignedAgent.full_name || assignedAgent.display_name}
                           className="w-16 h-16 rounded-full object-cover"
                         />
                       ) : (
@@ -739,7 +739,7 @@ export default function PropertyDetails() {
                         </div>
                       )}
                       <div>
-                        <h4 className="font-semibold text-slate-900">{assignedAgent.full_name}</h4>
+                        <h4 className="font-semibold text-slate-900">{assignedAgent.full_name || assignedAgent.display_name}</h4>
                         {assignedAgent.specialization && (
                           <p className="text-sm text-slate-600">{assignedAgent.specialization}</p>
                         )}
@@ -750,7 +750,7 @@ export default function PropertyDetails() {
                       {assignedAgent.phone && (
                         <a 
                           href={`tel:${assignedAgent.phone}`}
-                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600"
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
                           <Phone className="w-4 h-4" />
                           {assignedAgent.phone}
@@ -759,7 +759,7 @@ export default function PropertyDetails() {
                       {assignedAgent.email && (
                         <a 
                           href={`mailto:${assignedAgent.email}`}
-                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600"
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
                           <Mail className="w-4 h-4" />
                           {assignedAgent.email}
@@ -780,6 +780,20 @@ export default function PropertyDetails() {
                       <div>
                         <h4 className="font-semibold text-slate-900">{property.agent_name}</h4>
                         <p className="text-sm text-slate-600">Agente Imobiliário</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : property.assigned_consultant_name || property.assigned_consultant ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-slate-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900">
+                          {property.assigned_consultant_name || property.assigned_consultant}
+                        </h4>
+                        <p className="text-sm text-slate-600">Consultor Responsável</p>
                       </div>
                     </div>
                   </div>
