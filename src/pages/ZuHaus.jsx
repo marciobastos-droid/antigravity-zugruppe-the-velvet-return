@@ -141,9 +141,6 @@ export default function ZuHaus() {
                 className="h-24 md:h-32 lg:h-40 w-auto object-contain"
               />
             </div>
-            <p className="text-slate-400 mt-2">
-              {residentialProperties.length} imóveis residenciais disponíveis
-            </p>
           </div>
 
           {/* Search Card */}
