@@ -276,6 +276,12 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
+  const publicationProperty = React.useMemo(() => ({
+    published_portals: formData.published_portals,
+    published_pages: formData.published_pages,
+    publication_config: formData.publication_config
+  }), [formData.published_portals, formData.published_pages, formData.publication_config]);
+
   const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => {
       const portalsStr = JSON.stringify([...(prev.published_portals || [])].sort());
@@ -756,11 +762,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           {/* Publication Manager */}
           <PublicationManager
-            property={React.useMemo(() => ({
-              published_portals: formData.published_portals,
-              published_pages: formData.published_pages,
-              publication_config: formData.publication_config
-            }), [formData.published_portals, formData.published_pages, formData.publication_config])}
+            property={publicationProperty}
             onChange={handlePublicationUpdate}
           />
 
