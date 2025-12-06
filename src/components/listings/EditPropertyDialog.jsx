@@ -56,7 +56,7 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     development_name: "",
     unit_number: "",
     published_portals: [],
-    published_pages: ["browse"],
+    published_pages: ["zugruppe"],
     publication_config: {
       auto_publish: false,
       exclude_from_feeds: false
@@ -158,7 +158,7 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         development_name: property.development_name || "",
         unit_number: property.unit_number || "",
         published_portals: property.published_portals || [],
-        published_pages: property.published_pages || ["browse"],
+        published_pages: property.published_pages || ["zugruppe"],
         publication_config: property.publication_config || {
           auto_publish: false,
           exclude_from_feeds: false

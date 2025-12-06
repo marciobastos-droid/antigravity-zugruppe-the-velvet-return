@@ -16,7 +16,8 @@ const AVAILABLE_PORTALS = [
 ];
 
 const AVAILABLE_PAGES = [
-  { id: "browse", name: "Página Navegar", icon: Building2, description: "Listagem principal de imóveis" },
+  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal de imóveis" },
+  { id: "zuhaus", name: "ZuHaus - Residencial", icon: Home, description: "Página dedicada a imóveis residenciais" },
   { id: "zuhandel", name: "ZuHandel - Comercial", icon: Building2, description: "Página dedicada a imóveis comerciais" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
   { id: "investor_section", name: "Secção Investidores", icon: TrendingUp, description: "Página dedicada a investidores" },
@@ -25,7 +26,7 @@ const AVAILABLE_PAGES = [
 
 export default function PublicationManager({ property, onChange }) {
   const [publishedPortals, setPublishedPortals] = React.useState(property?.published_portals || []);
-  const [publishedPages, setPublishedPages] = React.useState(property?.published_pages || ["browse"]);
+  const [publishedPages, setPublishedPages] = React.useState(property?.published_pages || ["zugruppe"]);
   const [config, setConfig] = React.useState(property?.publication_config || {
     auto_publish: false,
     exclude_from_feeds: false
