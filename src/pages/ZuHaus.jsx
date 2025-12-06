@@ -134,15 +134,13 @@ export default function ZuHaus() {
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')] bg-cover bg-center opacity-20" />
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Home className="w-12 h-12 text-[#d22630]" />
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
-                ZuHaus
-              </h1>
+            <div className="flex items-center justify-center mb-4">
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a0e94a9a1_ZUHAUS_branco_vermelho-trasnparente_c-slogan.png"
+                alt="ZuHaus"
+                className="h-24 md:h-32 lg:h-40 w-auto object-contain"
+              />
             </div>
-            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
-              Imóveis Residenciais de Excelência
-            </p>
             <p className="text-slate-400 mt-2">
               {residentialProperties.length} imóveis residenciais disponíveis
             </p>
