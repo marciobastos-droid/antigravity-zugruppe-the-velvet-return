@@ -21,9 +21,7 @@ const AVAILABLE_PORTALS = [
 ];
 
 const AVAILABLE_PAGES = [
-  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal de imóveis" },
-  { id: "zuhaus", name: "ZuHaus - Residencial", icon: Home, description: "Página dedicada a imóveis residenciais" },
-  { id: "zuhandel", name: "ZuHandel - Comercial", icon: Building2, description: "Página dedicada a imóveis comerciais" },
+  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal (tabs Todos/Residencial/Comercial)" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
   { id: "investor_section", name: "Secção Investidores", icon: TrendingUp, description: "Página dedicada a investidores" },
   { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
