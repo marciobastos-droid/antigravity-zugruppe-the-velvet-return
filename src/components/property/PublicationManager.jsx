@@ -32,29 +32,35 @@ function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   };
 
-  const togglePortal = (portalId) => {
+  const togglePortal = React.useCallback((portalId) => {
     const newPortals = publishedPortals.includes(portalId)
       ? publishedPortals.filter(p => p !== portalId)
       : [...publishedPortals, portalId];
     
-    onChange({
-      published_portals: newPortals,
-      published_pages: publishedPages,
-      publication_config: config
-    });
-  };
+    // Only call onChange if the value actually changed
+    if (JSON.stringify(newPortals.sort()) !== JSON.stringify([...publishedPortals].sort())) {
+      onChange({
+        published_portals: newPortals,
+        published_pages: publishedPages,
+        publication_config: config
+      });
+    }
+  }, [publishedPortals, publishedPages, config, onChange]);
 
-  const togglePage = (pageId) => {
+  const togglePage = React.useCallback((pageId) => {
     const newPages = publishedPages.includes(pageId)
       ? publishedPages.filter(p => p !== pageId)
       : [...publishedPages, pageId];
     
-    onChange({
-      published_portals: publishedPortals,
-      published_pages: newPages,
-      publication_config: config
-    });
-  };
+    // Only call onChange if the value actually changed
+    if (JSON.stringify(newPages.sort()) !== JSON.stringify([...publishedPages].sort())) {
+      onChange({
+        published_portals: publishedPortals,
+        published_pages: newPages,
+        publication_config: config
+      });
+    }
+  }, [publishedPortals, publishedPages, config, onChange]);
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
@@ -166,11 +172,13 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.auto_publish}
               onCheckedChange={(checked) => {
-                onChange({
-                  published_portals: publishedPortals,
-                  published_pages: publishedPages,
-                  publication_config: { ...config, auto_publish: checked }
-                });
+                if (config.auto_publish !== checked) {
+                  onChange({
+                    published_portals: publishedPortals,
+                    published_pages: publishedPages,
+                    publication_config: { ...config, auto_publish: checked }
+                  });
+                }
               }}
             />
           </div>
@@ -183,11 +191,13 @@ function PublicationManager({ property, onChange }) {
             <Switch
               checked={config.exclude_from_feeds}
               onCheckedChange={(checked) => {
-                onChange({
-                  published_portals: publishedPortals,
-                  published_pages: publishedPages,
-                  publication_config: { ...config, exclude_from_feeds: checked }
-                });
+                if (config.exclude_from_feeds !== checked) {
+                  onChange({
+                    published_portals: publishedPortals,
+                    published_pages: publishedPages,
+                    publication_config: { ...config, exclude_from_feeds: checked }
+                  });
+                }
               }}
             />
           </div>
