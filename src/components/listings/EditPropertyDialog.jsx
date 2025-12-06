@@ -272,13 +272,13 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     }));
   };
 
-  const handleTagsUpdate = (tags) => {
+  const handleTagsUpdate = React.useCallback((tags) => {
     setFormData(prev => ({ ...prev, tags }));
-  };
+  }, []);
 
-  const handlePublicationUpdate = (publicationData) => {
+  const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => ({ ...prev, ...publicationData }));
-  };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
