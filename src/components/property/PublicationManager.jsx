@@ -32,28 +32,50 @@ export default function PublicationManager({ property, onChange }) {
     exclude_from_feeds: false
   });
 
-  React.useEffect(() => {
+  const updateParent = React.useCallback(() => {
     onChange({
       published_portals: publishedPortals,
       published_pages: publishedPages,
       publication_config: config
     });
-  }, [publishedPortals, publishedPages, config]);
+  }, [publishedPortals, publishedPages, config, onChange]);
 
   const togglePortal = (portalId) => {
-    setPublishedPortals(prev => 
-      prev.includes(portalId)
+    setPublishedPortals(prev => {
+      const newPortals = prev.includes(portalId)
         ? prev.filter(p => p !== portalId)
-        : [...prev, portalId]
-    );
+        : [...prev, portalId];
+      
+      // Update parent immediately
+      setTimeout(() => {
+        onChange({
+          published_portals: newPortals,
+          published_pages: publishedPages,
+          publication_config: config
+        });
+      }, 0);
+      
+      return newPortals;
+    });
   };
 
   const togglePage = (pageId) => {
-    setPublishedPages(prev => 
-      prev.includes(pageId)
+    setPublishedPages(prev => {
+      const newPages = prev.includes(pageId)
         ? prev.filter(p => p !== pageId)
-        : [...prev, pageId]
-    );
+        : [...prev, pageId];
+      
+      // Update parent immediately
+      setTimeout(() => {
+        onChange({
+          published_portals: publishedPortals,
+          published_pages: newPages,
+          publication_config: config
+        });
+      }, 0);
+      
+      return newPages;
+    });
   };
 
   return (
@@ -165,7 +187,17 @@ export default function PublicationManager({ property, onChange }) {
             </div>
             <Switch
               checked={config.auto_publish}
-              onCheckedChange={(checked) => setConfig(prev => ({ ...prev, auto_publish: checked }))}
+              onCheckedChange={(checked) => {
+                const newConfig = { ...config, auto_publish: checked };
+                setConfig(newConfig);
+                setTimeout(() => {
+                  onChange({
+                    published_portals: publishedPortals,
+                    published_pages: publishedPages,
+                    publication_config: newConfig
+                  });
+                }, 0);
+              }}
             />
           </div>
           
@@ -176,7 +208,17 @@ export default function PublicationManager({ property, onChange }) {
             </div>
             <Switch
               checked={config.exclude_from_feeds}
-              onCheckedChange={(checked) => setConfig(prev => ({ ...prev, exclude_from_feeds: checked }))}
+              onCheckedChange={(checked) => {
+                const newConfig = { ...config, exclude_from_feeds: checked };
+                setConfig(newConfig);
+                setTimeout(() => {
+                  onChange({
+                    published_portals: publishedPortals,
+                    published_pages: publishedPages,
+                    publication_config: newConfig
+                  });
+                }, 0);
+              }}
             />
           </div>
         </div>
