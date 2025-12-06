@@ -107,7 +107,10 @@ const PublicationManagerComponent = ({ property, onChange }) => {
               return (
                 <div
                   key={portal.id}
-                  onClick={() => handlePortalToggle(portal.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePortalToggle(portal.id);
+                  }}
                   className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
                       ? "border-blue-500 bg-blue-50"
@@ -116,7 +119,10 @@ const PublicationManagerComponent = ({ property, onChange }) => {
                 >
                   <Checkbox
                     checked={isSelected}
-                    onCheckedChange={() => handlePortalToggle(portal.id)}
+                    onCheckedChange={(checked) => {
+                      handlePortalToggle(portal.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <Icon className={`w-5 h-5 ${isSelected ? portal.color : "text-slate-400"}`} />
                   <span className={`font-medium ${isSelected ? "text-slate-900" : "text-slate-600"}`}>
@@ -149,7 +155,10 @@ const PublicationManagerComponent = ({ property, onChange }) => {
               return (
                 <div
                   key={page.id}
-                  onClick={() => handlePageToggle(page.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePageToggle(page.id);
+                  }}
                   className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                     isSelected
                       ? "border-green-500 bg-green-50"
@@ -158,7 +167,10 @@ const PublicationManagerComponent = ({ property, onChange }) => {
                 >
                   <Checkbox
                     checked={isSelected}
-                    onCheckedChange={() => handlePageToggle(page.id)}
+                    onCheckedChange={(checked) => {
+                      handlePageToggle(page.id);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                     className="mt-0.5"
                   />
                   <Icon className={`w-5 h-5 mt-0.5 ${isSelected ? "text-green-600" : "text-slate-400"}`} />
