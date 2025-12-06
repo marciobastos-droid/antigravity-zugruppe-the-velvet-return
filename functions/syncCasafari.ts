@@ -84,8 +84,13 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
 
-        if (!user || user.role !== 'admin') {
-            return Response.json({ error: 'Unauthorized - Admin only' }, { status: 401 });
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const isAdmin = user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor';
+        if (!isAdmin) {
+            return Response.json({ error: 'Unauthorized - Admin or Gestor only' }, { status: 401 });
         }
 
         console.log("Iniciando sincronização incremental Casafari...");
