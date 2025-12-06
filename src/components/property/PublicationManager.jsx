@@ -6,8 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Globe, ExternalLink, Home, Building2, TrendingUp, FileText } from "lucide-react";
 
-const PublicationManagerComponent = ({ property, onChange }) => {
-
 const AVAILABLE_PORTALS = [
   { id: "idealista", name: "Idealista", icon: ExternalLink, color: "text-green-600" },
   { id: "imovirtual", name: "Imovirtual", icon: ExternalLink, color: "text-blue-600" },
