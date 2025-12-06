@@ -25,64 +25,60 @@ const AVAILABLE_PAGES = [
 ];
 
 export default function PublicationManager({ property, onChange }) {
+  const handlePortalToggle = (portalId) => {
+    const currentPortals = property?.published_portals || [];
+    const isSelected = currentPortals.includes(portalId);
+    const newPortals = isSelected
+      ? currentPortals.filter(p => p !== portalId)
+      : [...currentPortals, portalId];
+    
+    onChange({
+      published_portals: newPortals,
+      published_pages: property?.published_pages || ["zugruppe"],
+      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+    });
+  };
+
+  const handlePageToggle = (pageId) => {
+    const currentPages = property?.published_pages || ["zugruppe"];
+    const isSelected = currentPages.includes(pageId);
+    const newPages = isSelected
+      ? currentPages.filter(p => p !== pageId)
+      : [...currentPages, pageId];
+    
+    onChange({
+      published_portals: property?.published_portals || [],
+      published_pages: newPages,
+      publication_config: property?.publication_config || { auto_publish: false, exclude_from_feeds: false }
+    });
+  };
+
+  const handleAutoPublishToggle = (checked) => {
+    onChange({
+      published_portals: property?.published_portals || [],
+      published_pages: property?.published_pages || ["zugruppe"],
+      publication_config: {
+        auto_publish: checked,
+        exclude_from_feeds: property?.publication_config?.exclude_from_feeds || false
+      }
+    });
+  };
+
+  const handleExcludeToggle = (checked) => {
+    onChange({
+      published_portals: property?.published_portals || [],
+      published_pages: property?.published_pages || ["zugruppe"],
+      publication_config: {
+        auto_publish: property?.publication_config?.auto_publish || false,
+        exclude_from_feeds: checked
+      }
+    });
+  };
+
   const portals = property?.published_portals || [];
   const pages = property?.published_pages || ["zugruppe"];
   const autoPublish = property?.publication_config?.auto_publish || false;
   const excludeFromFeeds = property?.publication_config?.exclude_from_feeds || false;
-
-  const handlePortalToggle = React.useCallback((portalId) => {
-    onChange((prev) => {
-      const currentPortals = prev?.published_portals || [];
-      const isSelected = currentPortals.includes(portalId);
-      const newPortals = isSelected
-        ? currentPortals.filter(p => p !== portalId)
-        : [...currentPortals, portalId];
-      
-      return {
-        published_portals: newPortals,
-        published_pages: prev?.published_pages || ["zugruppe"],
-        publication_config: prev?.publication_config || { auto_publish: false, exclude_from_feeds: false }
-      };
-    });
-  }, [onChange]);
-
-  const handlePageToggle = React.useCallback((pageId) => {
-    onChange((prev) => {
-      const currentPages = prev?.published_pages || ["zugruppe"];
-      const isSelected = currentPages.includes(pageId);
-      const newPages = isSelected
-        ? currentPages.filter(p => p !== pageId)
-        : [...currentPages, pageId];
-      
-      return {
-        published_portals: prev?.published_portals || [],
-        published_pages: newPages,
-        publication_config: prev?.publication_config || { auto_publish: false, exclude_from_feeds: false }
-      };
-    });
-  }, [onChange]);
-
-  const handleAutoPublishToggle = React.useCallback((checked) => {
-    onChange((prev) => ({
-      published_portals: prev?.published_portals || [],
-      published_pages: prev?.published_pages || ["zugruppe"],
-      publication_config: {
-        auto_publish: checked,
-        exclude_from_feeds: prev?.publication_config?.exclude_from_feeds || false
-      }
-    }));
-  }, [onChange]);
-
-  const handleExcludeToggle = React.useCallback((checked) => {
-    onChange((prev) => ({
-      published_portals: prev?.published_portals || [],
-      published_pages: prev?.published_pages || ["zugruppe"],
-      publication_config: {
-        auto_publish: prev?.publication_config?.auto_publish || false,
-        exclude_from_feeds: checked
-      }
-    }));
-  }, [onChange]);
 
   return (
     <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">

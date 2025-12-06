@@ -276,14 +276,22 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
-  const handlePublicationUpdate = React.useCallback((updateFn) => {
+  const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => {
-      const updated = typeof updateFn === 'function' ? updateFn(prev) : updateFn;
+      // Verificar se realmente mudou algo
+      const portalsChanged = JSON.stringify(prev.published_portals) !== JSON.stringify(publicationData.published_portals);
+      const pagesChanged = JSON.stringify(prev.published_pages) !== JSON.stringify(publicationData.published_pages);
+      const configChanged = JSON.stringify(prev.publication_config) !== JSON.stringify(publicationData.publication_config);
+      
+      if (!portalsChanged && !pagesChanged && !configChanged) {
+        return prev;
+      }
+      
       return { 
         ...prev, 
-        published_portals: updated.published_portals,
-        published_pages: updated.published_pages,
-        publication_config: updated.publication_config
+        published_portals: publicationData.published_portals,
+        published_pages: publicationData.published_pages,
+        publication_config: publicationData.publication_config
       };
     });
   }, []);
