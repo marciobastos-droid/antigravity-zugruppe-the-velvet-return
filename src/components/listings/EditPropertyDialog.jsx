@@ -276,6 +276,11 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setFormData(prev => ({ ...prev, tags }));
   }, []);
 
+  const formDataRef = React.useRef(formData);
+  React.useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
   const handlePublicationUpdate = React.useCallback((publicationData) => {
     setFormData(prev => {
       // Verificar se realmente mudou algo

@@ -6,6 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Globe, ExternalLink, Home, Building2, TrendingUp, FileText } from "lucide-react";
 
+const PublicationManagerComponent = ({ property, onChange }) => {
+
 const AVAILABLE_PORTALS = [
   { id: "idealista", name: "Idealista", icon: ExternalLink, color: "text-green-600" },
   { id: "imovirtual", name: "Imovirtual", icon: ExternalLink, color: "text-blue-600" },
@@ -207,4 +209,12 @@ export default function PublicationManager({ property, onChange }) {
       </CardContent>
     </Card>
   );
-}
+};
+
+export default React.memo(PublicationManagerComponent, (prevProps, nextProps) => {
+  return (
+    JSON.stringify(prevProps.property?.published_portals) === JSON.stringify(nextProps.property?.published_portals) &&
+    JSON.stringify(prevProps.property?.published_pages) === JSON.stringify(nextProps.property?.published_pages) &&
+    JSON.stringify(prevProps.property?.publication_config) === JSON.stringify(nextProps.property?.publication_config)
+  );
+});
