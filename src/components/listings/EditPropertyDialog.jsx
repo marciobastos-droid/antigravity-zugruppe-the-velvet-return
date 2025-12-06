@@ -277,7 +277,15 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
   }, []);
 
   const handlePublicationUpdate = React.useCallback((publicationData) => {
-    setFormData(prev => ({ ...prev, ...publicationData }));
+    setFormData(prev => {
+      // Only update if values actually changed
+      const hasChanges = 
+        JSON.stringify(prev.published_portals) !== JSON.stringify(publicationData.published_portals) ||
+        JSON.stringify(prev.published_pages) !== JSON.stringify(publicationData.published_pages) ||
+        JSON.stringify(prev.publication_config) !== JSON.stringify(publicationData.publication_config);
+      
+      return hasChanges ? { ...prev, ...publicationData } : prev;
+    });
   }, []);
 
   const handleSubmit = (e) => {
