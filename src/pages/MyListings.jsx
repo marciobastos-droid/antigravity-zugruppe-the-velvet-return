@@ -652,17 +652,20 @@ export default function MyListings() {
     return filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredProperties, currentPage]);
   
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters change - use stringified version to prevent infinite loops
+  const filtersString = JSON.stringify(filters);
   useEffect(() => { 
     setCurrentPage(1); 
-  }, [filters.search, filters.status, filters.property_type, filters.listing_type, filters.state, filters.city, filters.featured, filters.last_import]);
+  }, [filtersString]);
 
   // Reset city filter when state changes
+  const prevStateRef = React.useRef(filters.state);
   useEffect(() => {
-    if (filters.state !== "all" && filters.city !== "all") {
+    if (prevStateRef.current !== filters.state && filters.state !== "all" && filters.city !== "all") {
       setFilters(prev => ({ ...prev, city: "all" }));
     }
-  }, [filters.state]);
+    prevStateRef.current = filters.state;
+  }, [filters.state, filters.city]);
 
   const statusLabels = {
     active: "Ativo",
