@@ -13,6 +13,7 @@ import PropertyTagger from "../property/PropertyTagger";
 import AIPropertyTools from "../property/AIPropertyTools";
 import LocationAutocomplete from "../property/LocationAutocomplete";
 import ValidatedInput from "../property/ValidatedInput";
+import PublicationManager from "../property/PublicationManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
@@ -53,7 +54,13 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     tags: [],
     development_id: "",
     development_name: "",
-    unit_number: ""
+    unit_number: "",
+    published_portals: [],
+    published_pages: ["browse"],
+    publication_config: {
+      auto_publish: false,
+      exclude_from_feeds: false
+    }
   });
 
   const { data: developments = [] } = useQuery({
@@ -149,7 +156,13 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         tags: property.tags || [],
         development_id: property.development_id || "",
         development_name: property.development_name || "",
-        unit_number: property.unit_number || ""
+        unit_number: property.unit_number || "",
+        published_portals: property.published_portals || [],
+        published_pages: property.published_pages || ["browse"],
+        publication_config: property.publication_config || {
+          auto_publish: false,
+          exclude_from_feeds: false
+        }
       });
     }
   }, [property]);
@@ -261,6 +274,10 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
   const handleTagsUpdate = (tags) => {
     setFormData(prev => ({ ...prev, tags }));
+  };
+
+  const handlePublicationUpdate = (publicationData) => {
+    setFormData(prev => ({ ...prev, ...publicationData }));
   };
 
   const handleSubmit = (e) => {
@@ -718,6 +735,12 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
               }}
             />
           )}
+
+          {/* Publication Manager */}
+          <PublicationManager
+            property={formData}
+            onChange={handlePublicationUpdate}
+          />
 
           {/* Location */}
           <Collapsible open={openSections.location} onOpenChange={() => toggleSection('location')}>
