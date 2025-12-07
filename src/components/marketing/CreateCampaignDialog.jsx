@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Mail, Facebook, Instagram } from "lucide-react";
+import { Loader2, Mail, Facebook, Instagram, Building2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function CreateCampaignDialog({ open, onOpenChange }) {
   const queryClient = useQueryClient();
@@ -43,7 +44,11 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
     },
     budget: 0,
     start_date: new Date().toISOString().split('T')[0],
-    status: "draft"
+    end_date: "",
+    status: "draft",
+    properties: [],
+    assigned_to: "",
+    notes: ""
   });
 
   const { data: tags = [] } = useQuery({
@@ -52,6 +57,16 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
       const allTags = await base44.entities.Tag.list();
       return allTags;
     }
+  });
+
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list('-created_date')
+  });
+
+  const { data: marketingTeam = [] } = useQuery({
+    queryKey: ['marketingTeam'],
+    queryFn: () => base44.entities.MarketingTeamMember.list()
   });
 
   const createMutation = useMutation({
@@ -83,7 +98,11 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
       tracking_config: { utm_source: "zugruppe", utm_medium: "", utm_campaign: "" },
       budget: 0,
       start_date: new Date().toISOString().split('T')[0],
-      status: "draft"
+      end_date: "",
+      status: "draft",
+      properties: [],
+      assigned_to: "",
+      notes: ""
     });
   };
 
@@ -196,6 +215,35 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Data de Fim (opcional)</Label>
+                  <Input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Responsável</Label>
+                  <Select 
+                    value={formData.assigned_to} 
+                    onValueChange={(v) => setFormData({...formData, assigned_to: v})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar membro..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {marketingTeam.filter(m => m.status === 'active').map(member => (
+                        <SelectItem key={member.id} value={member.user_email}>
+                          {member.full_name} - {member.role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   Cancelar
@@ -245,6 +293,47 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
                   })}
                   placeholder="Lisboa, Porto, Faro"
                 />
+              </div>
+
+              <div>
+                <Label>Imóveis a Promover (opcional)</Label>
+                <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+                  {properties.slice(0, 20).map(prop => (
+                    <div key={prop.id} className="flex items-center gap-2">
+                      <Checkbox
+                        checked={formData.properties.includes(prop.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFormData({
+                              ...formData,
+                              properties: [...formData.properties, prop.id]
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              properties: formData.properties.filter(id => id !== prop.id)
+                            });
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-2 flex-1">
+                        {prop.images?.[0] && (
+                          <img src={prop.images[0]} alt="" className="w-10 h-10 object-cover rounded" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{prop.title}</p>
+                          <p className="text-xs text-slate-500">{prop.city} • €{prop.price?.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {properties.length === 0 && (
+                    <p className="text-sm text-slate-500 text-center py-2">Nenhum imóvel disponível</p>
+                  )}
+                </div>
+                {formData.properties.length > 0 && (
+                  <p className="text-xs text-blue-600 mt-1">{formData.properties.length} imóveis selecionados</p>
+                )}
               </div>
 
               <div className="flex justify-between gap-3 pt-4">
@@ -352,6 +441,16 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
                   </div>
                 </>
               )}
+
+              <div>
+                <Label>Notas</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  placeholder="Notas sobre a campanha..."
+                  rows={3}
+                />
+              </div>
 
               <div className="flex justify-between gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => setStep(2)}>

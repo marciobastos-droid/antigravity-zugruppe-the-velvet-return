@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, TrendingUp, Mail, Facebook, Instagram, BarChart3,
-  Eye, MousePointer, Users, DollarSign, Play, Pause, Trash2
+  Eye, MousePointer, Users, DollarSign, Play, Pause, Trash2, Building2, Filter
 } from "lucide-react";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateCampaignDialog from "./CreateCampaignDialog";
 import CampaignDetailsDialog from "./CampaignDetailsDialog";
 import CampaignAnalytics from "./CampaignAnalytics";
@@ -21,6 +22,7 @@ export default function MarketingCampaignsHub() {
   const [activeTab, setActiveTab] = useState("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [filterAssignedTo, setFilterAssignedTo] = useState("all");
   const queryClient = useQueryClient();
 
   const { data: campaigns = [], isLoading } = useQuery({
@@ -31,6 +33,16 @@ export default function MarketingCampaignsHub() {
   const { data: opportunities = [] } = useQuery({
     queryKey: ['opportunities'],
     queryFn: () => base44.entities.Opportunity.list()
+  });
+
+  const { data: marketingTeam = [] } = useQuery({
+    queryKey: ['marketingTeam'],
+    queryFn: () => base44.entities.MarketingTeamMember.list()
+  });
+
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list()
   });
 
   const deleteMutation = useMutation({
@@ -66,11 +78,15 @@ export default function MarketingCampaignsHub() {
   };
 
   const filteredCampaigns = campaigns.filter(c => {
-    if (activeTab === "all") return true;
-    if (activeTab === "active") return c.status === "active";
-    if (activeTab === "email") return c.campaign_type === "email";
-    if (activeTab === "social") return ["facebook_ads", "instagram_ads", "multi_channel"].includes(c.campaign_type);
-    return true;
+    let matchesTab = true;
+    if (activeTab === "active") matchesTab = c.status === "active";
+    else if (activeTab === "email") matchesTab = c.campaign_type === "email";
+    else if (activeTab === "social") matchesTab = ["facebook_ads", "instagram_ads", "multi_channel"].includes(c.campaign_type);
+    else if (activeTab !== "all" && activeTab !== "facebook" && activeTab !== "fbLeads" && activeTab !== "fbForms" && activeTab !== "analytics") matchesTab = true;
+
+    const matchesAssigned = filterAssignedTo === "all" || c.assigned_to === filterAssignedTo;
+    
+    return matchesTab && matchesAssigned;
   });
 
   // Calculate overall metrics
@@ -100,15 +116,31 @@ export default function MarketingCampaignsHub() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-slate-900">Campanhas de Marketing</h2>
           <p className="text-slate-600 mt-1">Gerir email marketing e anúncios em redes sociais</p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Campanha
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select value={filterAssignedTo} onValueChange={setFilterAssignedTo}>
+            <SelectTrigger className="w-52">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Filtrar por responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Responsáveis</SelectItem>
+              {marketingTeam.map(member => (
+                <SelectItem key={member.id} value={member.user_email}>
+                  {member.full_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Nova Campanha
+          </Button>
+        </div>
       </div>
 
       {/* Overall Metrics */}
@@ -205,8 +237,20 @@ export default function MarketingCampaignsHub() {
                               <Badge className={statusColors[campaign.status]}>
                                 {campaign.status}
                               </Badge>
+                              {campaign.properties?.length > 0 && (
+                                <Badge variant="outline" className="gap-1">
+                                  <Building2 className="w-3 h-3" />
+                                  {campaign.properties.length}
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-sm text-slate-600 mb-3">{campaign.objective}</p>
+                            {campaign.assigned_to && (
+                              <p className="text-xs text-slate-500 flex items-center gap-1 mb-3">
+                                <User className="w-3 h-3" />
+                                {marketingTeam.find(m => m.user_email === campaign.assigned_to)?.full_name || campaign.assigned_to}
+                              </p>
+                            )}
                             
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                               <div>

@@ -3,10 +3,34 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, MousePointer, Users, Mail, TrendingUp } from "lucide-react";
+import { Eye, MousePointer, Users, Mail, TrendingUp, Building2, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
+import CampaignROICalculator from "./CampaignROICalculator";
 
 export default function CampaignDetailsDialog({ campaign, open, onOpenChange }) {
   if (!campaign) return null;
+
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list(),
+    enabled: open
+  });
+
+  const { data: marketingTeam = [] } = useQuery({
+    queryKey: ['marketingTeam'],
+    queryFn: () => base44.entities.MarketingTeamMember.list(),
+    enabled: open
+  });
+
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['opportunities'],
+    queryFn: () => base44.entities.Opportunity.list(),
+    enabled: open
+  });
+
+  const linkedProperties = properties.filter(p => campaign.properties?.includes(p.id));
+  const assignedMember = marketingTeam.find(m => m.user_email === campaign.assigned_to);
 
   const statusColors = {
     draft: "bg-slate-100 text-slate-800",
@@ -60,7 +84,39 @@ export default function CampaignDetailsDialog({ campaign, open, onOpenChange }) 
                     <p className="text-sm text-slate-500">Gasto</p>
                     <p className="font-medium">€{campaign.spent || 0}</p>
                   </div>
+                  {campaign.start_date && (
+                    <div>
+                      <p className="text-sm text-slate-500">Data Início</p>
+                      <p className="font-medium">{new Date(campaign.start_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {campaign.end_date && (
+                    <div>
+                      <p className="text-sm text-slate-500">Data Fim</p>
+                      <p className="font-medium">{new Date(campaign.end_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
                 </div>
+
+                {assignedMember && (
+                  <div className="pt-3 border-t">
+                    <p className="text-sm text-slate-500 mb-2">Responsável</p>
+                    <div className="flex items-center gap-3">
+                      {assignedMember.photo_url ? (
+                        <img src={assignedMember.photo_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-blue-600" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{assignedMember.full_name}</p>
+                        <p className="text-sm text-slate-600">{assignedMember.role}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {campaign.notes && (
                   <div>
                     <p className="text-sm text-slate-500">Notas</p>
@@ -69,6 +125,33 @@ export default function CampaignDetailsDialog({ campaign, open, onOpenChange }) 
                 )}
               </CardContent>
             </Card>
+
+            {linkedProperties.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    Imóveis Promovidos ({linkedProperties.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {linkedProperties.map(prop => (
+                      <div key={prop.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                        {prop.images?.[0] && (
+                          <img src={prop.images[0]} alt="" className="w-16 h-12 object-cover rounded" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{prop.title}</p>
+                          <p className="text-xs text-slate-600">{prop.city} • €{prop.price?.toLocaleString()}</p>
+                        </div>
+                        <Badge variant="outline">{prop.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {campaign.email_config && (
               <Card>
@@ -92,6 +175,8 @@ export default function CampaignDetailsDialog({ campaign, open, onOpenChange }) 
           </TabsContent>
 
           <TabsContent value="performance" className="space-y-4">
+            <CampaignROICalculator campaign={campaign} opportunities={opportunities} />
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
