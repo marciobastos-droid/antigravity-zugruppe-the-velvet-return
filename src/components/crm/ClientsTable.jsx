@@ -18,6 +18,7 @@ const typeLabels = {
   partner: "Parceiro",
   investor: "Investidor",
   vendor: "Fornecedor",
+  promoter: "Promotor",
   other: "Outro"
 };
 
@@ -26,6 +27,7 @@ const typeColors = {
   partner: "bg-purple-100 text-purple-800",
   investor: "bg-green-100 text-green-800",
   vendor: "bg-orange-100 text-orange-800",
+  promoter: "bg-indigo-100 text-indigo-800",
   other: "bg-slate-100 text-slate-800"
 };
 
