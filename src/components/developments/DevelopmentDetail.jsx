@@ -15,10 +15,20 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import DevelopmentImageGallery from "./DevelopmentImageGallery";
 
 export default function DevelopmentDetail({ development, open, onOpenChange, properties }) {
   const queryClient = useQueryClient();
   const [linkPropertyId, setLinkPropertyId] = React.useState("");
+
+  const updateImagesMutation = useMutation({
+    mutationFn: async (newImages) => {
+      await base44.entities.Development.update(development.id, { images: newImages });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['developments'] });
+    }
+  });
 
   const linkedProperties = properties.filter(p => p.development_id === development.id);
   const availableProperties = properties.filter(p => !p.development_id);
@@ -388,24 +398,11 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
           </TabsContent>
 
           <TabsContent value="gallery" className="mt-4">
-            {development.images?.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {development.images.map((img, idx) => (
-                  <div key={idx} className="aspect-video rounded-lg overflow-hidden">
-                    <img 
-                      src={img} 
-                      alt={`${development.name} - ${idx + 1}`}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-slate-500">
-                <Building2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>Nenhuma imagem disponível</p>
-              </div>
-            )}
+            <DevelopmentImageGallery
+              images={development.images || []}
+              developmentId={development.id}
+              onImagesReordered={(newImages) => updateImagesMutation.mutate(newImages)}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>
