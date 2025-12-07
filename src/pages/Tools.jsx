@@ -10,6 +10,7 @@ import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
 import VideoMaker from "../components/tools/VideoMaker";
 import CalendarTool from "../components/tools/CalendarTool";
+import UnifiedCalendar from "../components/calendar/UnifiedCalendar";
 import PropertyDescriptionGenerator from "../components/tools/PropertyDescriptionGenerator";
 import PriceSuggestion from "../components/tools/PriceSuggestion";
 import DocumentsAndContracts from "../components/tools/DocumentsAndContracts";
@@ -209,7 +210,7 @@ export default function Tools() {
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
-                <ToolButton toolId="calendar" icon={Calendar} label="Calendário de Visitas" />
+                <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
               </div>
               </CardContent>
               </Card>
@@ -308,7 +309,7 @@ export default function Tools() {
         {activeTab === "socialMedia" && <SocialMediaGenerator />}
         {activeTab === "pricing" && <PriceSuggestion />}
         {activeTab === "video" && <VideoMaker />}
-        {activeTab === "calendar" && <CalendarTool />}
+        {activeTab === "calendar" && <UnifiedCalendar />}
         {activeTab === "documents" && <DocumentsAndContracts />}
       {activeTab === "contractAutomation" && <ContractAutomation />}
         {activeTab === "devNotes" && <DevelopmentNotes />}
