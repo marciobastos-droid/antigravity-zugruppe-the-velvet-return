@@ -7,7 +7,7 @@ import {
   Search, Filter, X, Home, Building2, MapPin, 
   Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
   Grid3X3, List, Heart, Phone, Mail, Euro, Calendar,
-  ChevronLeft, ChevronRight, Sparkles, Zap, Car, TreePine, Check, FileText, Shield
+  ChevronLeft, ChevronRight, Sparkles, Zap, Car, TreePine, Check
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -935,16 +935,10 @@ export default function ZuGruppe() {
               <Phone className="w-5 h-5 mr-2" />
               Contactar
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+            <Button size="lg" className="bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors">
               <Mail className="w-5 h-5 mr-2" />
               Enviar Email
             </Button>
-            <Link to={createPageUrl("DenunciationChannel")}>
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
-                <Shield className="w-5 h-5 mr-2" />
-                Canal de Denúncias
-              </Button>
-            </Link>
           </div>
           </div>
           </div>
