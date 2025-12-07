@@ -351,7 +351,10 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
       completion_date: formData.completion_date || undefined,
       development_id: formData.development_id || undefined,
       development_name: formData.development_name || undefined,
-      unit_number: formData.unit_number || undefined
+      unit_number: formData.unit_number || undefined,
+      published_portals: formData.published_portals || [],
+      published_pages: formData.published_pages || [],
+      publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false }
     };
 
     updateMutation.mutate(data);
