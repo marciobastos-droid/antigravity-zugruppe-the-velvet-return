@@ -22,6 +22,8 @@ const AVAILABLE_PORTALS = [
 
 const AVAILABLE_PAGES = [
   { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal (tabs Todos/Residencial/Comercial)" },
+  { id: "zuhaus", name: "ZuHaus", icon: Home, description: "Plataforma residencial especializada" },
+  { id: "zuhandel", name: "ZuHandel", icon: Building2, description: "Plataforma comercial especializada" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
   { id: "investor_section", name: "Secção Investidores", icon: TrendingUp, description: "Página dedicada a investidores" },
   { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
