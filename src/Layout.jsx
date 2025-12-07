@@ -336,6 +336,10 @@ export default function Layout({ children, currentPageName }) {
                 <a href="#" className="hover:text-white transition-colors">
                   Termos
                 </a>
+                <span>•</span>
+                <Link to={createPageUrl("DenunciationChannel")} className="hover:text-white transition-colors">
+                  Canal de Denúncias
+                </Link>
               </div>
             </div>
           </div>

@@ -18,6 +18,7 @@ import Franchising from './pages/Franchising';
 import GmailCallback from './pages/GmailCallback';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ZuGruppe from './pages/ZuGruppe';
+import DenunciationChannel from './pages/DenunciationChannel';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "GmailCallback": GmailCallback,
     "PrivacyPolicy": PrivacyPolicy,
     "ZuGruppe": ZuGruppe,
+    "DenunciationChannel": DenunciationChannel,
 }
 
 export const pagesConfig = {
