@@ -187,7 +187,7 @@ export default function ImageManager({ property, onUpdate }) {
                             <img
                               src={url}
                               alt={`Imagem ${index + 1}`}
-                              className="w-24 h-20 object-cover rounded-lg border border-slate-200"
+                              className="w-16 h-14 object-cover rounded-lg border border-slate-200"
                             />
 
                             {/* Main Badge */}
