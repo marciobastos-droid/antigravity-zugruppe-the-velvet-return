@@ -19,6 +19,9 @@ import GmailCallback from './pages/GmailCallback';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ZuGruppe from './pages/ZuGruppe';
 import DenunciationChannel from './pages/DenunciationChannel';
+import TermsConditions from './pages/TermsConditions';
+import CookiePolicy from './pages/CookiePolicy';
+import ManageData from './pages/ManageData';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +47,9 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "ZuGruppe": ZuGruppe,
     "DenunciationChannel": DenunciationChannel,
+    "TermsConditions": TermsConditions,
+    "CookiePolicy": CookiePolicy,
+    "ManageData": ManageData,
 }
 
 export const pagesConfig = {
