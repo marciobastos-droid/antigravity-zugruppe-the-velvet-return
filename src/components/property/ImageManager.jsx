@@ -11,11 +11,18 @@ import {
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function ImageManager({ property, onUpdate }) {
+export default function ImageManager({ property, onUpdate, onChange }) {
   const [images, setImages] = useState(property.images || []);
   const [newImageUrl, setNewImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const updateImages = (newImages) => {
+    setImages(newImages);
+    if (onChange) {
+      onChange(newImages);
+    }
+  };
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -24,17 +31,17 @@ export default function ImageManager({ property, onUpdate }) {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     
-    setImages(items);
+    updateImages(items);
   };
 
   const addImageUrl = () => {
     if (!newImageUrl.trim()) return;
-    setImages([...images, newImageUrl.trim()]);
+    updateImages([...images, newImageUrl.trim()]);
     setNewImageUrl("");
   };
 
   const removeImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+    updateImages(images.filter((_, i) => i !== index));
   };
 
   const setMainImage = (index) => {
@@ -42,7 +49,7 @@ export default function ImageManager({ property, onUpdate }) {
     const items = [...images];
     const [mainImage] = items.splice(index, 1);
     items.unshift(mainImage);
-    setImages(items);
+    updateImages(items);
   };
 
   const handleFileUpload = async (e) => {
@@ -58,7 +65,7 @@ export default function ImageManager({ property, onUpdate }) {
       const results = await Promise.all(uploadPromises);
       const newUrls = results.map(r => r.file_url);
       
-      setImages([...images, ...newUrls]);
+      updateImages([...images, ...newUrls]);
       toast.success(`${files.length} imagens carregadas`);
     } catch (error) {
       toast.error("Erro ao carregar imagens");
@@ -165,7 +172,7 @@ export default function ImageManager({ property, onUpdate }) {
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`group relative bg-white border-2 rounded-lg p-2 hover:border-blue-300 transition-all ${
+                          className={`group relative bg-white border rounded-lg p-2 hover:border-blue-300 transition-all ${
                             snapshot.isDragging ? 'shadow-lg border-blue-500' : 'border-slate-200'
                           }`}
                         >

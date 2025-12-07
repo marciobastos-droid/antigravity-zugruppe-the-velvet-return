@@ -384,7 +384,8 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
 
           <TabsContent value="images" className="mt-6">
             <ImageManager 
-              property={property}
+              property={{...property, images: formData.images}}
+              onChange={(newImages) => setFormData(prev => ({ ...prev, images: newImages }))}
               onUpdate={() => {
                 queryClient.invalidateQueries({ queryKey: ['property', property.id] });
                 queryClient.invalidateQueries({ queryKey: ['properties'] });
