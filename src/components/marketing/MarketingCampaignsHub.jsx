@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import CreateCampaignDialog from "./CreateCampaignDialog";
 import CampaignDetailsDialog from "./CampaignDetailsDialog";
 import CampaignAnalytics from "./CampaignAnalytics";
+import FacebookCampaignDashboard from "../tools/FacebookCampaignDashboard";
 
 export default function MarketingCampaignsHub() {
   const [activeTab, setActiveTab] = useState("all");
@@ -163,6 +164,7 @@ export default function MarketingCampaignsHub() {
           <TabsTrigger value="active">Ativas</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="social">Redes Sociais</TabsTrigger>
+          <TabsTrigger value="facebook">Facebook Ads</TabsTrigger>
           <TabsTrigger value="analytics">Análise</TabsTrigger>
         </TabsList>
 
@@ -343,6 +345,10 @@ export default function MarketingCampaignsHub() {
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="facebook" className="mt-6">
+          <FacebookCampaignDashboard />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
