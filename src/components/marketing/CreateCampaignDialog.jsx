@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Mail, Facebook, Instagram, Building2 } from "lucide-react";
+import { Loader2, Mail, Facebook, Instagram, Building2, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export default function CreateCampaignDialog({ open, onOpenChange }) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
+  const [generatingAI, setGeneratingAI] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     campaign_type: "email",
@@ -106,6 +107,164 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
     });
   };
 
+  const generateCampaignName = async () => {
+    setGeneratingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Gera um título criativo e profissional para uma campanha de marketing imobiliário com estas características:
+- Tipo: ${formData.campaign_type === 'email' ? 'Email Marketing' : formData.campaign_type === 'facebook_ads' ? 'Facebook Ads' : formData.campaign_type === 'instagram_ads' ? 'Instagram Ads' : 'Multi-canal'}
+- Objetivo: ${formData.objective}
+- Imóveis promovidos: ${formData.properties.length > 0 ? `${formData.properties.length} imóveis` : 'Geral'}
+
+Retorna APENAS o título da campanha, sem aspas ou explicações. Máximo 60 caracteres.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            title: { type: "string" }
+          }
+        }
+      });
+      setFormData({...formData, name: result.title});
+      toast.success("Título gerado com IA");
+    } catch (error) {
+      toast.error("Erro ao gerar título");
+    }
+    setGeneratingAI(false);
+  };
+
+  const generateEmailSubject = async () => {
+    setGeneratingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Gera um assunto persuasivo para email marketing imobiliário:
+- Campanha: ${formData.name}
+- Objetivo: ${formData.objective}
+- Segmento: ${formData.target_audience.segment_type}
+- Localizações: ${formData.target_audience.locations?.join(", ") || "Várias"}
+
+Retorna APENAS o assunto, otimizado para alta taxa de abertura. Máximo 60 caracteres.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            subject: { type: "string" }
+          }
+        }
+      });
+      setFormData({
+        ...formData,
+        email_config: {...formData.email_config, subject: result.subject}
+      });
+      toast.success("Assunto gerado com IA");
+    } catch (error) {
+      toast.error("Erro ao gerar assunto");
+    }
+    setGeneratingAI(false);
+  };
+
+  const generateEmailContent = async () => {
+    setGeneratingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Cria um corpo de email HTML profissional para campanha imobiliária:
+- Assunto: ${formData.email_config.subject}
+- Objetivo: ${formData.objective}
+- Segmento: ${formData.target_audience.segment_type}
+- Imóveis: ${formData.properties.length > 0 ? `${formData.properties.length} promovidos` : 'Geral'}
+
+Retorna HTML simples e responsivo com:
+- Saudação personalizada
+- Texto persuasivo alinhado ao objetivo
+- Call-to-action claro
+- Rodapé profissional
+
+Usa cores: azul (#3b82f6), cinza (#64748b). Máximo 500 palavras.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            content: { type: "string" }
+          }
+        }
+      });
+      setFormData({
+        ...formData,
+        email_config: {...formData.email_config, content: result.content}
+      });
+      toast.success("Conteúdo gerado com IA");
+    } catch (error) {
+      toast.error("Erro ao gerar conteúdo");
+    }
+    setGeneratingAI(false);
+  };
+
+  const generateAdHeadline = async () => {
+    setGeneratingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Cria um título impactante para anúncio ${formData.campaign_type === 'facebook_ads' ? 'Facebook' : 'Instagram'}:
+- Campanha: ${formData.name}
+- Objetivo: ${formData.objective}
+- Imóveis: ${formData.properties.length > 0 ? `${formData.properties.length} promovidos` : 'Imobiliário geral'}
+
+Retorna título criativo e persuasivo. Máximo 40 caracteres.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            headline: { type: "string" }
+          }
+        }
+      });
+      setFormData({
+        ...formData,
+        social_ads_config: {
+          ...formData.social_ads_config,
+          ad_creative: {
+            ...formData.social_ads_config.ad_creative,
+            headline: result.headline
+          }
+        }
+      });
+      toast.success("Título gerado com IA");
+    } catch (error) {
+      toast.error("Erro ao gerar título");
+    }
+    setGeneratingAI(false);
+  };
+
+  const generateAdDescription = async () => {
+    setGeneratingAI(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Cria uma descrição persuasiva para anúncio ${formData.campaign_type === 'facebook_ads' ? 'Facebook' : 'Instagram'}:
+- Título: ${formData.social_ads_config.ad_creative.headline}
+- Objetivo: ${formData.objective}
+- Segmento: ${formData.target_audience.segment_type}
+- Localizações: ${formData.target_audience.locations?.join(", ") || "Várias"}
+
+Retorna texto otimizado para conversão. Máximo 125 caracteres.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            description: { type: "string" }
+          }
+        }
+      });
+      setFormData({
+        ...formData,
+        social_ads_config: {
+          ...formData.social_ads_config,
+          ad_creative: {
+            ...formData.social_ads_config.ad_creative,
+            description: result.description
+          }
+        }
+      });
+      toast.success("Descrição gerada com IA");
+    } catch (error) {
+      toast.error("Erro ao gerar descrição");
+    }
+    setGeneratingAI(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -135,12 +294,25 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
             <div className="space-y-4">
               <div>
                 <Label>Nome da Campanha *</Label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="Ex: Campanha Verão 2025"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Ex: Campanha Verão 2025"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateCampaignName}
+                    disabled={generatingAI}
+                    className="gap-2"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    IA
+                  </Button>
+                </div>
               </div>
 
               <div>
@@ -359,28 +531,53 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
                 <>
                   <div>
                     <Label>Assunto do Email *</Label>
-                    <Input
-                      required
-                      value={formData.email_config.subject}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        email_config: {...formData.email_config, subject: e.target.value}
-                      })}
-                      placeholder="Descubra os melhores imóveis"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        required
+                        value={formData.email_config.subject}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          email_config: {...formData.email_config, subject: e.target.value}
+                        })}
+                        placeholder="Descubra os melhores imóveis"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={generateEmailSubject}
+                        disabled={generatingAI}
+                        className="gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        IA
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label>Conteúdo do Email *</Label>
-                    <Textarea
-                      required
-                      value={formData.email_config.content}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        email_config: {...formData.email_config, content: e.target.value}
-                      })}
-                      placeholder="Conteúdo HTML do email..."
-                      rows={8}
-                    />
+                    <div className="space-y-2">
+                      <Textarea
+                        required
+                        value={formData.email_config.content}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          email_config: {...formData.email_config, content: e.target.value}
+                        })}
+                        placeholder="Conteúdo HTML do email..."
+                        rows={8}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={generateEmailContent}
+                        disabled={generatingAI}
+                        className="w-full gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        {generatingAI ? "A gerar..." : "Gerar Conteúdo com IA"}
+                      </Button>
+                    </div>
                   </div>
                 </>
               )}
@@ -389,40 +586,65 @@ export default function CreateCampaignDialog({ open, onOpenChange }) {
                 <>
                   <div>
                     <Label>Título do Anúncio *</Label>
-                    <Input
-                      required
-                      value={formData.social_ads_config.ad_creative.headline}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        social_ads_config: {
-                          ...formData.social_ads_config,
-                          ad_creative: {
-                            ...formData.social_ads_config.ad_creative,
-                            headline: e.target.value
+                    <div className="flex gap-2">
+                      <Input
+                        required
+                        value={formData.social_ads_config.ad_creative.headline}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          social_ads_config: {
+                            ...formData.social_ads_config,
+                            ad_creative: {
+                              ...formData.social_ads_config.ad_creative,
+                              headline: e.target.value
+                            }
                           }
-                        }
-                      })}
-                      placeholder="Encontre a sua casa de sonho"
-                    />
+                        })}
+                        placeholder="Encontre a sua casa de sonho"
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={generateAdHeadline}
+                        disabled={generatingAI}
+                        className="gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        IA
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label>Descrição *</Label>
-                    <Textarea
-                      required
-                      value={formData.social_ads_config.ad_creative.description}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        social_ads_config: {
-                          ...formData.social_ads_config,
-                          ad_creative: {
-                            ...formData.social_ads_config.ad_creative,
-                            description: e.target.value
+                    <div className="space-y-2">
+                      <Textarea
+                        required
+                        value={formData.social_ads_config.ad_creative.description}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          social_ads_config: {
+                            ...formData.social_ads_config,
+                            ad_creative: {
+                              ...formData.social_ads_config.ad_creative,
+                              description: e.target.value
+                            }
                           }
-                        }
-                      })}
-                      placeholder="Descrição do anúncio..."
-                      rows={4}
-                    />
+                        })}
+                        placeholder="Descrição do anúncio..."
+                        rows={4}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={generateAdDescription}
+                        disabled={generatingAI}
+                        className="w-full gap-2"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        {generatingAI ? "A gerar..." : "Gerar Descrição com IA"}
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label>Orçamento Diário (€)</Label>
