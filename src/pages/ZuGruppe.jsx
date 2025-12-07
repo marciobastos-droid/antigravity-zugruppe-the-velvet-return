@@ -3,8 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import SEOHead from "../components/seo/SEOHead";
-import { BreadcrumbSchema } from "../components/seo/SchemaMarkup";
 import { 
   Search, Filter, X, Home, Building2, MapPin, 
   Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
@@ -280,30 +278,8 @@ export default function ZuGruppe() {
     );
   }
 
-  const seoTitle = activeTab === "residential" 
-    ? "ZuHaus - Imóveis Residenciais Premium | Zugruppe"
-    : activeTab === "commercial"
-    ? "ZuHandel - Imóveis Comerciais | Zugruppe"
-    : "ZuGruppe - Marketplace Imobiliário Premium";
-
-  const seoDescription = activeTab === "residential"
-    ? `Descubra ${activeProperties.length} imóveis residenciais exclusivos. Casas, apartamentos e moradias em Portugal.`
-    : activeTab === "commercial"
-    ? `Encontre ${activeProperties.length} imóveis comerciais. Escritórios, lojas e armazéns para o seu negócio.`
-    : `Explore ${activeProperties.length} imóveis em Portugal. Tecnologia avançada e serviço personalizado.`;
-
   return (
     <div className="min-h-screen bg-slate-50">
-      <SEOHead 
-        title={seoTitle}
-        description={seoDescription}
-        keywords={`imóveis ${activeTab === "residential" ? "residenciais, casas, apartamentos" : activeTab === "commercial" ? "comerciais, escritórios, lojas" : ""}, portugal, venda, arrendamento`}
-      />
-      <BreadcrumbSchema items={[
-        { name: "Home", url: "https://app.base44.com" },
-        { name: activeTab === "residential" ? "ZuHaus" : activeTab === "commercial" ? "ZuHandel" : "ZuGruppe", url: `https://app.base44.com/ZuGruppe` }
-      ]} />
-      
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 

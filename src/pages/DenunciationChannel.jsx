@@ -101,10 +101,6 @@ export default function DenunciationChannel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-      <SEOHead 
-        title="Canal de Denúncias - Zugruppe"
-        description="Canal de denúncias da Zugruppe ao abrigo da Lei n.º 93/2021. Garantimos total confidencialidade."
-      />
       <div className="max-w-3xl mx-auto">
         <Card className="shadow-xl border-slate-200">
           <CardContent className="p-8 md:p-12">

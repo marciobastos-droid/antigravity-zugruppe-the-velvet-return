@@ -8,10 +8,6 @@ import SEOHead from "../components/seo/SEOHead";
 export default function CookiePolicy() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
-      <SEOHead 
-        title="Política de Cookies - Zugruppe"
-        description="Política de Cookies da Zugruppe. Saiba como utilizamos cookies no nosso website."
-      />
       <div className="max-w-4xl mx-auto">
         <Link to={createPageUrl("ZuGruppe")}>
           <Button variant="ghost" className="mb-6">

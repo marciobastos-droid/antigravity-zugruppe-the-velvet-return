@@ -98,11 +98,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
-      <SEOHead 
-        title="Zugruppe - Marketplace Imobiliário Premium | Portugal"
-        description="Plataforma imobiliária líder em Portugal. Descubra imóveis exclusivos, tecnologia avançada e serviço personalizado para comprar, vender ou arrendar."
-        keywords="imóveis portugal, marketplace imobiliário, zugruppe, casas portugal, apartamentos venda, arrendamento"
-      />
       {/* Logo */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}

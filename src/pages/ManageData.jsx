@@ -8,10 +8,6 @@ import SEOHead from "../components/seo/SEOHead";
 export default function ManageData() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
-      <SEOHead 
-        title="Gerir os Seus Dados - Zugruppe"
-        description="Exerça os seus direitos RGPD. Aceda, retifique ou elimine os seus dados pessoais."
-      />
       <div className="max-w-4xl mx-auto">
         <Link to={createPageUrl("ZuGruppe")}>
           <Button variant="ghost" className="mb-6">

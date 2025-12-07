@@ -726,11 +726,6 @@ export default function MyListings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
-      <SEOHead 
-        title="Os Meus Anúncios - Zugruppe"
-        description="Gestão de imóveis e empreendimentos"
-        noindex={true}
-      />
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-8">
           <div>

@@ -1,14 +1,12 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Calendar, BarChart3, Brain, PieChart, Target } from "lucide-react";
-import SEOHead from "../components/seo/SEOHead";
-
-const ClientDatabase = React.lazy(() => import("../components/crm/ClientDatabase"));
-const AppointmentScheduler = React.lazy(() => import("../components/crm/AppointmentScheduler"));
-const CRMDashboard = React.lazy(() => import("../components/crm/CRMDashboard"));
-const MatchingTab = React.lazy(() => import("@/components/crm/MatchingTab"));
-const CRMMetricsDashboard = React.lazy(() => import("../components/crm/CRMMetricsDashboard"));
-const OpportunitiesContent = React.lazy(() => import("../components/crm/OpportunitiesContent"));
+import ClientDatabase from "../components/crm/ClientDatabase";
+import AppointmentScheduler from "../components/crm/AppointmentScheduler";
+import CRMDashboard from "../components/crm/CRMDashboard";
+import MatchingTab from "@/components/crm/MatchingTab";
+import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
+import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 
 export default function CRMAdvanced() {
   // Read tab from URL params
@@ -18,11 +16,6 @@ export default function CRMAdvanced() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
-      <SEOHead 
-        title="CRM - Zugruppe"
-        description="Gestão de clientes e oportunidades"
-        noindex={true}
-      />
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="mb-4 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-1 sm:mb-2">CRM</h1>
@@ -58,39 +51,27 @@ export default function CRMAdvanced() {
           </TabsList>
 
           <TabsContent value="metrics">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <CRMMetricsDashboard />
-            </React.Suspense>
+            <CRMMetricsDashboard />
           </TabsContent>
 
           <TabsContent value="dashboard">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <CRMDashboard />
-            </React.Suspense>
+            <CRMDashboard />
           </TabsContent>
 
           <TabsContent value="clients">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <ClientDatabase />
-            </React.Suspense>
+            <ClientDatabase />
           </TabsContent>
 
           <TabsContent value="opportunities">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <OpportunitiesContent />
-            </React.Suspense>
+            <OpportunitiesContent />
           </TabsContent>
 
           <TabsContent value="matching">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <MatchingTab />
-            </React.Suspense>
+            <MatchingTab />
           </TabsContent>
 
           <TabsContent value="appointments">
-            <React.Suspense fallback={<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" /></div>}>
-              <AppointmentScheduler />
-            </React.Suspense>
+            <AppointmentScheduler />
           </TabsContent>
         </Tabs>
       </div>

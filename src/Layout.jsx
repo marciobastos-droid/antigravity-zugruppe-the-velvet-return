@@ -5,8 +5,6 @@ import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, 
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
-import { HelmetProvider } from "react-helmet-async";
-import { OrganizationSchema } from "./components/seo/SchemaMarkup";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -93,11 +91,9 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <HelmetProvider>
-      <div className="min-h-screen bg-slate-50">
-        <OrganizationSchema />
-        <Toaster position="top-right" richColors />
-        <style>{`
+    <div className="min-h-screen bg-slate-50">
+      <Toaster position="top-right" richColors />
+      <style>{`
         :root {
           --color-primary: #0f172a;
           --color-accent: #d4af37;
@@ -350,6 +346,5 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </footer>
       </div>
-      </HelmetProvider>
       );
       }
