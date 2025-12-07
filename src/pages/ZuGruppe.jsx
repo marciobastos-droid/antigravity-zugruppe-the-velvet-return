@@ -1041,7 +1041,12 @@ function PropertyCardCompact({ property, featured }) {
         )}
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+          {property.ref_id && (
+            <Badge className="bg-slate-900/90 text-white border-0 font-mono backdrop-blur-sm">
+              {property.ref_id}
+            </Badge>
+          )}
           {featured && (
             <Badge className="bg-amber-400 text-slate-900 border-0">
               <Star className="w-3 h-3 mr-1" />
@@ -1132,9 +1137,16 @@ function PropertyCardList({ property }) {
             <Home className="w-12 h-12 text-slate-300" />
           </div>
         )}
-        <Badge className="absolute top-3 left-3 bg-white/95 text-slate-800 border-0">
-          {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
-        </Badge>
+        <div className="absolute top-3 left-3 flex gap-2">
+          {property.ref_id && (
+            <Badge className="bg-slate-900/90 text-white border-0 font-mono backdrop-blur-sm">
+              {property.ref_id}
+            </Badge>
+          )}
+          <Badge className="bg-white/95 text-slate-800 border-0">
+            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+          </Badge>
+        </div>
       </div>
 
       {/* Content */}
