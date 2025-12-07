@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { debounce } from "lodash";
 import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common/PortugalLocations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CookieBanner from "../components/common/CookieBanner";
 
 export default function ZuGruppe() {
   const [activeTab, setActiveTab] = React.useState("all");
@@ -280,6 +281,7 @@ export default function ZuGruppe() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <CookieBanner />
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 
