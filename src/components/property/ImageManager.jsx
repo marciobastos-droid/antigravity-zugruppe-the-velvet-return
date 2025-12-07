@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { 
   Image as ImageIcon, Plus, X, Star, Upload, 
-  ChevronLeft, ChevronRight, Loader2, ExternalLink, GripVertical
+  ChevronLeft, ChevronRight, Loader2, ExternalLink, GripVertical, Sparkles, Link as LinkIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -16,6 +17,8 @@ export default function ImageManager({ property, onUpdate, onChange }) {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedImages, setExtractedImages] = useState([]);
 
   const updateImages = (newImages) => {
     setImages(newImages);
@@ -85,6 +88,61 @@ export default function ImageManager({ property, onUpdate, onChange }) {
     setSaving(false);
   };
 
+  const extractImagesFromSource = async () => {
+    if (!property.source_url) {
+      toast.error("Imóvel sem link de origem");
+      return;
+    }
+
+    setExtracting(true);
+    setExtractedImages([]);
+    
+    try {
+      const response = await base44.functions.invoke('extractWebsiteImages', {
+        url: property.source_url,
+        useAI: true,
+        minWidth: 400,
+        minHeight: 300
+      });
+
+      const data = response.data;
+      
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      const propertyImages = data.images.filter(img => 
+        img.category === 'property' || img.category === 'content'
+      );
+
+      setExtractedImages(propertyImages);
+      
+      if (propertyImages.length === 0) {
+        toast.info("Nenhuma imagem de imóvel encontrada");
+      } else {
+        toast.success(`${propertyImages.length} imagens extraídas!`);
+      }
+    } catch (error) {
+      toast.error("Erro ao extrair imagens");
+      console.error(error);
+    }
+    
+    setExtracting(false);
+  };
+
+  const addExtractedImages = (selectedUrls) => {
+    const newImages = [...images];
+    selectedUrls.forEach(url => {
+      if (!newImages.includes(url)) {
+        newImages.push(url);
+      }
+    });
+    updateImages(newImages);
+    setExtractedImages([]);
+    toast.success(`${selectedUrls.length} imagens adicionadas`);
+  };
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -106,6 +164,88 @@ export default function ImageManager({ property, onUpdate, onChange }) {
             )}
           </Button>
         </div>
+
+        {/* Extract from Source */}
+        {property.source_url && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  Extrair Imagens do Link de Origem
+                </Label>
+                <p className="text-xs text-slate-600 mt-1">Extrai automaticamente imagens do anúncio original</p>
+              </div>
+              <Button 
+                onClick={extractImagesFromSource} 
+                disabled={extracting}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {extracting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    A extrair...
+                  </>
+                ) : (
+                  <>
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    Extrair
+                  </>
+                )}
+              </Button>
+            </div>
+            <a 
+              href={property.source_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+            >
+              <ExternalLink className="w-3 h-3" />
+              {property.source_url.substring(0, 60)}...
+            </a>
+          </div>
+        )}
+
+        {/* Extracted Images Preview */}
+        {extractedImages.length > 0 && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <Label className="text-sm font-medium mb-3 block flex items-center justify-between">
+              <span>Imagens Extraídas ({extractedImages.length})</span>
+              <Button 
+                size="sm"
+                onClick={() => addExtractedImages(extractedImages.map(img => img.url))}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Adicionar Todas
+              </Button>
+            </Label>
+            <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+              {extractedImages.map((img, idx) => (
+                <div key={idx} className="relative group">
+                  <img
+                    src={img.url}
+                    alt={`Extraída ${idx + 1}`}
+                    className="w-full h-20 object-cover rounded border border-green-300"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => addExtractedImages([img.url])}
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-black/70"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                  {img.category && (
+                    <Badge className="absolute top-1 left-1 text-xs bg-green-600">
+                      {img.category}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Add Image URL */}
         <div className="mb-4 p-4 bg-slate-50 rounded-lg">
