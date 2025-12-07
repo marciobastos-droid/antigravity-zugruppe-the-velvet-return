@@ -54,6 +54,7 @@ import AuditLogViewer from "../components/audit/AuditLogViewer";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
+import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -200,6 +201,7 @@ export default function Tools() {
                 <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
                 <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
+                <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                       <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
@@ -321,6 +323,7 @@ export default function Tools() {
         {activeTab === "duplicateClients" && <DuplicateClientsCleaner />}
         {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
         {activeTab === "imageValidator" && <ImageValidator />}
+        {activeTab === "imageExtractor" && <WebsiteImageExtractor />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
         {activeTab === "jsonProcessor" && <JSONProcessor />}
             {activeTab === "externalSync" && <ExternalDataSync />}
