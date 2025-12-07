@@ -51,12 +51,18 @@ export default function PropertyDetails() {
     queryKey: ['property', propertyId],
     queryFn: async () => {
       console.log('[PropertyDetails] Fetching property with ID:', propertyId);
-      const properties = await base44.entities.Property.filter({ id: propertyId });
-      console.log('[PropertyDetails] Properties found:', properties);
-      if (!properties || properties.length === 0) {
-        throw new Error('Property not found');
+      try {
+        // Tentar buscar como utilizador público primeiro
+        const properties = await base44.entities.Property.filter({ id: propertyId });
+        console.log('[PropertyDetails] Properties found:', properties);
+        if (!properties || properties.length === 0) {
+          throw new Error('Property not found');
+        }
+        return properties[0];
+      } catch (err) {
+        console.error('[PropertyDetails] Error:', err);
+        throw err;
       }
-      return properties[0];
     },
     enabled: !!propertyId,
     retry: 1
@@ -85,7 +91,13 @@ export default function PropertyDetails() {
 
   const { data: allProperties = [] } = useQuery({
     queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list(),
+    queryFn: async () => {
+      try {
+        return await base44.entities.Property.list();
+      } catch {
+        return [];
+      }
+    },
   });
 
   const { data: agents = [] } = useQuery({
@@ -101,7 +113,13 @@ export default function PropertyDetails() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: async () => {
+      try {
+        return await base44.entities.User.list();
+      } catch {
+        return [];
+      }
+    },
   });
 
   const updatePropertyMutation = useMutation({
