@@ -52,6 +52,7 @@ import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
 import CasafariSync from "../components/tools/CasafariSync";
+import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -125,10 +126,11 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Facebook className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(7 ferramentas)</span>
+                <span className="text-sm text-purple-600">(8 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
+                <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
                 <ToolButton toolId="facebookLeads" icon={Facebook} label="Leads Facebook" />
                 <ToolButton toolId="facebookCampaigns" icon={LayoutDashboard} label="Campanhas FB" />
                 <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários FB" />
@@ -281,6 +283,7 @@ export default function Tools() {
               </Card>
               </div>
 
+        {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
         {activeTab === "leadManagement" && <LeadManagementHub />}
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
