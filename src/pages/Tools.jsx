@@ -131,7 +131,6 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
-                <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários FB" />
                 <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
                 <ToolButton toolId="socialAdCreator" icon={Share2} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
                 <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
@@ -296,7 +295,6 @@ export default function Tools() {
         {activeTab === "apiPublish" && <DirectAPIExporter />}
         {activeTab === "apiIntegrations" && <APIIntegrationsManager />}
         {activeTab === "smtpConfig" && <SMTPConfiguration />}
-        {activeTab === "facebookForms" && <FacebookFormManager />}
         {activeTab === "importLeads" && <ImportLeads />}
         {activeTab === "description" && <PropertyDescriptionGenerator />}
         {activeTab === "socialMedia" && <SocialMediaGenerator />}

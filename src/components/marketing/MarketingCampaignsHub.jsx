@@ -15,6 +15,7 @@ import CampaignDetailsDialog from "./CampaignDetailsDialog";
 import CampaignAnalytics from "./CampaignAnalytics";
 import FacebookCampaignDashboard from "../tools/FacebookCampaignDashboard";
 import FacebookLeadsIntegration from "../tools/FacebookLeadsIntegration";
+import FacebookFormManager from "../tools/FacebookFormManager";
 
 export default function MarketingCampaignsHub() {
   const [activeTab, setActiveTab] = useState("all");
@@ -167,6 +168,7 @@ export default function MarketingCampaignsHub() {
           <TabsTrigger value="social">Redes Sociais</TabsTrigger>
           <TabsTrigger value="facebook">Facebook Ads</TabsTrigger>
           <TabsTrigger value="fbLeads">Leads Facebook</TabsTrigger>
+          <TabsTrigger value="fbForms">Formulários FB</TabsTrigger>
           <TabsTrigger value="analytics">Análise</TabsTrigger>
         </TabsList>
 
@@ -355,6 +357,10 @@ export default function MarketingCampaignsHub() {
 
         <TabsContent value="fbLeads" className="mt-6">
           <FacebookLeadsIntegration />
+        </TabsContent>
+
+        <TabsContent value="fbForms" className="mt-6">
+          <FacebookFormManager />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
