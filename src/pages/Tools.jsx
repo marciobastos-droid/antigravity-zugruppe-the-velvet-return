@@ -54,6 +54,7 @@ import AuditLogViewer from "../components/audit/AuditLogViewer";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
+import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -178,7 +179,8 @@ export default function Tools() {
                     <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
                     <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
                     <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                          <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
+                    <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" className="bg-green-50 border-green-300 hover:bg-green-100" />
+                    <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
                     <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
               </div>
               </CardContent>
@@ -323,8 +325,9 @@ export default function Tools() {
         {activeTab === "imageExtractor" && <WebsiteImageExtractor />}
         {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
         {activeTab === "jsonProcessor" && <JSONProcessor />}
-            {activeTab === "externalSync" && <ExternalDataSync />}
-            {activeTab === "auditLog" && <AuditLogViewer />}
+        {activeTab === "propertyFeeds" && <PropertyFeedsManager />}
+        {activeTab === "externalSync" && <ExternalDataSync />}
+        {activeTab === "auditLog" && <AuditLogViewer />}
         {activeTab === "casafariSync" && <CasafariSync />}
         {activeTab === "gmailSync" && (
               <Card>
