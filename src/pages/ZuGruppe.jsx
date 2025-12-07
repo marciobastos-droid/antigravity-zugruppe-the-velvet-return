@@ -115,12 +115,7 @@ export default function ZuGruppe() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
-  const activeProperties = properties.filter(p => 
-    p.status === 'active' && 
-    p.availability_status !== 'sold' && 
-    p.availability_status !== 'rented' && 
-    p.availability_status !== 'withdrawn'
-  );
+  const activeProperties = properties.filter(p => p.status === 'active');
   
   // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
