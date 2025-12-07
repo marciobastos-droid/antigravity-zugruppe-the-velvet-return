@@ -48,8 +48,8 @@ export default function PropertyDetails() {
   const { data: property, isLoading } = useQuery({
     queryKey: ['property', propertyId],
     queryFn: async () => {
-      const properties = await base44.entities.Property.list();
-      return properties.find(p => p.id === propertyId);
+      const properties = await base44.entities.Property.filter({ id: propertyId });
+      return properties[0];
     },
     enabled: !!propertyId
   });
