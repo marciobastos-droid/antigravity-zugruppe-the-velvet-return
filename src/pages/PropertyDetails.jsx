@@ -456,7 +456,13 @@ export default function PropertyDetails() {
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200">
                   <div>
                     <div className="text-4xl font-bold text-slate-900">
-                      €{property.price?.toLocaleString()}
+                      {property.currency === 'EUR' ? '€' : 
+                       property.currency === 'USD' ? '$' :
+                       property.currency === 'GBP' ? '£' :
+                       property.currency === 'AED' ? 'د.إ' :
+                       property.currency === 'AOA' ? 'Kz' :
+                       property.currency === 'BRL' ? 'R$' :
+                       property.currency || '€'}{property.price?.toLocaleString()}
                       {property.listing_type === 'rent' && <span className="text-lg font-normal text-slate-500">/mês</span>}
                     </div>
                     <div className="flex gap-2 mt-2">

@@ -29,6 +29,8 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     property_type: "apartment",
     listing_type: "sale",
     price: "",
+    currency: "EUR",
+    country: "Portugal",
     bedrooms: "",
     bathrooms: "",
     square_feet: "",
@@ -131,6 +133,8 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         property_type: property.property_type || "apartment",
         listing_type: property.listing_type || "sale",
         price: property.price || "",
+        currency: property.currency || "EUR",
+        country: property.country || "Portugal",
         bedrooms: property.bedrooms || "",
         bathrooms: property.bathrooms || "",
         square_feet: property.square_feet || "",
@@ -431,6 +435,36 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                 </div>
 
                 <div>
+                  <Label>Moeda</Label>
+                  <Select value={formData.currency || "EUR"} onValueChange={(v) => setFormData({...formData, currency: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">€ Euro (EUR)</SelectItem>
+                      <SelectItem value="USD">$ Dólar (USD)</SelectItem>
+                      <SelectItem value="GBP">£ Libra (GBP)</SelectItem>
+                      <SelectItem value="AED">د.إ Dirham (AED)</SelectItem>
+                      <SelectItem value="AOA">Kz Kwanza (AOA)</SelectItem>
+                      <SelectItem value="BRL">R$ Real (BRL)</SelectItem>
+                      <SelectItem value="CHF">CHF Franco Suíço</SelectItem>
+                      <SelectItem value="CAD">C$ Dólar Canadiano</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <ValidatedInput
+                  id="edit-price"
+                  label="Preço"
+                  type="number"
+                  required
+                  value={formData.price}
+                  onChange={(e) => setFormData({...formData, price: e.target.value})}
+                  placeholder="250000"
+                  validator="price"
+                />
+
+                <div>
                   <Label>Tipo de Imóvel *</Label>
                   <Select value={formData.property_type} onValueChange={(v) => setFormData({...formData, property_type: v})}>
                     <SelectTrigger>
@@ -465,17 +499,6 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                     </SelectContent>
                   </Select>
                 </div>
-
-                <ValidatedInput
-                  id="edit-price"
-                  label="Preço (€)"
-                  type="number"
-                  required
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  placeholder="250000"
-                  validator="price"
-                />
 
                 <div>
                   <Label>Estado</Label>
@@ -805,12 +828,41 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   value={formData.zip_code}
                   onChange={(e) => setFormData({...formData, zip_code: e.target.value})}
                   placeholder="1000-001"
-                  validator="postalCode"
-                  hint="Formato: 1234-567"
+                  hint="Ex: 1234-567 (PT), 10001 (US)"
                 />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+                <div>
+                  <Label>País *</Label>
+                  <Select value={formData.country || "Portugal"} onValueChange={(v) => setFormData({...formData, country: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
+                      <SelectItem value="Spain">🇪🇸 Espanha</SelectItem>
+                      <SelectItem value="France">🇫🇷 França</SelectItem>
+                      <SelectItem value="Italy">🇮🇹 Itália</SelectItem>
+                      <SelectItem value="United Kingdom">🇬🇧 Reino Unido</SelectItem>
+                      <SelectItem value="Germany">🇩🇪 Alemanha</SelectItem>
+                      <SelectItem value="United States">🇺🇸 Estados Unidos</SelectItem>
+                      <SelectItem value="Canada">🇨🇦 Canadá</SelectItem>
+                      <SelectItem value="Brazil">🇧🇷 Brasil</SelectItem>
+                      <SelectItem value="United Arab Emirates">🇦🇪 Emirados Árabes</SelectItem>
+                      <SelectItem value="Angola">🇦🇴 Angola</SelectItem>
+                      <SelectItem value="Mozambique">🇲🇿 Moçambique</SelectItem>
+                      <SelectItem value="Cape Verde">🇨🇻 Cabo Verde</SelectItem>
+                      <SelectItem value="Switzerland">🇨🇭 Suíça</SelectItem>
+                      <SelectItem value="Luxembourg">🇱🇺 Luxemburgo</SelectItem>
+                      <SelectItem value="Netherlands">🇳🇱 Holanda</SelectItem>
+                      <SelectItem value="Belgium">🇧🇪 Bélgica</SelectItem>
+                      <SelectItem value="Greece">🇬🇷 Grécia</SelectItem>
+                      <SelectItem value="Turkey">🇹🇷 Turquia</SelectItem>
+                      <SelectItem value="Morocco">🇲🇦 Marrocos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                </div>
+                </CollapsibleContent>
+                </Collapsible>
 
           {/* Management & Notes */}
           <Collapsible open={openSections.management} onOpenChange={() => toggleSection('management')}>
