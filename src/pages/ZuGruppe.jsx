@@ -987,7 +987,7 @@ export default function ZuGruppe() {
               </Link>
             </div>
             <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados.
+              © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados. | Licença IMPIC 11355
             </p>
           </div>
           </div>
