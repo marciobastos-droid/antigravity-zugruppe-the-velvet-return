@@ -76,9 +76,20 @@ const PropertyCard = memo(function PropertyCard({
                 <h3 className="text-2xl font-bold text-slate-900 mb-2">{property.title}</h3>
                 <div className="flex items-center text-slate-600 mb-2">
                   <MapPin className="w-4 h-4 mr-1" />
-                  <span>{property.city}, {property.state}</span>
+                  <span>
+                    {property.city}, {property.state}
+                    {property.country && property.country !== 'Portugal' && (
+                      <Badge variant="outline" className="ml-2 text-xs">{property.country}</Badge>
+                    )}
+                  </span>
                 </div>
-                <div className="text-slate-900 font-bold text-xl mb-3">€{property.price?.toLocaleString()}</div>
+                <div className="text-slate-900 font-bold text-xl mb-3">
+                  {property.currency === 'EUR' ? '€' : 
+                   property.currency === 'USD' ? '$' :
+                   property.currency === 'GBP' ? '£' :
+                   property.currency === 'AED' ? 'د.إ' :
+                   property.currency || '€'}{property.price?.toLocaleString()}
+                </div>
                 <div className="flex flex-wrap gap-2 mb-3 text-sm text-slate-600">
                   {property.bedrooms > 0 && <span>🛏️ {property.bedrooms} quartos</span>}
                   {property.bathrooms > 0 && <span>🚿 {property.bathrooms} WC</span>}
@@ -158,6 +169,7 @@ export default function MyListings() {
     status: "all",
     property_type: "all",
     listing_type: "all",
+    country: "all",
     price: {},
     tags: [],
     state: "all",
@@ -550,9 +562,24 @@ export default function MyListings() {
         { value: "rent", label: "Arrendamento" }
       ]
     },
+    country: {
+      type: FILTER_TYPES.select,
+      label: "País",
+      field: "country",
+      options: [
+        { value: "Portugal", label: "🇵🇹 Portugal" },
+        { value: "Spain", label: "🇪🇸 Espanha" },
+        { value: "France", label: "🇫🇷 França" },
+        { value: "United Kingdom", label: "🇬🇧 Reino Unido" },
+        { value: "United Arab Emirates", label: "🇦🇪 Emirados Árabes" },
+        { value: "United States", label: "🇺🇸 Estados Unidos" },
+        { value: "Brazil", label: "🇧🇷 Brasil" },
+        { value: "Angola", label: "🇦🇴 Angola" }
+      ]
+    },
     price: {
       type: FILTER_TYPES.numberRange,
-      label: "Preço (€)",
+      label: "Preço",
       field: "price",
       prefix: "€"
     },

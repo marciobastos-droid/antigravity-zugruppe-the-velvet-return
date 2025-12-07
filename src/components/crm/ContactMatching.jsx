@@ -172,6 +172,13 @@ export default function ContactMatching({ contact }) {
     let score = 0;
     let maxScore = 0;
 
+    // Country match (if specified, it's mandatory)
+    if (req.countries?.length > 0) {
+      if (!req.countries.includes(property.country || 'Portugal')) {
+        return 0; // No match if country doesn't match
+      }
+    }
+
     // Location match
     if (req.locations?.length > 0) {
       maxScore += w.location;

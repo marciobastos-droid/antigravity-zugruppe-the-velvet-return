@@ -85,12 +85,16 @@ export default function ContactRequirements({ contact, onUpdate }) {
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
-      if (!contact?.id) {
-        throw new Error("Contact ID is missing");
+      const contactId = contact?.id;
+      console.log('Contact object:', contact);
+      console.log('Contact ID:', contactId, 'Type:', typeof contactId, 'Length:', contactId?.length);
+      
+      if (!contactId || typeof contactId !== 'string' || contactId.length < 20) {
+        throw new Error(`ID de contacto inválido: ${contactId}`);
       }
       
-      console.log('Saving requirements for contact:', contact.id, data);
-      const result = await base44.entities.ClientContact.update(contact.id, { property_requirements: data });
+      console.log('Saving requirements for contact:', contactId, data);
+      const result = await base44.entities.ClientContact.update(contactId, { property_requirements: data });
       console.log('Save result:', result);
       return { data, result };
     },
@@ -381,6 +385,46 @@ INSTRUÇÕES:
             </Select>
           </div>
 
+          {/* Countries */}
+          <div>
+            <Label className="mb-2 block">Países de Interesse</Label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {(requirements.countries || []).map(country => (
+                <Badge key={country} variant="secondary" className="gap-1">
+                  {country}
+                  <X className="w-3 h-3 cursor-pointer" onClick={() => {
+                    setRequirements({
+                      ...requirements,
+                      countries: (requirements.countries || []).filter(c => c !== country)
+                    });
+                  }} />
+                </Badge>
+              ))}
+            </div>
+            <Select onValueChange={(v) => {
+              if (v && !(requirements.countries || []).includes(v)) {
+                setRequirements({
+                  ...requirements,
+                  countries: [...(requirements.countries || []), v]
+                });
+              }
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Adicionar país..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Portugal">🇵🇹 Portugal</SelectItem>
+                <SelectItem value="Spain">🇪🇸 Espanha</SelectItem>
+                <SelectItem value="France">🇫🇷 França</SelectItem>
+                <SelectItem value="United Kingdom">🇬🇧 Reino Unido</SelectItem>
+                <SelectItem value="United Arab Emirates">🇦🇪 Emirados Árabes</SelectItem>
+                <SelectItem value="United States">🇺🇸 Estados Unidos</SelectItem>
+                <SelectItem value="Brazil">🇧🇷 Brasil</SelectItem>
+                <SelectItem value="Angola">🇦🇴 Angola</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Property Types */}
           <div>
             <Label className="mb-2 block">Tipos de Imóvel</Label>
@@ -663,6 +707,22 @@ INSTRUÇÕES:
             </div>
           )}
         </div>
+
+        {/* Countries */}
+        {req.countries?.length > 0 && (
+          <div>
+            <div className="text-xs text-slate-500 mb-1 flex items-center gap-1">
+              🌍 Países
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {req.countries.map(country => (
+                <Badge key={country} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                  {country}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Locations */}
         {req.locations?.length > 0 && (

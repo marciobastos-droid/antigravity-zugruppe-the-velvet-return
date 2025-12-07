@@ -87,7 +87,11 @@ export default function PropertyCard({ property }) {
         </div>
         <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4">
           <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-base md:text-lg">
-            €{property.price?.toLocaleString()}
+            {property.currency === 'EUR' ? '€' : 
+             property.currency === 'USD' ? '$' :
+             property.currency === 'GBP' ? '£' :
+             property.currency === 'AED' ? 'د.إ' :
+             property.currency || '€'}{property.price?.toLocaleString()}
           </div>
         </div>
       </div>
@@ -100,7 +104,10 @@ export default function PropertyCard({ property }) {
         
         <div className="flex items-center text-slate-600 mb-3 md:mb-4">
           <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-          <span className="text-sm truncate">{property.city}, {property.state}</span>
+          <span className="text-sm truncate">
+            {property.city}, {property.state}
+            {property.country && property.country !== 'Portugal' && ` • ${property.country}`}
+          </span>
         </div>
 
         {/* Property Details */}
