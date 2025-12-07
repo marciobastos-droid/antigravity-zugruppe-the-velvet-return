@@ -22,13 +22,13 @@ export default function Layout({ children, currentPageName }) {
   // Carregar permissões do utilizador
   React.useEffect(() => {
     if (user?.email) {
-      base44.entities.UserPermission.filter({ user_email: user.email })
-        .then(perms => {
-          if (perms.length > 0) {
-            setUserPermissions(perms[0].permissions);
-          }
-        })
-        .catch(() => {});
+      base44.entities.UserPermission.filter({ user_email: user.email }).
+      then((perms) => {
+        if (perms.length > 0) {
+          setUserPermissions(perms[0].permissions);
+        }
+      }).
+      catch(() => {});
     }
   }, [user?.email]);
 
@@ -46,15 +46,15 @@ export default function Layout({ children, currentPageName }) {
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
   // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
-    { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
-    { name: "ZuGruppe", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
-    { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
-    { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
-    
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
-    { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
-    { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
-    ];
+  { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
+  { name: "ZuGruppe", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
+  { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
+  { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
+
+  { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
+  { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
+  { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' }];
+
 
   // Verificar se utilizador tem permissão para uma página específica
   const hasPagePermission = (pagePermKey) => {
@@ -67,14 +67,14 @@ export default function Layout({ children, currentPageName }) {
     // Se tem permissão de ferramentas (tools), dar acesso
     if (pagePermKey === 'tools' && userPermissions?.tools) {
       // Verifica se tem pelo menos uma ferramenta permitida
-      const hasAnyTool = Object.values(userPermissions.tools).some(v => v === true);
+      const hasAnyTool = Object.values(userPermissions.tools).some((v) => v === true);
       if (hasAnyTool) return true;
     }
     return false;
   };
 
   // Filtrar itens baseado na visibilidade e permissões
-  const navItems = allNavItems.filter(item => {
+  const navItems = allNavItems.filter((item) => {
     // Se é página com visibilidade 'all', sempre mostrar
     if (item.visibility === 'all') return true;
 
@@ -85,9 +85,9 @@ export default function Layout({ children, currentPageName }) {
 
     // Fallback para verificação por tipo de utilizador
     if (Array.isArray(item.visibility)) {
-      return item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
+      return item.visibility.includes(userType) || isAdmin && item.visibility.includes('admin');
     }
-    return item.visibility === userType || (isAdmin && item.visibility === 'admin');
+    return item.visibility === userType || isAdmin && item.visibility === 'admin';
   });
 
   return (
@@ -110,148 +110,148 @@ export default function Layout({ children, currentPageName }) {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
                     <Link to={createPageUrl("Home")} className="flex items-center gap-2 md:gap-3 group flex-shrink-0">
-                      <img 
-                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-                        alt="Zugruppe Logo"
-                        className="h-7 sm:h-8 md:h-12 w-auto object-contain transform group-hover:scale-105 transition-transform duration-200"
-                      />
+                      <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+                alt="Zugruppe Logo"
+                className="h-7 sm:h-8 md:h-12 w-auto object-contain transform group-hover:scale-105 transition-transform duration-200" />
+
                     </Link>
 
             <nav className="hidden md:flex items-center gap-0.5 lg:gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  id={item.id}
-                  className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg font-medium text-xs lg:text-sm transition-all duration-200 ${
-                    location.pathname === item.path
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                  }`}
-                >
+              {navItems.map((item) =>
+              <Link
+                key={item.name}
+                to={item.path}
+                id={item.id}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-lg font-medium text-xs lg:text-sm transition-all duration-200 ${
+                location.pathname === item.path ?
+                "bg-slate-900 text-white" :
+                "text-slate-600 hover:text-slate-900 hover:bg-slate-100"}`
+                }>
+
                   <item.icon className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                   <span className="hidden lg:inline">{item.name}</span>
                 </Link>
-              ))}
+              )}
             </nav>
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
               {user && <NotificationBell user={user} />}
-              {user ? (
-                <div className="hidden lg:flex items-center gap-3">
+              {user ?
+              <div className="hidden lg:flex items-center gap-3">
                     <div className="text-right hidden xl:block">
                       <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
                       <p className="text-xs text-slate-500">
-                        {user.user_type === 'admin' ? 'Administrador' : 
-                         user.user_type === 'gestor' ? 'Gestor' : 
-                         user.user_type === 'agente' ? 'Agente' : user.email}
+                        {user.user_type === 'admin' ? 'Administrador' :
+                    user.user_type === 'gestor' ? 'Gestor' :
+                    user.user_type === 'agente' ? 'Agente' : user.email}
                       </p>
                     </div>
-                    {user.photo_url ? (
-                      <img 
-                        src={user.photo_url} 
-                        alt={user.full_name}
-                        className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-slate-200"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    {user.photo_url ?
+                <img
+                  src={user.photo_url}
+                  alt={user.full_name}
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover flex-shrink-0 border-2 border-slate-200" /> :
+
+
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-semibold text-xs md:text-sm">
                           {user.full_name?.[0]?.toUpperCase() || "U"}
                         </span>
                       </div>
-                    )}
+                }
                     <button
-                      onClick={() => base44.auth.logout()}
-                      className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
-                    >
+                  onClick={() => base44.auth.logout()}
+                  className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+
                       Sair
                     </button>
-                  </div>
-              ) : (
-                <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  className="hidden lg:block px-3 md:px-4 py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors duration-200"
-                >
+                  </div> :
+
+              <button
+                onClick={() => base44.auth.redirectToLogin()}
+                className="hidden lg:block px-3 md:px-4 py-2 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors duration-200">
+
                   Entrar
                 </button>
-              )}
+              }
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
+                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors">
+
                 {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
             </div>
           </div>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white">
+        {mobileMenuOpen &&
+        <div className="md:hidden border-t border-slate-200 bg-white">
             <nav className="max-w-7xl mx-auto px-3 py-2 space-y-0.5">
-              {navItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                    location.pathname === item.path
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
+              {navItems.map((item) =>
+            <Link
+              key={item.name}
+              to={item.path}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+              location.pathname === item.path ?
+              "bg-slate-900 text-white" :
+              "text-slate-700 hover:bg-slate-100"}`
+              }>
+
                   <item.icon className="w-4 h-4" />
                   {item.name}
                 </Link>
-              ))}
+            )}
               
-              {user && (
-                <div className="px-3 py-2.5 border-t border-slate-200 mt-1.5 pt-3">
+              {user &&
+            <div className="px-3 py-2.5 border-t border-slate-200 mt-1.5 pt-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      {user.photo_url ? (
-                        <img 
-                          src={user.photo_url} 
-                          alt={user.full_name}
-                          className="w-9 h-9 rounded-full object-cover border-2 border-slate-200"
-                        />
-                      ) : (
-                        <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+                      {user.photo_url ?
+                  <img
+                    src={user.photo_url}
+                    alt={user.full_name}
+                    className="w-9 h-9 rounded-full object-cover border-2 border-slate-200" /> :
+
+
+                  <div className="w-9 h-9 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
                           <span className="text-white font-semibold text-xs">
                             {user.full_name?.[0]?.toUpperCase() || "U"}
                           </span>
                         </div>
-                      )}
+                  }
                       <div>
                         <p className="text-sm font-medium text-slate-900 truncate max-w-[150px]">{user.full_name}</p>
                         <p className="text-xs text-slate-500">
-                          {user.user_type === 'admin' ? 'Admin' : 
-                           user.user_type === 'gestor' ? 'Gestor' : 
-                           user.user_type === 'agente' ? 'Agente' : 'Utilizador'}
+                          {user.user_type === 'admin' ? 'Admin' :
+                      user.user_type === 'gestor' ? 'Gestor' :
+                      user.user_type === 'agente' ? 'Agente' : 'Utilizador'}
                         </p>
                       </div>
                     </div>
                     <button
-                      onClick={() => base44.auth.logout()}
-                      className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
+                  onClick={() => base44.auth.logout()}
+                  className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+
                       Sair
                     </button>
                   </div>
                 </div>
-              )}
+            }
 
-              {!user && (
-                <button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  className="w-full px-3 py-2.5 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors duration-200"
-                >
+              {!user &&
+            <button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="w-full px-3 py-2.5 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors duration-200">
+
                   Entrar
                 </button>
-              )}
+            }
             </nav>
           </div>
-        )}
+        }
       </header>
 
       <main className="pb-8">{children}</main>
@@ -271,17 +271,17 @@ export default function Layout({ children, currentPageName }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
               {/* Brand Section */}
               <div className="lg:col-span-2">
-                <img 
+                <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
                   alt="Zugruppe"
-                  className="h-12 mb-4 object-contain"
-                />
+                  className="h-12 mb-4 object-contain" />
+
                 <p className="text-slate-400 text-sm leading-relaxed max-w-md mb-6">
                   Marketplace imobiliário premium que transforma a forma como compra, vende e gere propriedades. 
                   Tecnologia avançada para uma experiência imobiliária moderna.
                 </p>
-                <p className="text-slate-500 text-xs">
-                  Privileged Approach Unipessoal Lda
+                <p className="text-slate-500 text-xs">Privileged Approach Unipessoal Lda IMPIC 11355
+
                 </p>
               </div>
 
@@ -291,15 +291,15 @@ export default function Layout({ children, currentPageName }) {
                   Navegação
                 </h3>
                 <div className="space-y-3">
-                  {navItems.slice(0, 5).map((item) => (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      className="block text-slate-400 hover:text-white text-sm transition-colors duration-200 hover:translate-x-1 transform"
-                    >
+                  {navItems.slice(0, 5).map((item) =>
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="block text-slate-400 hover:text-white text-sm transition-colors duration-200 hover:translate-x-1 transform">
+
                       → {item.name}
                     </Link>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -336,15 +336,11 @@ export default function Layout({ children, currentPageName }) {
                 <a href="#" className="hover:text-white transition-colors">
                   Termos
                 </a>
-                <span>•</span>
-                <Link to={createPageUrl("DenunciationChannel")} className="hover:text-white transition-colors">
-                  Canal de Denúncias
-                </Link>
               </div>
             </div>
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 }
