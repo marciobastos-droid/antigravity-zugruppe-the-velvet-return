@@ -29,6 +29,7 @@ import DocumentManager from "../components/property/DocumentManager";
 import DocumentUploader from "../components/documents/DocumentUploader";
 import ScheduleViewing from "../components/property/ScheduleViewing";
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
+import PublicationStatus from "../components/property/PublicationStatus";
 
 export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -669,6 +670,11 @@ export default function PropertyDetails() {
                   </p>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Publication Status */}
+            {isOwner && (
+              <PublicationStatus property={property} variant="detailed" />
             )}
 
             {/* Property Management Section */}
