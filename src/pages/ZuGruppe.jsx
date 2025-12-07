@@ -942,56 +942,6 @@ export default function ZuGruppe() {
           </div>
           </div>
           </div>
-
-          {/* Footer Legal */}
-          <footer className="bg-slate-900 text-white py-8 mt-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-400">
-              <a
-                href="https://www.consumidor.gov.pt/resolucao-de-litigios.aspx"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                Resolução Alternativa de Litígios
-              </a>
-              <span>•</span>
-              <a
-                href="https://www.livroreclamacoes.pt/Inicio/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                Livro de Reclamações online
-              </a>
-              <span>•</span>
-              <Link to={createPageUrl("TermsConditions")} className="hover:text-white transition-colors">
-                Termos e Condições
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("PrivacyPolicy")} className="hover:text-white transition-colors">
-                Política de Privacidade
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("CookiePolicy")} className="hover:text-white transition-colors">
-                Política de Cookies
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("DenunciationChannel")} className="hover:text-white transition-colors">
-                Canal de Denúncias
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("ManageData")} className="hover:text-white transition-colors">
-                Gerir Dados
-              </Link>
-            </div>
-            <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados.
-            </p>
-          </div>
-          </div>
-          </footer>
           </div>
           );
           }
