@@ -187,24 +187,42 @@ export default function PublicationStatus({ property, variant = "detailed" }) {
     );
   }
 
-  // Icons only for very compact view
-  if (variant === "icons") {
+  // Compact icons for table view
+  if (variant === "compact") {
     const totalChannels = publishedPages.length + publishedPortals.length;
     
     if (totalChannels === 0) {
-      return null;
+      return (
+        <span className="text-xs text-slate-400">-</span>
+      );
     }
 
     return (
-      <div className="flex items-center gap-1" title={`Publicado em ${totalChannels} canal${totalChannels > 1 ? 'is' : ''}`}>
+      <div className="flex items-center gap-1">
         {publishedPages.length > 0 && (
-          <div className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center" title={`${publishedPages.length} página${publishedPages.length > 1 ? 's' : ''}`}>
-            <Globe className="w-3 h-3 text-blue-600" />
+          <div 
+            className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center relative" 
+            title={`${publishedPages.length} página${publishedPages.length > 1 ? 's' : ''} do website`}
+          >
+            <Globe className="w-3.5 h-3.5 text-blue-600" />
+            {publishedPages.length > 1 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                {publishedPages.length}
+              </span>
+            )}
           </div>
         )}
         {publishedPortals.length > 0 && (
-          <div className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center" title={`${publishedPortals.length} portal${publishedPortals.length > 1 ? 'is' : ''}`}>
-            <Building2 className="w-3 h-3 text-purple-600" />
+          <div 
+            className="w-6 h-6 bg-purple-100 rounded flex items-center justify-center relative" 
+            title={`${publishedPortals.length} portal${publishedPortals.length > 1 ? 'is' : ''} imobiliário${publishedPortals.length > 1 ? 's' : ''}`}
+          >
+            <Building2 className="w-3.5 h-3.5 text-purple-600" />
+            {publishedPortals.length > 1 && (
+              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                {publishedPortals.length}
+              </span>
+            )}
           </div>
         )}
       </div>
