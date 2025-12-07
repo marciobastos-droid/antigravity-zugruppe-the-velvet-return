@@ -1027,6 +1027,16 @@ Extrai:
           }
         }}
       />
+
+      {/* Client History Timeline */}
+      {lead.buyer_email && (
+        <div className="mt-6">
+          <ClientHistoryTimeline 
+            clientEmail={lead.buyer_email} 
+            clientName={lead.buyer_name}
+          />
+        </div>
+      )}
     </div>
   );
 

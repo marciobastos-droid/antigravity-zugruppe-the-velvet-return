@@ -28,6 +28,7 @@ import LeaseManager from "../components/property/LeaseManager";
 import DocumentManager from "../components/property/DocumentManager";
 import DocumentUploader from "../components/documents/DocumentUploader";
 import ScheduleViewing from "../components/property/ScheduleViewing";
+import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 
 export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -861,10 +862,10 @@ export default function PropertyDetails() {
 
                 {/* Schedule Viewing Button */}
                 <div className="mt-6 pt-6 border-t">
-                  <ScheduleViewing 
-                    property={property}
-                    agentEmail={assignedAgent?.email || property.created_by}
-                    agentName={assignedAgent?.full_name || property.agent_name}
+                  <QuickAppointmentButton 
+                    propertyId={property.id}
+                    variant="default"
+                    size="default"
                   />
                 </div>
 
