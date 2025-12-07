@@ -15,7 +15,9 @@ import AIPropertyTools from "../property/AIPropertyTools";
 import LocationAutocomplete from "../property/LocationAutocomplete";
 import ValidatedInput from "../property/ValidatedInput";
 import PublicationManager from "../property/PublicationManager";
+import ImageManager from "../property/ImageManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
@@ -93,7 +95,7 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     basic: true,
     details: true,
     location: true,
-    media: false,
+    media: true,
     management: false
   });
 
@@ -374,62 +376,24 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          {/* Images Section */}
-          <div className="space-y-3">
-            <Label>Imagens do Imóvel</Label>
-            
-            {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {formData.images.map((img, idx) => (
-                  <div key={idx} className="relative group">
-                    <img 
-                      src={img} 
-                      alt={`Imagem ${idx + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-slate-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    {idx === 0 && (
-                      <div className="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded">
-                        Principal
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+        <Tabs defaultValue="details" className="mt-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Detalhes</TabsTrigger>
+            <TabsTrigger value="images">Imagens</TabsTrigger>
+          </TabsList>
 
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload-edit"
-                disabled={uploading}
-              />
-              <label htmlFor="image-upload-edit" className="cursor-pointer">
-                {uploading ? (
-                  <Loader2 className="w-10 h-10 text-slate-400 mx-auto mb-3 animate-spin" />
-                ) : (
-                  <ImageIcon className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-                )}
-                <p className="text-slate-700 font-medium mb-1">
-                  {uploading ? "A carregar..." : "Clique para adicionar imagens"}
-                </p>
-                <p className="text-sm text-slate-500">
-                  {formData.images.length > 0 ? `${formData.images.length} imagem${formData.images.length > 1 ? 'ns' : ''} atual${formData.images.length > 1 ? 'mente' : ''}` : "PNG, JPG até 10MB cada"}
-                </p>
-              </label>
-            </div>
-          </div>
+          <TabsContent value="images" className="mt-6">
+            <ImageManager 
+              property={property}
+              onUpdate={() => {
+                queryClient.invalidateQueries({ queryKey: ['property', property.id] });
+                queryClient.invalidateQueries({ queryKey: ['properties'] });
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="details">
+            <form onSubmit={handleSubmit} className="space-y-6 mt-4">
 
           {/* Source URL - Link de Origem */}
           {property?.source_url && (
@@ -922,23 +886,25 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={updateMutation.isPending} className="flex-1 bg-slate-900 hover:bg-slate-800">
-              {updateMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  A guardar...
-                </>
-              ) : (
-                "Guardar Alterações"
-              )}
-            </Button>
-          </div>
-        </form>
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={updateMutation.isPending} className="flex-1 bg-slate-900 hover:bg-slate-800">
+                  {updateMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A guardar...
+                    </>
+                  ) : (
+                    "Guardar Alterações"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
