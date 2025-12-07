@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, Shield } from "lucide-react";
-import SEOHead from "../components/seo/SEOHead";
 
 export default function PrivacyPolicy() {
   return (

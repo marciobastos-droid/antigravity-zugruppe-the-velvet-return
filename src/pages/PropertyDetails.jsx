@@ -323,9 +323,8 @@ export default function PropertyDetails() {
               >
                 <img
                   src={images[selectedImage]}
-                  alt={`${property.title} - Imagem ${selectedImage + 1}`}
+                  alt={property.title}
                   className="w-full h-full object-cover"
-                  loading="eager"
                 />
                 
                 {/* Navigation Arrows */}
@@ -376,7 +375,7 @@ export default function PropertyDetails() {
                         selectedImage === idx ? 'border-amber-400 ring-2 ring-amber-200' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={img} alt="" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -914,7 +913,7 @@ export default function PropertyDetails() {
               
               <img
                 src={images[selectedImage]}
-                alt={`${property.title} - Imagem ${selectedImage + 1}`}
+                alt={property.title}
                 className="max-w-full max-h-full object-contain"
               />
               
@@ -945,7 +944,7 @@ export default function PropertyDetails() {
                       selectedImage === idx ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
                 ))}
                 {images.length > 8 && (
