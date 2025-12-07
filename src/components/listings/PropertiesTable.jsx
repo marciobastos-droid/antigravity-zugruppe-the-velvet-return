@@ -4,9 +4,10 @@ import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Building2, Hash, ExternalLink, User } from "lucide-react";
+import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Building2, Hash, ExternalLink, User, Globe } from "lucide-react";
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
+import PublicationStatus from "../property/PublicationStatus";
 
 const statusLabels = {
   active: "Ativo",
@@ -191,6 +192,16 @@ export default function PropertiesTable({
       }
     },
     {
+      key: "publication",
+      label: "Publicação",
+      minWidth: "150px",
+      render: (_, property) => <PublicationStatus property={property} variant="badges" />,
+      sortValue: (property) => {
+        const total = (property.published_portals?.length || 0) + (property.published_pages?.length || 0);
+        return total;
+      }
+    },
+    {
       key: "status",
       label: "Estado",
       minWidth: "130px",
@@ -288,7 +299,7 @@ export default function PropertiesTable({
 
   const defaultVisibleColumns = [
     "image", "ref_id", "title", "development_name", "price", "property_type", 
-    "bedrooms", "useful_area", "agent_name", "status", "actions"
+    "bedrooms", "useful_area", "publication", "agent_name", "status", "actions"
   ];
 
   return (
