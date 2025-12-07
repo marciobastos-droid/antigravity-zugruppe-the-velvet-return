@@ -194,8 +194,8 @@ export default function PropertiesTable({
     {
       key: "publication",
       label: "Publicação",
-      minWidth: "80px",
-      render: (_, property) => <PublicationStatus property={property} variant="icons" />,
+      minWidth: "150px",
+      render: (_, property) => <PublicationStatus property={property} variant="badges" />,
       sortValue: (property) => {
         const total = (property.published_portals?.length || 0) + (property.published_pages?.length || 0);
         return total;
