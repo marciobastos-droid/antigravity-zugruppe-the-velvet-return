@@ -256,42 +256,88 @@ export default function Layout({ children, currentPageName }) {
 
       <main className="pb-8">{children}</main>
 
-      <footer className="bg-[#27251f] text-white mt-12 md:mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-[#4cb5f5] mb-3 md:mb-4">
-                ZuGruppe
-              </h2>
-              <p className="text-white/70 text-sm">
-                Privileged Approach Unipessoal Lda
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-3 md:mb-4 text-[#4cb5f5] text-base">Links Rápidos</h3>
-              <div className="space-y-2">
-                {navItems.slice(0, 5).map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    className="block text-white/70 hover:text-[#4cb5f5] text-sm transition-colors duration-200"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+      <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white mt-16 md:mt-24 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+            backgroundSize: '32px 32px'
+          }} />
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Main Footer Content */}
+          <div className="py-12 md:py-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+              {/* Brand Section */}
+              <div className="lg:col-span-2">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+                  alt="Zugruppe"
+                  className="h-12 mb-4 object-contain"
+                />
+                <p className="text-slate-400 text-sm leading-relaxed max-w-md mb-6">
+                  Marketplace imobiliário premium que transforma a forma como compra, vende e gere propriedades. 
+                  Tecnologia avançada para uma experiência imobiliária moderna.
+                </p>
+                <p className="text-slate-500 text-xs">
+                  Privileged Approach Unipessoal Lda
+                </p>
+              </div>
+
+              {/* Quick Links */}
+              <div>
+                <h3 className="font-semibold mb-4 text-white text-sm uppercase tracking-wider">
+                  Navegação
+                </h3>
+                <div className="space-y-3">
+                  {navItems.slice(0, 5).map((item) => (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      className="block text-slate-400 hover:text-white text-sm transition-colors duration-200 hover:translate-x-1 transform"
+                    >
+                      → {item.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div>
+                <h3 className="font-semibold mb-4 text-white text-sm uppercase tracking-wider">
+                  Contacto
+                </h3>
+                <div className="space-y-3 text-sm text-slate-400">
+                  <p className="flex items-start gap-2">
+                    <span className="text-slate-500">📧</span>
+                    <span>info@zugruppe.com</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="text-slate-500">📍</span>
+                    <span>Portugal</span>
+                  </p>
+                </div>
               </div>
             </div>
-            <div>
-              <h3 className="font-semibold mb-3 md:mb-4 text-[#4cb5f5] text-base">Contacto</h3>
-              <p className="text-white/70 text-sm">
-                Marketplace imobiliário premium
-                <br />
-                para uma vida moderna
-              </p>
-            </div>
           </div>
-          <div className="border-t border-white/20 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-white/50 text-xs md:text-sm">
-            © 2025 Zugruppe. Todos os direitos reservados.
+
+          {/* Bottom Bar */}
+          <div className="border-t border-slate-700/50 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-slate-500 text-xs text-center md:text-left">
+                © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados.
+              </p>
+              <div className="flex items-center gap-6 text-xs text-slate-500">
+                <Link to={createPageUrl("PrivacyPolicy")} className="hover:text-white transition-colors">
+                  Privacidade
+                </Link>
+                <span>•</span>
+                <a href="#" className="hover:text-white transition-colors">
+                  Termos
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
