@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, TrendingUp, Mail, Facebook, Instagram, BarChart3,
-  Eye, MousePointer, Users, DollarSign, Play, Pause, Trash2, Building2, Filter
+  Eye, MousePointer, Users, DollarSign, Play, Pause, Trash2, Building2, Filter,
+  Edit, Copy, Archive, ArchiveRestore
 } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateCampaignDialog from "./CreateCampaignDialog";
+import EditCampaignDialog from "./EditCampaignDialog";
 import CampaignDetailsDialog from "./CampaignDetailsDialog";
 import CampaignAnalytics from "./CampaignAnalytics";
 import FacebookCampaignDashboard from "../tools/FacebookCampaignDashboard";
@@ -21,8 +23,11 @@ import FacebookFormManager from "../tools/FacebookFormManager";
 export default function MarketingCampaignsHub() {
   const [activeTab, setActiveTab] = useState("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [editingCampaign, setEditingCampaign] = useState(null);
   const [filterAssignedTo, setFilterAssignedTo] = useState("all");
+  const [showArchived, setShowArchived] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: campaigns = [], isLoading } = useQuery({
@@ -61,6 +66,42 @@ export default function MarketingCampaignsHub() {
     }
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: async (campaign) => {
+      const { id, created_date, updated_date, created_by, metrics, spent, ...campaignData } = campaign;
+      const newCampaign = {
+        ...campaignData,
+        name: `${campaign.name} (Cópia)`,
+        status: "draft",
+        metrics: {
+          impressions: 0,
+          clicks: 0,
+          leads: 0,
+          conversions: 0,
+          emails_sent: 0,
+          emails_opened: 0,
+          emails_clicked: 0,
+          cost_per_lead: 0,
+          roi: 0
+        },
+        spent: 0
+      };
+      return base44.entities.MarketingCampaign.create(newCampaign);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketingCampaigns'] });
+      toast.success("Campanha duplicada com sucesso");
+    }
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: ({ id, archived }) => base44.entities.MarketingCampaign.update(id, { archived, status: archived ? 'archived' : 'draft' }),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['marketingCampaigns'] });
+      toast.success(variables.archived ? "Campanha arquivada" : "Campanha restaurada");
+    }
+  });
+
   const statusColors = {
     draft: "bg-slate-100 text-slate-800",
     scheduled: "bg-blue-100 text-blue-800",
@@ -78,6 +119,10 @@ export default function MarketingCampaignsHub() {
   };
 
   const filteredCampaigns = campaigns.filter(c => {
+    // Filter archived
+    if (showArchived && !c.archived) return false;
+    if (!showArchived && c.archived) return false;
+
     let matchesTab = true;
     if (activeTab === "active") matchesTab = c.status === "active";
     else if (activeTab === "email") matchesTab = c.campaign_type === "email";
@@ -122,6 +167,14 @@ export default function MarketingCampaignsHub() {
           <p className="text-slate-600 mt-1">Gerir email marketing e anúncios em redes sociais</p>
         </div>
         <div className="flex items-center gap-3">
+          <Button
+            variant={showArchived ? "default" : "outline"}
+            onClick={() => setShowArchived(!showArchived)}
+            className="gap-2"
+          >
+            {showArchived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+            {showArchived ? "Ver Ativas" : "Ver Arquivadas"}
+          </Button>
           <Select value={filterAssignedTo} onValueChange={setFilterAssignedTo}>
             <SelectTrigger className="w-52">
               <Filter className="w-4 h-4 mr-2" />
@@ -280,7 +333,7 @@ export default function MarketingCampaignsHub() {
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          {campaign.status === "active" && (
+                          {!campaign.archived && campaign.status === "active" && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -289,7 +342,7 @@ export default function MarketingCampaignsHub() {
                               <Pause className="w-4 h-4" />
                             </Button>
                           )}
-                          {campaign.status === "paused" && (
+                          {!campaign.archived && campaign.status === "paused" && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -305,14 +358,47 @@ export default function MarketingCampaignsHub() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
+                          {!campaign.archived && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingCampaign(campaign);
+                                  setEditDialogOpen(true);
+                                }}
+                                className="text-blue-600 hover:bg-blue-50"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => duplicateMutation.mutate(campaign)}
+                                className="text-green-600 hover:bg-green-50"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => deleteMutation.mutate(campaign.id)}
-                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => archiveMutation.mutate({ id: campaign.id, archived: !campaign.archived })}
+                            className="text-amber-600 hover:bg-amber-50"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {campaign.archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
                           </Button>
+                          {campaign.archived && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteMutation.mutate(campaign.id)}
+                              className="text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -415,6 +501,15 @@ export default function MarketingCampaignsHub() {
       <CreateCampaignDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+      />
+
+      <EditCampaignDialog
+        campaign={editingCampaign}
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setEditingCampaign(null);
+        }}
       />
 
       {selectedCampaign && (
