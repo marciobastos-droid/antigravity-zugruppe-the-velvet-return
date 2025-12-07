@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { UploadCloud, Loader2, FileText, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 
 export default function DenunciationChannel() {
   const [formData, setFormData] = useState({
