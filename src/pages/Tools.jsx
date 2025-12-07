@@ -56,7 +56,7 @@ import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
 
 export default function Tools() {
-  const [activeTab, setActiveTab] = useState("importLeads");
+  const [activeTab, setActiveTab] = useState("importProperties");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);
   const [syncingEmails, setSyncingEmails] = useState(false);
