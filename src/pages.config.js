@@ -22,8 +22,6 @@ import DenunciationChannel from './pages/DenunciationChannel';
 import TermsConditions from './pages/TermsConditions';
 import CookiePolicy from './pages/CookiePolicy';
 import ManageData from './pages/ManageData';
-import ZuHaus from './pages/ZuHaus';
-import ZuHandel from './pages/ZuHandel';
 import __Layout from './Layout.jsx';
 
 
@@ -52,8 +50,6 @@ export const PAGES = {
     "TermsConditions": TermsConditions,
     "CookiePolicy": CookiePolicy,
     "ManageData": ManageData,
-    "ZuHaus": ZuHaus,
-    "ZuHandel": ZuHandel,
 }
 
 export const pagesConfig = {
