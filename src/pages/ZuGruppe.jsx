@@ -1073,7 +1073,7 @@ function PropertyCardCompact({ property, featured }) {
         </p>
         
         <div className="flex items-center gap-4 text-sm text-slate-600">
-          {property.bedrooms > 0 && (
+          {(property.bedrooms !== undefined && property.bedrooms !== null) && (
             <span className="flex items-center gap-1">
               <Bed className="w-4 h-4" />
               T{property.bedrooms}
@@ -1169,7 +1169,7 @@ function PropertyCardList({ property }) {
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
           <div className="flex items-center gap-5 text-sm text-slate-600">
-            {property.bedrooms > 0 && (
+            {(property.bedrooms !== undefined && property.bedrooms !== null) && (
               <span className="flex items-center gap-1.5">
                 <Bed className="w-4 h-4" />
                 T{property.bedrooms}
