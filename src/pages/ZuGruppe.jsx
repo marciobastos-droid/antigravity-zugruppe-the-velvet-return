@@ -121,25 +121,22 @@ export default function ZuGruppe() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    // Filtrar por tipo de imóvel baseado na tab
-    if (activeTab === "residential") {
-      filtered = filtered.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
-    } else if (activeTab === "commercial") {
-      filtered = filtered.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
-    }
-    
     // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
     filtered = filtered.filter(p => {
       const publishedPages = p.published_pages || [];
       
-      // Se não tem published_pages definido, considerar como não publicado
+      // Se não tem published_pages definido, não mostrar
       if (publishedPages.length === 0) return false;
       
       // Verificar se está publicado na página correspondente à tab
       if (activeTab === "residential") {
-        return publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe");
+        // Mostrar se está publicado em zuhaus OU zugruppe E é tipo residencial
+        return (publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe")) &&
+               RESIDENTIAL_TYPES.includes(p.property_type);
       } else if (activeTab === "commercial") {
-        return publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe");
+        // Mostrar se está publicado em zuhandel OU zugruppe E é tipo comercial
+        return (publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe")) &&
+               COMMERCIAL_TYPES.includes(p.property_type);
       } else {
         // Tab "all" - mostrar se estiver publicado em qualquer página do site
         return publishedPages.includes("zugruppe") || 
