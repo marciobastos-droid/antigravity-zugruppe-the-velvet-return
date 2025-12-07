@@ -20,7 +20,10 @@ const PREFERENCE_LABELS = {
   appointments: { label: "Agendamentos Confirmados", icon: "📅", description: "Confirmação de reuniões e visitas" },
   property_matches: { label: "Alertas de Matching", icon: "🎯", description: "Quando propriedades correspondem a clientes" },
   ai_tools: { label: "Ferramentas de IA", icon: "🤖", description: "Quando tarefas de IA são concluídas" },
-  follow_up_reminders: { label: "Lembretes de Follow-up", icon: "🔔", description: "Lembretes de acompanhamento de leads" }
+  follow_up_reminders: { label: "Lembretes de Follow-up", icon: "🔔", description: "Lembretes de acompanhamento de leads" },
+  contract_alerts: { label: "Alertas de Contratos", icon: "📄", description: "Assinaturas, escrituras e renovações" },
+  team_broadcasts: { label: "Anúncios de Equipa", icon: "📢", description: "Comunicações e alertas da gestão" },
+  urgent_leads: { label: "Leads Urgentes", icon: "🔥", description: "Leads que requerem ação imediata" }
 };
 
 export default function NotificationPreferences({ user }) {

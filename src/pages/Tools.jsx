@@ -52,6 +52,7 @@ import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
+import NotificationsDashboard from "../components/notifications/NotificationsDashboard";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
@@ -271,12 +272,13 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Folder className="w-5 h-5 text-slate-600" />
                 <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
-                <span className="text-sm text-slate-600">(5 ferramentas)</span>
+                <span className="text-sm text-slate-600">(6 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" />
+                <ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
                 <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
@@ -332,6 +334,7 @@ export default function Tools() {
         {activeTab === "externalSync" && <ExternalDataSync />}
         {activeTab === "auditLog" && <AuditLogViewer />}
         {activeTab === "casafariSync" && <CasafariSync />}
+        {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
