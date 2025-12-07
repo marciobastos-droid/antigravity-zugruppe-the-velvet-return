@@ -100,15 +100,13 @@ export default function ImageManager({ property, onUpdate, onChange }) {
     try {
       const response = await base44.functions.invoke('extractWebsiteImages', {
         url: property.source_url,
-        useAI: true,
-        minWidth: 400,
-        minHeight: 300
+        use_ai: true
       });
 
       const data = response.data;
       
-      if (data.error) {
-        toast.error(data.error);
+      if (!data.success) {
+        toast.error(data.error || "Erro ao extrair imagens");
         return;
       }
 
@@ -124,7 +122,7 @@ export default function ImageManager({ property, onUpdate, onChange }) {
         toast.success(`${propertyImages.length} imagens extraídas!`);
       }
     } catch (error) {
-      toast.error("Erro ao extrair imagens");
+      toast.error("Erro ao extrair imagens: " + (error.message || "Erro desconhecido"));
       console.error(error);
     }
     
