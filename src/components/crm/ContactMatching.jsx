@@ -17,12 +17,15 @@ import {
   Heart, Star, Filter, ChevronDown, ChevronUp, 
   Bell, BellOff, Save, Trash2, X, ThumbsDown,
   Eye, Clock, Bookmark, AlertCircle, Target, Zap,
-  TrendingUp, RefreshCw, Loader2, MessageCircle, Mail
+  TrendingUp, RefreshCw, Loader2, MessageCircle, Mail, Settings, FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import ContactRequirements from "./ContactRequirements";
+import MessagePreviewDialog from "../matching/MessagePreviewDialog";
+import MessageTemplatesManager from "../matching/MessageTemplatesManager";
+import MatchingWeightsConfig from "../matching/MatchingWeightsConfig";
 
 const propertyTypeLabels = {
   apartment: "Apartamento",
@@ -52,6 +55,12 @@ export default function ContactMatching({ contact }) {
   const [addPropertyDialogOpen, setAddPropertyDialogOpen] = React.useState(false);
   const [propertySearch, setPropertySearch] = React.useState("");
   const [addingPropertyId, setAddingPropertyId] = React.useState(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false);
+  const [previewMessage, setPreviewMessage] = React.useState("");
+  const [previewSubject, setPreviewSubject] = React.useState("");
+  const [templatesDialogOpen, setTemplatesDialogOpen] = React.useState(false);
+  const [weightsDialogOpen, setWeightsDialogOpen] = React.useState(false);
+  const [customWeights, setCustomWeights] = React.useState(null);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -83,6 +92,16 @@ export default function ContactMatching({ contact }) {
       return await base44.entities.SentMatch.filter({ contact_id: contact.id });
     },
     enabled: !!contact?.id
+  });
+
+  const { data: messageTemplates = [] } = useQuery({
+    queryKey: ['messageTemplates'],
+    queryFn: () => base44.entities.MessageTemplate.list('-created_date')
+  });
+
+  const { data: weightProfiles = [] } = useQuery({
+    queryKey: ['matchingWeights'],
+    queryFn: () => base44.entities.MatchingWeights.list('-created_date')
   });
 
   const saveSearchMutation = useMutation({
@@ -133,93 +152,115 @@ export default function ContactMatching({ contact }) {
   // Get requirements from contact
   const req = contact?.property_requirements || {};
 
-  const calculateMatchScore = (property) => {
+  const calculateMatchScore = (property, weights = null) => {
     if (!req || Object.keys(req).length === 0) {
       return favoriteIds.includes(property.id) ? 80 : 50;
     }
 
+    // Use custom weights or default weights
+    const w = weights || customWeights?.weights || {
+      location: 30,
+      price: 25,
+      bedrooms: 15,
+      bathrooms: 10,
+      area: 15,
+      property_type: 10,
+      listing_type: 15,
+      amenities: 10
+    };
+
     let score = 0;
     let maxScore = 0;
 
-    // Location match (30 points)
+    // Location match
     if (req.locations?.length > 0) {
-      maxScore += 30;
+      maxScore += w.location;
       if (req.locations.some(loc => 
         property.city?.toLowerCase().includes(loc.toLowerCase()) ||
         loc.toLowerCase().includes(property.city?.toLowerCase() || '')
       )) {
-        score += 30;
+        score += w.location;
       }
     }
 
-    // Listing type match (15 points)
+    // Listing type match
     if (req.listing_type) {
-      maxScore += 15;
+      maxScore += w.listing_type;
       if (req.listing_type === 'both' || property.listing_type === req.listing_type) {
-        score += 15;
+        score += w.listing_type;
       }
     }
 
-    // Price match (25 points)
+    // Price match
     if (req.budget_min || req.budget_max) {
-      maxScore += 25;
+      maxScore += w.price;
       const price = property.price || 0;
       const min = req.budget_min || 0;
       const max = req.budget_max || Infinity;
       
       if (price >= min && price <= max) {
-        score += 25;
+        score += w.price;
       } else if (price >= min * 0.85 && price <= max * 1.15) {
-        score += 15;
+        score += w.price * 0.6;
       } else if (price >= min * 0.7 && price <= max * 1.3) {
-        score += 8;
+        score += w.price * 0.3;
       }
     }
 
-    // Bedrooms match (15 points)
+    // Bedrooms match
     if (req.bedrooms_min || req.bedrooms_max) {
-      maxScore += 15;
+      maxScore += w.bedrooms;
       const beds = property.bedrooms || 0;
       const minBeds = req.bedrooms_min || 0;
       const maxBeds = req.bedrooms_max || Infinity;
       
       if (beds >= minBeds && beds <= maxBeds) {
-        score += 15;
+        score += w.bedrooms;
       } else if (beds >= minBeds - 1 && beds <= maxBeds + 1) {
-        score += 8;
+        score += w.bedrooms * 0.5;
       }
     }
 
-    // Bathrooms match (10 points)
+    // Bathrooms match
     if (req.bathrooms_min) {
-      maxScore += 10;
+      maxScore += w.bathrooms;
       if (property.bathrooms >= req.bathrooms_min) {
-        score += 10;
+        score += w.bathrooms;
       } else if (property.bathrooms >= req.bathrooms_min - 1) {
-        score += 5;
+        score += w.bathrooms * 0.5;
       }
     }
 
-    // Area match (15 points)
+    // Area match
     if (req.area_min || req.area_max) {
-      maxScore += 15;
+      maxScore += w.area;
       const area = property.useful_area || property.square_feet || 0;
       const minArea = req.area_min || 0;
       const maxArea = req.area_max || Infinity;
       
       if (area >= minArea && area <= maxArea) {
-        score += 15;
+        score += w.area;
       } else if (area >= minArea * 0.85) {
-        score += 8;
+        score += w.area * 0.5;
       }
     }
 
-    // Property type match (10 points)
+    // Property type match
     if (req.property_types?.length > 0) {
-      maxScore += 10;
+      maxScore += w.property_type;
       if (req.property_types.includes(property.property_type)) {
-        score += 10;
+        score += w.property_type;
       }
+    }
+
+    // Amenities match
+    if (req.desired_amenities?.length > 0 && property.amenities?.length > 0) {
+      maxScore += w.amenities;
+      const matchCount = req.desired_amenities.filter(a => 
+        property.amenities.some(pa => pa.toLowerCase().includes(a.toLowerCase()))
+      ).length;
+      const matchRatio = matchCount / req.desired_amenities.length;
+      score += w.amenities * matchRatio;
     }
 
     // Featured bonus
@@ -416,6 +457,109 @@ export default function ContactMatching({ contact }) {
     });
   };
 
+  const buildMessage = (selectedProps, template = null) => {
+    const baseUrl = window.location.origin;
+    
+    if (template) {
+      // Use template with variable replacement
+      const propertiesList = selectedProps.map((p, idx) => {
+        if (sendMethod === 'whatsapp') {
+          return `*#${idx + 1} - ${p.title}* (${p.matchScore}% compatível)
+
+📍 ${p.city}
+💰 €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 T${p.bedrooms || 0} | ${p.bathrooms || 0} WC | ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.aiReason ? `\n🎯 _${p.aiReason}_` : ''}
+🔗 ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}`;
+        } else {
+          return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#${idx + 1} - ${p.title} (Match: ${p.matchScore}%)
+
+📍 Localização: ${p.city}${p.address ? `, ${p.address}` : ''}
+💰 Preço: €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
+📏 Área: ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.amenities?.length ? `✨ Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
+${p.aiReason ? `\n🎯 Porque é ideal: ${p.aiReason}` : ''}
+🔗 Ver imóvel: ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}`;
+        }
+      }).join(sendMethod === 'whatsapp' ? '\n---\n' : '\n');
+
+      return template.content
+        .replace(/{contact_name}/g, contact.full_name)
+        .replace(/{property_count}/g, selectedProps.length)
+        .replace(/{properties_list}/g, propertiesList);
+    }
+
+    // Default message
+    const propertiesList = selectedProps.map((p, idx) => {
+      if (sendMethod === 'whatsapp') {
+        return `*#${idx + 1} - ${p.title}* (${p.matchScore}% compatível)
+
+📍 ${p.city}
+💰 €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 T${p.bedrooms || 0} | ${p.bathrooms || 0} WC | ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.aiReason ? `\n🎯 _${p.aiReason}_` : ''}
+🔗 ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}`;
+      } else {
+        return `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+#${idx + 1} - ${p.title} (Match: ${p.matchScore}%)
+
+📍 Localização: ${p.city}${p.address ? `, ${p.address}` : ''}
+💰 Preço: €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
+🏠 Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
+📏 Área: ${p.useful_area || p.square_feet || 'N/A'}m²
+${p.amenities?.length ? `✨ Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
+${p.aiReason ? `\n🎯 Porque é ideal: ${p.aiReason}` : ''}
+🔗 Ver imóvel: ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}`;
+      }
+    }).join(sendMethod === 'whatsapp' ? '\n---\n' : '\n');
+
+    if (sendMethod === 'whatsapp') {
+      return `Olá ${contact.full_name}! 👋
+
+Encontrei ${selectedProps.length} imóvel(is) perfeitos para si:
+
+${propertiesList}
+
+Quer agendar visitas? Responda aqui! 😊`;
+    } else {
+      return `Olá ${contact.full_name},
+
+Encontrámos ${selectedProps.length} imóvel(is) que correspondem perfeitamente aos seus critérios:
+
+${propertiesList}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Entre em contacto connosco para agendar visitas ou obter mais informações.
+
+Cumprimentos,
+Zugruppe - Privileged Approach`;
+    }
+  };
+
+  const handlePreviewMessage = () => {
+    if (selectedProperties.length === 0) {
+      toast.error("Selecione pelo menos um imóvel");
+      return;
+    }
+
+    const selectedProps = matchResults.filter(p => selectedProperties.includes(p.id));
+    
+    // Get default template if exists
+    const defaultTemplate = messageTemplates.find(t => 
+      t.type === sendMethod && t.is_default && t.category === 'matching'
+    );
+    
+    const message = buildMessage(selectedProps, defaultTemplate);
+    const subject = defaultTemplate?.subject || `🏠 ${selectedProps.length} Imóveis Selecionados Para Si`;
+    
+    setPreviewMessage(message);
+    setPreviewSubject(subject);
+    setPreviewDialogOpen(true);
+  };
+
   const handleSendMatches = async () => {
     if (selectedProperties.length === 0) {
       toast.error("Selecione pelo menos um imóvel");
@@ -433,37 +577,10 @@ export default function ContactMatching({ contact }) {
 
       setSendingEmail(true);
       try {
-        const baseUrl = window.location.origin;
-        const propertyList = selectedProps.map((p, idx) => `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-#${idx + 1} - ${p.title} (Match: ${p.matchScore}%)
-
-📍 Localização: ${p.city}${p.address ? `, ${p.address}` : ''}
-💰 Preço: €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
-🏠 Tipologia: ${p.bedrooms ? `T${p.bedrooms}` : 'N/A'} | ${p.bathrooms || 'N/A'} WC
-📏 Área: ${p.useful_area || p.square_feet || 'N/A'}m²
-${p.amenities?.length ? `✨ Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
-${p.aiReason ? `\n🎯 Porque é ideal: ${p.aiReason}` : ''}
-🔗 Ver imóvel: ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}
-        `).join('\n');
-
         await base44.integrations.Core.SendEmail({
           to: contact.email,
-          subject: `🏠 ${selectedProps.length} Imóveis Selecionados Para Si`,
-          body: `
-Olá ${contact.full_name},
-
-Encontrámos ${selectedProps.length} imóvel(is) que correspondem perfeitamente aos seus critérios:
-
-${propertyList}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Entre em contacto connosco para agendar visitas ou obter mais informações.
-
-Cumprimentos,
-Zugruppe - Privileged Approach
-          `
+          subject: previewSubject,
+          body: previewMessage
         });
 
         // Create SentMatch records
@@ -515,26 +632,7 @@ Zugruppe - Privileged Approach
 
       setSendingWhatsApp(true);
       try {
-        const baseUrl = window.location.origin;
-        const propertyText = selectedProps.map((p, idx) => `
-*#${idx + 1} - ${p.title}* (${p.matchScore}% compatível)
-
-📍 ${p.city}
-💰 €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
-🏠 T${p.bedrooms || 0} | ${p.bathrooms || 0} WC | ${p.useful_area || p.square_feet || 'N/A'}m²
-${p.aiReason ? `\n🎯 _${p.aiReason}_` : ''}
-🔗 ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}
-        `).join('\n---\n');
-
-        const message = `Olá ${contact.full_name}! 👋
-
-Encontrei ${selectedProps.length} imóvel(is) perfeitos para si:
-
-${propertyText}
-
-Quer agendar visitas? Responda aqui! 😊`;
-
-        const whatsappUrl = `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+        const whatsappUrl = `https://wa.me/${contact.phone.replace(/\D/g, '')}?text=${encodeURIComponent(previewMessage)}`;
         window.open(whatsappUrl, '_blank');
 
         // Create SentMatch records
@@ -629,24 +727,47 @@ Quer agendar visitas? Responda aqui! 😊`;
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Button 
-          onClick={handleAutoMatch} 
-          disabled={analyzing || !hasRequirements}
-          className="flex-1 bg-green-600 hover:bg-green-700"
-        >
-          <Zap className="w-4 h-4 mr-2" />
-          {analyzing ? "A analisar..." : "Match Automático"}
-        </Button>
-        <Button 
-          onClick={handleAIMatch} 
-          disabled={analyzing || !hasRequirements}
-          variant="outline"
-          className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          {analyzing ? "..." : "Match IA"}
-        </Button>
+      <div className="space-y-2">
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleAutoMatch} 
+            disabled={analyzing || !hasRequirements}
+            className="flex-1 bg-green-600 hover:bg-green-700"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            {analyzing ? "A analisar..." : "Match Automático"}
+          </Button>
+          <Button 
+            onClick={handleAIMatch} 
+            disabled={analyzing || !hasRequirements}
+            variant="outline"
+            className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            {analyzing ? "..." : "Match IA"}
+          </Button>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setWeightsDialogOpen(true)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <Settings className="w-3 h-3 mr-2" />
+            Ponderação{customWeights ? `: ${customWeights.name}` : ''}
+          </Button>
+          <Button 
+            onClick={() => setTemplatesDialogOpen(true)}
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            <FileText className="w-3 h-3 mr-2" />
+            Templates
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -716,26 +837,13 @@ Quer agendar visitas? Responda aqui! 😊`;
                     </Select>
                     
                     <Button 
-                      onClick={handleSendMatches}
+                      onClick={handlePreviewMessage}
                       disabled={sendingEmail || sendingWhatsApp}
                       size="sm"
                       className={`flex-1 ${sendMethod === 'whatsapp' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
-                      {sendingEmail || sendingWhatsApp ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                          A enviar...
-                        </>
-                      ) : (
-                        <>
-                          {sendMethod === 'whatsapp' ? (
-                            <MessageCircle className="w-4 h-4 mr-1" />
-                          ) : (
-                            <Mail className="w-4 h-4 mr-1" />
-                          )}
-                          Enviar via {sendMethod === 'whatsapp' ? 'WhatsApp' : 'Email'}
-                        </>
-                      )}
+                      <Eye className="w-4 h-4 mr-1" />
+                      Pré-visualizar e Enviar
                     </Button>
                   </div>
                 </div>
@@ -1188,6 +1296,51 @@ Quer agendar visitas? Responda aqui! 😊`;
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Message Preview Dialog */}
+      <MessagePreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        sendMethod={sendMethod}
+        contact={contact}
+        properties={matchResults.filter(p => selectedProperties.includes(p.id))}
+        message={previewMessage}
+        subject={previewSubject}
+        onConfirmSend={handleSendMatches}
+      />
+
+      {/* Message Templates Manager */}
+      <MessageTemplatesManager
+        open={templatesDialogOpen}
+        onOpenChange={setTemplatesDialogOpen}
+        onSelectTemplate={(template) => {
+          const selectedProps = matchResults.filter(p => selectedProperties.includes(p.id));
+          if (selectedProps.length > 0) {
+            const message = buildMessage(selectedProps, template);
+            setPreviewMessage(message);
+            setPreviewSubject(template.subject || `🏠 ${selectedProps.length} Imóveis`);
+            toast.success(`Template "${template.name}" aplicado`);
+          }
+        }}
+      />
+
+      {/* Matching Weights Config */}
+      <MatchingWeightsConfig
+        open={weightsDialogOpen}
+        onOpenChange={setWeightsDialogOpen}
+        onSelectWeights={(weights) => {
+          setCustomWeights(weights);
+          toast.success(`Ponderação "${weights.name}" aplicada`);
+          // Recalculate matches with new weights
+          if (matchResults.length > 0) {
+            const recalculated = matchResults.map(p => ({
+              ...p,
+              matchScore: calculateMatchScore(p, weights.weights)
+            })).sort((a, b) => b.matchScore - a.matchScore);
+            setMatchResults(recalculated);
+          }
+        }}
+      />
 
       {/* Add Elected Property Dialog */}
       <Dialog open={addPropertyDialogOpen} onOpenChange={setAddPropertyDialogOpen}>
