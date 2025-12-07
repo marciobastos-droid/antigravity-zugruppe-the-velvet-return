@@ -24,6 +24,13 @@ const AVAILABLE_PAGES = [
     details: "Página de pesquisa com filtros e categorias (Todos, Residencial, Comercial, Terrenos)"
   },
   { 
+    id: "zuhaus", 
+    name: "ZuHaus", 
+    icon: Home, 
+    description: "Plataforma residencial especializada",
+    details: "Secção dedicada a imóveis residenciais (apartamentos, moradias, etc.)"
+  },
+  { 
     id: "zuhandel", 
     name: "ZuHandel", 
     icon: Building2, 
