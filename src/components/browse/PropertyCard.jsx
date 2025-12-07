@@ -75,11 +75,6 @@ export default function PropertyCard({ property }) {
         )}
         
         <div className="absolute top-3 md:top-4 left-3 md:left-4 flex gap-2 flex-wrap">
-          {property.ref_id && (
-            <Badge className="bg-slate-900/90 text-white border-0 text-xs font-mono backdrop-blur-sm">
-              {property.ref_id}
-            </Badge>
-          )}
           {property.featured && (
             <Badge className="bg-amber-400 text-slate-900 border-0 text-xs">
               <Star className="w-3 h-3 mr-1" />
@@ -141,6 +136,11 @@ export default function PropertyCard({ property }) {
 
         {/* Property Type and Source Info */}
         <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2">
+          {property.ref_id && (
+            <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
+              {property.ref_id}
+            </Badge>
+          )}
           <Badge variant="outline" className="text-slate-700 text-xs">
             {property.property_type === 'house' ? 'Moradia' : 
              property.property_type === 'apartment' ? 'Apartamento' :
@@ -151,14 +151,14 @@ export default function PropertyCard({ property }) {
              property.property_type === 'commercial' ? 'Comercial' :
              property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1)}
           </Badge>
-          
+
           {property.external_id && property.external_id !== 'N/A' && (
             <Badge variant="secondary" className="text-xs">
               <Hash className="w-3 h-3 mr-1" />
               {property.external_id}
             </Badge>
           )}
-          
+
           {property.source_url && (
             <Badge variant="secondary" className="text-xs">
               <ExternalLink className="w-3 h-3 mr-1" />
