@@ -884,15 +884,16 @@ Quer agendar visitas? Responda aqui! 😊`;
                                 {isSelected ? "Selecionado" : "Selecionar"}
                               </Button>
                               
-                              <Link 
-                                to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                              <a 
+                                href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
                                 target="_blank"
+                                rel="noopener noreferrer"
                               >
                                 <Button variant="outline" size="sm" className="h-7 text-xs">
                                   <Eye className="w-3 h-3 mr-1" />
                                   Ver
                                 </Button>
-                              </Link>
+                              </a>
 
                               <div className="flex items-center gap-1 ml-auto">
                                 {/* Save for later */}
@@ -1014,14 +1015,15 @@ Quer agendar visitas? Responda aqui! 😊`;
                         </div>
                       </div>
                       <div className="flex gap-1">
-                        <Link 
-                          to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+                        <a 
+                          href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
                           target="_blank"
+                          rel="noopener noreferrer"
                         >
                           <Button variant="outline" size="sm">
                             <Eye className="w-4 h-4" />
                           </Button>
-                        </Link>
+                        </a>
                         <Button 
                           variant="outline" 
                           size="sm"
@@ -1092,14 +1094,15 @@ Quer agendar visitas? Responda aqui! 😊`;
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <Link 
-                            to={`${createPageUrl("PropertyDetails")}?id=${match.property_id}`}
+                          <a 
+                            href={`${createPageUrl("PropertyDetails")}?id=${match.property_id}`}
                             target="_blank"
+                            rel="noopener noreferrer"
                           >
                             <Button variant="outline" size="sm" className="h-8">
                               <Eye className="w-4 h-4" />
                             </Button>
-                          </Link>
+                          </a>
                           {property && (
                             <Button 
                               variant="outline" 
