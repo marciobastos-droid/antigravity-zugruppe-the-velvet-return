@@ -204,38 +204,38 @@ export default function PropertiesTable({
     {
       key: "status",
       label: "Estado",
-      minWidth: "95px",
+      minWidth: "110px",
       render: (val, property) => (
         <Select 
           value={val} 
           onValueChange={(v) => onStatusChange(property.id, v)}
         >
-          <SelectTrigger className="h-6 text-[10px] w-20" onClick={(e) => e.stopPropagation()}>
+          <SelectTrigger className="h-7 text-[11px] w-24" onClick={(e) => e.stopPropagation()}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent onClick={(e) => e.stopPropagation()}>
             <SelectItem value="active">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> Ativo
               </span>
             </SelectItem>
             <SelectItem value="pending">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" /> Pendente
               </span>
             </SelectItem>
             <SelectItem value="sold">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> Vendido
               </span>
             </SelectItem>
             <SelectItem value="rented">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" /> Arrendado
               </span>
             </SelectItem>
             <SelectItem value="off_market">
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-slate-500 rounded-full" /> Desativado
               </span>
             </SelectItem>

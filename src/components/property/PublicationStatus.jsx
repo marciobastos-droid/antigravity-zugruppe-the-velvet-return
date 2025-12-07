@@ -163,8 +163,8 @@ export default function PublicationStatus({ property, variant = "detailed" }) {
     
     if (totalChannels === 0) {
       return (
-        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 text-slate-400">
-          -
+        <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-slate-400">
+          Não publicado
         </Badge>
       );
     }
@@ -172,14 +172,14 @@ export default function PublicationStatus({ property, variant = "detailed" }) {
     return (
       <div className="flex items-center gap-0.5 flex-wrap">
         {publishedPages.length > 0 && (
-          <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-[9px] px-1 py-0 h-4 leading-none">
-            <Globe className="w-2 h-2 mr-0.5" />
+          <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-[10px] px-1.5 py-0.5 leading-tight">
+            <Globe className="w-2.5 h-2.5 mr-0.5" />
             {publishedPages.length}
           </Badge>
         )}
         {publishedPortals.length > 0 && (
-          <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-[9px] px-1 py-0 h-4 leading-none">
-            <Building2 className="w-2 h-2 mr-0.5" />
+          <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-[10px] px-1.5 py-0.5 leading-tight">
+            <Building2 className="w-2.5 h-2.5 mr-0.5" />
             {publishedPortals.length}
           </Badge>
         )}
