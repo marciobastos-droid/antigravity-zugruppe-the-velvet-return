@@ -160,25 +160,26 @@ export default function Tools() {
               </Card>
 
               {/* Importações e Exportações Group */}
-          <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Download className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                <span className="text-sm text-blue-600">(7 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" />
-                <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
-                <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
-                <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
-                <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
-                <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
-                <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
-                <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-                <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
+              <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Download className="w-5 h-5 text-blue-600" />
+                    <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
+                    <span className="text-sm text-blue-600">(11 ferramentas)</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" />
+                    <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
+                    <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
+                    <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
+                    <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
+                    <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
+                    <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
+                    <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
+                    <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
+                          <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
+                    <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
               </div>
               </CardContent>
               </Card>
@@ -189,9 +190,9 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-green-600" />
                 <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
-                <span className="text-sm text-green-600">(6 ferramentas)</span>
+                <span className="text-sm text-green-600">(12 ferramentas)</span>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
                 <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
@@ -199,7 +200,6 @@ export default function Tools() {
                 <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
                 <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
-                <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                       <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
