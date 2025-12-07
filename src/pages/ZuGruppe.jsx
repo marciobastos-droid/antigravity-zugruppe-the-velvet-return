@@ -121,54 +121,34 @@ export default function ZuGruppe() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    // DEBUG: Log para entender quantos imóveis têm published_pages
-    console.log('[ZuGruppe] Total active properties:', filtered.length);
-    console.log('[ZuGruppe] Properties with published_pages:', filtered.filter(p => Array.isArray(p.published_pages) && p.published_pages.length > 0).length);
-    console.log('[ZuGruppe] Active tab:', activeTab);
-    
     // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
     filtered = filtered.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       
-      // Se não tem published_pages definido, não mostrar
-      if (publishedPages.length === 0) {
-        console.log('[ZuGruppe] Property without pages:', p.ref_id || p.id, 'published_pages:', p.published_pages);
+      // Se não tem published_pages definido OU está vazio, não mostrar
+      if (!publishedPages || publishedPages.length === 0) {
         return false;
       }
       
       // Verificar se está publicado na página correspondente à tab
       if (activeTab === "residential") {
         // Mostrar se está publicado em zuhaus OU zugruppe E é tipo residencial
-        const shouldShow = (publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe")) &&
+        return (publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe")) &&
                RESIDENTIAL_TYPES.includes(p.property_type);
-        if (!shouldShow) {
-          console.log('[ZuGruppe] Property filtered on residential:', p.ref_id || p.id, 'type:', p.property_type, 'pages:', publishedPages);
-        }
-        return shouldShow;
       } else if (activeTab === "commercial") {
         // Mostrar se está publicado em zuhandel OU zugruppe E é tipo comercial
-        const shouldShow = (publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe")) &&
+        return (publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe")) &&
                COMMERCIAL_TYPES.includes(p.property_type);
-        if (!shouldShow) {
-          console.log('[ZuGruppe] Property filtered on commercial:', p.ref_id || p.id, 'type:', p.property_type, 'pages:', publishedPages);
-        }
-        return shouldShow;
       } else {
         // Tab "all" - mostrar se estiver publicado em qualquer página do site
-        const shouldShow = publishedPages.includes("zugruppe") || 
+        return publishedPages.includes("zugruppe") || 
                publishedPages.includes("zuhaus") || 
                publishedPages.includes("zuhandel") ||
                publishedPages.includes("homepage_featured") ||
                publishedPages.includes("investor_section") ||
                publishedPages.includes("luxury_collection");
-        if (!shouldShow) {
-          console.log('[ZuGruppe] Property filtered on all:', p.ref_id || p.id, 'pages:', publishedPages);
-        }
-        return shouldShow;
       }
     });
-    
-    console.log('[ZuGruppe] Filtered properties count:', filtered.length);
     
     return filtered;
   }, [activeTab, activeProperties]);
