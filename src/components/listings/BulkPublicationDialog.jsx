@@ -33,7 +33,7 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
   const queryClient = useQueryClient();
   const [selectedPortals, setSelectedPortals] = React.useState([]);
   const [selectedPages, setSelectedPages] = React.useState([]);
-  const [mode, setMode] = React.useState("add"); // "add" or "replace"
+  const [mode, setMode] = React.useState("add"); // "add", "replace", or "remove"
   
   const updateMutation = useMutation({
     mutationFn: async ({ portals, pages, mode }) => {
@@ -46,6 +46,10 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
           // Adicionar aos existentes
           newPortals = [...new Set([...(property.published_portals || []), ...portals])];
           newPages = [...new Set([...(property.published_pages || []), ...pages])];
+        } else if (mode === "remove") {
+          // Remover os selecionados
+          newPortals = (property.published_portals || []).filter(p => !portals.includes(p));
+          newPages = (property.published_pages || []).filter(p => !pages.includes(p));
         } else {
           // Substituir
           newPortals = portals;
@@ -130,7 +134,7 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
           <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-4">
               <Label className="text-sm font-semibold mb-3 block">Modo de Atualização</Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => setMode("add")}
                   className={`p-3 rounded-lg border-2 transition-all text-left ${
@@ -141,6 +145,17 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
                 >
                   <p className="font-medium text-slate-900">Adicionar</p>
                   <p className="text-xs text-slate-600 mt-1">Adicionar às publicações existentes</p>
+                </button>
+                <button
+                  onClick={() => setMode("remove")}
+                  className={`p-3 rounded-lg border-2 transition-all text-left ${
+                    mode === "remove"
+                      ? "border-red-500 bg-white"
+                      : "border-slate-200 hover:border-slate-300 bg-white/50"
+                  }`}
+                >
+                  <p className="font-medium text-slate-900">Remover</p>
+                  <p className="text-xs text-slate-600 mt-1">Remover das publicações existentes</p>
                 </button>
                 <button
                   onClick={() => setMode("replace")}
@@ -254,7 +269,7 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                {mode === "add" ? "Adicionar a" : "Substituir em"} {selectedPropertyIds.length} Imóveis
+                {mode === "add" ? "Adicionar a" : mode === "remove" ? "Remover de" : "Substituir em"} {selectedPropertyIds.length} Imóveis
               </>
             )}
           </Button>
