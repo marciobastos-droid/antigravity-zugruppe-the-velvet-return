@@ -25,8 +25,7 @@ import PropertyCard from "../components/browse/PropertyCard";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import MaintenanceManager from "../components/property/MaintenanceManager";
 import LeaseManager from "../components/property/LeaseManager";
-import DocumentManager from "../components/property/DocumentManager";
-import DocumentUploader from "../components/documents/DocumentUploader";
+import PropertyDocumentManager from "../components/property/PropertyDocumentManager";
 import ScheduleViewing from "../components/property/ScheduleViewing";
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import PublicationStatus from "../components/property/PublicationStatus";
@@ -707,10 +706,9 @@ export default function PropertyDetails() {
                     </TabsContent>
                     
                     <TabsContent value="documents" className="mt-6">
-                      <DocumentUploader 
+                      <PropertyDocumentManager 
                         propertyId={propertyId} 
                         propertyTitle={property.title}
-                        entityType="property"
                       />
                     </TabsContent>
                   </Tabs>
