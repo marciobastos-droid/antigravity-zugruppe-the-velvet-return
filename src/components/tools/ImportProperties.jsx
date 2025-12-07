@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText, Search, Sparkles } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, AlertCircle, ExternalLink, Hash, ImageIcon, Globe, AlertTriangle, Eye, X, ArrowRight, Building2, Users2, User, MessageSquareText, Search, Sparkles, Image } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
@@ -356,6 +357,8 @@ export default function ImportProperties() {
   const [textProgress, setTextProgress] = React.useState("");
   const [extractedProperties, setExtractedProperties] = React.useState([]);
   const [showTextPreview, setShowTextPreview] = React.useState(false);
+  const [useImageExtractor, setUseImageExtractor] = React.useState(true);
+  const [extractingImages, setExtractingImages] = React.useState(false);
 
   const detectPortal = (url) => {
     for (const portal of supportedPortals) {
@@ -889,7 +892,7 @@ IMPORTANTE:
 
       setProgress("A processar imagens...");
 
-      const propertiesWithImages = validProperties.map(v => {
+      let propertiesWithImages = validProperties.map(v => {
         const p = v.property;
         let images = p.images || [];
         images = images
@@ -910,6 +913,47 @@ IMPORTANTE:
         
         return { ...p, images, source_url: sourceUrl };
       });
+
+      // Use Image Extractor if enabled and properties have low image count
+      if (useImageExtractor) {
+        setProgress("🖼️ A extrair imagens adicionais com IA...");
+        setExtractingImages(true);
+        
+        try {
+          const response = await base44.functions.invoke('extractWebsiteImages', { 
+            url: url,
+            use_ai: true 
+          });
+          
+          if (response.data?.success && response.data.images?.length > 0) {
+            const extractedImages = response.data.images
+              .filter(img => img.category === 'property')
+              .map(img => img.url)
+              .slice(0, 30);
+            
+            if (extractedImages.length > 0) {
+              // Apply extracted images to all properties that have few or no images
+              propertiesWithImages = propertiesWithImages.map(p => {
+                const currentImageCount = p.images?.length || 0;
+                if (currentImageCount < 3) {
+                  // Add extracted images to properties with few images
+                  const combinedImages = [...(p.images || []), ...extractedImages]
+                    .filter((img, idx, arr) => arr.indexOf(img) === idx)
+                    .slice(0, 20);
+                  return { ...p, images: combinedImages };
+                }
+                return p;
+              });
+              
+              toast.success(`${extractedImages.length} imagens extraídas e aplicadas`);
+            }
+          }
+        } catch (error) {
+          console.log("Image extraction failed, continuing with original images:", error);
+        }
+        
+        setExtractingImages(false);
+      }
 
       // Always use AI to detect/confirm property and listing type
       setProgress(`A classificar ${propertiesWithImages.length} imóveis com IA...`);
@@ -1194,7 +1238,7 @@ IMPORTANTE:
           validation: validateProperty(prop, portal.name)
         }));
 
-        const validProperties = validationResults.filter(v => v.validation.isValid).map(v => v.property);
+        let validProperties = validationResults.filter(v => v.validation.isValid).map(v => v.property);
         const invalidProperties = validationResults.filter(v => !v.validation.isValid);
 
         setValidationDetails({
@@ -1206,6 +1250,42 @@ IMPORTANTE:
 
         if (validProperties.length === 0) {
           throw new Error(`Nenhum imóvel passou na validação. Verifica os dados extraídos.`);
+        }
+
+        // Use Image Extractor if enabled
+        if (useImageExtractor) {
+          setProgress("🖼️ A extrair imagens com IA...");
+          setExtractingImages(true);
+          
+          try {
+            const response = await base44.functions.invoke('extractWebsiteImages', { 
+              url: url,
+              use_ai: true 
+            });
+            
+            if (response.data?.success && response.data.images?.length > 0) {
+              const extractedImages = response.data.images
+                .filter(img => img.category === 'property')
+                .map(img => img.url)
+                .slice(0, 30);
+              
+              if (extractedImages.length > 0) {
+                // Apply extracted images to all properties
+                validProperties = validProperties.map(p => {
+                  const combinedImages = [...(p.images || []), ...extractedImages]
+                    .filter((img, idx, arr) => arr.indexOf(img) === idx)
+                    .slice(0, 20);
+                  return { ...p, images: combinedImages };
+                });
+                
+                toast.success(`${extractedImages.length} imagens extraídas e aplicadas`);
+              }
+            }
+          } catch (error) {
+            console.log("Image extraction failed, continuing:", error);
+          }
+          
+          setExtractingImages(false);
         }
 
         setProgress(`A gerar tags com IA para ${validProperties.length} imóveis...`);
@@ -1279,7 +1359,41 @@ IMPORTANTE:
 
       } else {
         // Single property import
-        const property = data.property;
+        let property = data.property;
+        
+        // Use Image Extractor if enabled
+        if (useImageExtractor) {
+          setProgress("🖼️ A extrair imagens com IA...");
+          setExtractingImages(true);
+          
+          try {
+            const response = await base44.functions.invoke('extractWebsiteImages', { 
+              url: url,
+              use_ai: true 
+            });
+            
+            if (response.data?.success && response.data.images?.length > 0) {
+              const extractedImages = response.data.images
+                .filter(img => img.category === 'property')
+                .map(img => img.url)
+                .slice(0, 20);
+              
+              if (extractedImages.length > 0) {
+                const combinedImages = [...(property.images || []), ...extractedImages]
+                  .filter((img, idx, arr) => arr.indexOf(img) === idx)
+                  .slice(0, 20);
+                property = { ...property, images: combinedImages };
+                
+                toast.success(`${extractedImages.length} imagens extraídas`);
+              }
+            }
+          } catch (error) {
+            console.log("Image extraction failed, continuing:", error);
+          }
+          
+          setExtractingImages(false);
+        }
+        
         setProgress("A gerar tags com IA...");
 
         // Generate tags
@@ -1991,6 +2105,21 @@ A IA extrai automaticamente todos os dados estruturados!`}
               <span className="text-sm font-medium">Portal detetado: {detectedPortal.name}</span>
             </div>
           )}
+
+          <div className="flex items-center justify-between p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border border-teal-200">
+            <div className="flex items-center gap-2">
+              <Image className="w-4 h-4 text-teal-600" />
+              <div>
+                <p className="text-sm font-medium text-teal-900">Extrator de Imagens com IA</p>
+                <p className="text-xs text-teal-600">Extrai imagens automaticamente do website</p>
+              </div>
+            </div>
+            <Switch
+              checked={useImageExtractor}
+              onCheckedChange={setUseImageExtractor}
+              className="data-[state=checked]:bg-teal-600"
+            />
+          </div>
           
           <div className="grid grid-cols-2 gap-2">
             <Button
