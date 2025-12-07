@@ -33,6 +33,8 @@ export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
   
+  console.log('[PropertyDetails] Property ID from URL:', propertyId);
+  
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
@@ -45,13 +47,19 @@ export default function PropertyDetails() {
   const [sendingMessage, setSendingMessage] = React.useState(false);
   const [messageSent, setMessageSent] = React.useState(false);
 
-  const { data: property, isLoading } = useQuery({
+  const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', propertyId],
     queryFn: async () => {
+      console.log('[PropertyDetails] Fetching property with ID:', propertyId);
       const properties = await base44.entities.Property.filter({ id: propertyId });
+      console.log('[PropertyDetails] Properties found:', properties);
+      if (!properties || properties.length === 0) {
+        throw new Error('Property not found');
+      }
       return properties[0];
     },
-    enabled: !!propertyId
+    enabled: !!propertyId,
+    retry: 1
   });
 
   const { data: user } = useQuery({
@@ -178,13 +186,28 @@ export default function PropertyDetails() {
     );
   }
 
-  if (!property) {
+  if (!propertyId) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">ID do imóvel não especificado</h2>
+          <p className="text-slate-600 mb-4">O link está incompleto ou inválido</p>
+          <Link to={createPageUrl("ZuGruppe")}>
+            <Button>Ver Imóveis</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || (!isLoading && !property)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Imóvel não encontrado</h2>
-          <Link to={createPageUrl("Browse")}>
-            <Button>Voltar à Navegação</Button>
+          <p className="text-slate-600 mb-4">ID: {propertyId}</p>
+          <Link to={createPageUrl("ZuGruppe")}>
+            <Button>Ver Imóveis</Button>
           </Link>
         </div>
       </div>
