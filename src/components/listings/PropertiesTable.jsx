@@ -304,6 +304,7 @@ export default function PropertiesTable({
       onToggleSelectAll={onToggleSelectAll}
       onRowClick={(property) => onEdit(property)}
       emptyMessage="Nenhum imóvel encontrado"
+      persistKey="properties_table"
     />
   );
 }
