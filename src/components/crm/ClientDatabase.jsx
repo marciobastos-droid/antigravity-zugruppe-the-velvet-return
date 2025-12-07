@@ -646,7 +646,7 @@ export default function ClientDatabase() {
   // Memoized filtered clients with optimized search
   const filteredClients = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const validContactTypes = ["client", "partner", "investor", "vendor", "other"];
+    const validContactTypes = ["client", "partner", "investor", "vendor", "promoter", "other"];
     const tagFilterSet = new Set(tagFilter);
     const agentFilterSet = new Set(assignedAgentFilter);
     const hasNone = agentFilterSet.has("none");
@@ -707,6 +707,7 @@ export default function ClientDatabase() {
     partner: "Parceiro",
     investor: "Investidor",
     vendor: "Fornecedor",
+    promoter: "Promotor",
     other: "Outro"
   }), []);
 
@@ -715,6 +716,7 @@ export default function ClientDatabase() {
     partner: "bg-purple-100 text-purple-800",
     investor: "bg-green-100 text-green-800",
     vendor: "bg-orange-100 text-orange-800",
+    promoter: "bg-indigo-100 text-indigo-800",
     other: "bg-slate-100 text-slate-800"
   }), []);
 
@@ -825,6 +827,7 @@ export default function ClientDatabase() {
                       <SelectItem value="partner">Parceiro</SelectItem>
                       <SelectItem value="investor">Investidor</SelectItem>
                       <SelectItem value="vendor">Fornecedor</SelectItem>
+                      <SelectItem value="promoter">Promotor</SelectItem>
                       <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1021,12 +1024,13 @@ export default function ClientDatabase() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os Tipos</SelectItem>
-                                          <SelectItem value="empty">Sem Tipo</SelectItem>
-                                          <SelectItem value="client">Clientes</SelectItem>
-                                          <SelectItem value="partner">Parceiros</SelectItem>
-                                          <SelectItem value="investor">Investidores</SelectItem>
-                                          <SelectItem value="vendor">Fornecedores</SelectItem>
-                                          <SelectItem value="other">Outro</SelectItem>
+                                        <SelectItem value="empty">Sem Tipo</SelectItem>
+                                        <SelectItem value="client">Clientes</SelectItem>
+                                        <SelectItem value="partner">Parceiros</SelectItem>
+                                        <SelectItem value="investor">Investidores</SelectItem>
+                                        <SelectItem value="vendor">Fornecedores</SelectItem>
+                                        <SelectItem value="promoter">Promotores</SelectItem>
+                                        <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -1270,6 +1274,7 @@ export default function ClientDatabase() {
                     <SelectItem value="partner">Parceiro</SelectItem>
                     <SelectItem value="investor">Investidor</SelectItem>
                     <SelectItem value="vendor">Fornecedor</SelectItem>
+                    <SelectItem value="promoter">Promotor</SelectItem>
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
@@ -2258,6 +2263,7 @@ export default function ClientDatabase() {
                     <SelectItem value="partner">Parceiro</SelectItem>
                     <SelectItem value="investor">Investidor</SelectItem>
                     <SelectItem value="vendor">Fornecedor</SelectItem>
+                    <SelectItem value="promoter">Promotor</SelectItem>
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
