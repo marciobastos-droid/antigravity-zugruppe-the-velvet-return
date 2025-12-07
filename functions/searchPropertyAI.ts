@@ -319,71 +319,60 @@ FORMATO:
 {"properties":[{"title":"The Unique - Apartamento T1","price":445000,"bedrooms":1,"bathrooms":1,"square_feet":58.24,"city":"Aveiro","state":"Aveiro","property_type":"apartment","listing_type":"sale","external_id":"LS05277-T1-42C","address":"Cais da Fonte Nova"}]}`;
     } else if (pageType === 'listing') {
       prompt = `Extrai APENAS os imóveis listados DIRETAMENTE nesta página. Portal: ${portal.name}
-URL da página: ${url}
+URL da listagem: ${url}
 
 TEXTO DA PÁGINA:
 ${textContent.substring(0, 20000)}
 
-REGRAS CRÍTICAS:
-1. Extrai APENAS imóveis da lista principal de resultados
-2. NÃO incluas imóveis relacionados, sugestões, publicidade ou rodapé
-3. Responde APENAS com JSON válido
-4. Números sem símbolos (495000 não "495.000€")
-5. Extrai DESCRIÇÃO COMPLETA quando disponível
+REGRAS CRÍTICAS - SEGUE À RISCA:
+1. Extrai APENAS imóveis que são listados como resultados de pesquisa NESTA PÁGINA
+2. NÃO incluas imóveis de:
+   - Seções "Imóveis Relacionados", "Pode também gostar", "Sugestões"
+   - Rodapé ou navegação lateral
+   - Links para outras páginas
+   - Imóveis "em destaque" que não fazem parte da lista principal
+   - Publicidade ou promoções
+3. Cada imóvel deve ter dados concretos (preço, localização, tipologia)
+4. Se não tiveres certeza se é um imóvel da lista principal, NÃO incluas
+5. Responde APENAS com JSON válido, sem texto adicional
+6. Usa aspas duplas para strings
+7. Números sem aspas e sem símbolos (495000 não "495.000€")
+8. Sem vírgulas no final antes de } ou ]
+9. Extrai a DESCRIÇÃO de cada imóvel se disponível (texto descritivo do anúncio)
+10. CRÍTICO: Extrai o detail_url - link INDIVIDUAL de cada imóvel (não o link da listagem)
 
-CAMPOS OBRIGATÓRIOS: title, price, city, state, property_type, listing_type
-CAMPOS OPCIONAIS: description, bedrooms, bathrooms, useful_area (área útil m²), gross_area (área bruta m²), square_feet, front_count (nº frentes), energy_certificate (A+/A/B/B-/C/D/E/F/isento), garage (none/1/2/3/4+/box/exterior), amenities (array: ["Piscina","Varanda","Elevador","Ar Condicionado","Arrecadação","Jardim","Terraço","Vista Mar","Parqueamento","Cozinha Equipada"]), external_id, address, year_built, finishes (novo/usado/renovado/para recuperar)
+IMPORTANTE sobre detail_url:
+- Cada imóvel deve ter seu link ESPECÍFICO e COMPLETO
+- Exemplo: "https://www.idealista.pt/imovel/34231937/" 
+- Se for relativo, adiciona o domínio completo
+- Este é o link que leva à página de DETALHES daquele imóvel específico
 
-NORMALIZAÇÃO:
-- energy_certificate: apenas A+, A, B, B-, C, D, E, F ou "isento"
-- garage: none, 1, 2, 3, 4+, box, exterior
-- amenities: array com nomes padronizados em português
-- property_type: apartment, house, land, store, office, warehouse, building, farm
-- listing_type: sale ou rent
+Campos por imóvel: title, description (texto descritivo do anúncio), price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id, detail_url (link individual completo)
 
-FORMATO:
-{"properties":[{"title":"T2 com varanda","description":"Apartamento T2 com vista mar, cozinha equipada, varanda espaçosa...","price":250000,"bedrooms":2,"bathrooms":2,"useful_area":85,"gross_area":95,"energy_certificate":"B","garage":"1","amenities":["Varanda","Elevador","Cozinha Equipada"],"city":"Porto","state":"Porto","property_type":"apartment","listing_type":"sale"}]}`;
+FORMATO EXACTO:
+{"properties":[{"title":"Titulo","description":"Apartamento com vista mar, cozinha equipada, varanda...","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123","detail_url":"https://www.idealista.pt/imovel/123"}]}`;
     } else {
-      prompt = `Extrai TODOS os dados disponíveis deste imóvel. Portal: ${portal.name}
+      prompt = `Extrai os dados deste imóvel. Portal: ${portal.name}
 
-TEXTO COMPLETO DA PÁGINA:
+TEXTO:
 ${textContent.substring(0, 20000)}
 
-URLS DE IMAGENS ENCONTRADAS:
+URLS DE IMAGENS ENCONTRADAS NO HTML:
 ${images.slice(0, 15).join('\n')}
 
-REGRAS:
-1. Responde APENAS com JSON válido
-2. Números sem símbolos (250000 não "250.000€")
-3. Extrai DESCRIÇÃO COMPLETA e DETALHADA do imóvel
-4. Extrai TODAS as características e comodidades mencionadas
-5. Das URLs acima, seleciona APENAS fotos do imóvel (não logos/banners)
+REGRAS IMPORTANTES:
+1. Responde APENAS com JSON válido, sem texto adicional
+2. Usa aspas duplas para strings
+3. Números sem aspas e sem símbolos
+4. Sem vírgulas no final antes de } ou ]
+5. Extrai a DESCRIÇÃO COMPLETA do imóvel (todo o texto descritivo do anúncio)
+6. IMPORTANTE: Extrai APENAS URLs de imagens DO IMÓVEL (fotos do interior, exterior, vistas). NÃO incluas logos, ícones, avatares, banners, publicidade ou imagens de outros imóveis relacionados/sugeridos.
+7. Das URLs fornecidas acima, seleciona APENAS as que são claramente fotos do imóvel principal desta página.
 
-CAMPOS OBRIGATÓRIOS: title, description, price, city, state, property_type, listing_type
+Campos: title, description (descrição completa do imóvel com todas as características mencionadas), property_type (apartment/house/land), listing_type (sale/rent), price (número), bedrooms (número), bathrooms (número), square_feet (número), address, city, state, external_id, images (array com URLs APENAS das fotos do imóvel, excluindo logos/ícones/publicidade)
 
-CAMPOS DETALHADOS OPCIONAIS:
-- bedrooms, bathrooms (números)
-- useful_area (área útil em m²)
-- gross_area (área bruta em m²)
-- square_feet (área total em m²)
-- front_count (número de frentes do imóvel)
-- energy_certificate: APENAS A+, A, B, B-, C, D, E, F ou "isento"
-- garage: none, 1, 2, 3, 4+, box, exterior
-- sun_exposure: north, south, east, west, north_south, east_west, all
-- amenities: array ["Piscina","Varanda","Elevador","Ar Condicionado","Arrecadação","Jardim","Terraço","Vista Mar","Parqueamento","Cozinha Equipada","Lareira","Despensa","Suite","Roupeiros","Aquecimento Central","Painéis Solares","Vidros Duplos","Porta Blindada","Video Porteiro","Sistema Segurança","BBQ","Ginásio","Sauna","Jacuzzi"]
-- finishes: novo, usado, renovado, para recuperar, em construção
-- year_built (ano de construção)
-- address, zip_code, external_id
-- images: array de URLs das fotos do imóvel
-
-NORMALIZAÇÃO CRÍTICA:
-- energy_certificate: converter qualquer variação para o formato correto (ex: "Classe A+" → "A+", "Certificado B" → "B", "Isento" → "isento")
-- garage: normalizar (ex: "1 lugar" → "1", "Garagem box" → "box", "Sem garagem" → "none")
-- amenities: usar nomes padronizados em português, sem artigos (ex: "tem piscina" → "Piscina")
-- description: incluir TODO o texto descritivo, características, acabamentos, localização detalhada
-
-FORMATO:
-{"title":"Apartamento T2 com varanda no Campo Grande","description":"Descrição completa e detalhada incluindo todas as características, acabamentos, localização, áreas, orientação solar, e tudo o que for mencionado no anúncio...","price":320000,"bedrooms":2,"bathrooms":2,"useful_area":72,"gross_area":85,"front_count":1,"energy_certificate":"B","garage":"1","sun_exposure":"south","amenities":["Varanda","Elevador","Cozinha Equipada","Ar Condicionado","Roupeiros"],"finishes":"novo","year_built":2024,"property_type":"apartment","listing_type":"sale","address":"Campo Grande","city":"Lisboa","state":"Lisboa","external_id":"24333753","images":["url1.jpg","url2.jpg"]}`;
+FORMATO EXACTO:
+{"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123","images":["url1.jpg","url2.jpg"]}`;
     }
 
     // Call OpenAI API with JSON mode
@@ -468,7 +457,7 @@ FORMATO:
       
       const properties = validProperties.map(p => ({
         ...p,
-        source_url: url,
+        source_url: p.detail_url || url,
         images: [],
         property_type: p.property_type || 'apartment',
         listing_type: p.listing_type || 'sale'

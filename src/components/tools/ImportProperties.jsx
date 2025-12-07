@@ -792,10 +792,11 @@ export default function ImportProperties() {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Extrai TODOS os imóveis desta página de portal imobiliário português.
 
-URL: ${url}
+URL da listagem: ${url}
 
 EXTRAI cada imóvel com:
 - title: título do anúncio
+- description: descrição curta se disponível
 - price: preço em número (875.000€ = 875000)
 - bedrooms: número de quartos (T4 = 4, T5 = 5)
 - square_feet: área em m² 
@@ -805,14 +806,20 @@ EXTRAI cada imóvel com:
 - property_type: "apartment" para apartamento/penthouse/duplex, "house" para moradia
 - listing_type: "sale" para venda, "rent" para arrendamento
 - external_id: ID do anúncio (extrair do link, ex: 34231937)
-- detail_url: link completo do anúncio
-- description: descrição curta
+- detail_url: link INDIVIDUAL E COMPLETO do anúncio (MUITO IMPORTANTE - cada imóvel deve ter seu próprio link)
+
+CRÍTICO SOBRE detail_url:
+- Extrai o link ESPECÍFICO de cada imóvel individual
+- O link deve ser COMPLETO e ÚNICO para cada imóvel
+- Exemplo: "https://www.idealista.pt/imovel/34231937/" (link individual)
+- NÃO uses o link da listagem geral
+- Se o link for relativo, adiciona o domínio (ex: "/imovel/123" → "https://www.idealista.pt/imovel/123")
 
 IMPORTANTE:
 - Extrai TODOS os imóveis listados na página
 - Preços portugueses: 875.000€ = 875000, 1.450.000€ = 1450000
 - Se URL contém "comprar" é venda, se contém "arrendar" é arrendamento
-- Apenas inclui campos que consegues extrair`,
+- CADA imóvel deve ter seu detail_url próprio`,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
