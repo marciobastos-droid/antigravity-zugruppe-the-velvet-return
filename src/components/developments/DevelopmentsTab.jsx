@@ -321,7 +321,7 @@ export default function DevelopmentsTab() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="manual">✍️ Inserir Manualmente</SelectItem>
-                      {contacts.filter(c => c.contact_type === 'partner' || c.company_name).map(contact => (
+                      {contacts.filter(c => c.contact_type === 'promotor' || c.partnership_type === 'promotor').map(contact => (
                         <SelectItem key={contact.id} value={contact.id}>
                           {contact.full_name || contact.company_name} {contact.company_name && contact.full_name ? `(${contact.company_name})` : ''}
                         </SelectItem>
