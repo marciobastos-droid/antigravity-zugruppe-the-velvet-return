@@ -13,6 +13,7 @@ import CalendarTool from "../components/tools/CalendarTool";
 import PropertyDescriptionGenerator from "../components/tools/PropertyDescriptionGenerator";
 import PriceSuggestion from "../components/tools/PriceSuggestion";
 import DocumentsAndContracts from "../components/tools/DocumentsAndContracts";
+import ContractAutomation from "../components/contracts/ContractAutomation";
 import DevelopmentNotes from "../components/tools/DevelopmentNotes";
 import SocialMediaGenerator from "../components/tools/SocialMediaGenerator";
 import PropertyExporter from "../components/tools/PropertyExporter";
@@ -270,10 +271,11 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Folder className="w-5 h-5 text-slate-600" />
                 <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
-                <span className="text-sm text-slate-600">(4 ferramentas)</span>
+                <span className="text-sm text-slate-600">(5 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
+                <ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" />
                 <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
@@ -306,6 +308,7 @@ export default function Tools() {
         {activeTab === "video" && <VideoMaker />}
         {activeTab === "calendar" && <CalendarTool />}
         {activeTab === "documents" && <DocumentsAndContracts />}
+      {activeTab === "contractAutomation" && <ContractAutomation />}
         {activeTab === "devNotes" && <DevelopmentNotes />}
         {activeTab === "creditSimulator" && <CreditSimulator />}
         {activeTab === "deedCosts" && <DeedCostsCalculator />}
