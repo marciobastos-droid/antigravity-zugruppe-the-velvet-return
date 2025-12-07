@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell } from "lucide-react";
+import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell, TrendingUp } from "lucide-react";
 import TaskManager from "../components/team/TaskManager";
 import TeamDashboard from "../components/team/TeamDashboard";
 import PermissionsManager from "../components/team/PermissionsManager";
 import UserManagementTab from "../components/team/UserManagementTab";
 import NotificationPreferences from "../components/notifications/NotificationPreferences";
+import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -55,6 +56,12 @@ export default function TeamManagement() {
                 Permissões
               </TabsTrigger>
             )}
+            {isAdmin && (
+              <TabsTrigger value="marketing" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Equipa Marketing
+              </TabsTrigger>
+            )}
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
               Notificações
@@ -78,6 +85,12 @@ export default function TeamManagement() {
           {isAdmin && (
             <TabsContent value="permissions">
               <PermissionsManager />
+            </TabsContent>
+          )}
+
+          {isAdmin && (
+            <TabsContent value="marketing">
+              <MarketingTeamManager />
             </TabsContent>
           )}
 
