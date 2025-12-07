@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SEOHead from "../components/seo/SEOHead";
 
 export default function TermsConditions() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
+      <SEOHead 
+        title="Termos e Condições - Zugruppe"
+        description="Termos e Condições de uso da plataforma Zugruppe."
+      />
       <div className="max-w-4xl mx-auto">
         <Link to={createPageUrl("ZuGruppe")}>
           <Button variant="ghost" className="mb-6">

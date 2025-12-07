@@ -2,10 +2,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, Shield } from "lucide-react";
+import SEOHead from "../components/seo/SEOHead";
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEOHead 
+        title="Política de Privacidade - Zugruppe"
+        description="Política de Privacidade da Zugruppe. Saiba como protegemos e tratamos os seus dados pessoais de acordo com o RGPD."
+      />
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Link 
           to={createPageUrl("Home")} 

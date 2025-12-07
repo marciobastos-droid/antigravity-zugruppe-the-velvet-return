@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import SEOHead from "../components/seo/SEOHead";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -97,6 +98,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
+      <SEOHead 
+        title="Zugruppe - Marketplace Imobiliário Premium | Portugal"
+        description="Plataforma imobiliária líder em Portugal. Descubra imóveis exclusivos, tecnologia avançada e serviço personalizado para comprar, vender ou arrendar."
+        keywords="imóveis portugal, marketplace imobiliário, zugruppe, casas portugal, apartamentos venda, arrendamento"
+      />
       {/* Logo */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -106,8 +112,9 @@ export default function Home() {
 
         <img
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-          alt="Zugruppe"
-          className="h-28 sm:h-40 md:h-56 w-auto mx-auto" />
+          alt="Zugruppe - Marketplace Imobiliário Premium"
+          className="h-28 sm:h-40 md:h-56 w-auto mx-auto"
+          loading="eager" />
 
       </motion.div>
 
@@ -147,7 +154,8 @@ export default function Home() {
                 <img
                 src={item.image}
                 alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                loading="lazy" />
 
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
@@ -193,7 +201,8 @@ export default function Home() {
                   <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  loading="lazy" />
 
                 </div>
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>

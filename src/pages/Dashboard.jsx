@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import SEOHead from "../components/seo/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -493,6 +494,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 relative">
+      <SEOHead 
+        title="Dashboard - Zugruppe"
+        description="Dashboard de gestão imobiliária"
+        noindex={true}
+      />
       {/* Widget Selector */}
       <WidgetSelector
         open={widgetSelectorOpen}
