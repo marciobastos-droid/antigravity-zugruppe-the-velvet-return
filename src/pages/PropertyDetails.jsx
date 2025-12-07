@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import SEOHead from "../components/seo/SEOHead";
+import { PropertySchema, BreadcrumbSchema } from "../components/seo/SchemaMarkup";
 import { 
   ArrowLeft, MapPin, Bed, Bath, Maximize, Calendar, 
   Home, Star, Heart, Edit, ExternalLink, Hash, MessageCircle,
@@ -265,8 +267,30 @@ export default function PropertyDetails() {
     pending_validation: "bg-orange-100 text-orange-800 border-orange-300"
   };
 
+  const seoTitle = property ? `${property.title} - ${property.city} | Zugruppe` : "Imóvel | Zugruppe";
+  const seoDescription = property 
+    ? `${property.property_type === 'apartment' ? 'Apartamento' : property.property_type === 'house' ? 'Moradia' : 'Imóvel'} ${property.listing_type === 'sale' ? 'para venda' : 'para arrendamento'} em ${property.city}. ${property.bedrooms ? `T${property.bedrooms}` : ''} ${property.useful_area ? `com ${property.useful_area}m²` : ''}. €${property.price?.toLocaleString()}${property.listing_type === 'rent' ? '/mês' : ''}.`
+    : "Detalhes do imóvel";
+
   return (
     <div className="min-h-screen bg-slate-50">
+      {property && (
+        <>
+          <SEOHead 
+            title={seoTitle}
+            description={seoDescription}
+            image={property.images?.[0]}
+            type="product"
+            url={`https://app.base44.com/PropertyDetails?id=${property.id}`}
+          />
+          <PropertySchema property={property} />
+          <BreadcrumbSchema items={[
+            { name: "Home", url: "https://app.base44.com" },
+            { name: "Imóveis", url: "https://app.base44.com/ZuGruppe" },
+            { name: property.title, url: `https://app.base44.com/PropertyDetails?id=${property.id}` }
+          ]} />
+        </>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -323,8 +347,9 @@ export default function PropertyDetails() {
               >
                 <img
                   src={images[selectedImage]}
-                  alt={property.title}
+                  alt={`${property.title} - Imagem ${selectedImage + 1}`}
                   className="w-full h-full object-cover"
+                  loading="eager"
                 />
                 
                 {/* Navigation Arrows */}
@@ -375,7 +400,7 @@ export default function PropertyDetails() {
                         selectedImage === idx ? 'border-amber-400 ring-2 ring-amber-200' : 'border-transparent opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   ))}
                 </div>
@@ -913,7 +938,7 @@ export default function PropertyDetails() {
               
               <img
                 src={images[selectedImage]}
-                alt={property.title}
+                alt={`${property.title} - Imagem ${selectedImage + 1}`}
                 className="max-w-full max-h-full object-contain"
               />
               
@@ -944,7 +969,7 @@ export default function PropertyDetails() {
                       selectedImage === idx ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
                 {images.length > 8 && (
