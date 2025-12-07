@@ -75,6 +75,11 @@ export default function PropertyCard({ property }) {
         )}
         
         <div className="absolute top-3 md:top-4 left-3 md:left-4 flex gap-2 flex-wrap">
+          {property.ref_id && (
+            <Badge className="bg-slate-900/90 text-white border-0 text-xs font-mono backdrop-blur-sm">
+              {property.ref_id}
+            </Badge>
+          )}
           {property.featured && (
             <Badge className="bg-amber-400 text-slate-900 border-0 text-xs">
               <Star className="w-3 h-3 mr-1" />
