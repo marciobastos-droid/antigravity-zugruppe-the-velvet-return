@@ -433,6 +433,7 @@ export default function ContactMatching({ contact }) {
 
       setSendingEmail(true);
       try {
+        const baseUrl = window.location.origin;
         const propertyList = selectedProps.map((p, idx) => `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #${idx + 1} - ${p.title} (Match: ${p.matchScore}%)
@@ -443,6 +444,7 @@ export default function ContactMatching({ contact }) {
 📏 Área: ${p.useful_area || p.square_feet || 'N/A'}m²
 ${p.amenities?.length ? `✨ Comodidades: ${p.amenities.slice(0, 5).join(', ')}` : ''}
 ${p.aiReason ? `\n🎯 Porque é ideal: ${p.aiReason}` : ''}
+🔗 Ver imóvel: ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}
         `).join('\n');
 
         await base44.integrations.Core.SendEmail({
@@ -513,6 +515,7 @@ Zugruppe - Privileged Approach
 
       setSendingWhatsApp(true);
       try {
+        const baseUrl = window.location.origin;
         const propertyText = selectedProps.map((p, idx) => `
 *#${idx + 1} - ${p.title}* (${p.matchScore}% compatível)
 
@@ -520,6 +523,7 @@ Zugruppe - Privileged Approach
 💰 €${p.price?.toLocaleString()}${p.listing_type === 'rent' ? '/mês' : ''}
 🏠 T${p.bedrooms || 0} | ${p.bathrooms || 0} WC | ${p.useful_area || p.square_feet || 'N/A'}m²
 ${p.aiReason ? `\n🎯 _${p.aiReason}_` : ''}
+🔗 ${baseUrl}${createPageUrl("PropertyDetails")}?id=${p.id}
         `).join('\n---\n');
 
         const message = `Olá ${contact.full_name}! 👋
