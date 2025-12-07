@@ -793,9 +793,29 @@ export default function ImportProperties() {
       
       setProgress(isDetailPage ? "A extrair imóvel único..." : "🔍 A detetar listagem de imóveis...");
       
-      // Enhanced prompt for listing detection
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Extrai TODOS os imóveis desta página de portal imobiliário português.
+      // Different prompts for detail page vs listing page
+      const prompt = isDetailPage ? 
+        `Extrai os dados deste ÚNICO imóvel da página de detalhe.
+
+URL do imóvel: ${url}
+
+EXTRAI:
+- title: título do anúncio
+- description: descrição completa
+- price: preço em número (875.000€ = 875000)
+- bedrooms: número de quartos (T0 = 0, T1 = 1, T2 = 2, etc.)
+- square_feet: área em m²
+- city: cidade
+- state: distrito
+- address: morada completa
+- property_type: "apartment", "house", "land", etc.
+- listing_type: "sale" ou "rent"
+- amenities: array de comodidades
+- external_id: ID do anúncio (extrair do URL)
+
+IMPORTANTE: É UMA PÁGINA INDIVIDUAL - retorna APENAS 1 imóvel no array.`
+        :
+        `Extrai TODOS os imóveis desta página de portal imobiliário português.
 
 URL da listagem: ${url}
 
@@ -824,7 +844,10 @@ IMPORTANTE:
 - Extrai TODOS os imóveis listados na página
 - Preços portugueses: 875.000€ = 875000, 1.450.000€ = 1450000
 - Se URL contém "comprar" é venda, se contém "arrendar" é arrendamento
-- CADA imóvel deve ter seu detail_url próprio`,
+- CADA imóvel deve ter seu detail_url próprio`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
         add_context_from_internet: true,
         response_json_schema: {
           type: "object",
@@ -862,8 +885,15 @@ IMPORTANTE:
         throw new Error(`Nenhum imóvel encontrado em ${portal.name}. Verifica o link.`);
       }
       
-      // Show listing detection result
-      if (result.is_listing_page) {
+      // Show detection result
+      if (isDetailPage) {
+        setProgress(`✅ Imóvel individual detetado`);
+        toast.info(`Página individual - 1 imóvel`);
+        // Force single property if detail page
+        if (result.properties.length > 1) {
+          result.properties = [result.properties[0]];
+        }
+      } else if (result.is_listing_page) {
         setProgress(`📋 Listagem detetada! Encontrados ${result.properties.length} imóveis${result.total_found ? ` de ${result.total_found} total` : ''}`);
         toast.info(`Página de listagem detetada com ${result.properties.length} imóveis`);
       }
