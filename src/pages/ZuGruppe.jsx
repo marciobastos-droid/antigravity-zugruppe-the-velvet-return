@@ -117,14 +117,41 @@ export default function ZuGruppe() {
 
   const activeProperties = properties.filter(p => p.status === 'active');
   
-  // Filtrar por tab ativa
+  // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
+    let filtered = activeProperties;
+    
+    // Filtrar por tipo de imóvel baseado na tab
     if (activeTab === "residential") {
-      return activeProperties.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
+      filtered = filtered.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
     } else if (activeTab === "commercial") {
-      return activeProperties.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
+      filtered = filtered.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
     }
-    return activeProperties;
+    
+    // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
+    filtered = filtered.filter(p => {
+      const publishedPages = p.published_pages || [];
+      
+      // Se não tem published_pages definido, considerar como não publicado
+      if (publishedPages.length === 0) return false;
+      
+      // Verificar se está publicado na página correspondente à tab
+      if (activeTab === "residential") {
+        return publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe");
+      } else if (activeTab === "commercial") {
+        return publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe");
+      } else {
+        // Tab "all" - mostrar se estiver publicado em qualquer página do site
+        return publishedPages.includes("zugruppe") || 
+               publishedPages.includes("zuhaus") || 
+               publishedPages.includes("zuhandel") ||
+               publishedPages.includes("homepage_featured") ||
+               publishedPages.includes("investor_section") ||
+               publishedPages.includes("luxury_collection");
+      }
+    });
+    
+    return filtered;
   }, [activeTab, activeProperties]);
 
   const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
