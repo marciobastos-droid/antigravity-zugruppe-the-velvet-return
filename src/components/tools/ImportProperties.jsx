@@ -60,7 +60,9 @@ const portalGroups = {
       { name: "Century 21", domain: "century21.pt", color: "bg-amber-100 text-amber-800" },
       { name: "Keller Williams", domain: "kwportugal.pt", color: "bg-rose-100 text-rose-800" },
       { name: "Luximos", domain: "luximos.pt", color: "bg-amber-100 text-amber-800" },
-      { name: "JLL", domain: "jll.pt", color: "bg-blue-100 text-blue-800" }
+      { name: "JLL", domain: "jll.pt", color: "bg-blue-100 text-blue-800" },
+      { name: "Sotheby's", domain: "sothebysrealty.pt", color: "bg-slate-100 text-slate-800" },
+      { name: "Bonte Filipidis", domain: "bontefilipidis.pt", color: "bg-purple-100 text-purple-800" }
     ]
   },
   internacionais: {

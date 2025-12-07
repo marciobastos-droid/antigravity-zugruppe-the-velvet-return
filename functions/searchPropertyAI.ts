@@ -19,7 +19,9 @@ const SUPPORTED_PORTALS = {
   century21: { domain: 'century21.pt', name: 'Century 21' },
   kw: { domain: 'kwportugal.pt', name: 'Keller Williams' },
   luximos: { domain: 'luximos.pt', name: 'Luximos' },
-  jll: { domain: 'jll.pt', name: 'JLL' }
+  jll: { domain: 'jll.pt', name: 'JLL' },
+  sothebys: { domain: 'sothebysrealty.pt', name: "Sotheby's" },
+  bontefilipidis: { domain: 'bontefilipidis.pt', name: 'Bonte Filipidis' }
 };
 
 function detectPortal(url) {
