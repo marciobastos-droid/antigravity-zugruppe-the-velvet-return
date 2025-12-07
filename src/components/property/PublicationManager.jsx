@@ -16,10 +16,41 @@ const AVAILABLE_PORTALS = [
 ];
 
 const AVAILABLE_PAGES = [
-  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal (tabs Todos/Residencial/Comercial)" },
-  { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
-  { id: "investor_section", name: "Secção Investidores", icon: TrendingUp, description: "Página dedicada a investidores" },
-  { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
+  { 
+    id: "zugruppe", 
+    name: "ZuGruppe", 
+    icon: Building2, 
+    description: "Listagem principal do website",
+    details: "Página de pesquisa com filtros e categorias (Todos, Residencial, Comercial, Terrenos)"
+  },
+  { 
+    id: "zuhandel", 
+    name: "ZuHandel", 
+    icon: Building2, 
+    description: "Plataforma comercial especializada",
+    details: "Secção dedicada a imóveis comerciais e de investimento"
+  },
+  { 
+    id: "homepage_featured", 
+    name: "Homepage - Imóveis em Destaque", 
+    icon: Home, 
+    description: "Carrossel de destaque na página inicial",
+    details: "Máximo de 6 imóveis em rotação na homepage"
+  },
+  { 
+    id: "investor_section", 
+    name: "Secção de Investidores", 
+    icon: TrendingUp, 
+    description: "Área dedicada a investidores",
+    details: "Imóveis com alto potencial de rentabilidade e ROI"
+  },
+  { 
+    id: "luxury_collection", 
+    name: "Coleção Premium Luxo", 
+    icon: FileText, 
+    description: "Portfólio de propriedades de luxo",
+    details: "Imóveis exclusivos com acabamentos premium (>€1M)"
+  }
 ];
 
 const PublicationManagerComponent = ({ property, onChange }) => {
@@ -176,7 +207,10 @@ const PublicationManagerComponent = ({ property, onChange }) => {
                     <p className={`font-medium ${isSelected ? "text-slate-900" : "text-slate-600"}`}>
                       {page.name}
                     </p>
-                    <p className="text-xs text-slate-500 mt-0.5">{page.description}</p>
+                    <p className="text-xs text-slate-600 mt-1">{page.description}</p>
+                    {page.details && (
+                      <p className="text-xs text-slate-500 mt-1 italic">{page.details}</p>
+                    )}
                   </div>
                 </div>
               );
