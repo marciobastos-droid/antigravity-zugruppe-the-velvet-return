@@ -53,6 +53,7 @@ import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
+import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importLeads");
@@ -131,6 +132,7 @@ export default function Tools() {
               
               <div className="flex flex-wrap gap-2">
                 <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
+                <ToolButton toolId="marketingTeam" icon={Users} label="Equipa Marketing" className="bg-gradient-to-r from-blue-50 to-purple-100 border-blue-400 hover:from-blue-100 hover:to-purple-200" />
                 <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
                 <ToolButton toolId="socialAdCreator" icon={Share2} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
                 <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
@@ -281,6 +283,7 @@ export default function Tools() {
               </div>
 
         {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
+        {activeTab === "marketingTeam" && <MarketingTeamManager />}
         {activeTab === "leadManagement" && <LeadManagementHub />}
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
