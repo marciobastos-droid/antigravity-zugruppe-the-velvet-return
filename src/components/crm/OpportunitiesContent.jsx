@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3, PanelLeft } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3, PanelLeft, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -877,36 +877,126 @@ export default function OpportunitiesContent() {
       {viewMode === "panel" && (
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-            {filteredOpportunities.map((lead) => (
-              <Card 
-                key={lead.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : ''
-                }`}
-                onClick={() => setSelectedLead(lead)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-slate-900 line-clamp-1">{lead.buyer_name}</h3>
-                      <p className="text-xs text-slate-600 line-clamp-1">{lead.buyer_email}</p>
+            {filteredOpportunities.map((lead) => {
+              const isConverted = convertedOpportunityIds.has(lead.id);
+              const statusColors = {
+                new: "bg-green-100 text-green-800",
+                contacted: "bg-blue-100 text-blue-800",
+                visit_scheduled: "bg-purple-100 text-purple-800",
+                proposal: "bg-amber-100 text-amber-800",
+                negotiation: "bg-orange-100 text-orange-800",
+                won: "bg-emerald-100 text-emerald-800",
+                lost: "bg-red-100 text-red-800"
+              };
+              const statusLabels = {
+                new: "Novo",
+                contacted: "Contactado",
+                visit_scheduled: "Visita Agendada",
+                proposal: "Proposta",
+                negotiation: "Negociação",
+                won: "Fechado",
+                lost: "Perdido"
+              };
+              const qualificationColors = {
+                hot: "text-red-600",
+                warm: "text-orange-600",
+                cold: "text-blue-600",
+                unqualified: "text-slate-400"
+              };
+              
+              return (
+                <Card 
+                  key={lead.id} 
+                  className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
+                    selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-slate-200'
+                  }`}
+                  onClick={() => setSelectedLead(lead)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-bold text-slate-900 line-clamp-1 flex-1">{lead.buyer_name}</h3>
+                          <div className="flex gap-1 flex-shrink-0">
+                            {lead.qualification_status === 'hot' && <span className="text-lg">🔥</span>}
+                            {lead.priority === 'high' && <span className="text-lg">⭐</span>}
+                            {lead.priority === 'urgent' && <span className="text-lg">🚨</span>}
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-600 line-clamp-1 mb-2">{lead.buyer_email}</p>
+                        {lead.buyer_phone && (
+                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                            <Phone className="w-3 h-3" />
+                            {lead.buyer_phone}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    {lead.qualification_status === 'hot' && <span className="text-lg">🔥</span>}
-                    {lead.priority === 'high' && <span className="text-lg">⭐</span>}
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500">
-                      {lead.lead_type === 'comprador' ? 'Comprador' : 
-                       lead.lead_type === 'vendedor' ? 'Vendedor' : 
-                       lead.lead_type === 'parceiro_comprador' ? 'Parceiro (C)' : 'Parceiro (V)'}
-                    </span>
-                    {lead.estimated_value > 0 && (
-                      <span className="font-semibold text-green-700">€{lead.estimated_value.toLocaleString()}</span>
+                    
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      <Badge className={statusColors[lead.status] || "bg-slate-100 text-slate-800"} variant="outline">
+                        {statusLabels[lead.status] || lead.status}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {lead.lead_type === 'comprador' ? '🏠 Comprador' : 
+                         lead.lead_type === 'vendedor' ? '💰 Vendedor' : 
+                         lead.lead_type === 'parceiro_comprador' ? '🤝 Parceiro (C)' : '🤝 Parceiro (V)'}
+                      </Badge>
+                      {lead.qualification_status && (
+                        <Badge variant="outline" className={qualificationColors[lead.qualification_status]}>
+                          {lead.qualification_status === 'hot' ? '🔥 Hot' :
+                           lead.qualification_status === 'warm' ? '🌡️ Warm' :
+                           lead.qualification_status === 'cold' ? '❄️ Cold' : 'N/Q'}
+                        </Badge>
+                      )}
+                      {isConverted && (
+                        <Badge className="bg-green-600 text-white">
+                          ✓ Convertido
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-200">
+                      <div className="flex flex-col gap-1">
+                        {lead.lead_source && (
+                          <span className="text-slate-500">
+                            📍 {lead.lead_source === 'facebook_ads' ? 'Facebook' :
+                               lead.lead_source === 'website' ? 'Website' :
+                               lead.lead_source === 'referral' ? 'Referência' :
+                               lead.lead_source === 'real_estate_portal' ? 'Portal' : lead.lead_source}
+                          </span>
+                        )}
+                        {lead.location && (
+                          <span className="text-slate-500">
+                            📍 {lead.location}
+                          </span>
+                        )}
+                        <span className="text-slate-400">
+                          {new Date(lead.created_date).toLocaleDateString('pt-PT')}
+                        </span>
+                      </div>
+                      {lead.estimated_value > 0 && (
+                        <div className="text-right">
+                          <div className="font-bold text-green-700">€{lead.estimated_value.toLocaleString()}</div>
+                          {lead.probability > 0 && (
+                            <div className="text-slate-500">{lead.probability}% prob.</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {lead.assigned_to && (
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-500 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {getAgentName(lead.assigned_to)}
+                        </p>
+                      </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
           <div className="lg:col-span-2">
             {selectedLead ? (
