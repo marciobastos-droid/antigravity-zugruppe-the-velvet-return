@@ -370,13 +370,11 @@ export default function OpportunitiesContent() {
     if (!destination) return;
     
     const newStatus = destination.droppableId;
-    // Map "qualified" to "visit_scheduled" as they represent the same stage
-    const mappedStatus = newStatus === 'qualified' ? 'visit_scheduled' : newStatus;
     
-    if (['new', 'contacted', 'visit_scheduled', 'proposal', 'negotiation', 'won', 'lost'].includes(mappedStatus)) {
+    if (['new', 'contacted', 'visit_scheduled', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
       updateMutation.mutate({
         id: draggableId,
-        data: { status: mappedStatus }
+        data: { status: newStatus }
       });
     }
   };
