@@ -57,6 +57,23 @@ export default function ClientPortal() {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [message, setMessage] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
+  
+  // New Inquiry Dialog
+  const [newInquiryDialog, setNewInquiryDialog] = useState(false);
+  const [inquiryType, setInquiryType] = useState("property"); // property or general
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [inquiryForm, setInquiryForm] = useState({
+    property_type: "",
+    location: "",
+    budget_max: "",
+    bedrooms: "",
+    message: ""
+  });
+  const [creatingInquiry, setCreatingInquiry] = useState(false);
+  
+  // Inquiry Filters
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState("all");
+  const [inquiryDateFilter, setInquiryDateFilter] = useState("all");
 
   const queryClient = useQueryClient();
 
@@ -152,6 +169,12 @@ export default function ClientPortal() {
     queryFn: () => base44.entities.Agent.list()
   });
 
+  // Fetch all active properties for inquiry selection
+  const { data: allProperties = [] } = useQuery({
+    queryKey: ['allActiveProperties'],
+    queryFn: () => base44.entities.Property.filter({ status: 'active' })
+  });
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
@@ -182,6 +205,84 @@ export default function ClientPortal() {
       is_read: false
     });
     setSendingMessage(false);
+  };
+
+  // Create new inquiry mutation
+  const createInquiryMutation = useMutation({
+    mutationFn: async (data) => {
+      const refData = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+      return await base44.entities.Opportunity.create({
+        ref_id: refData.data.ref_id,
+        lead_type: 'comprador',
+        buyer_name: user.full_name,
+        buyer_email: user.email,
+        buyer_phone: user.phone || '',
+        status: 'new',
+        lead_source: 'website',
+        ...data
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userOpportunities'] });
+      toast.success("Consulta criada com sucesso!");
+      setNewInquiryDialog(false);
+      setInquiryForm({ property_type: "", location: "", budget_max: "", bedrooms: "", message: "" });
+      setSelectedProperty(null);
+    }
+  });
+
+  const handleCreateInquiry = async () => {
+    if (inquiryType === 'property' && !selectedProperty) {
+      toast.error("Selecione um imóvel");
+      return;
+    }
+    if (inquiryType === 'general' && !inquiryForm.message.trim()) {
+      toast.error("Descreva o que procura");
+      return;
+    }
+
+    setCreatingInquiry(true);
+    const data = inquiryType === 'property' ? {
+      property_id: selectedProperty.id,
+      property_title: selectedProperty.title,
+      message: inquiryForm.message || `Interesse no imóvel ${selectedProperty.title}`
+    } : {
+      property_type_interest: inquiryForm.property_type,
+      location: inquiryForm.location,
+      budget: inquiryForm.budget_max ? Number(inquiryForm.budget_max) : undefined,
+      message: inquiryForm.message
+    };
+
+    await createInquiryMutation.mutateAsync(data);
+    setCreatingInquiry(false);
+  };
+
+  // Filter opportunities
+  const filteredOpportunities = opportunities.filter(opp => {
+    // Status filter
+    if (inquiryStatusFilter !== 'all') {
+      if (inquiryStatusFilter === 'active' && ['won', 'lost'].includes(opp.status)) return false;
+      if (inquiryStatusFilter === 'closed' && !['won', 'lost'].includes(opp.status)) return false;
+      if (inquiryStatusFilter !== 'active' && inquiryStatusFilter !== 'closed' && opp.status !== inquiryStatusFilter) return false;
+    }
+    
+    // Date filter
+    if (inquiryDateFilter !== 'all') {
+      const oppDate = new Date(opp.created_date);
+      const now = new Date();
+      const daysDiff = Math.floor((now - oppDate) / (1000 * 60 * 60 * 24));
+      
+      if (inquiryDateFilter === 'week' && daysDiff > 7) return false;
+      if (inquiryDateFilter === 'month' && daysDiff > 30) return false;
+      if (inquiryDateFilter === 'quarter' && daysDiff > 90) return false;
+    }
+    
+    return true;
+  });
+
+  // Get appointments for each opportunity
+  const getOpportunityAppointments = (opportunityId) => {
+    return appointments.filter(apt => apt.lead_id === opportunityId);
   };
 
   const unreadMessages = messages.filter(m => !m.is_read && m.direction === 'agent_to_client').length;
@@ -281,30 +382,91 @@ export default function ClientPortal() {
           <TabsContent value="inquiries" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>As Suas Consultas</CardTitle>
-                <CardDescription>Acompanhe o estado dos seus pedidos</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>As Suas Consultas</CardTitle>
+                    <CardDescription>Acompanhe o estado dos seus pedidos e crie novas consultas</CardDescription>
+                  </div>
+                  <Button onClick={() => setNewInquiryDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                    <Search className="w-4 h-4 mr-2" />
+                    Nova Consulta
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                {opportunities.length === 0 ? (
+                {/* Filters */}
+                {opportunities.length > 0 && (
+                  <div className="flex flex-wrap gap-3 mb-6 p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Estado:</Label>
+                      <Select value={inquiryStatusFilter} onValueChange={setInquiryStatusFilter}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="active">Ativos</SelectItem>
+                          <SelectItem value="new">Novos</SelectItem>
+                          <SelectItem value="contacted">Contactado</SelectItem>
+                          <SelectItem value="visit_scheduled">Com Visita</SelectItem>
+                          <SelectItem value="negotiation">Em Negociação</SelectItem>
+                          <SelectItem value="closed">Fechados</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium">Período:</Label>
+                      <Select value={inquiryDateFilter} onValueChange={setInquiryDateFilter}>
+                        <SelectTrigger className="w-40">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos</SelectItem>
+                          <SelectItem value="week">Última Semana</SelectItem>
+                          <SelectItem value="month">Último Mês</SelectItem>
+                          <SelectItem value="quarter">Últimos 3 Meses</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Badge variant="outline" className="ml-auto">
+                      {filteredOpportunities.length} {filteredOpportunities.length === 1 ? 'consulta' : 'consultas'}
+                    </Badge>
+                  </div>
+                )}
+
+                {filteredOpportunities.length === 0 ? (
                   <div className="text-center py-12">
                     <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600">Ainda não realizou nenhuma consulta</p>
+                    <p className="text-slate-600 mb-4">
+                      {opportunities.length === 0 ? 'Ainda não realizou nenhuma consulta' : 'Nenhuma consulta encontrada com os filtros selecionados'}
+                    </p>
+                    <Button onClick={() => setNewInquiryDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+                      <Search className="w-4 h-4 mr-2" />
+                      Criar Primeira Consulta
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {opportunities.map(opp => {
+                    {filteredOpportunities.map(opp => {
                       const StatusIcon = statusIcons[opp.status] || Clock;
+                      const oppAppointments = getOpportunityAppointments(opp.id);
+                      const hasActiveAppointments = oppAppointments.some(apt => 
+                        apt.status === 'scheduled' || apt.status === 'confirmed'
+                      );
+                      
                       return (
                         <Card key={opp.id} className="border-l-4" style={{ borderLeftColor: statusColors[opp.status]?.includes('blue') ? '#3b82f6' : '#94a3b8' }}>
                           <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
+                            <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   <StatusIcon className="w-5 h-5 text-slate-600" />
                                   <h3 className="font-semibold text-lg">{opp.property_title || 'Consulta Geral'}</h3>
                                 </div>
                                 
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                   <Badge className={statusColors[opp.status]}>
                                     {statusLabels[opp.status] || opp.status}
                                   </Badge>
@@ -313,13 +475,19 @@ export default function ClientPortal() {
                                       {opp.ref_id}
                                     </Badge>
                                   )}
+                                  {hasActiveAppointments && (
+                                    <Badge className="bg-blue-500 text-white">
+                                      <Calendar className="w-3 h-3 mr-1" />
+                                      Visita Agendada
+                                    </Badge>
+                                  )}
                                 </div>
 
                                 {opp.message && (
-                                  <p className="text-sm text-slate-600 mb-3 line-clamp-2">{opp.message}</p>
+                                  <p className="text-sm text-slate-600 mb-3">{opp.message}</p>
                                 )}
 
-                                <div className="flex items-center gap-4 text-sm text-slate-500">
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                                   <span className="flex items-center gap-1">
                                     <Clock className="w-4 h-4" />
                                     {format(new Date(opp.created_date), "dd/MM/yyyy")}
@@ -342,6 +510,42 @@ export default function ClientPortal() {
                                 </Link>
                               )}
                             </div>
+
+                            {/* Appointments for this inquiry */}
+                            {oppAppointments.length > 0 && (
+                              <div className="mt-3 pt-3 border-t">
+                                <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                                  <Calendar className="w-4 h-4" />
+                                  Visitas Agendadas ({oppAppointments.length})
+                                </h4>
+                                <div className="space-y-2">
+                                  {oppAppointments.map(apt => (
+                                    <div key={apt.id} className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm">
+                                      <div className="flex items-center gap-3">
+                                        <Badge className={
+                                          apt.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                          apt.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                          apt.status === 'completed' ? 'bg-slate-100 text-slate-800' :
+                                          'bg-red-100 text-red-800'
+                                        }>
+                                          {apt.status === 'scheduled' ? 'Agendada' :
+                                           apt.status === 'confirmed' ? 'Confirmada' :
+                                           apt.status === 'completed' ? 'Concluída' : 'Cancelada'}
+                                        </Badge>
+                                        <span className="text-slate-700">
+                                          {format(new Date(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm")}
+                                        </span>
+                                      </div>
+                                      {apt.notes && (
+                                        <span className="text-slate-500 text-xs truncate max-w-xs">
+                                          {apt.notes}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       );
@@ -583,6 +787,176 @@ export default function ClientPortal() {
                 <>
                   <Send className="w-4 h-4 mr-2" />
                   Enviar Mensagem
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Inquiry Dialog */}
+      <Dialog open={newInquiryDialog} onOpenChange={setNewInquiryDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nova Consulta</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {/* Inquiry Type Selection */}
+            <div>
+              <Label>Tipo de Consulta</Label>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <Button
+                  type="button"
+                  variant={inquiryType === 'property' ? 'default' : 'outline'}
+                  onClick={() => setInquiryType('property')}
+                  className="h-auto py-4"
+                >
+                  <div className="text-center">
+                    <Home className="w-6 h-6 mx-auto mb-2" />
+                    <div className="font-semibold">Imóvel Específico</div>
+                    <div className="text-xs opacity-70">Consultar sobre um imóvel</div>
+                  </div>
+                </Button>
+                <Button
+                  type="button"
+                  variant={inquiryType === 'general' ? 'default' : 'outline'}
+                  onClick={() => setInquiryType('general')}
+                  className="h-auto py-4"
+                >
+                  <div className="text-center">
+                    <Search className="w-6 h-6 mx-auto mb-2" />
+                    <div className="font-semibold">Critérios Gerais</div>
+                    <div className="text-xs opacity-70">Descrever o que procura</div>
+                  </div>
+                </Button>
+              </div>
+            </div>
+
+            {/* Property Specific Inquiry */}
+            {inquiryType === 'property' && (
+              <div>
+                <Label>Selecione o Imóvel</Label>
+                <select
+                  className="w-full mt-1 px-3 py-2 border rounded-lg"
+                  value={selectedProperty?.id || ''}
+                  onChange={(e) => setSelectedProperty(allProperties.find(p => p.id === e.target.value))}
+                >
+                  <option value="">Escolha um imóvel...</option>
+                  {allProperties.map(property => (
+                    <option key={property.id} value={property.id}>
+                      {property.title} - €{property.price?.toLocaleString()} - {property.city}
+                    </option>
+                  ))}
+                </select>
+                
+                {selectedProperty && (
+                  <div className="mt-3 p-3 bg-slate-50 rounded-lg border">
+                    <div className="flex items-start gap-3">
+                      {selectedProperty.images?.[0] && (
+                        <img 
+                          src={selectedProperty.images[0]} 
+                          alt={selectedProperty.title}
+                          className="w-20 h-20 rounded object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="font-semibold">{selectedProperty.title}</h4>
+                        <p className="text-sm text-slate-600">
+                          <MapPin className="w-3 h-3 inline mr-1" />
+                          {selectedProperty.city}, {selectedProperty.state}
+                        </p>
+                        <p className="text-sm font-semibold text-blue-600 mt-1">
+                          €{selectedProperty.price?.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* General Inquiry Form */}
+            {inquiryType === 'general' && (
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Tipo de Imóvel</Label>
+                    <Select 
+                      value={inquiryForm.property_type} 
+                      onValueChange={(v) => setInquiryForm({...inquiryForm, property_type: v})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="apartment">Apartamento</SelectItem>
+                        <SelectItem value="house">Moradia</SelectItem>
+                        <SelectItem value="land">Terreno</SelectItem>
+                        <SelectItem value="commercial">Comercial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Localização Preferida</Label>
+                    <Input
+                      value={inquiryForm.location}
+                      onChange={(e) => setInquiryForm({...inquiryForm, location: e.target.value})}
+                      placeholder="Ex: Lisboa, Porto..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Orçamento Máximo</Label>
+                    <Input
+                      type="number"
+                      value={inquiryForm.budget_max}
+                      onChange={(e) => setInquiryForm({...inquiryForm, budget_max: e.target.value})}
+                      placeholder="250000"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Quartos (mínimo)</Label>
+                    <Input
+                      type="number"
+                      value={inquiryForm.bedrooms}
+                      onChange={(e) => setInquiryForm({...inquiryForm, bedrooms: e.target.value})}
+                      placeholder="2"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Message for both types */}
+            <div>
+              <Label>Mensagem / Observações</Label>
+              <Textarea
+                value={inquiryForm.message}
+                onChange={(e) => setInquiryForm({...inquiryForm, message: e.target.value})}
+                placeholder={inquiryType === 'property' 
+                  ? "Informações adicionais sobre o seu interesse..." 
+                  : "Descreva o que procura em detalhe..."}
+                rows={4}
+              />
+            </div>
+
+            <Button 
+              onClick={handleCreateInquiry}
+              disabled={creatingInquiry}
+              className="w-full bg-blue-600 hover:bg-blue-700"
+            >
+              {creatingInquiry ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A criar consulta...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Enviar Consulta
                 </>
               )}
             </Button>
