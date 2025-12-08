@@ -491,7 +491,7 @@ export default function ZuGruppe() {
                     <span className="hidden md:inline">Filtros</span>
                     {hasActiveFilters && (
                       <Badge className="bg-blue-600 text-white ml-1">
-                        {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceRange[0] > 0 || priceRange[1] < 2000000].filter(Boolean).length}
+                        {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceMin, priceMax].filter(Boolean).length}
                       </Badge>
                     )}
                   </Button>
