@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
+import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 
 export default function ZuHandel() {
   const queryClient = useQueryClient();
@@ -435,9 +436,17 @@ function CommercialPropertyCard({ property, onContact }) {
         </Link>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
           <div className="text-2xl font-bold text-white">
-            {property.currency === 'EUR' ? '€' : '$'}{property.price?.toLocaleString()}
+            {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
             {property.listing_type === 'rent' && <span className="text-sm font-normal">/mês</span>}
           </div>
+          {property.currency && property.currency !== 'EUR' && (() => {
+            const eurValue = convertToEUR(property.price, property.currency);
+            return eurValue ? (
+              <div className="text-sm text-white/90 mt-1">
+                ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
+              </div>
+            ) : null;
+          })()}
         </div>
       </div>
 
