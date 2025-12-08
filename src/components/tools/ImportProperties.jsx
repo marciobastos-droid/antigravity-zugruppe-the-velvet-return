@@ -305,18 +305,6 @@ export default function ImportProperties() {
   const [privateOwnerName, setPrivateOwnerName] = React.useState("");
   const [privateOwnerPhone, setPrivateOwnerPhone] = React.useState("");
   
-  const { data: partners = [] } = useQuery({
-    queryKey: ['partners'],
-    queryFn: async () => {
-      const profiles = await base44.entities.BuyerProfile.list();
-      return profiles.filter(p => 
-        p.profile_type === 'parceiro' || 
-        p.profile_type === 'parceiro_comprador' || 
-        p.profile_type === 'parceiro_vendedor'
-      );
-    },
-  });
-
   const { data: clientContacts = [] } = useQuery({
     queryKey: ['partnerContacts'],
     queryFn: async () => {
@@ -325,23 +313,16 @@ export default function ImportProperties() {
     },
   });
 
-  // Combine partners from both sources
+  // Use only ClientContacts registered as partners
   const allPartners = React.useMemo(() => {
-    const combined = [];
-    partners.forEach(p => combined.push({ 
-      id: p.id, 
-      name: p.buyer_name, 
-      email: p.buyer_email,
-      source: 'profile'
-    }));
-    clientContacts.forEach(c => combined.push({ 
+    return clientContacts.map(c => ({ 
       id: c.id, 
       name: c.full_name, 
       email: c.email,
+      phone: c.phone,
       source: 'contact'
     }));
-    return combined;
-  }, [partners, clientContacts]);
+  }, [clientContacts]);
   
   // CSV Preview State
   const [csvPreview, setCsvPreview] = React.useState(null);
