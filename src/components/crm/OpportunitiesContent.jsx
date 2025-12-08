@@ -27,8 +27,8 @@ export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
   const { getAgentOptions, getAgentName } = useAgentNames();
   const [viewMode, setViewMode] = React.useState(() => {
-    // Default to grid on mobile
-    return window.innerWidth < 768 ? "grid" : "table";
+    // Default to kanban on mobile, kanban on desktop
+    return "kanban";
   });
   const [selectedLeadId, setSelectedLeadId] = React.useState(null);
   const [selectedLeads, setSelectedLeads] = React.useState([]);
