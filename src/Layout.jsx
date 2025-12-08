@@ -5,7 +5,6 @@ import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, 
 import { base44 } from "@/api/base44Client";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
-import AutoCommunicationTracker from "./components/crm/AutoCommunicationTracker";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -48,7 +47,7 @@ export default function Layout({ children, currentPageName }) {
   // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
-    { name: "ZuGruppe", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
+    { name: "WebSite", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     
@@ -92,9 +91,8 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <AutoCommunicationTracker enabled={true}>
-      <div className="min-h-screen bg-slate-50">
-        <Toaster position="top-right" richColors />
+    <div className="min-h-screen bg-slate-50">
+      <Toaster position="top-right" richColors />
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -347,7 +345,6 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
       </footer>
-      </div>
-    </AutoCommunicationTracker>
+    </div>
   );
 }
