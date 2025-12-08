@@ -39,6 +39,8 @@ const PropertyCard = memo(function PropertyCard({
   onDelete,
   onViewNotes,
   propertyTypeLabels,
+  statusLabels,
+  statusColors,
   setSelectedPropertyForAI,
   setAiEnhancerOpen
 }) {
@@ -1329,6 +1331,8 @@ export default function MyListings() {
                   onDelete={handleDelete}
                   onViewNotes={setViewingNotes}
                   propertyTypeLabels={propertyTypeLabels}
+                  statusLabels={statusLabels}
+                  statusColors={statusColors}
                   setSelectedPropertyForAI={setSelectedPropertyForAI}
                   setAiEnhancerOpen={setAiEnhancerOpen}
                 />
