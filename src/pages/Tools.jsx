@@ -215,6 +215,8 @@ export default function Tools() {
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
                 <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
+                <ToolButton toolId="bulkScoreCalculator" icon={TrendingUp} label="Calcular Pontuações" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
+                <ToolButton toolId="autoNotifications" icon={Bell} label="Notificações Auto" className="bg-green-50 border-green-300 hover:bg-green-100" />
               </div>
               </CardContent>
               </Card>
@@ -358,6 +360,8 @@ export default function Tools() {
         {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
         {activeTab === "investorKeys" && <InvestorKeysManager />}
         {activeTab === "investorProperties" && <InvestorPropertiesManager />}
+        {activeTab === "bulkScoreCalculator" && <BulkScoreCalculator />}
+        {activeTab === "autoNotifications" && <AutoNotificationsTrigger />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
