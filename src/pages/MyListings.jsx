@@ -45,8 +45,7 @@ const PropertyCard = memo(function PropertyCard({
   setSelectedPropertyForAI,
   setAiEnhancerOpen
 }) {
-  const handleSelect = useCallback((e) => {
-    e.stopPropagation();
+  const handleSelect = useCallback(() => {
     onToggleSelect(property.id);
   }, [property.id, onToggleSelect]);
 
@@ -64,7 +63,7 @@ const PropertyCard = memo(function PropertyCard({
             />
             <div className="absolute top-2 left-2" onClick={(e) => {
               e.stopPropagation();
-              handleSelect(e);
+              handleSelect();
             }}>
               <div className="bg-white/90 backdrop-blur-sm rounded p-1">
                 <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
