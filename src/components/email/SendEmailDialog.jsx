@@ -125,6 +125,16 @@ export default function SendEmailDialog({
       return;
     }
 
+    if (!subject || !subject.trim()) {
+      toast.error("Assunto obrigatório");
+      return;
+    }
+
+    if (!body || !body.trim()) {
+      toast.error("Mensagem obrigatória");
+      return;
+    }
+
     setSending(true);
     try {
       const processed = getProcessedContent();
@@ -137,8 +147,16 @@ export default function SendEmailDialog({
         body: processed.body
       });
       
+      if (!response || !response.data) {
+        throw new Error('Resposta inválida do servidor');
+      }
+      
       if (response.data?.error) {
         throw new Error(response.data.error);
+      }
+      
+      if (!response.data?.success) {
+        throw new Error('Falha ao enviar email. Tente novamente.');
       }
 
       // Log to SentEmail entity
@@ -195,7 +213,18 @@ export default function SendEmailDialog({
     } catch (error) {
       console.error("Error sending email:", error);
       
-      const errorMessage = error?.response?.data?.message || error?.message || "Erro desconhecido";
+      let errorMessage = "Erro desconhecido";
+      
+      // Parse different error formats
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
       
       // Log failed email
       try {

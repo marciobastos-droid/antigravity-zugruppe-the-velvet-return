@@ -37,8 +37,16 @@ Deno.serve(async (req) => {
 
 async function getAccessToken(base44) {
     // Use the App Connector to get the access token
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
-    return accessToken;
+    // Note: Gmail uses the same token as Google Drive connector
+    try {
+        const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
+        if (!accessToken || typeof accessToken !== 'string') {
+            throw new Error('Token inválido ou não autorizado');
+        }
+        return accessToken;
+    } catch (error) {
+        throw new Error(`Erro ao obter token: ${error.message}. Verifique se autorizou o Gmail nas configurações.`);
+    }
 }
 
 async function getUserEmail(accessToken) {
