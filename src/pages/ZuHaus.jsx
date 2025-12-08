@@ -22,7 +22,27 @@ export default function ZuHaus() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   
   const filteredProperties = React.useMemo(() => {
-    return properties.filter(p => {
+    // Debug: estatísticas gerais
+    const totalProperties = properties.length;
+    const activeProperties = properties.filter(p => p.status === 'active');
+    const residentialActive = activeProperties.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
+    const withPublishedPages = residentialActive.filter(p => {
+      const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
+      return pp.length > 0;
+    });
+    const configuredForZuhaus = residentialActive.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
+    );
+    
+    console.log('[ZuHaus Stats]', {
+      total: totalProperties,
+      active: activeProperties.length,
+      residentialActive: residentialActive.length,
+      withPublishedPages: withPublishedPages.length,
+      configuredForZuhaus: configuredForZuhaus.length
+    });
+    
+    const result = properties.filter(p => {
       // Verificar publicação
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       const isPublished = publishedPages.includes("zuhaus");
@@ -41,13 +61,22 @@ export default function ZuHaus() {
       // Verificar cidade
       const matchesCity = city === "all" || p.city === city;
       
-      // Debug: imprimir se falhar
-      if (isResidential && isActive && !isPublished) {
-        console.log('[ZuHaus] Property not published here:', p.ref_id || p.id, 'pages:', publishedPages);
+      // Debug: imprimir se falhar algum critério
+      if (isResidential && isActive) {
+        if (!isPublished) {
+          console.log('[ZuHaus] Not published:', p.ref_id || p.id, { 
+            publishedPages, 
+            type: p.property_type,
+            status: p.status
+          });
+        }
       }
       
       return isPublished && isResidential && isActive && matchesSearch && matchesCity;
     });
+    
+    console.log('[ZuHaus] Final filtered:', result.length, 'properties shown');
+    return result;
   }, [properties, searchTerm, city]);
 
   const allCities = [...new Set(properties

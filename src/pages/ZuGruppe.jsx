@@ -121,28 +121,76 @@ export default function ZuGruppe() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
+    // Debug: contar configurações
+    const totalActive = activeProperties.length;
+    const withPublishedPages = activeProperties.filter(p => {
+      const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
+      return pp.length > 0;
+    }).length;
+    const withZugruppe = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zugruppe")
+    ).length;
+    const withZuhaus = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
+    ).length;
+    const withZuhandel = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
+    ).length;
+    
+    console.log('[ZuGruppe Debug]', {
+      totalActive,
+      withPublishedPages,
+      configured: { zugruppe: withZugruppe, zuhaus: withZuhaus, zuhandel: withZuhandel },
+      activeTab
+    });
+    
     // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
     filtered = filtered.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       
       // Se não tem published_pages definido OU está vazio, não mostrar
       if (!publishedPages || publishedPages.length === 0) {
+        console.log('[ZuGruppe] Rejected (no pages):', p.ref_id || p.id);
         return false;
       }
       
       // Verificar se está publicado na página correspondente à tab
       if (activeTab === "residential") {
-        // Mostrar se está publicado em zuhaus E é tipo residencial
-        return publishedPages.includes("zuhaus") && RESIDENTIAL_TYPES.includes(p.property_type);
+        const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
+        const hasZuhaus = publishedPages.includes("zuhaus");
+        const pass = hasZuhaus && isResidential;
+        if (!pass) {
+          console.log('[ZuGruppe] Rejected (residential):', p.ref_id || p.id, { 
+            type: p.property_type, 
+            isResidential, 
+            hasZuhaus, 
+            publishedPages 
+          });
+        }
+        return pass;
       } else if (activeTab === "commercial") {
-        // Mostrar se está publicado em zuhandel E é tipo comercial
-        return publishedPages.includes("zuhandel") && COMMERCIAL_TYPES.includes(p.property_type);
+        const isCommercial = COMMERCIAL_TYPES.includes(p.property_type);
+        const hasZuhandel = publishedPages.includes("zuhandel");
+        const pass = hasZuhandel && isCommercial;
+        if (!pass) {
+          console.log('[ZuGruppe] Rejected (commercial):', p.ref_id || p.id, { 
+            type: p.property_type, 
+            isCommercial, 
+            hasZuhandel, 
+            publishedPages 
+          });
+        }
+        return pass;
       } else {
-        // Tab "all" - mostrar se estiver publicado em zugruppe (página principal)
-        return publishedPages.includes("zugruppe");
+        const hasZugruppe = publishedPages.includes("zugruppe");
+        if (!hasZugruppe) {
+          console.log('[ZuGruppe] Rejected (all):', p.ref_id || p.id, { publishedPages });
+        }
+        return hasZugruppe;
       }
     });
     
+    console.log('[ZuGruppe] Filtered result:', filtered.length, 'properties');
     return filtered;
   }, [activeTab, activeProperties]);
 
