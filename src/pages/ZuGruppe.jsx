@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Home, Building2, MapPin, Bed, Bath, Maximize, Star, ArrowRight,
-  TrendingUp, Users, Shield, Sparkles, Phone, Mail, CheckCircle, Globe
+  TrendingUp, Users, Shield, Sparkles, Phone, Mail, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +26,6 @@ export default function ZuGruppe() {
     }
   });
 
-  // Redirect to dashboard if already logged in
   React.useEffect(() => {
     if (user) {
       navigate(createPageUrl("Dashboard"));
