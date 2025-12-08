@@ -297,7 +297,7 @@ export default function ImportProperties() {
   const [results, setResults] = React.useState(null);
   const [importProgress, setImportProgress] = React.useState({ current: 0, total: 0, isRunning: false });
   const [validationDetails, setValidationDetails] = React.useState(null);
-  const [propertyOwnership, setPropertyOwnership] = React.useState("own"); // "own", "partner", "private"
+  const [propertyOwnership, setPropertyOwnership] = React.useState("partner"); // "own", "partner", "private"
   const [selectedPartner, setSelectedPartner] = React.useState(null);
   const [privateOwnerName, setPrivateOwnerName] = React.useState("");
   const [privateOwnerPhone, setPrivateOwnerPhone] = React.useState("");
