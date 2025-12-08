@@ -57,6 +57,8 @@ import NotificationsDashboard from "../components/notifications/NotificationsDas
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
+import BulkScoreCalculator from "../components/tools/BulkScoreCalculator";
+import AutoNotificationsTrigger from "../components/notifications/AutoNotificationsTrigger";
 import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
 import InvestorKeysManager from "../components/tools/InvestorKeysManager";
 import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";

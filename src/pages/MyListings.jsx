@@ -27,6 +27,7 @@ import PublicationHub from "../components/publication/PublicationHub";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
+import PropertyScoreCard from "../components/property/PropertyScoreCard";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
@@ -107,6 +108,11 @@ const PropertyCard = memo(function PropertyCard({
               <Badge className={`${statusColors[property.status]} text-xs`}>{statusLabels[property.status]}</Badge>
             </div>
             
+            {/* Quality Score */}
+            <div className="mb-2 pt-2 border-t border-slate-100">
+              <PropertyScoreCard property={property} variant="compact" />
+            </div>
+
             {/* Publication Status */}
             <div className="mb-2 pt-2 border-t border-slate-100">
               <div className="flex flex-col gap-1">
