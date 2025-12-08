@@ -8,6 +8,12 @@ export default function PropertyCard({ property }) {
   const [imageError, setImageError] = React.useState(false);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
+  // Reset image index when property changes
+  React.useEffect(() => {
+    setCurrentImageIndex(0);
+    setImageError(false);
+  }, [property.id]);
+  
   const images = property.images && property.images.length > 0 
     ? property.images 
     : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80"];
