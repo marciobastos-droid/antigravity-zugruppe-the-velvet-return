@@ -13,8 +13,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
 
 export default function ZuHandel() {
   const queryClient = useQueryClient();
@@ -25,13 +25,6 @@ export default function ZuHandel() {
   const [priceRange, setPriceRange] = React.useState("all");
   const [contactDialogOpen, setContactDialogOpen] = React.useState(false);
   const [selectedProperty, setSelectedProperty] = React.useState(null);
-  const [contactForm, setContactForm] = React.useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    message: ""
-  });
 
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
@@ -77,45 +70,44 @@ export default function ZuHandel() {
 
   const featuredProperties = filteredProperties.filter(p => p.featured).slice(0, 3);
 
-  const submitContactMutation = useMutation({
-    mutationFn: async (data) => {
-      return await base44.entities.Opportunity.create({
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const handleContactSubmit = async (formData) => {
+    setIsSubmitting(true);
+    try {
+      await base44.entities.Opportunity.create({
         lead_type: "comprador",
-        buyer_name: data.name,
-        buyer_email: data.email,
-        buyer_phone: data.phone,
-        company_name: data.company,
-        message: `[ZuHandel] ${data.message}\n\nImóvel de interesse: ${selectedProperty?.title || 'Geral'}`,
+        buyer_name: formData.name,
+        buyer_email: formData.email,
+        buyer_phone: formData.phone,
+        company_name: formData.company,
+        message: `[ZuHandel] ${formData.message}\n\nImóvel de interesse: ${selectedProperty?.title || 'Geral'}`,
         property_id: selectedProperty?.id || null,
         property_title: selectedProperty?.title || null,
         status: "new",
         lead_source: "website"
       });
-    },
-    onSuccess: () => {
-      toast.success("Mensagem enviada com sucesso! Entraremos em contacto brevemente.");
-      setContactDialogOpen(false);
-      setContactForm({ name: "", email: "", phone: "", company: "", message: "" });
-      setSelectedProperty(null);
-    },
-    onError: () => {
-      toast.error("Erro ao enviar mensagem. Por favor tente novamente.");
+      toast.success("Mensagem enviada com sucesso!");
+      setTimeout(() => {
+        setContactDialogOpen(false);
+        setSelectedProperty(null);
+      }, 2000);
+    } catch (error) {
+      toast.error("Erro ao enviar mensagem.");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
     }
-  });
-
-  const handleContactSubmit = (e) => {
-    e.preventDefault();
-    submitContactMutation.mutate(contactForm);
   };
 
   const handlePropertyContact = (property) => {
     setSelectedProperty(property);
-    setContactForm(prev => ({
-      ...prev,
-      message: `Estou interessado no imóvel comercial "${property.title}" - Ref: ${property.ref_id || property.id}`
-    }));
     setContactDialogOpen(true);
   };
+
+  const defaultMessage = selectedProperty 
+    ? `Estou interessado no imóvel comercial "${selectedProperty.title}"${selectedProperty.ref_id ? ` - Ref: ${selectedProperty.ref_id}` : ''}`
+    : "Gostaria de obter mais informações sobre os vossos espaços comerciais.";
 
   const propertyTypeLabels = {
     store: "Loja",
@@ -357,61 +349,21 @@ export default function ZuHandel() {
 
       {/* Contact Dialog */}
       <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Contacte os Nossos Especialistas</DialogTitle>
+            <DialogTitle className="text-2xl">Contacte os Nossos Especialistas</DialogTitle>
+            <p className="text-sm text-slate-600">
+              Preencha o formulário e entraremos em contacto brevemente
+            </p>
           </DialogHeader>
-          <form onSubmit={handleContactSubmit} className="space-y-4">
-            <div>
-              <Input
-                placeholder="Nome *"
-                value={contactForm.name}
-                onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="email"
-                placeholder="Email *"
-                value={contactForm.email}
-                onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="tel"
-                placeholder="Telefone *"
-                value={contactForm.phone}
-                onChange={(e) => setContactForm(prev => ({ ...prev, phone: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <Input
-                placeholder="Empresa"
-                value={contactForm.company}
-                onChange={(e) => setContactForm(prev => ({ ...prev, company: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Textarea
-                placeholder="Mensagem *"
-                value={contactForm.message}
-                onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                required
-                rows={4}
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-[#75787b] hover:bg-[#5a5c5e]"
-              disabled={submitContactMutation.isPending}
-            >
-              {submitContactMutation.isPending ? "A enviar..." : "Enviar Mensagem"}
-            </Button>
-          </form>
+          <ContactFormEnhanced
+            onSubmit={handleContactSubmit}
+            isSubmitting={isSubmitting}
+            showCompanyField={true}
+            selectedProperty={selectedProperty}
+            defaultMessage={defaultMessage}
+            brandColor="#75787b"
+          />
         </DialogContent>
       </Dialog>
     </div>
@@ -420,7 +372,8 @@ export default function ZuHandel() {
 
 function CommercialPropertyCard({ property, onContact }) {
   const [imgError, setImgError] = React.useState(false);
-  const image = property.images?.[0];
+  const [imgIndex, setImgIndex] = React.useState(0);
+  const images = property.images?.length > 0 ? property.images : [];
 
   const propertyTypeLabels = {
     store: "Loja",
@@ -434,9 +387,9 @@ function CommercialPropertyCard({ property, onContact }) {
       <div className="relative">
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
           <div className="relative h-56 overflow-hidden bg-slate-100">
-            {!imgError && image ? (
+            {!imgError && images[imgIndex] ? (
               <img
-                src={image}
+                src={images[imgIndex]}
                 alt={property.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 onError={() => setImgError(true)}
@@ -461,6 +414,23 @@ function CommercialPropertyCard({ property, onContact }) {
                   Destaque
                 </Badge>
               </div>
+            )}
+            
+            {images.length > 1 && (
+              <>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {images.slice(0, 5).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgIndex(i); }}
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
+                    />
+                  ))}
+                </div>
+                <div className="absolute bottom-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg transition-all pointer-events-none">
+                  📷 Ver todas as {images.length} fotos
+                </div>
+              </>
             )}
           </div>
         </Link>
