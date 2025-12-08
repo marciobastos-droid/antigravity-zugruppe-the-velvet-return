@@ -27,7 +27,6 @@ import PublicationHub from "../components/publication/PublicationHub";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
-import PropertyScoreCard from "../components/property/PropertyScoreCard";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
@@ -108,11 +107,6 @@ const PropertyCard = memo(function PropertyCard({
               <Badge className={`${statusColors[property.status]} text-xs`}>{statusLabels[property.status]}</Badge>
             </div>
             
-            {/* Quality Score */}
-            <div className="mb-2 pt-2 border-t border-slate-100">
-              <PropertyScoreCard property={property} variant="compact" />
-            </div>
-
             {/* Publication Status */}
             <div className="mb-2 pt-2 border-t border-slate-100">
               <div className="flex flex-col gap-1">
@@ -327,6 +321,7 @@ export default function MyListings() {
             .map(a => ({
               id: a.id,
               full_name: a.full_name,
+              display_name: a.display_name || a.full_name,
               email: a.email,
               is_active: a.is_active !== false,
               source: 'agent'
@@ -1123,7 +1118,7 @@ export default function MyListings() {
                             <SelectItem value="none">Nenhum</SelectItem>
                             {agents.filter(a => a.is_active !== false).map((agent) => (
                               <SelectItem key={agent.id} value={agent.email}>
-                                {agent.full_name}
+                                {agent.display_name || agent.full_name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1224,7 +1219,7 @@ export default function MyListings() {
                           <SelectContent>
                             {agents.filter(a => a.is_active !== false).map((agent) => (
                               <SelectItem key={agent.id} value={agent.id}>
-                                {agent.full_name}
+                                {agent.display_name || agent.full_name}
                               </SelectItem>
                             ))}
                           </SelectContent>
