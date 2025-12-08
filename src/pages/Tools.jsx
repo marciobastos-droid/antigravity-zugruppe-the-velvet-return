@@ -10,7 +10,6 @@ import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
 import VideoMaker from "../components/tools/VideoMaker";
 import CalendarTool from "../components/tools/CalendarTool";
-import CRMSyncPanel from "../components/crm/CRMSyncPanel";
 import UnifiedCalendar from "../components/calendar/UnifiedCalendar";
 import PropertyDescriptionGenerator from "../components/tools/PropertyDescriptionGenerator";
 import PriceSuggestion from "../components/tools/PriceSuggestion";
@@ -172,7 +171,7 @@ export default function Tools() {
                   <div className="flex items-center gap-2 mb-3">
                     <Download className="w-5 h-5 text-blue-600" />
                     <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                    <span className="text-sm text-blue-600">(11 ferramentas)</span>
+                    <span className="text-sm text-blue-600">(12 ferramentas)</span>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
@@ -188,7 +187,8 @@ export default function Tools() {
                     <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" className="bg-green-50 border-green-300 hover:bg-green-100" />
                     <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
                     <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
-              </div>
+                    <ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
+                  </div>
               </CardContent>
               </Card>
 
