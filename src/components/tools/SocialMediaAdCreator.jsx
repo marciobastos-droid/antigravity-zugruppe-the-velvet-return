@@ -120,11 +120,11 @@ Responde APENAS com o texto do post, sem explicacoes.`;
       });
 
       setGeneratedContent({
-        text: response.post_text,
-        hashtags: response.hashtags || [],
-        cta: response.suggested_cta
+        text: response?.post_text || '',
+        hashtags: response?.hashtags || [],
+        cta: response?.suggested_cta || ''
       });
-      setCustomContent(response.post_text);
+      setCustomContent(response?.post_text || '');
       
     } catch (error) {
       console.error('Error generating content:', error);
