@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3 } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3, PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -664,6 +664,14 @@ export default function OpportunitiesContent() {
               <LayoutGrid className="w-4 h-4" />
             </Button>
             <Button
+              variant={viewMode === "panel" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("panel")}
+              className="rounded-none hidden sm:flex"
+            >
+              <PanelLeft className="w-4 h-4" />
+            </Button>
+            <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
@@ -864,6 +872,63 @@ export default function OpportunitiesContent() {
           onDelete={handleDelete}
           onToggleImportant={handleToggleImportant}
         />
+      )}
+
+      {viewMode === "panel" && (
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+            {filteredOpportunities.map((lead) => (
+              <Card 
+                key={lead.id} 
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : ''
+                }`}
+                onClick={() => setSelectedLead(lead)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-slate-900 line-clamp-1">{lead.buyer_name}</h3>
+                      <p className="text-xs text-slate-600 line-clamp-1">{lead.buyer_email}</p>
+                    </div>
+                    {lead.qualification_status === 'hot' && <span className="text-lg">🔥</span>}
+                    {lead.priority === 'high' && <span className="text-lg">⭐</span>}
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">
+                      {lead.lead_type === 'comprador' ? 'Comprador' : 
+                       lead.lead_type === 'vendedor' ? 'Vendedor' : 
+                       lead.lead_type === 'parceiro_comprador' ? 'Parceiro (C)' : 'Parceiro (V)'}
+                    </span>
+                    {lead.estimated_value > 0 && (
+                      <span className="font-semibold text-green-700">€{lead.estimated_value.toLocaleString()}</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <div className="lg:col-span-2">
+            {selectedLead ? (
+              <LeadDetailPanel
+                lead={selectedLead}
+                onClose={() => setSelectedLead(null)}
+                onUpdate={(id, data) => updateMutation.mutate({ id, data })}
+                properties={properties}
+                onEdit={() => handleEditOpportunity(selectedLead)}
+              />
+            ) : (
+              <Card className="h-96">
+                <CardContent className="flex items-center justify-center h-full">
+                  <div className="text-center text-slate-400">
+                    <PanelLeft className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">Selecione uma oportunidade à esquerda</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       )}
 
       {viewMode === "list" && (
