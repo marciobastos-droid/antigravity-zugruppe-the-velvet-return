@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Loader2, FileText, Eye, Sparkles } from "lucide-react";
+import { Send, Loader2, FileText, Eye, Sparkles, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SendEmailDialog({ 
@@ -23,6 +23,8 @@ export default function SendEmailDialog({
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const { data: templates = [] } = useQuery({
     queryKey: ['emailTemplates'],
@@ -91,6 +93,32 @@ export default function SendEmailDialog({
     };
   };
 
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadedFiles = [];
+      for (const file of files) {
+        const { data } = await base44.functions.invoke('uploadFile', { file });
+        uploadedFiles.push({
+          filename: file.name,
+          url: data.file_url
+        });
+      }
+      setAttachments([...attachments, ...uploadedFiles]);
+      toast.success(`${files.length} ficheiro(s) anexado(s)`);
+    } catch (error) {
+      toast.error("Erro ao carregar ficheiro");
+    }
+    setUploading(false);
+  };
+
+  const removeAttachment = (index) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
+
   const handleSend = async () => {
     if (!recipient?.email) {
       toast.error("Destinatário sem email");
@@ -113,7 +141,23 @@ export default function SendEmailDialog({
         throw new Error(response.data.error);
       }
 
-      // Log the communication (EmailLog is for Gmail sync only)
+      // Log to SentEmail entity
+      await base44.entities.SentEmail.create({
+        recipient_id: recipient.id,
+        recipient_type: recipient.type,
+        recipient_name: recipient.name,
+        recipient_email: recipient.email,
+        subject: processed.subject,
+        body: processed.body,
+        template_id: selectedTemplate || null,
+        template_name: selectedTemplate ? templates.find(t => t.id === selectedTemplate)?.name : null,
+        sent_by: user?.email,
+        sent_at: new Date().toISOString(),
+        status: 'sent',
+        attachments: attachments
+      });
+
+      // Log the communication
       if (recipient.type === 'client' && recipient.id) {
         await base44.entities.CommunicationLog.create({
           contact_id: recipient.id,
@@ -138,14 +182,42 @@ export default function SendEmailDialog({
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['emailLogs'] });
+      queryClient.invalidateQueries({ queryKey: ['sentEmails'] });
+      queryClient.invalidateQueries({ queryKey: ['communicationLogs'] });
       toast.success("Email enviado com sucesso!");
       onOpenChange(false);
+      
+      // Reset form
+      setSubject("");
+      setBody("");
+      setAttachments([]);
+      setSelectedTemplate("");
     } catch (error) {
       console.error("Error sending email:", error);
       
       const errorMessage = error?.response?.data?.message || error?.message || "Erro desconhecido";
       
+      // Log failed email
+      try {
+        await base44.entities.SentEmail.create({
+          recipient_id: recipient.id,
+          recipient_type: recipient.type,
+          recipient_name: recipient.name,
+          recipient_email: recipient.email,
+          subject: getProcessedContent().subject,
+          body: getProcessedContent().body,
+          template_id: selectedTemplate || null,
+          template_name: selectedTemplate ? templates.find(t => t.id === selectedTemplate)?.name : null,
+          sent_by: user?.email,
+          sent_at: new Date().toISOString(),
+          status: 'failed',
+          error_message: errorMessage,
+          attachments: attachments
+        });
+      } catch (logError) {
+        console.error("Error logging failed email:", logError);
+      }
+
       // Log failed communication
       if (recipient.type === 'client' && recipient.id) {
         try {
@@ -160,8 +232,8 @@ export default function SendEmailDialog({
             agent_email: user?.email || '',
             outcome: 'failed'
           });
-        } catch (logError) {
-          console.error("Error logging failed email:", logError);
+        } catch (logError2) {
+          console.error("Error logging failed communication:", logError2);
         }
       }
 
@@ -251,6 +323,52 @@ export default function SendEmailDialog({
                 <p className="text-xs text-slate-500 mt-1">
                   Campos disponíveis: {"{{nome_completo}}"}, {"{{email}}"}, {"{{telefone}}"}, {"{{cidade}}"}, {"{{imovel}}"}, {"{{orcamento}}"}
                 </p>
+              </div>
+
+              {/* Attachments */}
+              <div>
+                <Label>Anexos</Label>
+                <div className="space-y-2">
+                  {attachments.map((file, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm text-slate-700">{file.filename}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttachment(idx)}
+                      >
+                        <X className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div>
+                    <input
+                      type="file"
+                      id="email-attachments"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('email-attachments').click()}
+                      disabled={uploading}
+                      className="w-full"
+                    >
+                      {uploading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Paperclip className="w-4 h-4 mr-2" />
+                      )}
+                      {uploading ? "A carregar..." : "Anexar Ficheiro"}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 

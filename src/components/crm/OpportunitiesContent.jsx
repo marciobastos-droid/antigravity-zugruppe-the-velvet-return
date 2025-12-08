@@ -16,6 +16,7 @@ import OpportunityFormDialog from "../opportunities/OpportunityFormDialog";
 import OpportunityKanban from "../opportunities/OpportunityKanban";
 import OpportunitiesTable from "./OpportunitiesTable";
 import SendEmailDialog from "../email/SendEmailDialog";
+import EmailHistoryPanel from "../email/EmailHistoryPanel";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
