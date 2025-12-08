@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3, PanelLeft, User } from "lucide-react";
+import { LayoutGrid, List, Table as TableIcon, TrendingUp, UserCheck, UserPlus, Plus, Kanban, Euro, Target, Sparkles, Loader2, Grid3X3, PanelLeft, User, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -880,13 +880,13 @@ export default function OpportunitiesContent() {
             {filteredOpportunities.map((lead) => {
               const isConverted = convertedOpportunityIds.has(lead.id);
               const statusColors = {
-                new: "bg-green-100 text-green-800",
-                contacted: "bg-blue-100 text-blue-800",
-                visit_scheduled: "bg-purple-100 text-purple-800",
-                proposal: "bg-amber-100 text-amber-800",
-                negotiation: "bg-orange-100 text-orange-800",
-                won: "bg-emerald-100 text-emerald-800",
-                lost: "bg-red-100 text-red-800"
+                new: "bg-green-100 text-green-800 border-green-300",
+                contacted: "bg-blue-100 text-blue-800 border-blue-300",
+                visit_scheduled: "bg-purple-100 text-purple-800 border-purple-300",
+                proposal: "bg-amber-100 text-amber-800 border-amber-300",
+                negotiation: "bg-orange-100 text-orange-800 border-orange-300",
+                won: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                lost: "bg-red-100 text-red-800 border-red-300"
               };
               const statusLabels = {
                 new: "Novo",
@@ -894,38 +894,53 @@ export default function OpportunitiesContent() {
                 visit_scheduled: "Visita Agendada",
                 proposal: "Proposta",
                 negotiation: "Negociação",
-                won: "Fechado",
+                won: "Fechado ✓",
                 lost: "Perdido"
               };
               const qualificationColors = {
-                hot: "text-red-600",
-                warm: "text-orange-600",
-                cold: "text-blue-600",
-                unqualified: "text-slate-400"
+                hot: "bg-red-50 text-red-700 border-red-300",
+                warm: "bg-orange-50 text-orange-700 border-orange-300",
+                cold: "bg-blue-50 text-blue-700 border-blue-300",
+                unqualified: "bg-slate-50 text-slate-600 border-slate-300"
               };
+              
+              const associatedProperty = lead.property_id ? properties.find(p => p.id === lead.property_id) : null;
+              const daysSinceCreated = Math.floor((Date.now() - new Date(lead.created_date)) / (1000 * 60 * 60 * 24));
+              const daysSinceUpdated = Math.floor((Date.now() - new Date(lead.updated_date)) / (1000 * 60 * 60 * 24));
               
               return (
                 <Card 
                   key={lead.id} 
                   className={`cursor-pointer transition-all hover:shadow-lg border-2 ${
-                    selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:border-slate-200'
-                  }`}
+                    selectedLead?.id === lead.id 
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-white shadow-md' 
+                      : 'border-slate-200 hover:border-slate-300'
+                  } ${!lead.is_read ? 'bg-yellow-50/30' : ''}`}
                   onClick={() => setSelectedLead(lead)}
                 >
                   <CardContent className="p-4">
+                    {/* Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-slate-900 line-clamp-1 flex-1">{lead.buyer_name}</h3>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <h3 className="font-bold text-base text-slate-900 line-clamp-1 flex-1">
+                            {lead.buyer_name}
+                          </h3>
                           <div className="flex gap-1 flex-shrink-0">
-                            {lead.qualification_status === 'hot' && <span className="text-lg">🔥</span>}
-                            {lead.priority === 'high' && <span className="text-lg">⭐</span>}
-                            {lead.priority === 'urgent' && <span className="text-lg">🚨</span>}
+                            {!lead.is_read && (
+                              <div className="w-2 h-2 bg-blue-600 rounded-full" title="Não lido" />
+                            )}
+                            {lead.qualification_status === 'hot' && <span className="text-lg" title="Hot Lead">🔥</span>}
+                            {lead.priority === 'urgent' && <span className="text-lg" title="Urgente">🚨</span>}
+                            {lead.priority === 'high' && <span className="text-lg" title="Prioridade Alta">⭐</span>}
                           </div>
                         </div>
-                        <p className="text-xs text-slate-600 line-clamp-1 mb-2">{lead.buyer_email}</p>
+                        <p className="text-xs text-slate-600 line-clamp-1 mb-1 flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          {lead.buyer_email}
+                        </p>
                         {lead.buyer_phone && (
-                          <p className="text-xs text-slate-500 flex items-center gap-1">
+                          <p className="text-xs text-slate-600 flex items-center gap-1 mb-2">
                             <Phone className="w-3 h-3" />
                             {lead.buyer_phone}
                           </p>
@@ -933,63 +948,145 @@ export default function OpportunitiesContent() {
                       </div>
                     </div>
                     
+                    {/* Badges Row */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
-                      <Badge className={statusColors[lead.status] || "bg-slate-100 text-slate-800"} variant="outline">
+                      <Badge className={statusColors[lead.status] || "bg-slate-100 text-slate-800"}>
                         {statusLabels[lead.status] || lead.status}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-slate-300">
                         {lead.lead_type === 'comprador' ? '🏠 Comprador' : 
                          lead.lead_type === 'vendedor' ? '💰 Vendedor' : 
                          lead.lead_type === 'parceiro_comprador' ? '🤝 Parceiro (C)' : '🤝 Parceiro (V)'}
                       </Badge>
                       {lead.qualification_status && (
-                        <Badge variant="outline" className={qualificationColors[lead.qualification_status]}>
+                        <Badge className={qualificationColors[lead.qualification_status]}>
                           {lead.qualification_status === 'hot' ? '🔥 Hot' :
                            lead.qualification_status === 'warm' ? '🌡️ Warm' :
-                           lead.qualification_status === 'cold' ? '❄️ Cold' : 'N/Q'}
+                           lead.qualification_status === 'cold' ? '❄️ Cold' : 'Não Qual.'}
                         </Badge>
                       )}
                       {isConverted && (
-                        <Badge className="bg-green-600 text-white">
+                        <Badge className="bg-green-600 text-white border-0">
                           ✓ Convertido
                         </Badge>
                       )}
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-200">
-                      <div className="flex flex-col gap-1">
-                        {lead.lead_source && (
-                          <span className="text-slate-500">
-                            📍 {lead.lead_source === 'facebook_ads' ? 'Facebook' :
-                               lead.lead_source === 'website' ? 'Website' :
-                               lead.lead_source === 'referral' ? 'Referência' :
-                               lead.lead_source === 'real_estate_portal' ? 'Portal' : lead.lead_source}
-                          </span>
-                        )}
-                        {lead.location && (
-                          <span className="text-slate-500">
-                            📍 {lead.location}
-                          </span>
-                        )}
-                        <span className="text-slate-400">
-                          {new Date(lead.created_date).toLocaleDateString('pt-PT')}
-                        </span>
+                    {/* Qualification Score */}
+                    {lead.qualification_score !== undefined && lead.qualification_score !== null && (
+                      <div className="mb-3 bg-slate-50 rounded-lg p-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium text-slate-600">Score de Qualificação</span>
+                          <span className="text-sm font-bold text-slate-900">{lead.qualification_score}/100</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all ${
+                              lead.qualification_score >= 70 ? 'bg-green-500' :
+                              lead.qualification_score >= 40 ? 'bg-amber-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${lead.qualification_score}%` }}
+                          />
+                        </div>
                       </div>
-                      {lead.estimated_value > 0 && (
+                    )}
+                    
+                    {/* Associated Property */}
+                    {associatedProperty && (
+                      <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                        <p className="text-xs font-medium text-blue-900 mb-1 flex items-center gap-1">
+                          <Building2 className="w-3 h-3" />
+                          Imóvel Associado
+                        </p>
+                        <p className="text-xs text-blue-800 font-semibold line-clamp-1">
+                          {associatedProperty.title}
+                        </p>
+                        <p className="text-xs text-blue-700 mt-0.5">
+                          €{associatedProperty.price?.toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Budget/Value Info */}
+                    {(lead.budget > 0 || lead.estimated_value > 0) && (
+                      <div className="flex items-center gap-2 mb-3">
+                        {lead.budget > 0 && (
+                          <div className="flex-1 bg-slate-50 rounded-lg p-2">
+                            <p className="text-xs text-slate-500">Orçamento</p>
+                            <p className="font-bold text-sm text-green-700">€{lead.budget.toLocaleString()}</p>
+                          </div>
+                        )}
+                        {lead.estimated_value > 0 && (
+                          <div className="flex-1 bg-slate-50 rounded-lg p-2">
+                            <p className="text-xs text-slate-500">Valor Est.</p>
+                            <p className="font-bold text-sm text-green-700">€{lead.estimated_value.toLocaleString()}</p>
+                            {lead.probability > 0 && (
+                              <p className="text-xs text-slate-600">{lead.probability}% prob.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Location & Source */}
+                    <div className="space-y-1.5 mb-3 text-xs">
+                      {lead.location && (
+                        <p className="text-slate-600 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="font-medium">{lead.location}</span>
+                        </p>
+                      )}
+                      {lead.lead_source && (
+                        <p className="text-slate-500 flex items-center gap-1.5">
+                          <span>📊</span>
+                          {lead.lead_source === 'facebook_ads' ? 'Facebook Ads' :
+                           lead.lead_source === 'website' ? 'Website' :
+                           lead.lead_source === 'referral' ? 'Referência' :
+                           lead.lead_source === 'real_estate_portal' ? 'Portal Imobiliário' :
+                           lead.lead_source === 'networking' ? 'Networking' : lead.lead_source}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Timeline */}
+                    <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-slate-500">
+                          Criado há {daysSinceCreated === 0 ? 'hoje' : `${daysSinceCreated}d`}
+                        </span>
+                        {daysSinceUpdated > 0 && daysSinceUpdated !== daysSinceCreated && (
+                          <span className="text-slate-400">
+                            Atualizado há {daysSinceUpdated === 0 ? 'hoje' : `${daysSinceUpdated}d`}
+                          </span>
+                        )}
+                      </div>
+                      {lead.next_followup_date && (
                         <div className="text-right">
-                          <div className="font-bold text-green-700">€{lead.estimated_value.toLocaleString()}</div>
-                          {lead.probability > 0 && (
-                            <div className="text-slate-500">{lead.probability}% prob.</div>
-                          )}
+                          <p className="text-amber-600 font-medium">
+                            📅 Follow-up
+                          </p>
+                          <p className="text-slate-500">
+                            {new Date(lead.next_followup_date).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}
+                          </p>
                         </div>
                       )}
                     </div>
                     
+                    {/* Assigned Agent */}
                     {lead.assigned_to && (
                       <div className="mt-2 pt-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-500 flex items-center gap-1">
-                          <User className="w-3 h-3" />
+                        <p className="text-xs text-slate-600 flex items-center gap-1.5 font-medium">
+                          <User className="w-3.5 h-3.5 text-blue-600" />
                           {getAgentName(lead.assigned_to)}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Message Preview */}
+                    {lead.message && (
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <p className="text-xs text-slate-600 line-clamp-2 italic">
+                          "{lead.message}"
                         </p>
                       </div>
                     )}
