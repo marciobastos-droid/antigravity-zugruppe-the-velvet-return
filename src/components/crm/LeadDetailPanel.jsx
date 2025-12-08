@@ -34,6 +34,8 @@ import AILeadScoring from "../opportunities/AILeadScoring";
 import DocumentUploader from "../documents/DocumentUploader";
 import ContactMatching from "./ContactMatching";
 import ContactRequirements from "./ContactRequirements";
+import PropertyLinker from "./PropertyLinker";
+import QuickCommunicationLogger from "./QuickCommunicationLogger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +107,8 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState("overview");
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
+  const [commLoggerOpen, setCommLoggerOpen] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -407,14 +411,16 @@ Extrai:
 
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-2">
-          {lead.buyer_phone && (
-            <a href={`tel:${lead.buyer_phone}`}>
+          <QuickCommunicationLogger
+            contact={{ id: lead.contact_id, email: lead.buyer_email, full_name: lead.buyer_name }}
+            opportunity={lead}
+            trigger={
               <Button size="sm" variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-0">
                 <Phone className="w-4 h-4 mr-1" />
-                Ligar
+                Registar Contacto
               </Button>
-            </a>
-          )}
+            }
+          />
           {lead.buyer_email && (
             <Button 
               size="sm" 
@@ -434,6 +440,15 @@ Extrai:
               </Button>
             </a>
           )}
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            className="bg-purple-600/80 hover:bg-purple-600 text-white border-0"
+            onClick={() => setPropertyLinkerOpen(true)}
+          >
+            <Building2 className="w-4 h-4 mr-1" />
+            Associar Imóveis
+          </Button>
           <Button 
             size="sm" 
             variant="secondary" 
@@ -1049,6 +1064,13 @@ Extrai:
           />
         </div>
       )}
+
+      {/* Property Linker Dialog */}
+      <PropertyLinker
+        open={propertyLinkerOpen}
+        onOpenChange={setPropertyLinkerOpen}
+        opportunity={lead}
+      />
     </div>
   );
 
