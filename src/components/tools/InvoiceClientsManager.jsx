@@ -41,6 +41,7 @@ export default function InvoiceClientsManager() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
@@ -50,6 +51,7 @@ export default function InvoiceClientsManager() {
     nif: "",
     address: "",
     client_type: "agent",
+    business_category: "",
     notes: "",
     payment_terms: 30,
     default_vat_rate: 23,
@@ -150,6 +152,7 @@ export default function InvoiceClientsManager() {
       nif: "",
       address: "",
       client_type: "agent",
+      business_category: "",
       notes: "",
       payment_terms: 30,
       default_vat_rate: 23,
@@ -168,6 +171,7 @@ export default function InvoiceClientsManager() {
       nif: client.nif || "",
       address: client.address || "",
       client_type: client.client_type || "agent",
+      business_category: client.business_category || "",
       notes: client.notes || "",
       payment_terms: client.payment_terms || 30,
       default_vat_rate: client.default_vat_rate || 23,
@@ -220,7 +224,8 @@ export default function InvoiceClientsManager() {
       client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.nif?.includes(searchTerm);
     const matchesType = typeFilter === "all" || client.client_type === typeFilter;
-    return matchesSearch && matchesType;
+    const matchesCategory = categoryFilter === "all" || client.business_category === categoryFilter;
+    return matchesSearch && matchesType && matchesCategory;
   });
 
   return (
@@ -256,7 +261,7 @@ export default function InvoiceClientsManager() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="grid md:grid-cols-3 gap-3">
+          <div className="grid md:grid-cols-4 gap-3">
             <div className="md:col-span-2 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -276,6 +281,16 @@ export default function InvoiceClientsManager() {
                 <SelectItem value="agency">Agência</SelectItem>
                 <SelectItem value="company">Empresa</SelectItem>
                 <SelectItem value="individual">Particular</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                <SelectItem value="mediacao">Mediação</SelectItem>
+                <SelectItem value="arrendamento">Arrendamento</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -324,15 +339,20 @@ export default function InvoiceClientsManager() {
                             <div className="min-w-0">
                               <p className="font-medium text-slate-900 truncate">{client.name}</p>
                               <p className="text-xs text-slate-500 truncate">{client.email}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge variant="outline" className="text-xs">
-                                  {stats.count} faturas
-                                </Badge>
-                                {stats.totalPending > 0 && (
-                                  <Badge className="bg-amber-100 text-amber-700 text-xs">
-                                    €{stats.totalPending.toFixed(0)} pendente
-                                  </Badge>
-                                )}
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                               <Badge variant="outline" className="text-xs">
+                                 {stats.count} faturas
+                               </Badge>
+                               {client.business_category && (
+                                 <Badge className={client.business_category === 'mediacao' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'} variant="outline">
+                                   {client.business_category === 'mediacao' ? 'Mediação' : 'Arrendamento'}
+                                 </Badge>
+                               )}
+                               {stats.totalPending > 0 && (
+                                 <Badge className="bg-amber-100 text-amber-700 text-xs">
+                                   €{stats.totalPending.toFixed(0)} pendente
+                                 </Badge>
+                               )}
                               </div>
                             </div>
                           </div>
@@ -366,9 +386,16 @@ export default function InvoiceClientsManager() {
                     </div>
                     <div>
                       <CardTitle className="text-xl">{selectedClient.name}</CardTitle>
-                      <Badge className={clientTypeConfig[selectedClient.client_type]?.color}>
-                        {clientTypeConfig[selectedClient.client_type]?.label}
-                      </Badge>
+                      <div className="flex gap-2 mt-1">
+                        <Badge className={clientTypeConfig[selectedClient.client_type]?.color}>
+                          {clientTypeConfig[selectedClient.client_type]?.label}
+                        </Badge>
+                        {selectedClient.business_category && (
+                          <Badge className={selectedClient.business_category === 'mediacao' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}>
+                            {selectedClient.business_category === 'mediacao' ? 'Mediação' : 'Arrendamento'}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -579,6 +606,19 @@ export default function InvoiceClientsManager() {
                     <SelectItem value="agency">Agência</SelectItem>
                     <SelectItem value="company">Empresa</SelectItem>
                     <SelectItem value="individual">Particular</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Categoria de Negócio</Label>
+                <Select value={formData.business_category} onValueChange={(v) => setFormData({...formData, business_category: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Nenhuma</SelectItem>
+                    <SelectItem value="mediacao">Mediação</SelectItem>
+                    <SelectItem value="arrendamento">Arrendamento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
