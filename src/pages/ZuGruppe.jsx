@@ -1163,9 +1163,6 @@ function PropertyCardCompact({ property, featured }) {
                 />
               ))}
             </div>
-            <div className="absolute bottom-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg transition-all">
-              📷 Ver todas as {images.length} fotos
-            </div>
           </>
         )}
         
