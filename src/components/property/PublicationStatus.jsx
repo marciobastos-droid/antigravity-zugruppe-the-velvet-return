@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, Building2, ExternalLink, CheckCircle, AlertCircle } from "lucide-react";
+import { Globe, Building2, ExternalLink, CheckCircle, AlertCircle, Home, Store, Star, TrendingUp, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Portal definitions with URLs
@@ -171,15 +171,35 @@ export default function PublicationStatus({ property, variant = "detailed" }) {
 
     return (
       <div className="flex items-center gap-1 flex-wrap">
-        {publishedPages.length > 0 && (
+        {publishedPages.map((page, idx) => {
+          const pageIcon = 
+            page === 'zugruppe' ? Building2 :
+            page === 'zuhaus' ? Home :
+            page === 'zuhandel' ? Store :
+            page === 'homepage_featured' ? Star :
+            page === 'investor_section' ? TrendingUp :
+            page === 'luxury_collection' ? Crown :
+            Globe;
+          
+          const PageIcon = pageIcon;
+          const pageName = 
+            page === 'zugruppe' ? 'ZuGruppe' :
+            page === 'zuhaus' ? 'ZuHaus' :
+            page === 'zuhandel' ? 'ZuHandel' :
+            page === 'homepage_featured' ? 'Homepage' :
+            page === 'investor_section' ? 'Investidores' :
+            page === 'luxury_collection' ? 'Luxo' : page;
+          
+          return (
+            <Badge key={idx} className="bg-green-100 text-green-800 border-green-300 text-xs">
+              <PageIcon className="w-3 h-3 mr-1" />
+              {pageName}
+            </Badge>
+          );
+        })}
+        {publishedPortals.length > 0 && (
           <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
             <Globe className="w-3 h-3 mr-1" />
-            {publishedPages.length} Website
-          </Badge>
-        )}
-        {publishedPortals.length > 0 && (
-          <Badge className="bg-purple-100 text-purple-800 border-purple-300 text-xs">
-            <Building2 className="w-3 h-3 mr-1" />
             {publishedPortals.length} Portal{publishedPortals.length > 1 ? 'is' : ''}
           </Badge>
         )}

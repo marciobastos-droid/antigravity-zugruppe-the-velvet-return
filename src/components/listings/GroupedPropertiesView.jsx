@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   ChevronDown, ChevronRight, Eye, Edit, Star, Copy, Trash2, 
-  MapPin, Building2, Users, Tag, Home
+  MapPin, Building2, Users, Tag, Home, Store, TrendingUp, Crown, Globe, ExternalLink
 } from "lucide-react";
 
 const GROUP_OPTIONS = [
@@ -64,6 +64,29 @@ function PropertyRow({ property, isSelected, onToggleSelect, onEdit, onStatusCha
         <div className="flex items-center gap-2 text-sm text-slate-500">
           <MapPin className="w-3 h-3" />
           <span className="truncate">{property.city}, {property.state}</span>
+        </div>
+        <div className="flex items-center gap-1 flex-wrap mt-1">
+          {property.published_pages && property.published_pages.length > 0 && property.published_pages.map((page, idx) => {
+            const PageIcon = 
+              page === 'zugruppe' ? Building2 :
+              page === 'zuhaus' ? Home :
+              page === 'zuhandel' ? Store :
+              page === 'homepage_featured' ? Star :
+              page === 'investor_section' ? TrendingUp :
+              page === 'luxury_collection' ? Crown :
+              ExternalLink;
+            
+            return (
+              <div key={idx} className="w-4 h-4 bg-green-100 rounded flex items-center justify-center" title={page}>
+                <PageIcon className="w-2.5 h-2.5 text-green-700" />
+              </div>
+            );
+          })}
+          {property.published_portals && property.published_portals.length > 0 && (
+            <div className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center" title={`${property.published_portals.length} portais`}>
+              <Globe className="w-2.5 h-2.5 text-blue-700" />
+            </div>
+          )}
         </div>
       </div>
       
