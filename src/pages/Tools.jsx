@@ -62,6 +62,7 @@ import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
 import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
 import InvestorKeysManager from "../components/tools/InvestorKeysManager";
 import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";
+import MarketingHub from "../components/marketing/MarketingHub";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
