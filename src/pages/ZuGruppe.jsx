@@ -52,7 +52,8 @@ export default function ZuGruppe() {
   const [listingType, setListingType] = React.useState("all");
   const [propertyType, setPropertyType] = React.useState("all");
   const [bedrooms, setBedrooms] = React.useState("all");
-  const [priceRange, setPriceRange] = React.useState([0, 0]); // Will be set after data loads
+  const [priceMin, setPriceMin] = React.useState("");
+  const [priceMax, setPriceMax] = React.useState("");
   const [city, setCity] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("recent");
   const [showFilters, setShowFilters] = React.useState(true);
@@ -76,8 +77,7 @@ export default function ZuGruppe() {
 
   // Initialize ranges when data loads
   React.useEffect(() => {
-    if (properties.length > 0 && priceRange[1] === 0) {
-      setPriceRange([0, dataRanges.maxPrice]);
+    if (properties.length > 0 && pricePerSqmRange[1] === 0) {
       setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
       setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
       setDebouncedPricePerSqm([0, dataRanges.maxPricePerSqm]);
@@ -247,8 +247,10 @@ export default function ZuGruppe() {
       (bedrooms === "3" && property.bedrooms === 3) ||
       (bedrooms === "4" && property.bedrooms === 4) ||
       (bedrooms === "5+" && property.bedrooms >= 5);
-    
-    const matchesPrice = !priceRange[1] || (property.price >= priceRange[0] && property.price <= priceRange[1]);
+
+    const matchesPrice = 
+      (!priceMin || property.price >= Number(priceMin)) &&
+      (!priceMax || property.price <= Number(priceMax));
 
     // Advanced filters
     const area = property.useful_area || property.square_feet || 0;
@@ -293,7 +295,8 @@ export default function ZuGruppe() {
     setListingType("all");
     setPropertyType("all");
     setBedrooms("all");
-    setPriceRange([0, dataRanges.maxPrice]);
+    setPriceMin("");
+    setPriceMax("");
     setCity("all");
     setCountry("all");
     setDistrict("all");
@@ -307,7 +310,7 @@ export default function ZuGruppe() {
   };
 
   const hasActiveFilters = listingType !== "all" || propertyType !== "all" || 
-    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || (priceRange[1] < dataRanges.maxPrice && priceRange[1] > 0) ||
+    bedrooms !== "all" || city !== "all" || priceMin || priceMax ||
     country !== "all" || district !== "all" || availability !== "all" ||
     pricePerSqmRange[0] > 0 || (pricePerSqmRange[1] < dataRanges.maxPricePerSqm && pricePerSqmRange[1] > 0) ||
     yearBuiltRange[0] > dataRanges.minYear || (yearBuiltRange[1] < dataRanges.maxYear && yearBuiltRange[1] > 0) ||
@@ -323,7 +326,7 @@ export default function ZuGruppe() {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, listingType, propertyType, bedrooms, city, priceRange, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities]);
+  }, [activeTab, listingType, propertyType, bedrooms, city, priceMin, priceMax, sortBy, country, district, availability, energyCertificate, parking, selectedAmenities]);
   
   const toggleAmenity = (amenity) => {
     setSelectedAmenities(prev => 
@@ -497,7 +500,7 @@ export default function ZuGruppe() {
                 {/* Extended Filters */}
                 {showFilters && (
                   <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
-                    {/* Row 1: Natureza, Quartos, Negócio, Disponibilidade */}
+                    {/* Row 1: Natureza, Quartos, Preço Min/Max, Disponibilidade */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">Natureza</label>
@@ -532,6 +535,30 @@ export default function ZuGruppe() {
                         </Select>
                       </div>
                       <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Preço Mínimo</label>
+                        <Input
+                          type="number"
+                          placeholder="€0"
+                          value={priceMin}
+                          onChange={(e) => setPriceMin(e.target.value)}
+                          className="h-10"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Preço Máximo</label>
+                        <Input
+                          type="number"
+                          placeholder="€∞"
+                          value={priceMax}
+                          onChange={(e) => setPriceMax(e.target.value)}
+                          className="h-10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 1.5: Disponibilidade (moved down) */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
                         <label className="text-xs font-medium text-slate-600 mb-1.5 block">Disponibilidade</label>
                         <Select value={availability} onValueChange={setAvailability}>
                           <SelectTrigger>
@@ -544,19 +571,6 @@ export default function ZuGruppe() {
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">
-                          Preço: €{priceRange[0].toLocaleString()} - €{priceRange[1].toLocaleString()}
-                        </label>
-                        <Slider
-                          value={priceRange}
-                          onValueChange={setPriceRange}
-                          min={0}
-                          max={dataRanges.maxPrice}
-                          step={Math.ceil(dataRanges.maxPrice / 100)}
-                          className="mt-2"
-                        />
                       </div>
                     </div>
 
@@ -788,6 +802,18 @@ export default function ZuGruppe() {
                             <Badge variant="secondary" className="gap-1">
                               T{bedrooms}
                               <X className="w-3 h-3 cursor-pointer" onClick={() => setBedrooms("all")} />
+                            </Badge>
+                          )}
+                          {priceMin && (
+                            <Badge variant="secondary" className="gap-1">
+                              Min: €{Number(priceMin).toLocaleString()}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceMin("")} />
+                            </Badge>
+                          )}
+                          {priceMax && (
+                            <Badge variant="secondary" className="gap-1">
+                              Max: €{Number(priceMax).toLocaleString()}
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setPriceMax("")} />
                             </Badge>
                           )}
                           {city !== "all" && (
@@ -1126,15 +1152,20 @@ function PropertyCardCompact({ property, featured }) {
 
         {/* Image Navigation */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.slice(0, 5).map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
-              />
-            ))}
-          </div>
+          <>
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              {images.slice(0, 5).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
+                />
+              ))}
+            </div>
+            <div className="absolute bottom-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg transition-all">
+              📷 Ver todas as {images.length} fotos
+            </div>
+          </>
         )}
         
         {/* Badges */}

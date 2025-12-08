@@ -22,7 +22,8 @@ export default function ZuHandel() {
   const [city, setCity] = React.useState("all");
   const [listingType, setListingType] = React.useState("all");
   const [propertyType, setPropertyType] = React.useState("all");
-  const [priceRange, setPriceRange] = React.useState("all");
+  const [priceMin, setPriceMin] = React.useState("");
+  const [priceMax, setPriceMax] = React.useState("");
   const [contactDialogOpen, setContactDialogOpen] = React.useState(false);
   const [selectedProperty, setSelectedProperty] = React.useState(null);
 
@@ -49,19 +50,14 @@ export default function ZuHandel() {
       const matchesListingType = listingType === "all" || p.listing_type === listingType;
       const matchesPropertyType = propertyType === "all" || p.property_type === propertyType;
       
-      let matchesPrice = true;
-      if (priceRange !== "all") {
-        const price = p.price || 0;
-        if (priceRange === "0-100k") matchesPrice = price <= 100000;
-        else if (priceRange === "100k-300k") matchesPrice = price > 100000 && price <= 300000;
-        else if (priceRange === "300k-500k") matchesPrice = price > 300000 && price <= 500000;
-        else if (priceRange === "500k+") matchesPrice = price > 500000;
-      }
+      const matchesPrice = 
+        (!priceMin || p.price >= Number(priceMin)) &&
+        (!priceMax || p.price <= Number(priceMax));
       
       return isPublished && isCommercial && isActive && matchesSearch && matchesCity && 
              matchesListingType && matchesPropertyType && matchesPrice;
     });
-  }, [properties, searchTerm, city, listingType, propertyType, priceRange]);
+  }, [properties, searchTerm, city, listingType, propertyType, priceMin, priceMax]);
 
   const allCities = [...new Set(properties
     .filter(p => COMMERCIAL_TYPES.includes(p.property_type))
@@ -163,7 +159,7 @@ export default function ZuHandel() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   <Select value={propertyType} onValueChange={setPropertyType}>
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Tipo" />
@@ -188,20 +184,23 @@ export default function ZuHandel() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={priceRange} onValueChange={setPriceRange}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Preço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Qualquer preço</SelectItem>
-                      <SelectItem value="0-100k">Até €100.000</SelectItem>
-                      <SelectItem value="100k-300k">€100k - €300k</SelectItem>
-                      <SelectItem value="300k-500k">€300k - €500k</SelectItem>
-                      <SelectItem value="500k+">Mais de €500k</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="number"
+                    placeholder="Preço Mín (€)"
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value)}
+                    className="h-10"
+                  />
                   
-                  <Button className="bg-[#75787b] hover:bg-[#5a5c5e] h-10">
+                  <Input
+                    type="number"
+                    placeholder="Preço Máx (€)"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                    className="h-10"
+                  />
+                  
+                  <Button className="bg-[#75787b] hover:bg-[#5a5c5e] h-10 col-span-2 md:col-span-1">
                     <Search className="w-4 h-4 mr-2" />
                     Pesquisar
                   </Button>

@@ -21,7 +21,8 @@ export default function ZuHaus() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [city, setCity] = React.useState("all");
   const [listingType, setListingType] = React.useState("all");
-  const [priceRange, setPriceRange] = React.useState("all");
+  const [priceMin, setPriceMin] = React.useState("");
+  const [priceMax, setPriceMax] = React.useState("");
   const [bedrooms, setBedrooms] = React.useState("all");
   const [contactDialogOpen, setContactDialogOpen] = React.useState(false);
   const [selectedProperty, setSelectedProperty] = React.useState(null);
@@ -50,19 +51,14 @@ export default function ZuHaus() {
       const matchesBedrooms = bedrooms === "all" || 
         (bedrooms === "4+" ? p.bedrooms >= 4 : p.bedrooms === parseInt(bedrooms));
       
-      let matchesPrice = true;
-      if (priceRange !== "all") {
-        const price = p.price || 0;
-        if (priceRange === "0-200k") matchesPrice = price <= 200000;
-        else if (priceRange === "200k-400k") matchesPrice = price > 200000 && price <= 400000;
-        else if (priceRange === "400k-600k") matchesPrice = price > 400000 && price <= 600000;
-        else if (priceRange === "600k+") matchesPrice = price > 600000;
-      }
+      const matchesPrice = 
+        (!priceMin || p.price >= Number(priceMin)) &&
+        (!priceMax || p.price <= Number(priceMax));
       
       return isPublished && isResidential && isActive && matchesSearch && matchesCity && 
              matchesListingType && matchesPrice && matchesBedrooms;
     });
-  }, [properties, searchTerm, city, listingType, priceRange, bedrooms]);
+  }, [properties, searchTerm, city, listingType, priceMin, priceMax, bedrooms]);
 
   const allCities = [...new Set(properties
     .filter(p => RESIDENTIAL_TYPES.includes(p.property_type))
@@ -164,7 +160,7 @@ export default function ZuHaus() {
                   </Select>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                   <Select value={listingType} onValueChange={setListingType}>
                     <SelectTrigger className="h-10">
                       <SelectValue placeholder="Tipo" />
@@ -176,18 +172,21 @@ export default function ZuHaus() {
                     </SelectContent>
                   </Select>
                   
-                  <Select value={priceRange} onValueChange={setPriceRange}>
-                    <SelectTrigger className="h-10">
-                      <SelectValue placeholder="Preço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Qualquer preço</SelectItem>
-                      <SelectItem value="0-200k">Até €200.000</SelectItem>
-                      <SelectItem value="200k-400k">€200k - €400k</SelectItem>
-                      <SelectItem value="400k-600k">€400k - €600k</SelectItem>
-                      <SelectItem value="600k+">Mais de €600k</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="number"
+                    placeholder="Preço Mín (€)"
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value)}
+                    className="h-10"
+                  />
+                  
+                  <Input
+                    type="number"
+                    placeholder="Preço Máx (€)"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                    className="h-10"
+                  />
                   
                   <Select value={bedrooms} onValueChange={setBedrooms}>
                     <SelectTrigger className="h-10">
@@ -202,7 +201,7 @@ export default function ZuHaus() {
                     </SelectContent>
                   </Select>
                   
-                  <Button className="bg-[#d22630] hover:bg-[#a01d26] h-10">
+                  <Button className="bg-[#d22630] hover:bg-[#a01d26] h-10 col-span-2 md:col-span-1">
                     <Search className="w-4 h-4 mr-2" />
                     Pesquisar
                   </Button>
