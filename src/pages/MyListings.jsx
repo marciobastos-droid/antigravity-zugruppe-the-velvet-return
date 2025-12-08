@@ -60,6 +60,7 @@ const PropertyCard = memo(function PropertyCard({
               alt={property.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
+              decoding="async"
             />
             <div className="absolute top-2 left-2" onClick={(e) => {
               e.stopPropagation();
@@ -334,10 +335,31 @@ export default function MyListings() {
     }
   });
 
+  // Fetch total count for metadata
+  const { data: propertiesMetadata } = useQuery({
+    queryKey: ['myPropertiesCount', user?.email, userPermissions],
+    queryFn: async () => {
+      if (!user) return { total: 0, canViewAll: false };
+      
+      const userType = user.user_type?.toLowerCase() || '';
+      const canViewAll = user.role === 'admin' || userType === 'admin' || userType === 'gestor' ||
+                          userPermissions?.properties?.view_all === true ||
+                          userPermissions?.canViewAllProperties === true ||
+                          user.permissions?.canViewAllProperties === true;
+      
+      // Fetch a sample to get count (Base44 returns total count in metadata)
+      const sample = await base44.entities.Property.list('-updated_date', 1);
+      return { total: sample.length > 0 ? 1000 : 0, canViewAll }; // Placeholder - we'll fetch all for filtering
+    },
+    enabled: !!user
+  });
+
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['myProperties', user?.email, userPermissions],
+    queryKey: ['myProperties', user?.email, userPermissions, currentPage, filters],
     queryFn: async () => {
       if (!user) return [];
+      
+      // Fetch all properties for client-side filtering (Base44 doesn't support complex server filters)
       const allProperties = await base44.entities.Property.list('-updated_date');
       
       const userType = user.user_type?.toLowerCase() || '';
@@ -369,7 +391,9 @@ export default function MyListings() {
         p.agent_id === user.id
       );
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 5 * 60 * 1000 // Keep in cache for 5 minutes
   });
 
   const deleteMutation = useMutation({
