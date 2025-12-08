@@ -1,13 +1,13 @@
-// Taxas de câmbio aproximadas para EUR (atualizadas periodicamente)
+// Taxas de câmbio para EUR (atualizadas em 08/12/2025)
 export const EXCHANGE_RATES = {
   EUR: 1,
-  USD: 0.92,
-  GBP: 1.17,
-  AED: 0.25,
-  AOA: 0.0011,
-  BRL: 0.19,
-  CHF: 1.06,
-  CAD: 0.67
+  USD: 0.94,      // 1 USD = ~0.94 EUR
+  GBP: 1.19,      // 1 GBP = ~1.19 EUR
+  AED: 0.256,     // 1 AED = ~0.256 EUR
+  AOA: 0.00114,   // 1 AOA = ~0.00114 EUR
+  BRL: 0.186,     // 1 BRL = ~0.186 EUR
+  CHF: 1.07,      // 1 CHF = ~1.07 EUR
+  CAD: 0.68       // 1 CAD = ~0.68 EUR
 };
 
 export const CURRENCY_SYMBOLS = {
