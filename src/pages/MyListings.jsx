@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Sparkles, Globe } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Sparkles, Globe, BarChart3, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import BulkPublicationDialog from "../components/listings/BulkPublicationDialog";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
+import PublicationHub from "../components/publication/PublicationHub";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
@@ -173,6 +174,19 @@ const PropertyCard = memo(function PropertyCard({
                 size="sm" 
                 onClick={(e) => {
                   e.stopPropagation();
+                  setSelectedPropertyForPublication(property);
+                  setPublicationHubOpen(true);
+                }}
+                className="h-7 text-xs px-2 border-blue-300 text-blue-600"
+                title="Central de Publicação"
+              >
+                <BarChart3 className="w-3 h-3" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
                   setSelectedPropertyForAI(property);
                   setAiEnhancerOpen(true);
                 }}
@@ -209,6 +223,8 @@ export default function MyListings() {
   const [selectedAgent, setSelectedAgent] = useState("");
   const [aiEnhancerOpen, setAiEnhancerOpen] = useState(false);
   const [selectedPropertyForAI, setSelectedPropertyForAI] = useState(null);
+  const [publicationHubOpen, setPublicationHubOpen] = useState(false);
+  const [selectedPropertyForPublication, setSelectedPropertyForPublication] = useState(null);
   const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("");
   const [bulkVisibilityOpen, setBulkVisibilityOpen] = useState(false);
@@ -1495,6 +1511,17 @@ export default function MyListings() {
           onOpenChange={setAiEnhancerOpen}
           property={selectedPropertyForAI}
         />
+
+        {/* Publication Hub Dialog */}
+        <Dialog open={publicationHubOpen} onOpenChange={setPublicationHubOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <PublicationHub
+              property={selectedPropertyForPublication}
+              open={publicationHubOpen}
+              onOpenChange={setPublicationHubOpen}
+            />
+          </DialogContent>
+        </Dialog>
         </>
         )}
       </div>
