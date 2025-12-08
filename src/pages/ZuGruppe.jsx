@@ -1126,20 +1126,15 @@ function PropertyCardCompact({ property, featured }) {
 
         {/* Image Navigation */}
         {images.length > 1 && (
-          <>
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-              {images.slice(0, 5).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
-                />
-              ))}
-            </div>
-            <div className="absolute bottom-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg transition-all">
-              📷 Ver todas as {images.length} fotos
-            </div>
-          </>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.slice(0, 5).map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
+              />
+            ))}
+          </div>
         )}
         
         {/* Badges */}
