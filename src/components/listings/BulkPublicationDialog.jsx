@@ -39,34 +39,45 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
     mutationFn: async ({ portals, pages, mode }) => {
       const selectedProperties = properties.filter(p => selectedPropertyIds.includes(p.id));
       
-      const updates = selectedProperties.map(property => {
-        let newPortals, newPages;
-        
-        if (mode === "add") {
-          // Adicionar aos existentes
-          const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
-          const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
-          newPortals = [...new Set([...currentPortals, ...portals])];
-          newPages = [...new Set([...currentPages, ...pages])];
-        } else if (mode === "remove") {
-          // Remover os selecionados
-          const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
-          const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
-          newPortals = currentPortals.filter(p => !portals.includes(p));
-          newPages = currentPages.filter(p => !pages.includes(p));
-        } else {
-          // Substituir
-          newPortals = portals;
-          newPages = pages;
-        }
-        
-        return base44.entities.Property.update(property.id, {
-          published_portals: newPortals,
-          published_pages: newPages
-        });
-      });
+      // Atualizar em lotes de 5 para evitar rate limit
+      const batchSize = 5;
+      let completed = 0;
       
-      await Promise.all(updates);
+      for (let i = 0; i < selectedProperties.length; i += batchSize) {
+        const batch = selectedProperties.slice(i, i + batchSize);
+        
+        const batchUpdates = batch.map(property => {
+          let newPortals, newPages;
+          
+          if (mode === "add") {
+            const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
+            const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
+            newPortals = [...new Set([...currentPortals, ...portals])];
+            newPages = [...new Set([...currentPages, ...pages])];
+          } else if (mode === "remove") {
+            const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
+            const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
+            newPortals = currentPortals.filter(p => !portals.includes(p));
+            newPages = currentPages.filter(p => !pages.includes(p));
+          } else {
+            newPortals = portals;
+            newPages = pages;
+          }
+          
+          return base44.entities.Property.update(property.id, {
+            published_portals: newPortals,
+            published_pages: newPages
+          });
+        });
+        
+        await Promise.all(batchUpdates);
+        completed += batch.length;
+        
+        // Pequeno delay entre lotes
+        if (i + batchSize < selectedProperties.length) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
     },
     onSuccess: () => {
       toast.success(`Publicação atualizada em ${selectedPropertyIds.length} imóveis`);
