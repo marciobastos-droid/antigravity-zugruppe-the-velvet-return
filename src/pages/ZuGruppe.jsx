@@ -132,21 +132,14 @@ export default function ZuGruppe() {
       
       // Verificar se está publicado na página correspondente à tab
       if (activeTab === "residential") {
-        // Mostrar se está publicado em zuhaus OU zugruppe E é tipo residencial
-        return (publishedPages.includes("zuhaus") || publishedPages.includes("zugruppe")) &&
-               RESIDENTIAL_TYPES.includes(p.property_type);
+        // Mostrar se está publicado em zuhaus E é tipo residencial
+        return publishedPages.includes("zuhaus") && RESIDENTIAL_TYPES.includes(p.property_type);
       } else if (activeTab === "commercial") {
-        // Mostrar se está publicado em zuhandel OU zugruppe E é tipo comercial
-        return (publishedPages.includes("zuhandel") || publishedPages.includes("zugruppe")) &&
-               COMMERCIAL_TYPES.includes(p.property_type);
+        // Mostrar se está publicado em zuhandel E é tipo comercial
+        return publishedPages.includes("zuhandel") && COMMERCIAL_TYPES.includes(p.property_type);
       } else {
-        // Tab "all" - mostrar se estiver publicado em qualquer página do site
-        return publishedPages.includes("zugruppe") || 
-               publishedPages.includes("zuhaus") || 
-               publishedPages.includes("zuhandel") ||
-               publishedPages.includes("homepage_featured") ||
-               publishedPages.includes("investor_section") ||
-               publishedPages.includes("luxury_collection");
+        // Tab "all" - mostrar se estiver publicado em zugruppe (página principal)
+        return publishedPages.includes("zugruppe");
       }
     });
     
