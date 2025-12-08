@@ -574,7 +574,7 @@ export default function ClientDatabase() {
 
   const handleDelete = (id, name, e) => {
     // Prevent event propagation issues on mobile
-    if (e) {
+    if (e && typeof e.stopPropagation === 'function') {
       e.preventDefault();
       e.stopPropagation();
     }
