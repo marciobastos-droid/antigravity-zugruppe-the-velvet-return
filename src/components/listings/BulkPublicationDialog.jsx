@@ -44,12 +44,16 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
         
         if (mode === "add") {
           // Adicionar aos existentes
-          newPortals = [...new Set([...(property.published_portals || []), ...portals])];
-          newPages = [...new Set([...(property.published_pages || []), ...pages])];
+          const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
+          const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
+          newPortals = [...new Set([...currentPortals, ...portals])];
+          newPages = [...new Set([...currentPages, ...pages])];
         } else if (mode === "remove") {
           // Remover os selecionados
-          newPortals = (property.published_portals || []).filter(p => !portals.includes(p));
-          newPages = (property.published_pages || []).filter(p => !pages.includes(p));
+          const currentPortals = Array.isArray(property.published_portals) ? property.published_portals : [];
+          const currentPages = Array.isArray(property.published_pages) ? property.published_pages : [];
+          newPortals = currentPortals.filter(p => !portals.includes(p));
+          newPages = currentPages.filter(p => !pages.includes(p));
         } else {
           // Substituir
           newPortals = portals;
@@ -71,8 +75,9 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
       onOpenChange(false);
       resetState();
     },
-    onError: () => {
-      toast.error("Erro ao atualizar publicação");
+    onError: (error) => {
+      console.error('Bulk publication error:', error);
+      toast.error(`Erro ao atualizar publicação: ${error.message || 'Erro desconhecido'}`);
     }
   });
 
