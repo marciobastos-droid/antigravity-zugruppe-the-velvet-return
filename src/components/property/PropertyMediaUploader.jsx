@@ -1,16 +1,17 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Upload, Image, Video, FileText, Trash2, Loader2, 
   CheckCircle2, X, GripVertical, Eye, Download, FolderOpen,
-  Camera, Map, Layout
+  Camera, Map, Layout, Sparkles, Star, Tag, Wand2, ImagePlus
 } from "lucide-react";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const FILE_CATEGORIES = {
   photos: { label: "Fotos", icon: Camera, accept: "image/*", color: "bg-blue-100 text-blue-700" },
@@ -29,6 +30,9 @@ export default function PropertyMediaUploader({ property, onUpdate }) {
     floorplans: property?.floorplans || [],
     documents: property?.documents || []
   });
+  const [imageAnalysis, setImageAnalysis] = React.useState({});
+  const [analyzingImages, setAnalyzingImages] = React.useState(false);
+  const [heroSuggestion, setHeroSuggestion] = React.useState(null);
 
   React.useEffect(() => {
     setMedia({
@@ -38,6 +42,135 @@ export default function PropertyMediaUploader({ property, onUpdate }) {
       documents: property?.documents || []
     });
   }, [property]);
+
+  const analyzeImages = async () => {
+    if (!media.photos || media.photos.length === 0) {
+      toast.error("Sem fotos para analisar");
+      return;
+    }
+
+    setAnalyzingImages(true);
+    try {
+      const analysisPromises = media.photos.map(async (url, index) => {
+        const prompt = `Analisa esta imagem de imóvel e retorna um objeto JSON com:
+{
+  "room_type": "tipo de divisão em português (cozinha, sala, quarto, casa de banho, fachada, exterior, jardim, varanda, escritório, garagem, outro)",
+  "quality_score": "pontuação de 0-10 da qualidade da foto (iluminação, composição, nitidez)",
+  "is_hero_candidate": "true se esta foto é boa para ser a foto de capa (boa qualidade, mostra bem o imóvel)",
+  "tags": ["array de 2-4 tags descritivas em português"],
+  "enhancement_suggestions": "sugestões breves de melhorias se necessário"
+}`;
+
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt,
+          file_urls: [url],
+          response_json_schema: {
+            type: "object",
+            properties: {
+              room_type: { type: "string" },
+              quality_score: { type: "number" },
+              is_hero_candidate: { type: "boolean" },
+              tags: { type: "array", items: { type: "string" } },
+              enhancement_suggestions: { type: "string" }
+            }
+          }
+        });
+
+        return { url, index, ...result };
+      });
+
+      const results = await Promise.all(analysisPromises);
+      
+      const analysisMap = {};
+      results.forEach(result => {
+        analysisMap[result.url] = result;
+      });
+      
+      setImageAnalysis(analysisMap);
+
+      // Suggest hero image
+      const heroCandidates = results
+        .filter(r => r.is_hero_candidate && r.quality_score >= 7)
+        .sort((a, b) => b.quality_score - a.quality_score);
+      
+      if (heroCandidates.length > 0) {
+        setHeroSuggestion(heroCandidates[0].index);
+        toast.success(`IA analisou ${results.length} fotos e sugeriu foto de capa!`);
+      } else {
+        toast.success(`IA analisou ${results.length} fotos!`);
+      }
+    } catch (error) {
+      console.error("Error analyzing images:", error);
+      toast.error("Erro ao analisar imagens");
+    }
+    setAnalyzingImages(false);
+  };
+
+  const applyHeroSuggestion = async () => {
+    if (heroSuggestion === null) return;
+
+    const photos = [...media.photos];
+    const [heroImage] = photos.splice(heroSuggestion, 1);
+    photos.unshift(heroImage);
+
+    const updatedMedia = { ...media, photos };
+    setMedia(updatedMedia);
+
+    try {
+      await onUpdate?.(property.id, { images: photos });
+      toast.success("Foto de capa aplicada!");
+      setHeroSuggestion(null);
+    } catch (error) {
+      toast.error("Erro ao aplicar foto de capa");
+    }
+  };
+
+  const organizePhotosByRoom = async () => {
+    if (!media.photos || media.photos.length === 0 || Object.keys(imageAnalysis).length === 0) {
+      toast.error("Analise as fotos primeiro");
+      return;
+    }
+
+    // Sort photos by room type priority
+    const roomPriority = {
+      'fachada': 1,
+      'sala': 2,
+      'cozinha': 3,
+      'quarto': 4,
+      'casa de banho': 5,
+      'exterior': 6,
+      'jardim': 7,
+      'varanda': 8,
+      'escritório': 9,
+      'garagem': 10,
+      'outro': 11
+    };
+
+    const sortedPhotos = [...media.photos].sort((a, b) => {
+      const analysisA = imageAnalysis[a];
+      const analysisB = imageAnalysis[b];
+      
+      if (!analysisA || !analysisB) return 0;
+      
+      const priorityA = roomPriority[analysisA.room_type] || 99;
+      const priorityB = roomPriority[analysisB.room_type] || 99;
+      
+      if (priorityA !== priorityB) return priorityA - priorityB;
+      
+      // If same room type, sort by quality
+      return (analysisB.quality_score || 0) - (analysisA.quality_score || 0);
+    });
+
+    const updatedMedia = { ...media, photos: sortedPhotos };
+    setMedia(updatedMedia);
+
+    try {
+      await onUpdate?.(property.id, { images: sortedPhotos });
+      toast.success("Fotos organizadas por divisão!");
+    } catch (error) {
+      toast.error("Erro ao organizar fotos");
+    }
+  };
 
   const handleFileSelect = async (e, category) => {
     const files = Array.from(e.target.files);
@@ -155,6 +288,71 @@ export default function PropertyMediaUploader({ property, onUpdate }) {
 
   return (
     <div className="space-y-4">
+      {/* AI Tools */}
+      {selectedCategory === 'photos' && media.photos?.length > 0 && (
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              Ferramentas IA
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={analyzeImages}
+                disabled={analyzingImages}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {analyzingImages ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    A analisar...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-3 h-3 mr-1" />
+                    Analisar Fotos
+                  </>
+                )}
+              </Button>
+              
+              {Object.keys(imageAnalysis).length > 0 && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={organizePhotosByRoom}
+                  >
+                    <Layout className="w-3 h-3 mr-1" />
+                    Organizar por Divisão
+                  </Button>
+                  
+                  {heroSuggestion !== null && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={applyHeroSuggestion}
+                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      <Star className="w-3 h-3 mr-1" />
+                      Aplicar Foto de Capa Sugerida
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+
+            {Object.keys(imageAnalysis).length > 0 && (
+              <div className="text-xs text-purple-700">
+                ✨ {Object.keys(imageAnalysis).length} fotos analisadas
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Category Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {Object.entries(FILE_CATEGORIES).map(([key, config]) => {
@@ -268,11 +466,60 @@ export default function PropertyMediaUploader({ property, onUpdate }) {
                             </div>
                           )}
 
-                          {/* Index Badge */}
-                          {index === 0 && selectedCategory === 'photos' && (
-                            <Badge className="absolute top-1 right-1 bg-amber-500 text-xs">
-                              Capa
-                            </Badge>
+                          {/* Index Badge & AI Tags */}
+                          <div className="absolute top-1 right-1 flex flex-col gap-1 items-end">
+                            {index === 0 && selectedCategory === 'photos' && (
+                              <Badge className="bg-amber-500 text-xs">
+                                Capa
+                              </Badge>
+                            )}
+                            {heroSuggestion === index && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge className="bg-purple-500 text-xs cursor-help">
+                                      <Star className="w-2 h-2 mr-0.5" />
+                                      IA
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Sugerida pela IA como foto de capa</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                          
+                          {/* AI Analysis Info */}
+                          {imageAnalysis[url] && (
+                            <div className="absolute bottom-1 left-1 right-1">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex flex-wrap gap-1">
+                                      <Badge className="bg-black/70 text-white text-xs">
+                                        {imageAnalysis[url].room_type}
+                                      </Badge>
+                                      <Badge className="bg-black/70 text-white text-xs">
+                                        ★ {imageAnalysis[url].quality_score}/10
+                                      </Badge>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <div className="space-y-1 text-xs">
+                                      <p><strong>Divisão:</strong> {imageAnalysis[url].room_type}</p>
+                                      <p><strong>Qualidade:</strong> {imageAnalysis[url].quality_score}/10</p>
+                                      {imageAnalysis[url].tags && (
+                                        <p><strong>Tags:</strong> {imageAnalysis[url].tags.join(', ')}</p>
+                                      )}
+                                      {imageAnalysis[url].enhancement_suggestions && (
+                                        <p><strong>Melhorias:</strong> {imageAnalysis[url].enhancement_suggestions}</p>
+                                      )}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                           )}
 
                           {/* Actions Overlay */}
