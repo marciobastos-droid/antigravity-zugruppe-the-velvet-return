@@ -533,7 +533,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   setFormData({
                     ...formData, 
                     assigned_consultant: v,
-                    assigned_consultant_name: user?.full_name || ""
+                    assigned_consultant_name: user?.display_name || user?.full_name || ""
                   });
                 }}
               >
@@ -544,7 +544,7 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
                   <SelectItem value={null}>Nenhum</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.email}>
-                      {user.full_name} ({user.email})
+                      {user.display_name || user.full_name} ({user.email})
                     </SelectItem>
                   ))}
                 </SelectContent>
