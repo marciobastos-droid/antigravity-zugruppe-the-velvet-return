@@ -60,7 +60,8 @@ const portalGroups = {
       { name: "JLL", domain: "jll.pt", color: "bg-blue-100 text-blue-800" },
       { name: "Sotheby's", domain: "sothebysrealty.pt", color: "bg-slate-100 text-slate-800" },
       { name: "BonteFilipidis", domain: "bontefilipidis.pt", color: "bg-purple-100 text-purple-800" },
-      { name: "VrPartners", domain: "vrpartners.pt", color: "bg-indigo-100 text-indigo-800" }
+      { name: "VrPartners", domain: "vrpartners.pt", color: "bg-indigo-100 text-indigo-800" },
+      { name: "E&V", domain: "engelvoelkers.com", color: "bg-red-100 text-red-800" }
     ]
   },
   internacionais: {
