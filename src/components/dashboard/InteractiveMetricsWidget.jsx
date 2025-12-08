@@ -117,7 +117,7 @@ export default function InteractiveMetricsWidget({
   const pipelineData = [
     { name: 'Novos', value: opportunities.filter(o => o.status === 'new').length, color: '#3b82f6' },
     { name: 'Contactados', value: opportunities.filter(o => o.status === 'contacted').length, color: '#8b5cf6' },
-    { name: 'Qualificados', value: opportunities.filter(o => o.status === 'qualified').length, color: '#f59e0b' },
+    { name: 'Qualificados', value: opportunities.filter(o => o.status === 'visit_scheduled').length, color: '#f59e0b' },
     { name: 'Proposta', value: opportunities.filter(o => o.status === 'proposal').length, color: '#10b981' },
     { name: 'Negociação', value: opportunities.filter(o => o.status === 'negotiation').length, color: '#ec4899' },
     { name: 'Ganhos', value: opportunities.filter(o => o.status === 'won').length, color: '#22c55e' },
