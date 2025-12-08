@@ -5,18 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
-  Search, Home, Building2, MapPin, 
-  Bed, Bath, Maximize, Star, ArrowRight,
+  Home, Building2, MapPin, Bed, Bath, Maximize, Star, ArrowRight,
   TrendingUp, Users, Shield, Sparkles, Phone, Mail, CheckCircle, Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 
 export default function ZuGruppe() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = React.useState("");
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -29,14 +26,51 @@ export default function ZuGruppe() {
     }
   });
 
-  const { data: properties = [], isLoading } = useQuery({
+  // Redirect to dashboard if already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate(createPageUrl("Dashboard"));
+    }
+  }, [user, navigate]);
+
+  const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date', 6)
   });
 
   const featuredProperties = properties.filter(p => p.status === 'active' && p.featured).slice(0, 3);
 
+  const features = [
+    {
+      icon: Building2,
+      title: "Gestão Completa de Imóveis",
+      description: "Sistema avançado para gerir todo o seu portfólio imobiliário"
+    },
+    {
+      icon: Users,
+      title: "CRM Inteligente",
+      description: "Gerencie leads, clientes e oportunidades com automação e IA"
+    },
+    {
+      icon: TrendingUp,
+      title: "Análise de Mercado",
+      description: "Insights em tempo real sobre tendências e avaliações"
+    },
+    {
+      icon: Sparkles,
+      title: "IA Integrada",
+      description: "Matching automático, geração de conteúdo e otimização"
+    }
+  ];
 
+  const benefits = [
+    "Gestão centralizada de imóveis e clientes",
+    "Automação de marketing e comunicação",
+    "Análise de dados e relatórios detalhados",
+    "Integração com portais imobiliários",
+    "Suporte técnico dedicado 24/7",
+    "Ferramentas de IA para produtividade"
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -386,64 +420,87 @@ export default function ZuGruppe() {
   );
 }
 
-import { Input } from "@/components/ui/input";
+function PropertyCardCompact({ property }) {
+  const image = property.images?.[0];
 
-export default function ZuGruppe() {
-  const navigate = useNavigate();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="group"
+    >
+      <Link 
+        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+        className="block bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200"
+      >
+        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+          {image ? (
+            <img
+              src={image}
+              alt={property.title}
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+              <Home className="w-16 h-16 text-slate-300" />
+            </div>
+          )}
+          
+          <div className="absolute top-4 left-4">
+            <Badge className="bg-slate-900/90 backdrop-blur-sm text-white border-0">
+              {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+            </Badge>
+          </div>
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      try {
-        return await base44.auth.me();
-      } catch {
-        return null;
-      }
-    }
-  });
+          {property.featured && (
+            <div className="absolute top-4 right-4">
+              <Badge className="bg-amber-400 text-slate-900 border-0">
+                <Star className="w-3 h-3 mr-1 fill-current" />
+                Destaque
+              </Badge>
+            </div>
+          )}
 
-  // Redirect to dashboard if already logged in
-  React.useEffect(() => {
-    if (user) {
-      navigate(createPageUrl("Dashboard"));
-    }
-  }, [user, navigate]);
+          <div className="absolute bottom-4 right-4">
+            <div className="bg-white px-4 py-2 rounded-lg font-bold text-slate-900 text-lg shadow-lg">
+              €{property.price?.toLocaleString()}
+              {property.listing_type === 'rent' && <span className="text-xs font-normal text-slate-600">/mês</span>}
+            </div>
+          </div>
+        </div>
 
-  const { data: properties = [] } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date', 6)
-  });
-
-  const featuredProperties = properties.filter(p => p.status === 'active' && p.featured).slice(0, 3);
-
-  const features = [
-    {
-      icon: Building2,
-      title: "Gestão Completa de Imóveis",
-      description: "Sistema avançado para gerir todo o seu portfólio imobiliário"
-    },
-    {
-      icon: Users,
-      title: "CRM Inteligente",
-      description: "Gerencie leads, clientes e oportunidades com automação e IA"
-    },
-    {
-      icon: TrendingUp,
-      title: "Análise de Mercado",
-      description: "Insights em tempo real sobre tendências e avaliações"
-    },
-    {
-      icon: Sparkles,
-      title: "IA Integrada",
-      description: "Matching automático, geração de conteúdo e otimização"
-    }
-  ];
-
-  const benefits = [
-    "Gestão centralizada de imóveis e clientes",
-    "Automação de marketing e comunicação",
-    "Análise de dados e relatórios detalhados",
-    "Integração com portais imobiliários",
-    "Suporte técnico dedicado 24/7",
-    "Ferramentas de IA para produtividade"
-  ];
+        <div className="p-5">
+          <h3 className="font-bold text-lg text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-2">
+            {property.title}
+          </h3>
+          <p className="text-sm text-slate-500 flex items-center gap-1 mb-4">
+            <MapPin className="w-4 h-4" />
+            {property.city}, {property.state}
+          </p>
+          
+          <div className="flex items-center gap-4 text-sm text-slate-600">
+            {property.bedrooms > 0 && (
+              <span className="flex items-center gap-1">
+                <Bed className="w-4 h-4" />
+                T{property.bedrooms}
+              </span>
+            )}
+            {property.bathrooms > 0 && (
+              <span className="flex items-center gap-1">
+                <Bath className="w-4 h-4" />
+                {property.bathrooms}
+              </span>
+            )}
+            {(property.useful_area || property.square_feet) > 0 && (
+              <span className="flex items-center gap-1">
+                <Maximize className="w-4 h-4" />
+                {property.useful_area || property.square_feet}m²
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
