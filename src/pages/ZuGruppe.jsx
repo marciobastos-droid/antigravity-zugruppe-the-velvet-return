@@ -26,12 +26,6 @@ export default function ZuGruppe() {
     }
   });
 
-  React.useEffect(() => {
-    if (user) {
-      navigate(createPageUrl("Dashboard"));
-    }
-  }, [user, navigate]);
-
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date', 6)
