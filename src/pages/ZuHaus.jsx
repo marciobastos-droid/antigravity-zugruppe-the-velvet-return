@@ -21,20 +21,34 @@ export default function ZuHaus() {
   // Filtrar apenas imóveis residenciais publicados em ZuHaus
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   
-  const filteredProperties = properties.filter(p => {
-    const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
-    const isPublished = publishedPages.includes("zuhaus");
-    const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
-    const isActive = p.status === 'active';
-    
-    const matchesSearch = !searchTerm || 
-      p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.city?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCity = city === "all" || p.city === city;
-    
-    return isPublished && isResidential && isActive && matchesSearch && matchesCity;
-  });
+  const filteredProperties = React.useMemo(() => {
+    return properties.filter(p => {
+      // Verificar publicação
+      const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
+      const isPublished = publishedPages.includes("zuhaus");
+      
+      // Verificar tipo
+      const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
+      
+      // Verificar status
+      const isActive = p.status === 'active';
+      
+      // Verificar pesquisa
+      const matchesSearch = !searchTerm || 
+        p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.city?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Verificar cidade
+      const matchesCity = city === "all" || p.city === city;
+      
+      // Debug: imprimir se falhar
+      if (isResidential && isActive && !isPublished) {
+        console.log('[ZuHaus] Property not published here:', p.ref_id || p.id, 'pages:', publishedPages);
+      }
+      
+      return isPublished && isResidential && isActive && matchesSearch && matchesCity;
+    });
+  }, [properties, searchTerm, city]);
 
   const allCities = [...new Set(properties
     .filter(p => RESIDENTIAL_TYPES.includes(p.property_type))

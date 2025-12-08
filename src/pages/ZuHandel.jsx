@@ -21,20 +21,34 @@ export default function ZuHandel() {
   // Filtrar apenas imóveis comerciais publicados em ZuHandel
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
   
-  const filteredProperties = properties.filter(p => {
-    const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
-    const isPublished = publishedPages.includes("zuhandel");
-    const isCommercial = COMMERCIAL_TYPES.includes(p.property_type);
-    const isActive = p.status === 'active';
-    
-    const matchesSearch = !searchTerm || 
-      p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.city?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCity = city === "all" || p.city === city;
-    
-    return isPublished && isCommercial && isActive && matchesSearch && matchesCity;
-  });
+  const filteredProperties = React.useMemo(() => {
+    return properties.filter(p => {
+      // Verificar publicação
+      const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
+      const isPublished = publishedPages.includes("zuhandel");
+      
+      // Verificar tipo
+      const isCommercial = COMMERCIAL_TYPES.includes(p.property_type);
+      
+      // Verificar status
+      const isActive = p.status === 'active';
+      
+      // Verificar pesquisa
+      const matchesSearch = !searchTerm || 
+        p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.city?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Verificar cidade
+      const matchesCity = city === "all" || p.city === city;
+      
+      // Debug: imprimir se falhar
+      if (isCommercial && isActive && !isPublished) {
+        console.log('[ZuHandel] Property not published here:', p.ref_id || p.id, 'pages:', publishedPages);
+      }
+      
+      return isPublished && isCommercial && isActive && matchesSearch && matchesCity;
+    });
+  }, [properties, searchTerm, city]);
 
   const allCities = [...new Set(properties
     .filter(p => COMMERCIAL_TYPES.includes(p.property_type))
