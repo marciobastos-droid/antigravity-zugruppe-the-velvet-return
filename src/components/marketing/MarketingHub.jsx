@@ -287,6 +287,22 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
   };
 
   const exportHTML = () => {
+    const images = landingPageData.property.images || [];
+    const imageGalleryHTML = images.length > 0 ? `
+  <!-- Image Gallery -->
+  <div class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="text-4xl font-bold text-center mb-12">Galeria de Imagens</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        ${images.map(img => `
+          <div class="aspect-video overflow-hidden rounded-lg shadow-lg">
+            <img src="${img}" alt="${landingPageData.property.title}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>` : '';
+
     const html = `<!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -298,7 +314,7 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
 <body class="bg-gray-50">
   <!-- Hero Section -->
   <div class="relative h-screen">
-    <img src="${landingPageData.property.images?.[0] || ''}" alt="${landingPageData.property.title}" 
+    <img src="${images[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600'}" alt="${landingPageData.property.title}" 
          class="absolute inset-0 w-full h-full object-cover" />
     <div class="absolute inset-0 bg-black bg-opacity-50"></div>
     <div class="relative h-full flex items-center justify-center text-center text-white px-4">
@@ -317,6 +333,8 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
       </div>
     </div>
   </div>
+
+${imageGalleryHTML}
 
   <!-- Features -->
   <div class="py-20 bg-white">
