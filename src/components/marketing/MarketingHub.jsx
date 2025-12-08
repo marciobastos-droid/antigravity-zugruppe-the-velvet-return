@@ -632,16 +632,30 @@ Retorna um objeto JSON:
 
       toast.success(`Campanha enviada para ${sent} destinatários!`);
       
-      // Log campaign
-      await base44.entities.MarketingCampaign.create({
-        name: campaignName || `Campanha ${new Date().toLocaleDateString()}`,
-        type: 'email',
-        status: 'completed',
-        target_audience: JSON.stringify(filters),
-        recipients_count: sent,
-        content: message,
-        properties_featured: selectedProperties
-      });
+      // Log campaign (optional - try/catch to avoid breaking if entity doesn't exist)
+      try {
+        await base44.entities.MarketingCampaign.create({
+          name: campaignName || `Campanha ${new Date().toLocaleDateString()}`,
+          campaign_type: 'email',
+          objective: 'property_promotion',
+          status: 'completed',
+          target_audience: {
+            segment_type: 'custom',
+            custom_filters: filters
+          },
+          email_config: {
+            subject,
+            content: message
+          },
+          metrics: {
+            emails_sent: sent,
+            leads: 0
+          },
+          properties: selectedProperties
+        });
+      } catch (e) {
+        console.warn('Erro ao registar campanha:', e);
+      }
 
       // Reset form
       setCampaignName("");
