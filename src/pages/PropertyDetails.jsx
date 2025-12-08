@@ -811,26 +811,26 @@ export default function PropertyDetails() {
                                   )}
 
                                   {assignedAgent ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      {assignedAgent.photo_url ? (
-                        <img 
-                          src={assignedAgent.photo_url} 
-                          alt={assignedAgent.full_name || assignedAgent.display_name}
-                          className="w-16 h-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
-                          <User className="w-8 h-8 text-slate-500" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="font-semibold text-slate-900">{assignedAgent.full_name || assignedAgent.display_name}</h4>
-                        {assignedAgent.specialization && (
-                          <p className="text-sm text-slate-600">{assignedAgent.specialization}</p>
-                        )}
-                      </div>
-                    </div>
+                                  <div className="space-y-4">
+                                    <div className="flex items-center gap-4">
+                                      {assignedAgent.photo_url ? (
+                                        <img 
+                                          src={assignedAgent.photo_url} 
+                                          alt={assignedAgent.display_name || assignedAgent.full_name}
+                                          className="w-16 h-16 rounded-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
+                                          <User className="w-8 h-8 text-slate-500" />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <h4 className="font-semibold text-slate-900">{assignedAgent.display_name || assignedAgent.full_name}</h4>
+                                        {assignedAgent.specialization && (
+                                          <p className="text-sm text-slate-600">{assignedAgent.specialization}</p>
+                                        )}
+                                      </div>
+                                    </div>
                     
                     <div className="space-y-2">
                       {assignedAgent.phone && (
