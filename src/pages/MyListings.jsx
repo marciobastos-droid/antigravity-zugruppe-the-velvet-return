@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Sparkles, Globe, BarChart3, Calendar } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Sparkles, Globe, BarChart3, Calendar, Home, Store, TrendingUp, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -140,20 +140,32 @@ const PropertyCard = memo(function PropertyCard({
                 
                 {/* Website Pages */}
                 {property.published_pages && property.published_pages.length > 0 ? (
-                  <div className="flex items-center gap-1.5">
-                    <ExternalLink className="w-3 h-3 text-green-600 flex-shrink-0" />
-                    <div className="flex flex-wrap gap-1">
-                      {property.published_pages.map((page, idx) => (
-                        <span key={idx} className="text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
-                          {page === 'zugruppe' ? 'ZuGruppe' :
-                           page === 'zuhaus' ? 'ZuHaus' :
-                           page === 'zuhandel' ? 'ZuHandel' :
-                           page === 'homepage_featured' ? 'Homepage' :
-                           page === 'investor_section' ? 'Investidores' :
-                           page === 'luxury_collection' ? 'Luxo' : page}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {property.published_pages.map((page, idx) => {
+                      const pageIcon = 
+                        page === 'zugruppe' ? <Building2 className="w-3 h-3" /> :
+                        page === 'zuhaus' ? <Home className="w-3 h-3" /> :
+                        page === 'zuhandel' ? <Store className="w-3 h-3" /> :
+                        page === 'homepage_featured' ? <Star className="w-3 h-3" /> :
+                        page === 'investor_section' ? <TrendingUp className="w-3 h-3" /> :
+                        page === 'luxury_collection' ? <Crown className="w-3 h-3" /> :
+                        <ExternalLink className="w-3 h-3" />;
+                      
+                      const pageName = 
+                        page === 'zugruppe' ? 'ZuGruppe' :
+                        page === 'zuhaus' ? 'ZuHaus' :
+                        page === 'zuhandel' ? 'ZuHandel' :
+                        page === 'homepage_featured' ? 'Homepage' :
+                        page === 'investor_section' ? 'Investidores' :
+                        page === 'luxury_collection' ? 'Luxo' : page;
+                      
+                      return (
+                        <span key={idx} className="flex items-center gap-1 text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+                          {pageIcon}
+                          {pageName}
                         </span>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex items-center gap-1.5">
