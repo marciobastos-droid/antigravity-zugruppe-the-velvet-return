@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
 
 export default function PropertyCard({ property }) {
   const [imageError, setImageError] = React.useState(false);
@@ -93,11 +94,15 @@ export default function PropertyCard({ property }) {
         </div>
         <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4">
           <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-base md:text-lg">
-            {property.currency === 'EUR' ? '€' : 
-             property.currency === 'USD' ? '$' :
-             property.currency === 'GBP' ? '£' :
-             property.currency === 'AED' ? 'د.إ' :
-             property.currency || '€'}{property.price?.toLocaleString()}
+            {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
+            {property.currency && property.currency !== 'EUR' && (() => {
+              const eurValue = convertToEUR(property.price, property.currency);
+              return eurValue ? (
+                <div className="text-xs font-normal text-white/80 mt-0.5">
+                  ≈ €{eurValue.toLocaleString()}
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>

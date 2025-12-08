@@ -22,6 +22,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import PropertyCard from "../components/browse/PropertyCard";
+import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import EditPropertyDialog from "../components/listings/EditPropertyDialog";
 import MaintenanceManager from "../components/property/MaintenanceManager";
 import LeaseManager from "../components/property/LeaseManager";
@@ -470,16 +471,18 @@ export default function PropertyDetails() {
                 {/* Price and Type */}
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200">
                   <div>
-                    <div className="text-4xl font-bold text-slate-900">
-                      {property.currency === 'EUR' ? '€' : 
-                       property.currency === 'USD' ? '$' :
-                       property.currency === 'GBP' ? '£' :
-                       property.currency === 'AED' ? 'د.إ' :
-                       property.currency === 'AOA' ? 'Kz' :
-                       property.currency === 'BRL' ? 'R$' :
-                       property.currency || '€'}{property.price?.toLocaleString()}
-                      {property.listing_type === 'rent' && <span className="text-lg font-normal text-slate-500">/mês</span>}
-                    </div>
+                      <div className="text-4xl font-bold text-slate-900">
+                        {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
+                        {property.listing_type === 'rent' && <span className="text-lg font-normal text-slate-500">/mês</span>}
+                      </div>
+                      {property.currency && property.currency !== 'EUR' && (() => {
+                        const eurValue = convertToEUR(property.price, property.currency);
+                        return eurValue ? (
+                          <div className="text-lg text-slate-500 mt-1">
+                            ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
+                          </div>
+                        ) : null;
+                      })()}
                     <div className="flex gap-2 mt-2">
                       <Badge className="bg-slate-900 text-white">
                         {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}

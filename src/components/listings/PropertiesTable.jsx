@@ -8,6 +8,7 @@ import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Build
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
 import PublicationStatus from "../property/PublicationStatus";
+import { CURRENCY_SYMBOLS, convertToEUR } from "../utils/currencyConverter";
 
 const statusLabels = {
   active: "Ativo",
@@ -106,14 +107,26 @@ export default function PropertiesTable({
     {
       key: "price",
       label: "Preço",
-      minWidth: "120px",
+      minWidth: "150px",
       sortValue: (row) => row.price || 0,
-      render: (val, property) => (
-        <div className="font-semibold text-slate-900">
-          €{val?.toLocaleString() || 0}
-          {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
-        </div>
-      )
+      render: (val, property) => {
+        const symbol = CURRENCY_SYMBOLS[property.currency] || '€';
+        const eurValue = property.currency !== 'EUR' ? convertToEUR(val, property.currency) : null;
+
+        return (
+          <div>
+            <div className="font-semibold text-slate-900">
+              {symbol}{val?.toLocaleString() || 0}
+              {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+            </div>
+            {eurValue && (
+              <div className="text-xs text-slate-500">
+                ≈ €{eurValue.toLocaleString()}
+              </div>
+            )}
+          </div>
+        );
+      }
     },
     {
       key: "property_type",
