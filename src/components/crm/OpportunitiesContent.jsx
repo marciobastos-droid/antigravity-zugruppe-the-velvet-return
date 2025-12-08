@@ -1143,8 +1143,8 @@ export default function OpportunitiesContent() {
         </div>
       )}
 
-      {/* Lead Detail Panel */}
-      {selectedLead && (
+      {/* Lead Detail Panel - only show when NOT in panel view mode */}
+      {selectedLead && viewMode !== "panel" && (
         <LeadDetailPanel
           lead={selectedLead}
           onClose={() => setSelectedLead(null)}
