@@ -58,6 +58,8 @@ import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
 import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
+import InvestorKeysManager from "../components/tools/InvestorKeysManager";
+import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -267,6 +269,22 @@ export default function Tools() {
               </CardContent>
               </Card>
 
+              {/* Secção de Investidores Group */}
+          <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Lock className="w-5 h-5 text-amber-600" />
+                <h3 className="font-bold text-amber-900 text-lg">Secção de Investidores</h3>
+                <span className="text-sm text-amber-600">(2 ferramentas)</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" />
+                <ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" />
+              </div>
+              </CardContent>
+              </Card>
+
               {/* Definições e Conteúdos Group */}
           <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
             <CardContent className="p-4">
@@ -336,6 +354,8 @@ export default function Tools() {
         {activeTab === "auditLog" && <AuditLogViewer />}
         {activeTab === "casafariSync" && <CasafariSync />}
         {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
+        {activeTab === "investorKeys" && <InvestorKeysManager />}
+        {activeTab === "investorProperties" && <InvestorPropertiesManager />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
