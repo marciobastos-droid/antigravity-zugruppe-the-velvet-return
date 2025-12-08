@@ -8,7 +8,6 @@ import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Build
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
 import PublicationStatus from "../property/PublicationStatus";
-import PropertyScoreCard from "../property/PropertyScoreCard";
 
 const statusLabels = {
   active: "Ativo",
@@ -211,10 +210,10 @@ export default function PropertiesTable({
           value={val} 
           onValueChange={(v) => onStatusChange(property.id, v)}
         >
-          <SelectTrigger className="h-8 text-xs w-28" onClick={(e) => e.stopPropagation()}>
+          <SelectTrigger className="h-8 text-xs w-28" onClick={(e) => e?.stopPropagation?.()}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent onClick={(e) => e.stopPropagation()}>
+          <SelectContent onClick={(e) => e?.stopPropagation?.()}>
             <SelectItem value="active">
               <span className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-500 rounded-full" /> Ativo
@@ -258,7 +257,7 @@ export default function PropertiesTable({
       minWidth: "180px",
       alwaysVisible: true,
       render: (_, property) => (
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1" onClick={(e) => e?.stopPropagation?.()}>
           <Button 
             variant="ghost" 
             size="sm" 

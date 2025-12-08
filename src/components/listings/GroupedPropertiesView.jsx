@@ -47,7 +47,7 @@ function PropertyRow({ property, isSelected, onToggleSelect, onEdit, onStatusCha
       <Checkbox 
         checked={isSelected} 
         onCheckedChange={() => onToggleSelect(property.id)}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e?.stopPropagation?.()}
       />
       
       <img
