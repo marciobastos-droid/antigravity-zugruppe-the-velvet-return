@@ -22,7 +22,27 @@ export default function ZuHandel() {
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
   
   const filteredProperties = React.useMemo(() => {
-    return properties.filter(p => {
+    // Debug: estatísticas gerais
+    const totalProperties = properties.length;
+    const activeProperties = properties.filter(p => p.status === 'active');
+    const commercialActive = activeProperties.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
+    const withPublishedPages = commercialActive.filter(p => {
+      const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
+      return pp.length > 0;
+    });
+    const configuredForZuhandel = commercialActive.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
+    );
+    
+    console.log('[ZuHandel Stats]', {
+      total: totalProperties,
+      active: activeProperties.length,
+      commercialActive: commercialActive.length,
+      withPublishedPages: withPublishedPages.length,
+      configuredForZuhandel: configuredForZuhandel.length
+    });
+    
+    const result = properties.filter(p => {
       // Verificar publicação
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       const isPublished = publishedPages.includes("zuhandel");
@@ -41,13 +61,22 @@ export default function ZuHandel() {
       // Verificar cidade
       const matchesCity = city === "all" || p.city === city;
       
-      // Debug: imprimir se falhar
-      if (isCommercial && isActive && !isPublished) {
-        console.log('[ZuHandel] Property not published here:', p.ref_id || p.id, 'pages:', publishedPages);
+      // Debug: imprimir se falhar algum critério
+      if (isCommercial && isActive) {
+        if (!isPublished) {
+          console.log('[ZuHandel] Not published:', p.ref_id || p.id, { 
+            publishedPages, 
+            type: p.property_type,
+            status: p.status
+          });
+        }
       }
       
       return isPublished && isCommercial && isActive && matchesSearch && matchesCity;
     });
+    
+    console.log('[ZuHandel] Final filtered:', result.length, 'properties shown');
+    return result;
   }, [properties, searchTerm, city]);
 
   const allCities = [...new Set(properties
