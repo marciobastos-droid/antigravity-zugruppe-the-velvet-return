@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Sparkles, FileText, Tags, Globe, 
   Loader2, Copy, Check, RefreshCw, 
-  TrendingUp, ExternalLink, Home
+  TrendingUp, ExternalLink, Home, DollarSign, Award
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
   const [generatedDescription, setGeneratedDescription] = React.useState("");
   const [suggestedTags, setSuggestedTags] = React.useState([]);
   const [publicationRecommendations, setPublicationRecommendations] = React.useState(null);
+  const [pricingAnalysis, setPricingAnalysis] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
 
   const queryClient = useQueryClient();
@@ -29,6 +30,7 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
       setGeneratedDescription("");
       setSuggestedTags([]);
       setPublicationRecommendations(null);
+      setPricingAnalysis(property.ai_price_analysis || null);
       setCopied(false);
     }
   }, [open, property]);
@@ -110,9 +112,51 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
     }
   });
 
+  const analyzePricingMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('analyzePricingStrategy', {
+        propertyId: property.id
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setPricingAnalysis(data.analysis);
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+        toast.success("Análise de preço concluída!");
+      } else {
+        toast.error(data.error || "Erro na análise");
+      }
+    },
+    onError: () => {
+      toast.error("Erro ao analisar preço");
+    }
+  });
+
+  const calculateScoreMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('calculatePropertyScore', {
+        propertyId: property.id
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+        toast.success("Pontuação calculada!");
+      }
+    }
+  });
+
   const handleApplyDescription = () => {
     if (generatedDescription) {
-      updatePropertyMutation.mutate({ description: generatedDescription });
+      const aiFeatures = property.ai_features_used || [];
+      updatePropertyMutation.mutate({ 
+        description: generatedDescription,
+        ai_features_used: [...new Set([...aiFeatures, 'description'])]
+      });
     }
   };
 
@@ -120,7 +164,23 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
     if (suggestedTags.length > 0) {
       const existingTags = property.tags || [];
       const newTags = [...new Set([...existingTags, ...suggestedTags])];
-      updatePropertyMutation.mutate({ tags: newTags });
+      const aiFeatures = property.ai_features_used || [];
+      updatePropertyMutation.mutate({ 
+        tags: newTags,
+        ai_features_used: [...new Set([...aiFeatures, 'tags'])]
+      });
+    }
+  };
+
+  const handleApplyPricing = () => {
+    if (pricingAnalysis?.suggested_price) {
+      const aiFeatures = property.ai_features_used || [];
+      updatePropertyMutation.mutate({
+        price: pricingAnalysis.suggested_price,
+        ai_suggested_price: pricingAnalysis.suggested_price,
+        ai_price_analysis: pricingAnalysis,
+        ai_features_used: [...new Set([...aiFeatures, 'pricing'])]
+      });
     }
   };
 
@@ -169,14 +229,22 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="description" className="gap-2">
               <FileText className="w-4 h-4" />
               Descrição
             </TabsTrigger>
             <TabsTrigger value="tags" className="gap-2">
               <Tags className="w-4 h-4" />
-              Etiquetas
+              Tags
+            </TabsTrigger>
+            <TabsTrigger value="pricing" className="gap-2">
+              <DollarSign className="w-4 h-4" />
+              Pricing
+            </TabsTrigger>
+            <TabsTrigger value="score" className="gap-2">
+              <Award className="w-4 h-4" />
+              Pontuação
             </TabsTrigger>
             <TabsTrigger value="publication" className="gap-2">
               <Globe className="w-4 h-4" />
@@ -315,6 +383,158 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
                       )}
                       Adicionar Etiquetas ao Imóvel
                     </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* TAB: Pricing */}
+          <TabsContent value="pricing" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Análise de Preço com IA</CardTitle>
+                <p className="text-sm text-slate-600">
+                  A IA analisa o mercado local e sugere a melhor estratégia de pricing.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  onClick={() => analyzePricingMutation.mutate()}
+                  disabled={analyzePricingMutation.isPending}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {analyzePricingMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A analisar mercado...
+                    </>
+                  ) : (
+                    <>
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      {pricingAnalysis ? 'Reanalisar Preço' : 'Analisar Preço'}
+                    </>
+                  )}
+                </Button>
+
+                {pricingAnalysis && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 bg-slate-50 rounded-lg border">
+                        <p className="text-xs text-slate-500 mb-1">Preço Atual</p>
+                        <p className="text-xl font-bold">€{property.price?.toLocaleString()}</p>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-xs text-green-700 mb-1">IA Sugere</p>
+                        <p className="text-xl font-bold text-green-900">€{pricingAnalysis.suggested_price?.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900 mb-2">Análise</p>
+                      <p className="text-sm text-blue-800 whitespace-pre-line">
+                        {pricingAnalysis.justification}
+                      </p>
+                    </div>
+
+                    {pricingAnalysis.recommendations && pricingAnalysis.recommendations.length > 0 && (
+                      <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                        <p className="text-sm font-medium text-purple-900 mb-2">Recomendações</p>
+                        <ul className="text-sm text-purple-800 space-y-1 ml-4 list-disc">
+                          {pricingAnalysis.recommendations.slice(0, 3).map((rec, idx) => (
+                            <li key={idx}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleApplyPricing}
+                      disabled={updatePropertyMutation.isPending}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      {updatePropertyMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Check className="w-4 h-4 mr-2" />
+                      )}
+                      Aplicar Preço Sugerido
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* TAB: Quality Score */}
+          <TabsContent value="score" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Pontuação de Qualidade</CardTitle>
+                <p className="text-sm text-slate-600">
+                  Avalia a qualidade e completude do anúncio baseado em preenchimento e uso de IA.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  onClick={() => calculateScoreMutation.mutate()}
+                  disabled={calculateScoreMutation.isPending}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {calculateScoreMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A calcular pontuação...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Calcular Pontuação
+                    </>
+                  )}
+                </Button>
+
+                {property.quality_score > 0 && (
+                  <div className="p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                    <div className="text-center mb-4">
+                      <div className="text-5xl font-bold text-purple-900 mb-2">
+                        {property.quality_score}
+                      </div>
+                      <Badge className="bg-purple-600 text-white">
+                        {property.quality_score_details?.grade || 'Calculado'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-700">Informação Básica</span>
+                        <span className="font-semibold">
+                          {property.quality_score_details?.basic_info?.score}/
+                          {property.quality_score_details?.basic_info?.max}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-700">Media (Fotos/Vídeos)</span>
+                        <span className="font-semibold">
+                          {property.quality_score_details?.media?.score}/
+                          {property.quality_score_details?.media?.max}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-700">Detalhes do Imóvel</span>
+                        <span className="font-semibold">
+                          {property.quality_score_details?.details?.score}/
+                          {property.quality_score_details?.details?.max}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-purple-700 font-medium">Utilização de IA</span>
+                        <span className="font-semibold text-purple-700">
+                          {property.quality_score_details?.ai_usage?.score}/
+                          {property.quality_score_details?.ai_usage?.max}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>

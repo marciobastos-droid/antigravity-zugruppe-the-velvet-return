@@ -9,99 +9,136 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { property_id, property_ids } = await req.json();
+        const { propertyId, propertyIds } = await req.json();
 
-        // Single property or multiple
-        const ids = property_ids || [property_id];
+        // Support both single and batch scoring
+        const ids = propertyIds || (propertyId ? [propertyId] : []);
+        
+        if (ids.length === 0) {
+            return Response.json({ error: 'propertyId or propertyIds required' }, { status: 400 });
+        }
+
+        const properties = await base44.asServiceRole.entities.Property.list();
         const results = [];
 
         for (const id of ids) {
-            try {
-                const properties = await base44.entities.Property.filter({ id });
-                if (properties.length === 0) continue;
-
-                const property = properties[0];
-                const score = calculateScore(property);
-
-                // Update property with score
-                await base44.entities.Property.update(id, {
-                    quality_score: score.total,
-                    quality_score_breakdown: score.breakdown,
-                    last_score_calculation: new Date().toISOString()
-                });
-
-                results.push({
-                    property_id: id,
-                    property_title: property.title,
-                    score: score.total,
-                    breakdown: score.breakdown
-                });
-            } catch (error) {
-                console.error(`Error calculating score for ${id}:`, error);
+            const property = properties.find(p => p.id === id);
+            
+            if (!property) {
+                results.push({ id, error: 'Property not found' });
+                continue;
             }
+
+            const score = calculateScore(property);
+            
+            // Update property with score
+            await base44.asServiceRole.entities.Property.update(id, {
+                quality_score: score.total,
+                quality_score_details: score.details,
+                last_score_calculation: new Date().toISOString()
+            });
+
+            results.push({
+                id,
+                success: true,
+                score: score.total,
+                details: score.details
+            });
         }
 
         return Response.json({
             success: true,
-            results,
-            total_processed: results.length
+            results: propertyIds ? results : results[0]
         });
 
     } catch (error) {
-        console.error('Calculate Score Error:', error);
-        return Response.json({ error: error.message }, { status: 500 });
+        console.error('Error calculating property score:', error);
+        return Response.json({ 
+            error: error.message,
+            success: false 
+        }, { status: 500 });
     }
 });
 
 function calculateScore(property) {
-    const breakdown = {
+    const scores = {
         basic_info: 0,
-        details: 0,
         media: 0,
-        location: 0,
+        details: 0,
         ai_usage: 0
     };
 
-    // Basic Info (30 points)
-    if (property.title && property.title.length > 20) breakdown.basic_info += 10;
-    if (property.description && property.description.length > 100) breakdown.basic_info += 10;
-    if (property.price > 0) breakdown.basic_info += 5;
-    if (property.property_type) breakdown.basic_info += 5;
-
-    // Details (25 points)
-    if (property.bedrooms > 0) breakdown.details += 3;
-    if (property.bathrooms > 0) breakdown.details += 3;
-    if (property.useful_area > 0 || property.square_feet > 0) breakdown.details += 4;
-    if (property.energy_certificate) breakdown.details += 5;
-    if (property.year_built > 0) breakdown.details += 3;
-    if (property.amenities && property.amenities.length >= 3) breakdown.details += 4;
-    if (property.finishes) breakdown.details += 3;
-
-    // Media (20 points)
-    const imageCount = property.images?.length || 0;
-    if (imageCount >= 1) breakdown.media += 5;
-    if (imageCount >= 5) breakdown.media += 5;
-    if (imageCount >= 10) breakdown.media += 5;
-    if (property.videos && property.videos.length > 0) breakdown.media += 3;
-    if (property.floorplans && property.floorplans.length > 0) breakdown.media += 2;
-
-    // Location (10 points)
-    if (property.address) breakdown.location += 3;
-    if (property.city) breakdown.location += 3;
-    if (property.state) breakdown.location += 2;
-    if (property.zip_code) breakdown.location += 2;
-
-    // AI Usage (15 points)
-    const aiFeatures = property.ai_features_used || [];
-    if (property.ai_suggested_price || aiFeatures.includes('price_suggestion')) breakdown.ai_usage += 5;
-    if (aiFeatures.includes('description_generation') || (property.description && property.description.length > 200)) breakdown.ai_usage += 5;
-    if (property.tags && property.tags.length >= 3) breakdown.ai_usage += 3;
-    if (property.ai_price_analysis) breakdown.ai_usage += 2;
-
-    const total = Object.values(breakdown).reduce((sum, val) => sum + val, 0);
-
-    return {
-        total: Math.min(total, 100),
-        breakdown
+    const maxScores = {
+        basic_info: 25,
+        media: 30,
+        details: 25,
+        ai_usage: 20
     };
+
+    // 1. BASIC INFO (25 pontos)
+    if (property.title && property.title.length >= 20) scores.basic_info += 5;
+    if (property.description && property.description.length >= 100) scores.basic_info += 10;
+    if (property.description && property.description.length >= 300) scores.basic_info += 5; // Bonus for detailed
+    if (property.price > 0) scores.basic_info += 5;
+
+    // 2. MEDIA (30 pontos)
+    const imageCount = property.images?.length || 0;
+    if (imageCount >= 1) scores.media += 5;
+    if (imageCount >= 5) scores.media += 10;
+    if (imageCount >= 10) scores.media += 5;
+    if (imageCount >= 15) scores.media += 5;
+    if (property.videos && property.videos.length > 0) scores.media += 3;
+    if (property.floorplans && property.floorplans.length > 0) scores.media += 2;
+
+    // 3. DETAILED INFO (25 pontos)
+    if (property.bedrooms > 0) scores.details += 3;
+    if (property.bathrooms > 0) scores.details += 3;
+    if (property.useful_area > 0 || property.square_feet > 0) scores.details += 4;
+    if (property.gross_area > 0) scores.details += 2;
+    if (property.year_built > 0) scores.details += 2;
+    if (property.energy_certificate && property.energy_certificate !== 'isento') scores.details += 3;
+    if (property.garage && property.garage !== 'none') scores.details += 2;
+    if (property.sun_exposure) scores.details += 2;
+    if (property.amenities && property.amenities.length >= 3) scores.details += 2;
+    if (property.amenities && property.amenities.length >= 6) scores.details += 2;
+
+    // 4. AI USAGE (20 pontos)
+    const aiFeatures = property.ai_features_used || [];
+    if (aiFeatures.includes('description')) scores.ai_usage += 6;
+    if (aiFeatures.includes('tags')) scores.ai_usage += 4;
+    if (aiFeatures.includes('pricing')) scores.ai_usage += 6;
+    if (aiFeatures.includes('images')) scores.ai_usage += 2;
+    if (aiFeatures.includes('marketing')) scores.ai_usage += 2;
+    
+    // Legacy support - check if AI was used even without tracking
+    if (property.ai_suggested_price > 0 && !aiFeatures.includes('pricing')) scores.ai_usage += 3;
+    if (property.tags && property.tags.length >= 5 && !aiFeatures.includes('tags')) scores.ai_usage += 2;
+
+    const total = Math.min(100, Math.round(
+        scores.basic_info + scores.media + scores.details + scores.ai_usage
+    ));
+
+    const details = {
+        basic_info: { score: scores.basic_info, max: maxScores.basic_info },
+        media: { score: scores.media, max: maxScores.media },
+        details: { score: scores.details, max: maxScores.details },
+        ai_usage: { score: scores.ai_usage, max: maxScores.ai_usage },
+        breakdown: {
+            title: property.title?.length >= 20,
+            description: property.description?.length >= 100,
+            detailed_description: property.description?.length >= 300,
+            images: imageCount,
+            videos: property.videos?.length || 0,
+            floorplans: property.floorplans?.length || 0,
+            has_bedrooms: property.bedrooms > 0,
+            has_bathrooms: property.bathrooms > 0,
+            has_area: (property.useful_area || property.square_feet) > 0,
+            has_energy_cert: !!property.energy_certificate,
+            amenities_count: property.amenities?.length || 0,
+            ai_features_count: aiFeatures.length
+        },
+        grade: total >= 80 ? 'Excelente' : total >= 60 ? 'Bom' : total >= 40 ? 'Médio' : 'Precisa Melhorias'
+    };
+
+    return { total, details };
 }
