@@ -12,8 +12,6 @@ import DataTable from "../common/DataTable";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { useAgentNames } from "@/components/common/useAgentNames";
-import PropertyLinker from "./PropertyLinker";
-import QuickCommunicationLogger from "./QuickCommunicationLogger";
 
 const statusLabels = {
   new: "Novo",
@@ -69,8 +67,6 @@ export default function OpportunitiesTable({
   onAssign,
   onToggleRead
 }) {
-  const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
-  const [selectedOppForLinker, setSelectedOppForLinker] = React.useState(null);
   const { getAgentName, getAgentOptions } = useAgentNames();
   const agentOptions = getAgentOptions();
 
@@ -374,41 +370,6 @@ export default function OpportunitiesTable({
       alwaysVisible: true,
       render: (_, opp) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50"
-                  onClick={() => {
-                    setSelectedOppForLinker(opp);
-                    setPropertyLinkerOpen(true);
-                  }}
-                >
-                  <Building2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Associar Imóveis</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-          <QuickCommunicationLogger
-            opportunity={opp}
-            trigger={
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-green-600 hover:bg-green-50">
-                      <Phone className="w-4 h-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Registar Contacto</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            }
-          />
-          
           <Button 
             variant="ghost" 
             size="sm" 
@@ -454,29 +415,19 @@ export default function OpportunitiesTable({
   }, [opportunities]);
 
   return (
-    <>
-      <DataTable
-        data={sortedOpportunities}
-        columns={columns}
-        defaultVisibleColumns={defaultVisibleColumns}
-        persistKey="opportunities_table"
-        defaultSortColumn="created_date"
-        defaultSortDirection="desc"
-        showCheckboxes={true}
-        selectedRows={selectedOpportunities}
-        onToggleSelect={onToggleSelect}
-        onToggleSelectAll={onToggleSelectAll}
-        onRowClick={onOpportunityClick}
-        emptyMessage="Nenhuma oportunidade encontrada"
-      />
-      
-      {selectedOppForLinker && (
-        <PropertyLinker
-          open={propertyLinkerOpen}
-          onOpenChange={setPropertyLinkerOpen}
-          opportunity={selectedOppForLinker}
-        />
-      )}
-    </>
+    <DataTable
+      data={sortedOpportunities}
+      columns={columns}
+      defaultVisibleColumns={defaultVisibleColumns}
+      persistKey="opportunities_table"
+      defaultSortColumn="created_date"
+      defaultSortDirection="desc"
+      showCheckboxes={true}
+      selectedRows={selectedOpportunities}
+      onToggleSelect={onToggleSelect}
+      onToggleSelectAll={onToggleSelectAll}
+      onRowClick={onOpportunityClick}
+      emptyMessage="Nenhuma oportunidade encontrada"
+    />
   );
 }
