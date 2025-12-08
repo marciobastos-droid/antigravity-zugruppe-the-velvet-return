@@ -175,20 +175,21 @@ export default function SendEmailDialog({
         attachments: attachments
       });
 
-      // Log the communication
-      if (recipient.type === 'client' && recipient.id) {
-        await base44.entities.CommunicationLog.create({
-          contact_id: recipient.id,
-          contact_name: recipient.name || '',
-          communication_type: 'email',
-          direction: 'outbound',
-          subject: processed.subject,
-          summary: processed.body?.substring(0, 500) || '',
-          communication_date: new Date().toISOString(),
-          agent_email: user?.email || '',
-          outcome: 'successful'
-        });
-      }
+      // Log the communication automatically
+      await base44.functions.invoke('logCommunication', {
+        contact_id: recipient.type === 'client' ? recipient.id : null,
+        contact_email: recipient.email,
+        opportunity_id: recipient.type === 'opportunity' ? recipient.id : null,
+        type: 'email',
+        direction: 'outbound',
+        subject: processed.subject,
+        summary: processed.body?.substring(0, 500) || '',
+        outcome: 'successful',
+        metadata: {
+          template_used: selectedTemplate ? templates.find(t => t.id === selectedTemplate)?.name : null,
+          attachments_count: attachments.length
+        }
+      });
 
       // Update template usage count
       if (selectedTemplate) {
@@ -247,23 +248,20 @@ export default function SendEmailDialog({
         console.error("Error logging failed email:", logError);
       }
 
-      // Log failed communication
-      if (recipient.type === 'client' && recipient.id) {
-        try {
-          await base44.entities.CommunicationLog.create({
-            contact_id: recipient.id,
-            contact_name: recipient.name || '',
-            communication_type: 'email',
-            direction: 'outbound',
-            subject: getProcessedContent().subject,
-            summary: `[FALHOU] ${errorMessage}`,
-            communication_date: new Date().toISOString(),
-            agent_email: user?.email || '',
-            outcome: 'failed'
-          });
-        } catch (logError2) {
-          console.error("Error logging failed communication:", logError2);
-        }
+      // Log failed communication automatically
+      try {
+        await base44.functions.invoke('logCommunication', {
+          contact_id: recipient.type === 'client' ? recipient.id : null,
+          contact_email: recipient.email,
+          opportunity_id: recipient.type === 'opportunity' ? recipient.id : null,
+          type: 'email',
+          direction: 'outbound',
+          subject: getProcessedContent().subject,
+          summary: `[FALHOU] ${errorMessage}`,
+          outcome: 'failed'
+        });
+      } catch (logError) {
+        console.error("Error logging failed communication:", logError);
       }
 
       toast.error(`Erro ao enviar email: ${errorMessage}`);
