@@ -622,8 +622,8 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {/* External Links */}
-                {(property.external_id || property.source_url) && (
+                {/* External Links - Only for owners */}
+                {isOwner && (property.external_id || property.source_url) && (
                   <div className="pt-6">
                     <div className="flex flex-wrap items-center gap-2">
                       {property.external_id && (
