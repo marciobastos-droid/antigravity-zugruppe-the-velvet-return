@@ -67,12 +67,16 @@ export function useAdvancedFilters(items, filters, filterConfig, filterLogic = "
           return true;
         }
 
-        // Number range
+        // Number range - optimized
         if (config.type === "numberRange") {
           const numValue = item[config.field];
           if (numValue === null || numValue === undefined) return true;
-          if (value.min !== null && value.min !== undefined && numValue < value.min) return false;
-          if (value.max !== null && value.max !== undefined && numValue > value.max) return false;
+          
+          const min = value.min !== null && value.min !== undefined ? Number(value.min) : null;
+          const max = value.max !== null && value.max !== undefined ? Number(value.max) : null;
+          
+          if (min !== null && numValue < min) return false;
+          if (max !== null && numValue > max) return false;
           return true;
         }
 
