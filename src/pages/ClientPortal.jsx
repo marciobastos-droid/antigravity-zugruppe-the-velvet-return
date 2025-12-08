@@ -1,556 +1,595 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Building2, Calendar, MessageSquare, Heart, Star, 
-  MapPin, Bed, Bath, Ruler, Send, Clock, Check,
-  ThumbsUp, ThumbsDown, Eye, User, Phone, Mail
-} from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { 
+  Heart, Search, MessageSquare, Calendar, TrendingUp, 
+  Clock, CheckCircle, XCircle, Home, User, Send, Loader2,
+  MapPin, Bed, Bath, Maximize, Euro, Eye, Filter
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import PropertyCard from "../components/browse/PropertyCard";
+import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import { format } from "date-fns";
-import { pt } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-// Mark page as public - no authentication required
-ClientPortal.public = true;
+// Status colors and labels
+const statusColors = {
+  new: "bg-blue-100 text-blue-800",
+  contacted: "bg-purple-100 text-purple-800",
+  visit_scheduled: "bg-amber-100 text-amber-800",
+  proposal: "bg-orange-100 text-orange-800",
+  negotiation: "bg-yellow-100 text-yellow-800",
+  won: "bg-green-100 text-green-800",
+  lost: "bg-red-100 text-red-800"
+};
+
+const statusLabels = {
+  new: "Nova",
+  contacted: "Contactado",
+  visit_scheduled: "Visita Agendada",
+  proposal: "Proposta",
+  negotiation: "Negociação",
+  won: "Concluída",
+  lost: "Não Concretizada"
+};
+
+const statusIcons = {
+  new: Clock,
+  contacted: MessageSquare,
+  visit_scheduled: Calendar,
+  proposal: TrendingUp,
+  negotiation: TrendingUp,
+  won: CheckCircle,
+  lost: XCircle
+};
 
 export default function ClientPortal() {
-  const [newMessage, setNewMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("properties");
-  const [portalAccess, setPortalAccess] = useState(null);
-  const [client, setClient] = useState(null);
-  const [interests, setInterests] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [agent, setAgent] = useState(null);
-  const [accessLoading, setAccessLoading] = useState(true);
-  const [accessError, setAccessError] = useState(null);
-  
-  // Get token from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const accessToken = urlParams.get("token");
+  const [activeTab, setActiveTab] = useState("saved");
+  const [messageDialog, setMessageDialog] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [message, setMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
-  // Load portal data on mount
-  useEffect(() => {
-    const loadPortalData = async () => {
-      if (!accessToken) {
-        setAccessError({ message: "Token não fornecido" });
-        setAccessLoading(false);
-        return;
-      }
+  const queryClient = useQueryClient();
 
-      try {
-        // Validate access token
-        const accesses = await base44.entities.ClientPortalAccess.filter({ access_token: accessToken });
-        if (!accesses || accesses.length === 0) {
-          setAccessError({ message: "Acesso inválido" });
-          setAccessLoading(false);
-          return;
-        }
+  // Get current user
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  // Fetch saved properties
+  const { data: savedProperties = [] } = useQuery({
+    queryKey: ['savedProperties', user?.email],
+    queryFn: async () => {
+      const saved = await base44.entities.SavedProperty.filter({ user_email: user.email });
+      const propertyIds = saved.map(s => s.property_id);
+      
+      if (propertyIds.length === 0) return [];
+      
+      const properties = await base44.entities.Property.list();
+      return properties.filter(p => propertyIds.includes(p.id));
+    },
+    enabled: !!user?.email
+  });
+
+  // Fetch user opportunities/inquiries
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['userOpportunities', user?.email],
+    queryFn: () => base44.entities.Opportunity.filter({ buyer_email: user.email }),
+    enabled: !!user?.email
+  });
+
+  // Fetch user appointments
+  const { data: appointments = [] } = useQuery({
+    queryKey: ['userAppointments', user?.email],
+    queryFn: () => base44.entities.Appointment.filter({ client_email: user.email }),
+    enabled: !!user?.email
+  });
+
+  // Fetch buyer profile for recommendations
+  const { data: buyerProfile } = useQuery({
+    queryKey: ['buyerProfile', user?.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.BuyerProfile.filter({ buyer_email: user.email });
+      return profiles[0] || null;
+    },
+    enabled: !!user?.email
+  });
+
+  // Fetch recommended properties
+  const { data: recommendations = [] } = useQuery({
+    queryKey: ['recommendations', buyerProfile?.id],
+    queryFn: async () => {
+      if (!buyerProfile) return [];
+      
+      const allProperties = await base44.entities.Property.filter({ status: 'active' });
+      
+      return allProperties.filter(p => {
+        // Match listing type
+        if (buyerProfile.listing_type && buyerProfile.listing_type !== 'both' && 
+            p.listing_type !== buyerProfile.listing_type) return false;
         
-        const access = accesses[0];
-        if (!access.is_active) {
-          setAccessError({ message: "Acesso desativado" });
-          setAccessLoading(false);
-          return;
-        }
-        if (access.expires_at && new Date(access.expires_at) < new Date()) {
-          setAccessError({ message: "Acesso expirado" });
-          setAccessLoading(false);
-          return;
-        }
+        // Match property types
+        if (buyerProfile.property_types?.length > 0 && 
+            !buyerProfile.property_types.includes(p.property_type)) return false;
         
-        setPortalAccess(access);
+        // Match locations
+        if (buyerProfile.locations?.length > 0 && 
+            !buyerProfile.locations.includes(p.city)) return false;
+        
+        // Match budget
+        if (buyerProfile.budget_min && p.price < buyerProfile.budget_min) return false;
+        if (buyerProfile.budget_max && p.price > buyerProfile.budget_max) return false;
+        
+        // Match bedrooms
+        if (buyerProfile.bedrooms_min && p.bedrooms < buyerProfile.bedrooms_min) return false;
+        
+        return true;
+      }).slice(0, 12);
+    },
+    enabled: !!buyerProfile
+  });
 
-        // Update last access
-        await base44.entities.ClientPortalAccess.update(access.id, {
-          last_access: new Date().toISOString(),
-          access_count: (access.access_count || 0) + 1
-        });
+  // Fetch messages
+  const { data: messages = [] } = useQuery({
+    queryKey: ['userMessages', user?.email],
+    queryFn: () => base44.entities.ClientPortalMessage.filter({ client_email: user.email }),
+    enabled: !!user?.email
+  });
 
-        // Load client data
-        const clients = await base44.entities.ClientContact.filter({ id: access.contact_id });
-        if (clients && clients.length > 0) {
-          setClient(clients[0]);
-          
-          // Load agent info if assigned
-          if (clients[0].assigned_agent) {
-            const users = await base44.entities.User.filter({ email: clients[0].assigned_agent });
-            if (users && users.length > 0) {
-              setAgent(users[0]);
-            }
-          }
+  // Fetch agents
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents'],
+    queryFn: () => base44.entities.Agent.list()
+  });
 
-          // Load appointments
-          if (clients[0].email) {
-            const apts = await base44.entities.Appointment.filter({ client_email: clients[0].email });
-            setAppointments(apts || []);
-          }
-        }
-
-        // Load interests
-        const ints = await base44.entities.ClientPropertyInterest.filter({ contact_id: access.contact_id });
-        setInterests(ints || []);
-
-        // Load messages
-        const msgs = await base44.entities.ClientPortalMessage.filter({ contact_id: access.contact_id }, 'created_date');
-        setMessages(msgs || []);
-
-        setAccessLoading(false);
-      } catch (error) {
-        console.error("Error loading portal:", error);
-        setAccessError({ message: "Erro ao carregar portal" });
-        setAccessLoading(false);
-      }
-    };
-
-    loadPortalData();
-  }, [accessToken]);
-
-  const sendMessage = async (message) => {
-    try {
-      await base44.entities.ClientPortalMessage.create({
-        contact_id: portalAccess.contact_id,
-        agent_email: client?.assigned_agent,
-        sender_type: "client",
-        message
-      });
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data) => {
+      return await base44.entities.ClientPortalMessage.create(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userMessages'] });
       toast.success("Mensagem enviada!");
-      setNewMessage("");
-      // Reload messages
-      const msgs = await base44.entities.ClientPortalMessage.filter({ contact_id: portalAccess.contact_id }, 'created_date');
-      setMessages(msgs || []);
-    } catch (error) {
-      toast.error("Erro ao enviar mensagem");
+      setMessage("");
+      setMessageDialog(false);
     }
+  });
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedAgent) {
+      toast.error("Selecione um agente e escreva uma mensagem");
+      return;
+    }
+
+    setSendingMessage(true);
+    await sendMessageMutation.mutateAsync({
+      client_email: user.email,
+      client_name: user.full_name,
+      agent_email: selectedAgent.email,
+      agent_name: selectedAgent.full_name,
+      message: message,
+      direction: 'client_to_agent',
+      is_read: false
+    });
+    setSendingMessage(false);
   };
 
-  const updateInterest = async (id, data) => {
-    try {
-      await base44.entities.ClientPropertyInterest.update(id, data);
-      toast.success("Atualizado!");
-      // Reload interests
-      const ints = await base44.entities.ClientPropertyInterest.filter({ contact_id: portalAccess.contact_id });
-      setInterests(ints || []);
-    } catch (error) {
-      toast.error("Erro ao atualizar");
-    }
-  };
+  const unreadMessages = messages.filter(m => !m.is_read && m.direction === 'agent_to_client').length;
 
-  if (!accessToken) {
+  if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h1 className="text-xl font-bold text-slate-900 mb-2">Acesso Inválido</h1>
-            <p className="text-slate-600">
-              Por favor utilize o link fornecido pelo seu agente para aceder ao portal.
-            </p>
+          <CardHeader>
+            <CardTitle>Portal do Cliente</CardTitle>
+            <CardDescription>Faça login para aceder ao seu portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => base44.auth.redirectToLogin()} className="w-full">
+              <User className="w-4 h-4 mr-2" />
+              Fazer Login
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
-
-  if (accessLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-slate-300 border-t-slate-600 rounded-full" />
-      </div>
-    );
-  }
-
-  if (accessError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <Building2 className="w-16 h-16 text-red-300 mx-auto mb-4" />
-            <h1 className="text-xl font-bold text-slate-900 mb-2">Acesso Negado</h1>
-            <p className="text-slate-600">{accessError.message}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const upcomingAppointments = appointments.filter(a => 
-    new Date(a.appointment_date) > new Date() && a.status !== 'cancelled'
-  );
-
-  const statusLabels = {
-    suggested: "Sugerido",
-    interested: "Interessado",
-    visited: "Visitado",
-    not_interested: "Não Interessado",
-    negotiating: "Em Negociação"
-  };
-
-  const statusColors = {
-    suggested: "bg-blue-100 text-blue-800",
-    interested: "bg-green-100 text-green-800",
-    visited: "bg-purple-100 text-purple-800",
-    not_interested: "bg-slate-100 text-slate-800",
-    negotiating: "bg-amber-100 text-amber-800"
-  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Portal do Cliente</h1>
-              <p className="text-sm text-slate-600">Bem-vindo(a), {client?.full_name}</p>
-            </div>
-            {agent && (
-              <div className="text-right">
-                <p className="text-sm font-medium text-slate-900">{agent.full_name}</p>
-                <p className="text-xs text-slate-500">O seu agente</p>
-              </div>
-            )}
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-bold mb-2">Bem-vindo, {user.full_name}</h1>
+          <p className="text-blue-100">O seu portal pessoal de imóveis</p>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Building2 className="w-6 h-6 text-blue-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">{interests.length}</p>
-              <p className="text-xs text-slate-600">Imóveis</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Calendar className="w-6 h-6 text-green-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">{upcomingAppointments.length}</p>
-              <p className="text-xs text-slate-600">Visitas Agendadas</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Heart className="w-6 h-6 text-red-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">
-                {interests.filter(i => i.status === 'interested').length}
-              </p>
-              <p className="text-xs text-slate-600">Favoritos</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <MessageSquare className="w-6 h-6 text-purple-600 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-slate-900">{messages.length}</p>
-              <p className="text-xs text-slate-600">Mensagens</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="properties" className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              Imóveis
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-lg">
+            <TabsTrigger value="saved" className="relative">
+              <Heart className="w-4 h-4 mr-2" />
+              Guardados
             </TabsTrigger>
-            <TabsTrigger value="appointments" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Visitas
+            <TabsTrigger value="inquiries" className="relative">
+              <Search className="w-4 h-4 mr-2" />
+              Consultas
+              {opportunities.filter(o => !['won', 'lost'].includes(o.status)).length > 0 && (
+                <Badge className="ml-2 bg-blue-600 text-white">
+                  {opportunities.filter(o => !['won', 'lost'].includes(o.status)).length}
+                </Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="messages" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
+            <TabsTrigger value="recommendations">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Recomendações
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="relative">
+              <MessageSquare className="w-4 h-4 mr-2" />
               Mensagens
+              {unreadMessages > 0 && (
+                <Badge className="ml-2 bg-red-600 text-white">{unreadMessages}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="viewings">
+              <Calendar className="w-4 h-4 mr-2" />
+              Visitas
             </TabsTrigger>
           </TabsList>
 
-          {/* Properties Tab */}
-          <TabsContent value="properties">
-            <div className="space-y-4">
-              {interests.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Building2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-600">O seu agente ainda não adicionou imóveis.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                interests.map((interest) => (
-                  <Card key={interest.id} className="overflow-hidden">
-                    <div className="md:flex">
-                      {interest.property_image && (
-                        <div className="md:w-48 h-48 md:h-auto flex-shrink-0">
-                          <img 
-                            src={interest.property_image} 
-                            alt={interest.property_title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <CardContent className="p-4 flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-slate-900">{interest.property_title}</h3>
-                            {interest.property_address && (
-                              <p className="text-sm text-slate-600 flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
-                                {interest.property_address}
-                              </p>
-                            )}
-                          </div>
-                          <Badge className={statusColors[interest.status]}>
-                            {statusLabels[interest.status]}
-                          </Badge>
-                        </div>
-
-                        {interest.property_price && (
-                          <p className="text-lg font-bold text-slate-900 mb-3">
-                            €{interest.property_price.toLocaleString()}
-                          </p>
-                        )}
-
-                        {interest.agent_notes && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                            <p className="text-xs font-medium text-blue-800 mb-1">Nota do agente:</p>
-                            <p className="text-sm text-blue-900">{interest.agent_notes}</p>
-                          </div>
-                        )}
-
-                        {/* Rating */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-sm text-slate-600">A sua avaliação:</span>
-                          <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                onClick={() => updateInterest(interest.id, { client_rating: star })}
-                                className="p-1 hover:scale-110 transition-transform"
-                              >
-                                <Star 
-                                  className={`w-5 h-5 ${
-                                    interest.client_rating >= star 
-                                      ? 'text-amber-400 fill-amber-400' 
-                                      : 'text-slate-300'
-                                  }`} 
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            size="sm"
-                            variant={interest.status === 'interested' ? 'default' : 'outline'}
-                            onClick={() => updateInterest(interest.id, { status: 'interested' })}
-                            className="flex items-center gap-1"
-                          >
-                            <ThumbsUp className="w-4 h-4" />
-                            Interessado
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={interest.status === 'not_interested' ? 'destructive' : 'outline'}
-                            onClick={() => updateInterest(interest.id, { status: 'not_interested' })}
-                            className="flex items-center gap-1"
-                          >
-                            <ThumbsDown className="w-4 h-4" />
-                            Não Interessado
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
+          {/* Saved Properties */}
+          <TabsContent value="saved" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Imóveis Guardados</CardTitle>
+                <CardDescription>Imóveis que marcou como favoritos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {savedProperties.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600">Ainda não guardou nenhum imóvel</p>
+                    <Link to={createPageUrl("ZuGruppe")}>
+                      <Button className="mt-4">
+                        <Search className="w-4 h-4 mr-2" />
+                        Procurar Imóveis
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {savedProperties.map(property => (
+                      <PropertyCard key={property.id} property={property} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* Appointments Tab */}
-          <TabsContent value="appointments">
-            <div className="space-y-4">
-              {appointments.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-600">Ainda não tem visitas agendadas.</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <>
-                  {upcomingAppointments.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Próximas Visitas</h3>
-                      {upcomingAppointments.map((apt) => (
-                        <Card key={apt.id} className="mb-3 border-green-200 bg-green-50">
+          {/* Inquiries/Opportunities */}
+          <TabsContent value="inquiries" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>As Suas Consultas</CardTitle>
+                <CardDescription>Acompanhe o estado dos seus pedidos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {opportunities.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600">Ainda não realizou nenhuma consulta</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {opportunities.map(opp => {
+                      const StatusIcon = statusIcons[opp.status] || Clock;
+                      return (
+                        <Card key={opp.id} className="border-l-4" style={{ borderLeftColor: statusColors[opp.status]?.includes('blue') ? '#3b82f6' : '#94a3b8' }}>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <StatusIcon className="w-5 h-5 text-slate-600" />
+                                  <h3 className="font-semibold text-lg">{opp.property_title || 'Consulta Geral'}</h3>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge className={statusColors[opp.status]}>
+                                    {statusLabels[opp.status] || opp.status}
+                                  </Badge>
+                                  {opp.ref_id && (
+                                    <Badge variant="outline" className="font-mono text-xs">
+                                      {opp.ref_id}
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                {opp.message && (
+                                  <p className="text-sm text-slate-600 mb-3 line-clamp-2">{opp.message}</p>
+                                )}
+
+                                <div className="flex items-center gap-4 text-sm text-slate-500">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-4 h-4" />
+                                    {format(new Date(opp.created_date), "dd/MM/yyyy")}
+                                  </span>
+                                  {opp.assigned_agent_name && (
+                                    <span className="flex items-center gap-1">
+                                      <User className="w-4 h-4" />
+                                      {opp.assigned_agent_name}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {opp.property_id && (
+                                <Link to={`${createPageUrl("PropertyDetails")}?id=${opp.property_id}`}>
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Ver Imóvel
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Recommendations */}
+          <TabsContent value="recommendations" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recomendações Personalizadas</CardTitle>
+                <CardDescription>
+                  Imóveis selecionados com base nas suas preferências
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!buyerProfile ? (
+                  <div className="text-center py-12">
+                    <TrendingUp className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600 mb-4">
+                      Configure as suas preferências para receber recomendações personalizadas
+                    </p>
+                    <Button>
+                      <Filter className="w-4 h-4 mr-2" />
+                      Definir Preferências
+                    </Button>
+                  </div>
+                ) : recommendations.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Home className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600">
+                      Não encontrámos imóveis que correspondam às suas preferências no momento
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {recommendations.map(property => (
+                      <PropertyCard key={property.id} property={property} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Messages */}
+          <TabsContent value="messages" className="mt-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Mensagens</CardTitle>
+                    <CardDescription>Comunique com os nossos agentes</CardDescription>
+                  </div>
+                  <Button onClick={() => setMessageDialog(true)}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Nova Mensagem
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {messages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600">Ainda não tem mensagens</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).map(msg => (
+                      <Card key={msg.id} className={!msg.is_read && msg.direction === 'agent_to_client' ? 'border-blue-300 bg-blue-50' : ''}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                msg.direction === 'agent_to_client' ? 'bg-blue-100' : 'bg-slate-100'
+                              }`}>
+                                <User className="w-5 h-5 text-slate-600" />
+                              </div>
                               <div>
-                                <h4 className="font-semibold text-slate-900">{apt.title}</h4>
-                                <p className="text-sm text-slate-600">{apt.property_title}</p>
-                                {apt.property_address && (
-                                  <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {apt.property_address}
+                                <p className="font-semibold">
+                                  {msg.direction === 'agent_to_client' ? msg.agent_name : 'Você'}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {format(new Date(msg.created_date), "dd/MM/yyyy HH:mm")}
+                                </p>
+                              </div>
+                            </div>
+                            {!msg.is_read && msg.direction === 'agent_to_client' && (
+                              <Badge className="bg-blue-600 text-white">Nova</Badge>
+                            )}
+                          </div>
+                          <p className="text-slate-700 whitespace-pre-wrap">{msg.message}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Viewings/Appointments */}
+          <TabsContent value="viewings" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Visitas Agendadas</CardTitle>
+                <CardDescription>Gerir as suas visitas aos imóveis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {appointments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-600">Ainda não tem visitas agendadas</p>
+                    <Link to={createPageUrl("ZuGruppe")}>
+                      <Button className="mt-4">
+                        <Search className="w-4 h-4 mr-2" />
+                        Procurar Imóveis
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {appointments
+                      .sort((a, b) => new Date(b.appointment_date) - new Date(a.appointment_date))
+                      .map(apt => (
+                        <Card key={apt.id} className={apt.status === 'scheduled' || apt.status === 'confirmed' ? 'border-l-4 border-l-blue-500' : ''}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg mb-2">{apt.property_title}</h3>
+                                
+                                <div className="flex items-center gap-2 mb-3">
+                                  <Badge className={
+                                    apt.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                    apt.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                    apt.status === 'completed' ? 'bg-slate-100 text-slate-800' :
+                                    'bg-red-100 text-red-800'
+                                  }>
+                                    {apt.status === 'scheduled' ? 'Agendada' :
+                                     apt.status === 'confirmed' ? 'Confirmada' :
+                                     apt.status === 'completed' ? 'Concluída' : 'Cancelada'}
+                                  </Badge>
+                                </div>
+
+                                <div className="space-y-2 text-sm text-slate-600">
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="w-4 h-4" />
+                                    <span>{format(new Date(apt.appointment_date), "dd/MM/yyyy 'às' HH:mm")}</span>
+                                  </div>
+                                  {apt.property_address && (
+                                    <div className="flex items-center gap-2">
+                                      <MapPin className="w-4 h-4" />
+                                      <span>{apt.property_address}</span>
+                                    </div>
+                                  )}
+                                  {apt.assigned_agent && (
+                                    <div className="flex items-center gap-2">
+                                      <User className="w-4 h-4" />
+                                      <span>{apt.assigned_agent}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {apt.notes && (
+                                  <p className="mt-3 text-sm text-slate-600 bg-slate-50 p-2 rounded">
+                                    {apt.notes}
                                   </p>
                                 )}
                               </div>
-                              <div className="text-right">
-                                <p className="font-semibold text-slate-900">
-                                  {format(new Date(apt.appointment_date), "d MMM", { locale: pt })}
-                                </p>
-                                <p className="text-sm text-slate-600">
-                                  {format(new Date(apt.appointment_date), "HH:mm")}
-                                </p>
-                                <Badge className="mt-1 bg-green-100 text-green-800">
-                                  {apt.status === 'confirmed' ? 'Confirmada' : 'Agendada'}
-                                </Badge>
-                              </div>
+
+                              {apt.property_id && (
+                                <Link to={`${createPageUrl("PropertyDetails")}?id=${apt.property_id}`}>
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Ver Imóvel
+                                  </Button>
+                                </Link>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
                       ))}
-                    </div>
-                  )}
-
-                  {appointments.filter(a => new Date(a.appointment_date) <= new Date()).length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3">Histórico</h3>
-                      {appointments
-                        .filter(a => new Date(a.appointment_date) <= new Date())
-                        .map((apt) => (
-                          <Card key={apt.id} className="mb-3 opacity-75">
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h4 className="font-medium text-slate-700">{apt.title}</h4>
-                                  <p className="text-sm text-slate-500">{apt.property_title}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-sm text-slate-600">
-                                    {format(new Date(apt.appointment_date), "d MMM yyyy", { locale: pt })}
-                                  </p>
-                                  <Badge variant="outline" className="mt-1">
-                                    {apt.status === 'completed' ? 'Realizada' : 
-                                     apt.status === 'cancelled' ? 'Cancelada' : 'Passada'}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Messages Tab */}
-          <TabsContent value="messages">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Conversa com {agent?.full_name || 'o seu agente'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Messages List */}
-                <div className="space-y-3 max-h-96 overflow-y-auto mb-4 p-2">
-                  {messages.length === 0 ? (
-                    <div className="text-center py-8">
-                      <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                      <p className="text-sm text-slate-500">Inicie uma conversa com o seu agente</p>
-                    </div>
-                  ) : (
-                    messages.map((msg) => (
-                      <div 
-                        key={msg.id} 
-                        className={`flex ${msg.sender_type === 'client' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div 
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            msg.sender_type === 'client' 
-                              ? 'bg-blue-600 text-white' 
-                              : 'bg-slate-100 text-slate-900'
-                          }`}
-                        >
-                          <p className="text-sm">{msg.message}</p>
-                          <p className={`text-xs mt-1 ${
-                            msg.sender_type === 'client' ? 'text-blue-200' : 'text-slate-500'
-                          }`}>
-                            {format(new Date(msg.created_date), "d MMM, HH:mm", { locale: pt })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Send Message */}
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Escreva a sua mensagem..."
-                    className="flex-1 min-h-[80px]"
-                  />
-                  <Button
-                    onClick={() => sendMessage(newMessage)}
-                    disabled={!newMessage.trim()}
-                    className="self-end"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
-
-            {/* Agent Contact Info */}
-            {agent && (
-              <Card className="mt-4">
-                <CardContent className="p-4">
-                  <h4 className="font-semibold text-slate-900 mb-3">Contacto do Agente</h4>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-slate-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{agent.full_name}</p>
-                      <div className="flex items-center gap-4 text-sm text-slate-600">
-                        <a href={`mailto:${agent.email}`} className="flex items-center gap-1 hover:text-blue-600">
-                          <Mail className="w-3 h-3" />
-                          {agent.email}
-                        </a>
-                        {agent.phone && (
-                          <a href={`tel:${agent.phone}`} className="flex items-center gap-1 hover:text-blue-600">
-                            <Phone className="w-3 h-3" />
-                            {agent.phone}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-8">
-        <div className="max-w-5xl mx-auto px-4 py-4 text-center text-sm text-slate-500">
-          Portal do Cliente • Powered by Zugruppe
-        </div>
-      </footer>
+      {/* New Message Dialog */}
+      <Dialog open={messageDialog} onOpenChange={setMessageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Mensagem</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>Agente</Label>
+              <select
+                className="w-full mt-1 px-3 py-2 border rounded-lg"
+                value={selectedAgent?.id || ''}
+                onChange={(e) => setSelectedAgent(agents.find(a => a.id === e.target.value))}
+              >
+                <option value="">Selecione um agente...</option>
+                {agents.map(agent => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.display_name || agent.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <Label>Mensagem</Label>
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Escreva a sua mensagem..."
+                rows={5}
+              />
+            </div>
+
+            <Button 
+              onClick={handleSendMessage}
+              disabled={sendingMessage || !message.trim() || !selectedAgent}
+              className="w-full"
+            >
+              {sendingMessage ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A enviar...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Enviar Mensagem
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
