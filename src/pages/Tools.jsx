@@ -362,6 +362,7 @@ export default function Tools() {
         {activeTab === "investorProperties" && <InvestorPropertiesManager />}
         {activeTab === "bulkScore" && <BulkScoreCalculator />}
         {activeTab === "crmSync" && <CRMSyncPanel />}
+        {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
