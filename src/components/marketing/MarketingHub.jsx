@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { 
   Share2, FileText, Mail, Copy, Download, 
   Facebook, Instagram, Twitter, Linkedin, Send, Loader2,
-  Eye, TrendingUp, Target, Sparkles
+  Eye, TrendingUp, Target
 } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Social Media Post Generator
