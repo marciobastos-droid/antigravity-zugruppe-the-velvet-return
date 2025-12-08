@@ -248,7 +248,7 @@ export default function MyListings() {
     last_import: null
   });
   
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = viewMode === "cards" ? 40 : 30;
 
   const { data: user } = useQuery({
     queryKey: ['user'],
