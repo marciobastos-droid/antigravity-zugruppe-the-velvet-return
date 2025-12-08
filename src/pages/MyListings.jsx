@@ -163,6 +163,12 @@ export default function MyListings() {
   const [selectedAgent, setSelectedAgent] = useState("");
   const [aiEnhancerOpen, setAiEnhancerOpen] = useState(false);
   const [selectedPropertyForAI, setSelectedPropertyForAI] = useState(null);
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
+  const [bulkStatus, setBulkStatus] = useState("");
+  const [bulkVisibilityOpen, setBulkVisibilityOpen] = useState(false);
+  const [bulkVisibility, setBulkVisibility] = useState("");
+  const [assignConsultantOpen, setAssignConsultantOpen] = useState(false);
+  const [selectedConsultant, setSelectedConsultant] = useState("");
   
   const [filters, setFilters] = useState({
     search: "",
@@ -374,6 +380,59 @@ export default function MyListings() {
       setSelectedProperties([]);
       setAssignAgentOpen(false);
       setSelectedAgent("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
+  const bulkAssignConsultantMutation = useMutation({
+    mutationFn: async ({ ids, consultantEmail, consultantName }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { 
+          assigned_consultant: consultantEmail,
+          assigned_consultant_name: consultantName
+        })
+      ));
+    },
+    onSuccess: (_, { ids, consultantName }) => {
+      toast.success(`${ids.length} imóveis atribuídos a "${consultantName}"`);
+      setSelectedProperties([]);
+      setAssignConsultantOpen(false);
+      setSelectedConsultant("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
+  const bulkStatusChangeMutation = useMutation({
+    mutationFn: async ({ ids, status }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { status })
+      ));
+    },
+    onSuccess: (_, { ids, status }) => {
+      toast.success(`${ids.length} imóveis marcados como "${statusLabels[status]}"`);
+      setSelectedProperties([]);
+      setBulkStatusOpen(false);
+      setBulkStatus("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
+  const bulkVisibilityChangeMutation = useMutation({
+    mutationFn: async ({ ids, visibility }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { visibility })
+      ));
+    },
+    onSuccess: (_, { ids, visibility }) => {
+      const visibilityLabels = {
+        public: "Público",
+        team_only: "Apenas Equipa",
+        private: "Privado"
+      };
+      toast.success(`${ids.length} imóveis com visibilidade alterada para "${visibilityLabels[visibility]}"`);
+      setSelectedProperties([]);
+      setBulkVisibilityOpen(false);
+      setBulkVisibility("");
       queryClient.invalidateQueries({ queryKey: ['myProperties'] });
     },
   });
@@ -840,6 +899,163 @@ export default function MyListings() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  <Popover open={bulkStatusOpen} onOpenChange={setBulkStatusOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Alterar Estado
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="end">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-slate-900">Alterar estado para:</p>
+                        <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar estado..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">✅ Ativo</SelectItem>
+                            <SelectItem value="pending">⏳ Pendente</SelectItem>
+                            <SelectItem value="sold">💰 Vendido</SelectItem>
+                            <SelectItem value="rented">🔑 Arrendado</SelectItem>
+                            <SelectItem value="off_market">⛔ Desativado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setBulkStatusOpen(false);
+                              setBulkStatus("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            disabled={!bulkStatus || bulkStatusChangeMutation.isPending}
+                            onClick={() => {
+                              bulkStatusChangeMutation.mutate({
+                                ids: selectedProperties,
+                                status: bulkStatus
+                              });
+                            }}
+                          >
+                            {bulkStatusChangeMutation.isPending ? "A alterar..." : "Aplicar"}
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover open={bulkVisibilityOpen} onOpenChange={setBulkVisibilityOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <Eye className="w-4 h-4 mr-2" />
+                        Alterar Visibilidade
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="end">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-slate-900">Alterar visibilidade para:</p>
+                        <Select value={bulkVisibility} onValueChange={setBulkVisibility}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecionar visibilidade..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="public">🌐 Público</SelectItem>
+                            <SelectItem value="team_only">👥 Apenas Equipa</SelectItem>
+                            <SelectItem value="private">🔒 Privado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setBulkVisibilityOpen(false);
+                              setBulkVisibility("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            disabled={!bulkVisibility || bulkVisibilityChangeMutation.isPending}
+                            onClick={() => {
+                              bulkVisibilityChangeMutation.mutate({
+                                ids: selectedProperties,
+                                visibility: bulkVisibility
+                              });
+                            }}
+                          >
+                            {bulkVisibilityChangeMutation.isPending ? "A alterar..." : "Aplicar"}
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover open={assignConsultantOpen} onOpenChange={setAssignConsultantOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="bg-white">
+                        <Users className="w-4 h-4 mr-2" />
+                        Atribuir Consultor
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-3" align="end">
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-slate-900">Selecionar Consultor</p>
+                        <Select value={selectedConsultant} onValueChange={setSelectedConsultant}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Escolher consultor..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {agents.filter(a => a.is_active !== false).map((agent) => (
+                              <SelectItem key={agent.id} value={agent.email}>
+                                {agent.full_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => {
+                              setAssignConsultantOpen(false);
+                              setSelectedConsultant("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="flex-1"
+                            disabled={!selectedConsultant || bulkAssignConsultantMutation.isPending}
+                            onClick={() => {
+                              const consultant = agents.find(a => a.email === selectedConsultant);
+                              bulkAssignConsultantMutation.mutate({
+                                ids: selectedProperties,
+                                consultantEmail: selectedConsultant === "none" ? null : selectedConsultant,
+                                consultantName: selectedConsultant === "none" ? null : consultant?.full_name
+                              });
+                            }}
+                          >
+                            {bulkAssignConsultantMutation.isPending ? "A atribuir..." : "Atribuir"}
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="bg-white">
