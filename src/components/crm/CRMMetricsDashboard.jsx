@@ -126,7 +126,7 @@ export default function CRMMetricsDashboard() {
     leadSourceStats[source].leads++;
   });
 
-  opportunities.filter(o => o.status === 'won').forEach(opp => {
+  opportunities.filter(o => o.status === 'won' || o.status === 'negotiation').forEach(opp => {
     const source = opp.lead_source || 'other';
     if (leadSourceStats[source]) {
       leadSourceStats[source].converted++;
