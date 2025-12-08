@@ -227,6 +227,8 @@ function LandingPageGenerator() {
   const [generating, setGenerating] = useState(false);
   const [landingPageData, setLandingPageData] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [metaTitle, setMetaTitle] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
 
   const { data: properties = [] } = useQuery({
     queryKey: ['activeProperties'],
@@ -258,7 +260,9 @@ Gera um objeto JSON com a seguinte estrutura:
   "about_section": "Texto descritivo completo (150 palavras)",
   "why_choose": ["3 razões para escolher este imóvel"],
   "cta_primary": "Texto do botão principal",
-  "cta_secondary": "Texto do botão secundário"
+  "cta_secondary": "Texto do botão secundário",
+  "meta_title": "Meta título SEO (máx 60 caracteres)",
+  "meta_description": "Meta descrição SEO (máx 160 caracteres)"
 }
 
 IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
@@ -272,12 +276,16 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
             about_section: { type: "string" },
             why_choose: { type: "array", items: { type: "string" } },
             cta_primary: { type: "string" },
-            cta_secondary: { type: "string" }
+            cta_secondary: { type: "string" },
+            meta_title: { type: "string" },
+            meta_description: { type: "string" }
           }
         }
       });
 
       setLandingPageData({ ...content, property });
+      setMetaTitle(content.meta_title || "");
+      setMetaDescription(content.meta_description || "");
       toast.success("Landing page gerada!");
     } catch (error) {
       toast.error("Erro ao gerar landing page");
@@ -288,6 +296,54 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
 
   const exportHTML = () => {
     const images = landingPageData.property.images || [];
+    const property = landingPageData.property;
+    const pageTitle = metaTitle || `${landingPageData.headline} - ${property.city}`;
+    const pageDescription = metaDescription || landingPageData.hero_text;
+
+    // Generate SEO-friendly URL slug
+    const urlSlug = property.ref_id 
+      ? property.ref_id.toLowerCase()
+      : `${property.property_type}-${property.city}-${property.id}`.toLowerCase().replace(/\s+/g, '-');
+
+    // Schema.org structured data
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": property.listing_type === 'sale' ? "RealEstateListing" : "Residence",
+      "name": property.title,
+      "description": property.description || landingPageData.about_section,
+      "url": `https://zugruppe.com/${urlSlug}`,
+      "image": images,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": property.address || "",
+        "addressLocality": property.city,
+        "addressRegion": property.state,
+        "postalCode": property.zip_code || "",
+        "addressCountry": property.country || "PT"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "41.1579",
+        "longitude": "-8.6291"
+      },
+      "numberOfRooms": property.bedrooms || 0,
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": property.useful_area || property.square_feet || 0,
+        "unitCode": "MTK"
+      },
+      "numberOfBathroomsTotal": property.bathrooms || 0
+    };
+
+    if (property.listing_type === 'sale') {
+      structuredData.offers = {
+        "@type": "Offer",
+        "price": property.price || 0,
+        "priceCurrency": property.currency || "EUR",
+        "availability": "https://schema.org/InStock"
+      };
+    }
+
     const imageGalleryHTML = images.length > 0 ? `
   <!-- Image Gallery -->
   <div class="py-20 bg-gray-50">
@@ -296,7 +352,7 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
       <div class="grid md:grid-cols-3 gap-4">
         ${images.map(img => `
           <div class="aspect-video overflow-hidden rounded-lg shadow-lg">
-            <img src="${img}" alt="${landingPageData.property.title}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+            <img src="${img}" alt="${property.title}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
           </div>
         `).join('')}
       </div>
@@ -304,13 +360,39 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
   </div>` : '';
 
     const html = `<!DOCTYPE html>
-<html lang="pt">
-<head>
+  <html lang="pt">
+  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${landingPageData.headline} - ${landingPageData.property.city}</title>
+
+  <!-- SEO Meta Tags -->
+  <title>${pageTitle}</title>
+  <meta name="description" content="${pageDescription}">
+  <meta name="keywords" content="${property.city}, ${property.property_type}, ${property.listing_type === 'sale' ? 'comprar' : 'arrendar'}, imóvel, ${property.state}">
+  <meta name="author" content="ZuGruppe">
+  <link rel="canonical" href="https://zugruppe.com/${urlSlug}">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://zugruppe.com/${urlSlug}">
+  <meta property="og:title" content="${pageTitle}">
+  <meta property="og:description" content="${pageDescription}">
+  <meta property="og:image" content="${images[0] || 'https://zugruppe.com/og-image.jpg'}">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://zugruppe.com/${urlSlug}">
+  <meta property="twitter:title" content="${pageTitle}">
+  <meta property="twitter:description" content="${pageDescription}">
+  <meta property="twitter:image" content="${images[0] || 'https://zugruppe.com/og-image.jpg'}">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  ${JSON.stringify(structuredData, null, 2)}
+  </script>
+
   <script src="https://cdn.tailwindcss.com"></script>
-</head>
+  </head>
 <body class="bg-gray-50">
   <!-- Hero Section -->
   <div class="relative h-screen">
@@ -392,14 +474,17 @@ ${imageGalleryHTML}
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+    const urlSlug = property.ref_id 
+      ? property.ref_id.toLowerCase()
+      : `${property.property_type}-${property.city}-${property.id}`.toLowerCase().replace(/\s+/g, '-');
     a.href = url;
-    a.download = `landing-page-${landingPageData.property.ref_id || landingPageData.property.id}.html`;
+    a.download = `${urlSlug}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Landing page exportada!");
-  };
+    toast.success("Landing page exportada com SEO otimizado!");
+    };
 
   return (
     <div className="space-y-6">
@@ -442,12 +527,67 @@ ${imageGalleryHTML}
       </div>
 
       {landingPageData && (
+        <Card className="border-blue-300 bg-blue-50">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center gap-2 text-blue-900 font-semibold">
+              <TrendingUp className="w-4 h-4" />
+              Configurações SEO
+            </div>
+            <div>
+              <Label className="text-xs">Meta Título (máx 60 caracteres)</Label>
+              <Input
+                value={metaTitle}
+                onChange={(e) => setMetaTitle(e.target.value)}
+                placeholder="Ex: Apartamento T3 em Lisboa | ZuGruppe"
+                maxLength={60}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {metaTitle.length}/60 caracteres
+              </p>
+            </div>
+            <div>
+              <Label className="text-xs">Meta Descrição (máx 160 caracteres)</Label>
+              <Textarea
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value)}
+                placeholder="Ex: Descubra este incrível apartamento T3 em Lisboa com vista para o Tejo..."
+                maxLength={160}
+                rows={3}
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                {metaDescription.length}/160 caracteres
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {landingPageData && (
         <Card>
           <CardHeader>
             <CardTitle>Landing Page Gerada</CardTitle>
-            <CardDescription>Conteúdo pronto para publicação</CardDescription>
+            <CardDescription>Conteúdo otimizado para SEO e pronto para publicação</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div>
+                <Label className="text-xs text-green-700">✓ Meta Tags Configuradas</Label>
+                <p className="text-xs text-slate-600 mt-1">Título e descrição otimizados</p>
+              </div>
+              <div>
+                <Label className="text-xs text-green-700">✓ Dados Estruturados</Label>
+                <p className="text-xs text-slate-600 mt-1">Schema.org para imóveis</p>
+              </div>
+              <div>
+                <Label className="text-xs text-green-700">✓ Open Graph Tags</Label>
+                <p className="text-xs text-slate-600 mt-1">Otimizado para redes sociais</p>
+              </div>
+              <div>
+                <Label className="text-xs text-green-700">✓ URL Amigável</Label>
+                <p className="text-xs text-slate-600 mt-1 font-mono">/{landingPageData.property.ref_id || landingPageData.property.id}</p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm text-slate-500">Título Principal</Label>
               <p className="text-2xl font-bold">{landingPageData.headline}</p>
