@@ -8,6 +8,7 @@ import { Eye, Edit, Trash2, Star, Copy, MapPin, Euro, Bed, Bath, Maximize, Build
 import DataTable from "../common/DataTable";
 import { format } from "date-fns";
 import PublicationStatus from "../property/PublicationStatus";
+import PropertyScoreCard from "../property/PropertyScoreCard";
 
 const statusLabels = {
   active: "Ativo",

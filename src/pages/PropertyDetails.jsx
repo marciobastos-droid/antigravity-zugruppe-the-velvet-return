@@ -29,6 +29,8 @@ import PropertyDocumentManager from "../components/property/PropertyDocumentMana
 import ScheduleViewing from "../components/property/ScheduleViewing";
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import PublicationStatus from "../components/property/PublicationStatus";
+import PropertyScoreCard from "../components/property/PropertyScoreCard";
+import SocialMediaListingGenerator from "../components/property/SocialMediaListingGenerator";
 
 export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -702,6 +704,16 @@ export default function PropertyDetails() {
             {/* Publication Status */}
             {isOwner && (
               <PublicationStatus property={property} variant="detailed" />
+            )}
+
+            {/* Property Score Card */}
+            {isOwner && (
+              <PropertyScoreCard property={property} />
+            )}
+
+            {/* Social Media Generator */}
+            {isOwner && (
+              <SocialMediaListingGenerator property={property} />
             )}
 
             {/* Property Management Section */}
