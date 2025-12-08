@@ -22,13 +22,37 @@ import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ZuGruppe() {
+  const { data: properties = [], isLoading } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => base44.entities.Property.list('-created_date')
+  });
+
+  // Calculate dynamic ranges based on actual data
+  const dataRanges = React.useMemo(() => {
+    if (properties.length === 0) return { maxPrice: 2000000, maxPricePerSqm: 10000, minYear: 1900, maxYear: 2025 };
+    
+    const prices = properties.map(p => p.price || 0).filter(p => p > 0);
+    const years = properties.map(p => p.year_built).filter(y => y > 0);
+    const pricesPerSqm = properties.map(p => {
+      const area = p.useful_area || p.square_feet || 0;
+      return area > 0 ? p.price / area : 0;
+    }).filter(p => p > 0);
+    
+    return {
+      maxPrice: prices.length > 0 ? Math.ceil(Math.max(...prices) * 1.1 / 50000) * 50000 : 2000000,
+      maxPricePerSqm: pricesPerSqm.length > 0 ? Math.ceil(Math.max(...pricesPerSqm) * 1.1 / 500) * 500 : 10000,
+      minYear: years.length > 0 ? Math.min(...years) : 1900,
+      maxYear: new Date().getFullYear()
+    };
+  }, [properties]);
+
   const [activeTab, setActiveTab] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [listingType, setListingType] = React.useState("all");
   const [propertyType, setPropertyType] = React.useState("all");
   const [bedrooms, setBedrooms] = React.useState("all");
-  const [priceRange, setPriceRange] = React.useState([0, 2000000]);
+  const [priceRange, setPriceRange] = React.useState([0, 0]); // Will be set after data loads
   const [city, setCity] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("recent");
   const [showFilters, setShowFilters] = React.useState(true);
@@ -39,16 +63,27 @@ export default function ZuGruppe() {
   const [availability, setAvailability] = React.useState("all");
   
   // Advanced filters
-  const [pricePerSqmRange, setPricePerSqmRange] = React.useState([0, 10000]);
-  const [yearBuiltRange, setYearBuiltRange] = React.useState([1900, 2025]);
+  const [pricePerSqmRange, setPricePerSqmRange] = React.useState([0, 0]); // Will be set after data loads
+  const [yearBuiltRange, setYearBuiltRange] = React.useState([0, 0]); // Will be set after data loads
   const [energyCertificate, setEnergyCertificate] = React.useState("all");
   const [parking, setParking] = React.useState("all");
   const [selectedAmenities, setSelectedAmenities] = React.useState([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
   
   // Debounced state for range inputs
-  const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 10000]);
-  const [debouncedYearBuilt, setDebouncedYearBuilt] = React.useState([1900, 2025]);
+  const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 0]);
+  const [debouncedYearBuilt, setDebouncedYearBuilt] = React.useState([0, 0]);
+
+  // Initialize ranges when data loads
+  React.useEffect(() => {
+    if (properties.length > 0 && priceRange[1] === 0) {
+      setPriceRange([0, dataRanges.maxPrice]);
+      setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
+      setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
+      setDebouncedPricePerSqm([0, dataRanges.maxPricePerSqm]);
+      setDebouncedYearBuilt([dataRanges.minYear, dataRanges.maxYear]);
+    }
+  }, [properties, dataRanges]);
   
   const ITEMS_PER_PAGE = 12;
   
@@ -106,11 +141,6 @@ export default function ZuGruppe() {
     debouncedUpdate();
     return () => debouncedUpdate.cancel();
   }, [searchTerm]);
-
-  const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date')
-  });
 
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
@@ -218,16 +248,16 @@ export default function ZuGruppe() {
       (bedrooms === "4" && property.bedrooms === 4) ||
       (bedrooms === "5+" && property.bedrooms >= 5);
     
-    const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
-    
+    const matchesPrice = !priceRange[1] || (property.price >= priceRange[0] && property.price <= priceRange[1]);
+
     // Advanced filters
     const area = property.useful_area || property.square_feet || 0;
     const pricePerSqm = area > 0 ? property.price / area : 0;
-    const matchesPricePerSqm = debouncedPricePerSqm[0] === 0 && debouncedPricePerSqm[1] === 10000 ||
+    const matchesPricePerSqm = !debouncedPricePerSqm[1] || debouncedPricePerSqm[1] === dataRanges.maxPricePerSqm ||
       (pricePerSqm >= debouncedPricePerSqm[0] && pricePerSqm <= debouncedPricePerSqm[1]);
-    
-    const matchesYearBuilt = debouncedYearBuilt[0] === 1900 && debouncedYearBuilt[1] === 2025 ||
-      (property.year_built >= debouncedYearBuilt[0] && property.year_built <= debouncedYearBuilt[1]);
+
+    const matchesYearBuilt = !debouncedYearBuilt[1] || debouncedYearBuilt[1] === dataRanges.maxYear ||
+      !property.year_built || (property.year_built >= debouncedYearBuilt[0] && property.year_built <= debouncedYearBuilt[1]);
     
     const matchesEnergyCert = energyCertificate === "all" || property.energy_certificate === energyCertificate;
     
@@ -263,13 +293,13 @@ export default function ZuGruppe() {
     setListingType("all");
     setPropertyType("all");
     setBedrooms("all");
-    setPriceRange([0, 2000000]);
+    setPriceRange([0, dataRanges.maxPrice]);
     setCity("all");
     setCountry("all");
     setDistrict("all");
     setAvailability("all");
-    setPricePerSqmRange([0, 10000]);
-    setYearBuiltRange([1900, 2025]);
+    setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
+    setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
     setEnergyCertificate("all");
     setParking("all");
     setSelectedAmenities([]);
@@ -277,15 +307,15 @@ export default function ZuGruppe() {
   };
 
   const hasActiveFilters = listingType !== "all" || propertyType !== "all" || 
-    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || priceRange[1] < 2000000 ||
+    bedrooms !== "all" || city !== "all" || priceRange[0] > 0 || (priceRange[1] < dataRanges.maxPrice && priceRange[1] > 0) ||
     country !== "all" || district !== "all" || availability !== "all" ||
-    pricePerSqmRange[0] > 0 || pricePerSqmRange[1] < 10000 ||
-    yearBuiltRange[0] > 1900 || yearBuiltRange[1] < 2025 ||
+    pricePerSqmRange[0] > 0 || (pricePerSqmRange[1] < dataRanges.maxPricePerSqm && pricePerSqmRange[1] > 0) ||
+    yearBuiltRange[0] > dataRanges.minYear || (yearBuiltRange[1] < dataRanges.maxYear && yearBuiltRange[1] > 0) ||
     energyCertificate !== "all" || parking !== "all" || selectedAmenities.length > 0;
   
   const advancedFilterCount = [
-    pricePerSqmRange[0] > 0 || pricePerSqmRange[1] < 10000,
-    yearBuiltRange[0] > 1900 || yearBuiltRange[1] < 2025,
+    pricePerSqmRange[0] > 0 || (pricePerSqmRange[1] < dataRanges.maxPricePerSqm && pricePerSqmRange[1] > 0),
+    yearBuiltRange[0] > dataRanges.minYear || (yearBuiltRange[1] < dataRanges.maxYear && yearBuiltRange[1] > 0),
     energyCertificate !== "all",
     parking !== "all",
     selectedAmenities.length > 0
@@ -523,8 +553,8 @@ export default function ZuGruppe() {
                           value={priceRange}
                           onValueChange={setPriceRange}
                           min={0}
-                          max={2000000}
-                          step={25000}
+                          max={dataRanges.maxPrice}
+                          step={Math.ceil(dataRanges.maxPrice / 100)}
                           className="mt-2"
                         />
                       </div>
@@ -608,8 +638,8 @@ export default function ZuGruppe() {
                               value={pricePerSqmRange}
                               onValueChange={setPricePerSqmRange}
                               min={0}
-                              max={10000}
-                              step={100}
+                              max={dataRanges.maxPricePerSqm}
+                              step={Math.ceil(dataRanges.maxPricePerSqm / 100)}
                               className="mt-2"
                             />
                           </div>
@@ -620,8 +650,8 @@ export default function ZuGruppe() {
                             <Slider
                               value={yearBuiltRange}
                               onValueChange={setYearBuiltRange}
-                              min={1900}
-                              max={2025}
+                              min={dataRanges.minYear}
+                              max={dataRanges.maxYear}
                               step={1}
                               className="mt-2"
                             />
@@ -796,16 +826,16 @@ export default function ZuGruppe() {
                               <X className="w-3 h-3 cursor-pointer" onClick={() => setParking("all")} />
                             </Badge>
                           )}
-                          {(pricePerSqmRange[0] > 0 || pricePerSqmRange[1] < 10000) && (
+                          {(pricePerSqmRange[0] > 0 || (pricePerSqmRange[1] < dataRanges.maxPricePerSqm && pricePerSqmRange[1] > 0)) && (
                             <Badge variant="secondary" className="gap-1">
                               €{pricePerSqmRange[0]}-{pricePerSqmRange[1]}/m²
-                              <X className="w-3 h-3 cursor-pointer" onClick={() => setPricePerSqmRange([0, 10000])} />
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setPricePerSqmRange([0, dataRanges.maxPricePerSqm])} />
                             </Badge>
                           )}
-                          {(yearBuiltRange[0] > 1900 || yearBuiltRange[1] < 2025) && (
+                          {(yearBuiltRange[0] > dataRanges.minYear || (yearBuiltRange[1] < dataRanges.maxYear && yearBuiltRange[1] > 0)) && (
                             <Badge variant="secondary" className="gap-1">
                               {yearBuiltRange[0]}-{yearBuiltRange[1]}
-                              <X className="w-3 h-3 cursor-pointer" onClick={() => setYearBuiltRange([1900, 2025])} />
+                              <X className="w-3 h-3 cursor-pointer" onClick={() => setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear])} />
                             </Badge>
                           )}
                         </div>
