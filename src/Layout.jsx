@@ -9,7 +9,7 @@ import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 
 // Pages where layout should be minimal (no header/footer)
-const MINIMAL_LAYOUT_PAGES = ["Home", "Login"];
+const MINIMAL_LAYOUT_PAGES = ["Home"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
