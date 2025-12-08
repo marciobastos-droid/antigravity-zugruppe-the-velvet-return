@@ -420,7 +420,8 @@ export default function ZuHandel() {
 
 function CommercialPropertyCard({ property, onContact }) {
   const [imgError, setImgError] = React.useState(false);
-  const image = property.images?.[0];
+  const [imgIndex, setImgIndex] = React.useState(0);
+  const images = property.images?.length > 0 ? property.images : [];
 
   const propertyTypeLabels = {
     store: "Loja",
@@ -434,9 +435,9 @@ function CommercialPropertyCard({ property, onContact }) {
       <div className="relative">
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
           <div className="relative h-56 overflow-hidden bg-slate-100">
-            {!imgError && image ? (
+            {!imgError && images[imgIndex] ? (
               <img
-                src={image}
+                src={images[imgIndex]}
                 alt={property.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 onError={() => setImgError(true)}
@@ -461,6 +462,23 @@ function CommercialPropertyCard({ property, onContact }) {
                   Destaque
                 </Badge>
               </div>
+            )}
+            
+            {images.length > 1 && (
+              <>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {images.slice(0, 5).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgIndex(i); }}
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
+                    />
+                  ))}
+                </div>
+                <div className="absolute bottom-2 left-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-lg transition-all pointer-events-none">
+                  📷 Ver todas as {images.length} fotos
+                </div>
+              </>
             )}
           </div>
         </Link>
