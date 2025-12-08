@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { 
-  Share2, FileText, Mail, Sparkles, Copy, Download, 
+  Share2, FileText, Mail, Copy, Download, 
   Facebook, Instagram, Twitter, Linkedin, Send, Loader2,
-  Eye, TrendingUp, Target
+  Eye, TrendingUp, Target, Sparkles
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
