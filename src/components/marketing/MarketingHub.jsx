@@ -474,9 +474,6 @@ ${imageGalleryHTML}
     const blob = new Blob([html], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const urlSlug = property.ref_id 
-      ? property.ref_id.toLowerCase()
-      : `${property.property_type}-${property.city}-${property.id}`.toLowerCase().replace(/\s+/g, '-');
     a.href = url;
     a.download = `${urlSlug}.html`;
     document.body.appendChild(a);
