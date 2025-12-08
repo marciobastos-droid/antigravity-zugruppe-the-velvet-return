@@ -430,14 +430,14 @@ function PropertyCardEnhanced({ property, onContact }) {
           </div>
         </Link>
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-          <div className="text-2xl font-bold text-white">
+          <div className="text-lg font-bold text-white">
             {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
             {property.listing_type === 'rent' && <span className="text-sm font-normal">/mês</span>}
           </div>
           {property.currency && property.currency !== 'EUR' && (() => {
             const eurValue = convertToEUR(property.price, property.currency);
             return eurValue ? (
-              <div className="text-sm text-white/90 mt-1">
+              <div className="text-xs text-white/90 mt-1">
                 ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
               </div>
             ) : null;
