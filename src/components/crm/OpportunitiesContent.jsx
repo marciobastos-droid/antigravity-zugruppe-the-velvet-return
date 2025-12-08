@@ -658,14 +658,6 @@ export default function OpportunitiesContent() {
               <Kanban className="w-4 h-4" />
             </Button>
             <Button
-              variant={viewMode === "pipeline" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("pipeline")}
-              className="rounded-none hidden sm:flex"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
               variant={viewMode === "panel" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("panel")}
@@ -837,13 +829,6 @@ export default function OpportunitiesContent() {
           onOpportunityClick={setSelectedLead}
           onEdit={handleEditOpportunity}
           onDelete={handleDelete}
-        />
-      )}
-
-      {viewMode === "pipeline" && (
-        <LeadsPipeline 
-          leads={filteredOpportunities}
-          onLeadClick={setSelectedLead}
         />
       )}
 
