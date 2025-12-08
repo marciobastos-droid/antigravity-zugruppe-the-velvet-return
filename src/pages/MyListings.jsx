@@ -48,79 +48,66 @@ const PropertyCard = memo(function PropertyCard({
   }, [property.id, onToggleSelect]);
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-200">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200 group">
       <CardContent className="p-0">
-        <div className="flex flex-col md:flex-row">
-          <div className="flex items-center justify-center p-4 md:p-6 bg-slate-50" onClick={handleSelect}>
-            <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
-          </div>
-          <div className="md:w-80 h-64 md:h-auto relative">
+        <div className="flex flex-col">
+          <div className="relative h-48 overflow-hidden bg-slate-100">
             <img
               src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
               alt={property.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
             />
+            <div className="absolute top-2 left-2" onClick={(e) => {
+              e.stopPropagation();
+              handleSelect(e);
+            }}>
+              <div className="bg-white/90 backdrop-blur-sm rounded p-1">
+                <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
+              </div>
+            </div>
             {property.featured && (
-              <div className="absolute top-3 left-3">
+              <div className="absolute top-2 right-2">
                 <Badge className="bg-amber-400 text-slate-900 border-0">
                   <Star className="w-3 h-3 mr-1 fill-current" />
                   Destaque
                 </Badge>
               </div>
             )}
-          </div>
-          <div className="flex-1 p-6" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">{property.title}</h3>
-                <div className="flex items-center text-slate-600 mb-2">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  <span>
-                    {property.city}, {property.state}
-                    {property.country && property.country !== 'Portugal' && (
-                      <Badge variant="outline" className="ml-2 text-xs">{property.country}</Badge>
-                    )}
-                  </span>
-                </div>
-                <div className="text-slate-900 font-bold text-xl mb-3">
-                  {property.currency === 'EUR' ? '€' : 
-                   property.currency === 'USD' ? '$' :
-                   property.currency === 'GBP' ? '£' :
-                   property.currency === 'AED' ? 'د.إ' :
-                   property.currency || '€'}{property.price?.toLocaleString()}
-                </div>
-                <div className="flex flex-wrap gap-2 mb-3 text-sm text-slate-600">
-                  {property.bedrooms > 0 && <span>🛏️ {property.bedrooms} quartos</span>}
-                  {property.bathrooms > 0 && <span>🚿 {property.bathrooms} WC</span>}
-                  {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-                <Select value={property.status} onValueChange={(v) => onStatusChange(property.id, v)}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-green-500 rounded-full" />Ativo</span></SelectItem>
-                    <SelectItem value="pending"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-yellow-500 rounded-full" />Pendente</span></SelectItem>
-                    <SelectItem value="sold"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-blue-500 rounded-full" />Vendido</span></SelectItem>
-                    <SelectItem value="rented"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-purple-500 rounded-full" />Arrendado</span></SelectItem>
-                    <SelectItem value="off_market"><span className="flex items-center gap-2"><span className="w-2 h-2 bg-slate-500 rounded-full" />Desativado</span></SelectItem>
-                  </SelectContent>
-                </Select>
-                <Badge variant="outline">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
-                <Badge variant="outline">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
-              </div>
+            <div className="absolute bottom-2 right-2">
+              <Badge className="bg-slate-900/90 text-white border-0 font-bold">
+                {property.currency === 'EUR' ? '€' : 
+                 property.currency === 'USD' ? '$' :
+                 property.currency === 'GBP' ? '£' :
+                 property.currency === 'AED' ? 'د.إ' :
+                 property.currency || '€'}{property.price?.toLocaleString()}
+              </Badge>
             </div>
-            <p className="text-slate-700 mb-4 line-clamp-2">{property.description}</p>
-            <div className="flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+          </div>
+          <div className="p-3" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
+            <h3 className="font-semibold text-slate-900 line-clamp-1 mb-1 text-sm">{property.title}</h3>
+            <div className="flex items-center text-slate-600 mb-2 text-xs">
+              <MapPin className="w-3 h-3 mr-1" />
+              <span className="line-clamp-1">
+                {property.city}, {property.state}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mb-2 text-xs text-slate-600">
+              {property.bedrooms > 0 && <span>🛏️ T{property.bedrooms}</span>}
+              {property.bathrooms > 0 && <span>🚿 {property.bathrooms}</span>}
+              {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
+            </div>
+            <div className="flex flex-wrap gap-1 mb-2">
+              <Badge variant="outline" className="text-xs">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
+              <Badge variant="outline" className="text-xs">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
+              <Badge className={`${statusColors[property.status]} text-xs`}>{statusLabels[property.status]}</Badge>
+            </div>
+            <div className="flex flex-wrap gap-1 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
               <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-                <Button variant="outline" size="sm"><Eye className="w-4 h-4 mr-2" />Ver</Button>
+                <Button variant="outline" size="sm" className="h-7 text-xs px-2"><Eye className="w-3 h-3 mr-1" />Ver</Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={() => onEdit(property)}><Edit className="w-4 h-4 mr-2" />Editar</Button>
-              <Button variant="outline" size="sm" onClick={() => onToggleFeatured(property)} className={property.featured ? "border-amber-400 text-amber-600" : ""}>
-                <Star className={`w-4 h-4 mr-2 ${property.featured ? "fill-current" : ""}`} />{property.featured ? "Destaque" : "Destacar"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => onDuplicate(property)}><Copy className="w-4 h-4 mr-2" />Duplicar</Button>
+              <Button variant="outline" size="sm" onClick={() => onEdit(property)} className="h-7 text-xs px-2"><Edit className="w-3 h-3 mr-1" />Editar</Button>
+              <Button variant="outline" size="sm" onClick={() => onDuplicate(property)} className="h-7 text-xs px-2"><Copy className="w-3 h-3" /></Button>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -129,12 +116,11 @@ const PropertyCard = memo(function PropertyCard({
                   setSelectedPropertyForAI(property);
                   setAiEnhancerOpen(true);
                 }}
-                className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                className="h-7 text-xs px-2 border-purple-300 text-purple-600"
               >
-                <Sparkles className="w-4 h-4 mr-2" />Melhorar com IA
+                <Sparkles className="w-3 h-3" />
               </Button>
-              {property.internal_notes && <Button variant="outline" size="sm" onClick={() => onViewNotes(property)}><FileText className="w-4 h-4 mr-2" />Notas</Button>}
-              <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4 mr-2" />Eliminar</Button>
+              <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="h-7 text-xs px-2 text-red-600"><Trash2 className="w-3 h-3" /></Button>
             </div>
           </div>
         </div>
@@ -151,7 +137,7 @@ export default function MyListings() {
   const [viewingNotes, setViewingNotes] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
-  const [viewMode, setViewMode] = useState(() => window.innerWidth < 768 ? "cards" : "table");
+  const [viewMode, setViewMode] = useState("cards");
     const [groupBy, setGroupBy] = useState("none");
   const [filterLogic, setFilterLogic] = useState("AND");
   const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
@@ -1329,7 +1315,7 @@ export default function MyListings() {
                                 />
                               ) : (
             <>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {paginatedProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
