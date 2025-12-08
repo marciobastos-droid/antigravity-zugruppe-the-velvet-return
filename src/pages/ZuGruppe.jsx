@@ -1183,9 +1183,19 @@ function PropertyCardCompact({ property, featured }) {
 
         {/* Price */}
         <div className="absolute bottom-3 right-3">
-          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg font-bold">
-            €{property.price?.toLocaleString()}
-            {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg">
+            <div className="font-bold">
+              {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
+              {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+            </div>
+            {property.currency && property.currency !== 'EUR' && (() => {
+              const eurValue = convertToEUR(property.price, property.currency);
+              return eurValue ? (
+                <div className="text-xs text-white/80">
+                  ≈ €{eurValue.toLocaleString()}
+                </div>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>
@@ -1285,11 +1295,19 @@ function PropertyCardList({ property }) {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-slate-900">
-                €{property.price?.toLocaleString()}
+                {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
               </div>
               {property.listing_type === 'rent' && (
                 <span className="text-sm text-slate-500">/mês</span>
               )}
+              {property.currency && property.currency !== 'EUR' && (() => {
+                const eurValue = convertToEUR(property.price, property.currency);
+                return eurValue ? (
+                  <div className="text-sm text-slate-500">
+                    ≈ €{eurValue.toLocaleString()}
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
           
