@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2 } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
@@ -135,11 +135,12 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Facebook className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(7 ferramentas)</span>
+                <span className="text-sm text-purple-600">(8 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
+                <ToolButton toolId="marketingHub" icon={Megaphone} label="Hub de Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
+                <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" />
                 <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
                 <ToolButton toolId="socialAdCreator" icon={Share2} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
                 <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
