@@ -287,7 +287,7 @@ export default function Dashboard() {
   const totalLeads = opportunities.length;
   const newLeads = opportunities.filter(o => o.status === 'new').length;
   const contactedLeads = opportunities.filter(o => o.status === 'contacted').length;
-  const closedLeads = opportunities.filter(o => o.status === 'closed').length;
+  const closedLeads = opportunities.filter(o => o.status === 'won').length;
   const conversionRate = totalLeads > 0 ? (closedLeads / totalLeads * 100).toFixed(1) : 0;
 
   // Property status distribution
@@ -302,7 +302,7 @@ export default function Dashboard() {
   const leadStatusData = [
     { name: 'Novos', value: newLeads },
     { name: 'Contactados', value: contactedLeads },
-    { name: 'Agendados', value: opportunities.filter(o => o.status === 'scheduled').length },
+    { name: 'Agendados', value: opportunities.filter(o => o.status === 'visit_scheduled').length },
     { name: 'Fechados', value: closedLeads }
   ];
 
@@ -346,7 +346,7 @@ export default function Dashboard() {
     .map(u => ({
       name: getAgentName(u.email, true),
       leads: opportunities.filter(o => o.assigned_to === u.email).length,
-      fechados: opportunities.filter(o => o.assigned_to === u.email && o.status === 'closed').length
+      fechados: opportunities.filter(o => o.assigned_to === u.email && o.status === 'won').length
     }))
     .filter(item => item.leads > 0)
     .sort((a, b) => b.leads - a.leads)
@@ -918,7 +918,7 @@ export default function Dashboard() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-slate-600">Em Progresso</span>
                   <span className="font-semibold text-slate-900">
-                    {contactedLeads + opportunities.filter(o => o.status === 'scheduled').length}
+                    {contactedLeads + opportunities.filter(o => o.status === 'visit_scheduled').length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -1161,7 +1161,7 @@ export default function Dashboard() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-slate-600">Em Progresso</span>
                       <span className="font-semibold text-slate-900">
-                        {contactedLeads + opportunities.filter(o => o.status === 'scheduled').length}
+                        {contactedLeads + opportunities.filter(o => o.status === 'visit_scheduled').length}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
