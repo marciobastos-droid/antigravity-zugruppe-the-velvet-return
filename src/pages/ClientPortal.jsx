@@ -74,6 +74,12 @@ export default function ClientPortal() {
   // Inquiry Filters
   const [inquiryStatusFilter, setInquiryStatusFilter] = useState("all");
   const [inquiryDateFilter, setInquiryDateFilter] = useState("all");
+  
+  // Add Property Dialog
+  const [addPropertyDialog, setAddPropertyDialog] = useState(false);
+  const [propertySearchQuery, setPropertySearchQuery] = useState("");
+  const [selectedPropertyType, setSelectedPropertyType] = useState("all");
+  const [selectedLocation, setSelectedLocation] = useState("all");
 
   const queryClient = useQueryClient();
 
@@ -184,6 +190,24 @@ export default function ClientPortal() {
     queryKey: ['allActiveProperties'],
     queryFn: () => base44.entities.Property.filter({ status: 'active' })
   });
+
+  // Filter properties for search
+  const filteredPropertiesForSearch = allProperties.filter(property => {
+    const matchesSearch = !propertySearchQuery || 
+      property.title?.toLowerCase().includes(propertySearchQuery.toLowerCase()) ||
+      property.city?.toLowerCase().includes(propertySearchQuery.toLowerCase()) ||
+      property.state?.toLowerCase().includes(propertySearchQuery.toLowerCase());
+    
+    const matchesType = selectedPropertyType === 'all' || property.property_type === selectedPropertyType;
+    const matchesLocation = selectedLocation === 'all' || property.city === selectedLocation;
+    
+    const notAlreadySaved = !savedPropertyRecords.some(sp => sp.property_id === property.id);
+    
+    return matchesSearch && matchesType && matchesLocation && notAlreadySaved;
+  });
+
+  // Get unique cities for filter
+  const uniqueCities = [...new Set(allProperties.map(p => p.city).filter(Boolean))].sort();
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -398,8 +422,16 @@ export default function ClientPortal() {
           <TabsContent value="saved" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Imóveis Guardados</CardTitle>
-                <CardDescription>Imóveis que marcou como favoritos</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Imóveis Guardados</CardTitle>
+                    <CardDescription>Imóveis que marcou como favoritos</CardDescription>
+                  </div>
+                  <Button onClick={() => setAddPropertyDialog(true)} className="bg-green-600 hover:bg-green-700">
+                    <Search className="w-4 h-4 mr-2" />
+                    Adicionar Imóvel
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {savedProperties.length === 0 ? (
@@ -981,6 +1013,108 @@ export default function ClientPortal() {
                 </>
               )}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Property Dialog */}
+      <Dialog open={addPropertyDialog} onOpenChange={setAddPropertyDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Adicionar Imóvel aos Guardados</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {/* Search and Filters */}
+            <div className="space-y-3">
+              <Input
+                placeholder="Procurar por título, cidade..."
+                value={propertySearchQuery}
+                onChange={(e) => setPropertySearchQuery(e.target.value)}
+                className="w-full"
+              />
+              
+              <div className="flex gap-3">
+                <Select value={selectedPropertyType} onValueChange={setSelectedPropertyType}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="apartment">Apartamento</SelectItem>
+                    <SelectItem value="house">Moradia</SelectItem>
+                    <SelectItem value="land">Terreno</SelectItem>
+                    <SelectItem value="commercial">Comercial</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Cidades</SelectItem>
+                    {uniqueCities.slice(0, 20).map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Badge variant="outline" className="ml-auto">
+                  {filteredPropertiesForSearch.length} imóveis
+                </Badge>
+              </div>
+            </div>
+
+            {/* Properties Grid */}
+            {filteredPropertiesForSearch.length === 0 ? (
+              <div className="text-center py-12 bg-slate-50 rounded-lg">
+                <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-600">Nenhum imóvel encontrado</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4 max-h-[500px] overflow-y-auto pr-2">
+                {filteredPropertiesForSearch.slice(0, 20).map(property => (
+                  <Card key={property.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="flex gap-3 p-3">
+                      <img
+                        src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=150"}
+                        alt={property.title}
+                        className="w-24 h-24 rounded object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm mb-1 line-clamp-1">{property.title}</h4>
+                        <p className="text-xs text-slate-600 mb-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {property.city}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-slate-600 mb-2">
+                          {property.bedrooms > 0 && <span>{property.bedrooms} quartos</span>}
+                          {property.useful_area > 0 && <span>{property.useful_area}m²</span>}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-sm text-blue-600">
+                            €{property.price?.toLocaleString()}
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              toggleSavePropertyMutation.mutate({ propertyId: property.id, isSaved: false });
+                              setPropertySearchQuery("");
+                            }}
+                            disabled={toggleSavePropertyMutation.isPending}
+                            className="h-7 text-xs"
+                          >
+                            <Heart className="w-3 h-3 mr-1" />
+                            Guardar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
