@@ -17,7 +17,6 @@ import {
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import PropertyCard from "../components/browse/PropertyCard";
-import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
