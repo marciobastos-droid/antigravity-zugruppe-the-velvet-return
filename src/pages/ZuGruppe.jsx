@@ -121,62 +121,36 @@ export default function ZuGruppe() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    console.log('=== ZuGruppe Filter Debug START ===');
-    console.log('[Total Properties Loaded]', properties.length);
-    console.log('[Active Properties]', activeProperties.length);
-    console.log('[Active Tab]', activeTab);
-    
-    // Análise detalhada de published_pages
-    const propertiesWithPages = activeProperties.map(p => ({
-      id: p.id,
-      ref_id: p.ref_id,
-      title: p.title,
-      status: p.status,
-      property_type: p.property_type,
-      published_pages: p.published_pages,
-      published_pages_type: typeof p.published_pages,
-      is_array: Array.isArray(p.published_pages),
-      length: Array.isArray(p.published_pages) ? p.published_pages.length : 0
-    }));
-    
-    console.log('[Properties Analysis]', propertiesWithPages);
-    
-    // Contar por configuração
+    // Debug: contar configurações
+    const totalActive = activeProperties.length;
     const withPublishedPages = activeProperties.filter(p => {
       const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
       return pp.length > 0;
-    });
-    
+    }).length;
     const withZugruppe = activeProperties.filter(p => 
       (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zugruppe")
-    );
-    
+    ).length;
     const withZuhaus = activeProperties.filter(p => 
       (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
-    );
-    
+    ).length;
     const withZuhandel = activeProperties.filter(p => 
       (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
-    );
+    ).length;
     
-    console.log('[Stats]', {
-      totalActive: activeProperties.length,
-      withPublishedPages: withPublishedPages.length,
-      withZugruppe: withZugruppe.length,
-      withZuhaus: withZuhaus.length,
-      withZuhandel: withZuhandel.length
+    console.log('[ZuGruppe Debug]', {
+      totalActive,
+      withPublishedPages,
+      configured: { zugruppe: withZugruppe, zuhaus: withZuhaus, zuhandel: withZuhandel },
+      activeTab
     });
     
-    console.log('[Properties with zugruppe]', withZugruppe.map(p => ({ id: p.id, ref_id: p.ref_id, pages: p.published_pages })));
-    
-    // Filtrar por publicação
-    const rejected = [];
+    // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
     filtered = filtered.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       
-      // Se não tem published_pages definido OU está vazio
+      // Se não tem published_pages definido OU está vazio, não mostrar
       if (!publishedPages || publishedPages.length === 0) {
-        rejected.push({ id: p.id, ref_id: p.ref_id, reason: 'no_pages', publishedPages });
+        console.log('[ZuGruppe] Rejected (no pages):', p.ref_id || p.id);
         return false;
       }
       
@@ -186,10 +160,7 @@ export default function ZuGruppe() {
         const hasZuhaus = publishedPages.includes("zuhaus");
         const pass = hasZuhaus && isResidential;
         if (!pass) {
-          rejected.push({ 
-            id: p.id, 
-            ref_id: p.ref_id, 
-            reason: 'residential_filter',
+          console.log('[ZuGruppe] Rejected (residential):', p.ref_id || p.id, { 
             type: p.property_type, 
             isResidential, 
             hasZuhaus, 
@@ -202,10 +173,7 @@ export default function ZuGruppe() {
         const hasZuhandel = publishedPages.includes("zuhandel");
         const pass = hasZuhandel && isCommercial;
         if (!pass) {
-          rejected.push({ 
-            id: p.id, 
-            ref_id: p.ref_id, 
-            reason: 'commercial_filter',
+          console.log('[ZuGruppe] Rejected (commercial):', p.ref_id || p.id, { 
             type: p.property_type, 
             isCommercial, 
             hasZuhandel, 
@@ -216,142 +184,68 @@ export default function ZuGruppe() {
       } else {
         const hasZugruppe = publishedPages.includes("zugruppe");
         if (!hasZugruppe) {
-          rejected.push({ 
-            id: p.id, 
-            ref_id: p.ref_id, 
-            reason: 'no_zugruppe_in_pages',
-            publishedPages 
-          });
+          console.log('[ZuGruppe] Rejected (all):', p.ref_id || p.id, { publishedPages });
         }
         return hasZugruppe;
       }
     });
     
-    console.log('[Rejected Properties]', rejected.length, rejected);
-    console.log('[Accepted Properties]', filtered.length);
-    console.log('=== ZuGruppe Filter Debug END ===');
-    
+    console.log('[ZuGruppe] Filtered result:', filtered.length, 'properties');
     return filtered;
   }, [activeTab, activeProperties]);
 
   const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
   const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
 
-  const filteredProperties = React.useMemo(() => {
-    console.log('=== Additional Filters Debug START ===');
-    console.log('[Tab Filtered Count]', tabFilteredProperties.length);
-    console.log('[Active Filters]', {
-      searchTerm: debouncedSearch,
-      listingType,
-      propertyType,
-      city,
-      country,
-      district,
-      availability,
-      bedrooms,
-      priceRange,
-      pricePerSqmRange: debouncedPricePerSqm,
-      yearBuiltRange: debouncedYearBuilt,
-      energyCertificate,
-      parking,
-      selectedAmenities
-    });
+  const filteredProperties = tabFilteredProperties.filter((property) => {
+    const matchesSearch = debouncedSearch === "" ||
+      property.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      property.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      property.address?.toLowerCase().includes(debouncedSearch.toLowerCase());
     
-    const rejectedByFilter = {
-      search: [],
-      listingType: [],
-      propertyType: [],
-      city: [],
-      country: [],
-      district: [],
-      availability: [],
-      bedrooms: [],
-      price: [],
-      pricePerSqm: [],
-      yearBuilt: [],
-      energyCert: [],
-      parking: [],
-      amenities: []
-    };
+    const matchesListingType = listingType === "all" || property.listing_type === listingType;
+    const matchesPropertyType = propertyType === "all" || property.property_type === propertyType;
+    const matchesCity = city === "all" || property.city === city;
+    const matchesCountry = country === "all" || property.country === country;
+    const matchesDistrict = district === "all" || property.state === district;
+    const matchesAvailability = availability === "all" || property.availability_status === availability;
     
-    const result = tabFilteredProperties.filter((property) => {
-      const matchesSearch = debouncedSearch === "" ||
-        property.title?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        property.city?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        property.address?.toLowerCase().includes(debouncedSearch.toLowerCase());
-      
-      const matchesListingType = listingType === "all" || property.listing_type === listingType;
-      const matchesPropertyType = propertyType === "all" || property.property_type === propertyType;
-      const matchesCity = city === "all" || property.city === city;
-      const matchesCountry = country === "all" || property.country === country;
-      const matchesDistrict = district === "all" || property.state === district;
-      const matchesAvailability = availability === "all" || property.availability_status === availability;
-      
-      const matchesBedrooms = bedrooms === "all" ||
-        (bedrooms === "0" && property.bedrooms === 0) ||
-        (bedrooms === "1" && property.bedrooms === 1) ||
-        (bedrooms === "2" && property.bedrooms === 2) ||
-        (bedrooms === "3" && property.bedrooms === 3) ||
-        (bedrooms === "4" && property.bedrooms === 4) ||
-        (bedrooms === "5+" && property.bedrooms >= 5);
-      
-      const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
-      
-      // Advanced filters
-      const area = property.useful_area || property.square_feet || 0;
-      const pricePerSqm = area > 0 ? property.price / area : 0;
-      const matchesPricePerSqm = debouncedPricePerSqm[0] === 0 && debouncedPricePerSqm[1] === 10000 ||
-        (pricePerSqm >= debouncedPricePerSqm[0] && pricePerSqm <= debouncedPricePerSqm[1]);
-      
-      const matchesYearBuilt = debouncedYearBuilt[0] === 1900 && debouncedYearBuilt[1] === 2025 ||
-        (property.year_built >= debouncedYearBuilt[0] && property.year_built <= debouncedYearBuilt[1]);
-      
-      const matchesEnergyCert = energyCertificate === "all" || property.energy_certificate === energyCertificate;
-      
-      const matchesParking = parking === "all" || 
-        (parking === "none" && (!property.garage || property.garage === "none")) ||
-        (parking === "3+" && parseInt(property.garage) >= 3) ||
-        property.garage === parking;
-      
-      const matchesAmenities = selectedAmenities.length === 0 ||
-        selectedAmenities.every(amenity => 
-          property.amenities?.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
-        );
+    const matchesBedrooms = bedrooms === "all" ||
+      (bedrooms === "0" && property.bedrooms === 0) ||
+      (bedrooms === "1" && property.bedrooms === 1) ||
+      (bedrooms === "2" && property.bedrooms === 2) ||
+      (bedrooms === "3" && property.bedrooms === 3) ||
+      (bedrooms === "4" && property.bedrooms === 4) ||
+      (bedrooms === "5+" && property.bedrooms >= 5);
+    
+    const matchesPrice = property.price >= priceRange[0] && property.price <= priceRange[1];
+    
+    // Advanced filters
+    const area = property.useful_area || property.square_feet || 0;
+    const pricePerSqm = area > 0 ? property.price / area : 0;
+    const matchesPricePerSqm = debouncedPricePerSqm[0] === 0 && debouncedPricePerSqm[1] === 10000 ||
+      (pricePerSqm >= debouncedPricePerSqm[0] && pricePerSqm <= debouncedPricePerSqm[1]);
+    
+    const matchesYearBuilt = debouncedYearBuilt[0] === 1900 && debouncedYearBuilt[1] === 2025 ||
+      (property.year_built >= debouncedYearBuilt[0] && property.year_built <= debouncedYearBuilt[1]);
+    
+    const matchesEnergyCert = energyCertificate === "all" || property.energy_certificate === energyCertificate;
+    
+    const matchesParking = parking === "all" || 
+      (parking === "none" && (!property.garage || property.garage === "none")) ||
+      (parking === "3+" && parseInt(property.garage) >= 3) ||
+      property.garage === parking;
+    
+    const matchesAmenities = selectedAmenities.length === 0 ||
+      selectedAmenities.every(amenity => 
+        property.amenities?.some(a => a.toLowerCase().includes(amenity.toLowerCase()))
+      );
 
-      // Track rejections
-      if (!matchesSearch) rejectedByFilter.search.push({ id: property.id, ref_id: property.ref_id, title: property.title });
-      if (!matchesListingType) rejectedByFilter.listingType.push({ id: property.id, ref_id: property.ref_id, listing_type: property.listing_type });
-      if (!matchesPropertyType) rejectedByFilter.propertyType.push({ id: property.id, ref_id: property.ref_id, property_type: property.property_type });
-      if (!matchesCity) rejectedByFilter.city.push({ id: property.id, ref_id: property.ref_id, city: property.city });
-      if (!matchesCountry) rejectedByFilter.country.push({ id: property.id, ref_id: property.ref_id, country: property.country });
-      if (!matchesDistrict) rejectedByFilter.district.push({ id: property.id, ref_id: property.ref_id, state: property.state });
-      if (!matchesAvailability) rejectedByFilter.availability.push({ id: property.id, ref_id: property.ref_id, availability_status: property.availability_status });
-      if (!matchesBedrooms) rejectedByFilter.bedrooms.push({ id: property.id, ref_id: property.ref_id, bedrooms: property.bedrooms });
-      if (!matchesPrice) rejectedByFilter.price.push({ id: property.id, ref_id: property.ref_id, price: property.price, priceRange });
-      if (!matchesPricePerSqm) rejectedByFilter.pricePerSqm.push({ id: property.id, ref_id: property.ref_id, pricePerSqm, area, range: debouncedPricePerSqm });
-      if (!matchesYearBuilt) rejectedByFilter.yearBuilt.push({ id: property.id, ref_id: property.ref_id, year_built: property.year_built, range: debouncedYearBuilt });
-      if (!matchesEnergyCert) rejectedByFilter.energyCert.push({ id: property.id, ref_id: property.ref_id, energy_certificate: property.energy_certificate });
-      if (!matchesParking) rejectedByFilter.parking.push({ id: property.id, ref_id: property.ref_id, garage: property.garage });
-      if (!matchesAmenities) rejectedByFilter.amenities.push({ id: property.id, ref_id: property.ref_id, amenities: property.amenities });
-
-      return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && 
-             matchesBedrooms && matchesPrice && matchesCountry && matchesDistrict && 
-             matchesAvailability && matchesPricePerSqm && matchesYearBuilt && 
-             matchesEnergyCert && matchesParking && matchesAmenities;
-    });
-    
-    // Log rejections
-    Object.entries(rejectedByFilter).forEach(([filter, rejected]) => {
-      if (rejected.length > 0) {
-        console.log(`[Rejected by ${filter}]`, rejected.length, rejected);
-      }
-    });
-    
-    console.log('[Final Filtered Count]', result.length);
-    console.log('=== Additional Filters Debug END ===');
-    
-    return result;
-  }, [tabFilteredProperties, debouncedSearch, listingType, propertyType, city, country, district, availability, bedrooms, priceRange, debouncedPricePerSqm, debouncedYearBuilt, energyCertificate, parking, selectedAmenities]);
+    return matchesSearch && matchesListingType && matchesPropertyType && matchesCity && 
+           matchesBedrooms && matchesPrice && matchesCountry && matchesDistrict && 
+           matchesAvailability && matchesPricePerSqm && matchesYearBuilt && 
+           matchesEnergyCert && matchesParking && matchesAmenities;
+  });
 
   const sortedProperties = [...filteredProperties].sort((a, b) => {
     if (sortBy === "recent") return new Date(b.created_date) - new Date(a.created_date);
