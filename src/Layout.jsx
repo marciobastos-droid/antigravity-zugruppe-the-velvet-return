@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, Sparkles, FileBarChart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 
