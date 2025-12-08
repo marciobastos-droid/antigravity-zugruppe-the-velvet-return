@@ -10,6 +10,7 @@ import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
 import VideoMaker from "../components/tools/VideoMaker";
 import CalendarTool from "../components/tools/CalendarTool";
+import CRMSyncPanel from "../components/crm/CRMSyncPanel";
 import UnifiedCalendar from "../components/calendar/UnifiedCalendar";
 import PropertyDescriptionGenerator from "../components/tools/PropertyDescriptionGenerator";
 import PriceSuggestion from "../components/tools/PriceSuggestion";
@@ -57,8 +58,6 @@ import NotificationsDashboard from "../components/notifications/NotificationsDas
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
 import WebsiteImageExtractor from "../components/tools/WebsiteImageExtractor";
-import BulkScoreCalculator from "../components/tools/BulkScoreCalculator";
-import AutoNotificationsTrigger from "../components/notifications/AutoNotificationsTrigger";
 import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
 import InvestorKeysManager from "../components/tools/InvestorKeysManager";
 import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";
@@ -215,8 +214,6 @@ export default function Tools() {
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
                 <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-                <ToolButton toolId="bulkScoreCalculator" icon={TrendingUp} label="Calcular Pontuações" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
-                <ToolButton toolId="autoNotifications" icon={Bell} label="Notificações Auto" className="bg-green-50 border-green-300 hover:bg-green-100" />
               </div>
               </CardContent>
               </Card>
@@ -360,8 +357,6 @@ export default function Tools() {
         {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
         {activeTab === "investorKeys" && <InvestorKeysManager />}
         {activeTab === "investorProperties" && <InvestorPropertiesManager />}
-        {activeTab === "bulkScoreCalculator" && <BulkScoreCalculator />}
-        {activeTab === "autoNotifications" && <AutoNotificationsTrigger />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
