@@ -28,6 +28,7 @@ import LeadSourceClassifier from "./LeadSourceClassifier";
 import CommunicationPanel from "./CommunicationPanel";
 import AICommunicationAssistant from "./AICommunicationAssistant";
 import SendEmailDialog from "../email/SendEmailDialog";
+import EmailHistoryPanel from "../email/EmailHistoryPanel";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
 import DocumentUploader from "../documents/DocumentUploader";
@@ -495,13 +496,12 @@ Extrai:
         <TabsList className="grid grid-cols-7 mx-4 mt-4 flex-shrink-0">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
           <TabsTrigger value="emails" className="text-xs">
-            <Mail className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Emails</span>
+            <Mail className="w-3 h-3" />
           </TabsTrigger>
           <TabsTrigger value="matching" className="text-xs">Matching</TabsTrigger>
           <TabsTrigger value="communications" className="text-xs">Comms</TabsTrigger>
           <TabsTrigger value="properties" className="text-xs">Imóveis</TabsTrigger>
-          <TabsTrigger value="followups" className="text-xs">Follow-up</TabsTrigger>
+          <TabsTrigger value="followups" className="text-xs">Follow</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
         </TabsList>
 
@@ -1020,7 +1020,25 @@ Extrai:
         </div>
       </Tabs>
 
-
+      {/* Send Email Dialog */}
+      <SendEmailDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        recipient={{
+          type: 'opportunity',
+          id: lead.id,
+          name: lead.buyer_name,
+          email: lead.buyer_email,
+          data: {
+            name: lead.buyer_name,
+            email: lead.buyer_email,
+            phone: lead.buyer_phone,
+            location: lead.location,
+            property_title: lead.property_title,
+            budget: lead.budget
+          }
+        }}
+      />
 
       {/* Client History Timeline */}
       {lead.buyer_email && (

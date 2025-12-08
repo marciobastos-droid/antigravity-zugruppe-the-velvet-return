@@ -34,6 +34,7 @@ const CommunicationHistory = lazy(() => import("./CommunicationHistory"));
 const WhatsAppConversation = lazy(() => import("./WhatsAppConversation"));
 const AddCommunicationDialog = lazy(() => import("./AddCommunicationDialog"));
 const SendEmailDialog = lazy(() => import("../email/SendEmailDialog"));
+const EmailHistoryPanel = lazy(() => import("../email/EmailHistoryPanel"));
 const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
 const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
 
@@ -1645,7 +1646,7 @@ export default function ClientDatabase() {
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="emails" className="flex items-center gap-1">
-                  <MailIcon className="w-3 h-3" />
+                  <Mail className="w-3 h-3" />
                   Emails
                 </TabsTrigger>
                 <TabsTrigger value="whatsapp" className="flex items-center gap-1">
@@ -1659,11 +1660,13 @@ export default function ClientDatabase() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="emails">
-                <EmailHistoryPanel 
-                  recipientId={selectedClient.id}
-                  recipientType="client"
-                />
+              <TabsContent value="emails" className="mt-4">
+                <Suspense fallback={<LoadingFallback />}>
+                  <EmailHistoryPanel 
+                    recipientId={selectedClient.id}
+                    recipientType="client"
+                  />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="details" className="mt-4">
@@ -2082,6 +2085,29 @@ export default function ClientDatabase() {
                         id: selectedClient.id,
                         name: selectedClient.full_name,
                         email: selectedClient.email,
+                        data: {
+                          name: selectedClient.full_name,
+                          email: selectedClient.email,
+                          phone: selectedClient.phone,
+                          city: selectedClient.city,
+                          company_name: selectedClient.company_name
+                        }
+                      });
+                      setEmailDialogOpen(true);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={!selectedClient.email}
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Enviar Email
+                  </Button>
+                  <Button 
+                    onClick={() => { 
+                      setEmailRecipient({
+                        type: 'client',
+                        id: selectedClient.id,
+                        name: selectedClient.full_name,
+                        email: selectedClient.email,
                         data: selectedClient
                       });
                       setEmailDialogOpen(true);
@@ -2089,12 +2115,12 @@ export default function ClientDatabase() {
                     className="bg-blue-600 hover:bg-blue-700"
                     disabled={!selectedClient.email}
                   >
-                    <MailIcon className="w-4 h-4 mr-2" />
+                    <Mail className="w-4 h-4 mr-2" />
                     Enviar Email
                   </Button>
                   <Button 
                     onClick={() => { setCommDialogOpen(true); }}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-purple-600 hover:bg-purple-700"
                   >
                     <MessageSquare className="w-4 h-4 mr-2" />
                     Registar Comunicação
