@@ -199,10 +199,12 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-5 h-5 text-green-600" />
                 <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
-                <span className="text-sm text-green-600">(12 ferramentas)</span>
+                <span className="text-sm text-green-600">(14 ferramentas)</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
+                <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
+                <ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
                 <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
                 <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
@@ -210,7 +212,7 @@ export default function Tools() {
                 <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
-                      <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
+                <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
@@ -358,6 +360,8 @@ export default function Tools() {
         {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
         {activeTab === "investorKeys" && <InvestorKeysManager />}
         {activeTab === "investorProperties" && <InvestorPropertiesManager />}
+        {activeTab === "bulkScore" && <BulkScoreCalculator />}
+        {activeTab === "crmSync" && <CRMSyncPanel />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
