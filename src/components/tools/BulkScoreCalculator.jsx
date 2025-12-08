@@ -107,7 +107,7 @@ export default function BulkScoreCalculator() {
               </div>
               <div className="text-center p-3 bg-red-50 rounded-lg">
                 <div className="text-2xl font-bold text-red-900">{results.low_quality}</div>
-                <div className="text-xs text-red-600">Baixo (<60)</div>
+                <div className="text-xs text-red-600">Baixo (&lt;60)</div>
               </div>
             </div>
 
