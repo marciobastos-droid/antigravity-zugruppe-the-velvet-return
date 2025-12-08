@@ -379,13 +379,19 @@ export default function PropertyDetails() {
                 {images.length > 1 && (
                   <>
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigateGallery('prev'); }}
+                      onClick={(e) => { 
+                        if (e && e.stopPropagation) e.stopPropagation(); 
+                        navigateGallery('prev'); 
+                      }}
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); navigateGallery('next'); }}
+                      onClick={(e) => { 
+                        if (e && e.stopPropagation) e.stopPropagation(); 
+                        navigateGallery('next'); 
+                      }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <ChevronRight className="w-6 h-6" />
