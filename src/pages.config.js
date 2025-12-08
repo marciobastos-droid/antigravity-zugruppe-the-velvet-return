@@ -24,6 +24,7 @@ import CookiePolicy from './pages/CookiePolicy';
 import ManageData from './pages/ManageData';
 import ZuHaus from './pages/ZuHaus';
 import ZuHandel from './pages/ZuHandel';
+import InvestorSection from './pages/InvestorSection';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "ManageData": ManageData,
     "ZuHaus": ZuHaus,
     "ZuHandel": ZuHandel,
+    "InvestorSection": InvestorSection,
 }
 
 export const pagesConfig = {
