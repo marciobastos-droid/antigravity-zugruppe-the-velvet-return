@@ -104,6 +104,64 @@ const PropertyCard = memo(function PropertyCard({
               <Badge variant="outline" className="text-xs">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
               <Badge className={`${statusColors[property.status]} text-xs`}>{statusLabels[property.status]}</Badge>
             </div>
+            
+            {/* Publication Status */}
+            <div className="mb-2 pt-2 border-t border-slate-100">
+              <div className="flex flex-col gap-1">
+                {/* Portals */}
+                {property.published_portals && property.published_portals.length > 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                    <div className="flex flex-wrap gap-1">
+                      {property.published_portals.slice(0, 2).map((portal, idx) => (
+                        <span key={idx} className="text-xs text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+                          {portal === 'idealista' ? 'Idealista' :
+                           portal === 'imovirtual' ? 'Imovirtual' :
+                           portal === 'casafari' ? 'Casafari' :
+                           portal === 'olx' ? 'OLX' :
+                           portal === 'supercasa' ? 'Supercasa' :
+                           portal === 'custojusto' ? 'CustoJusto' : portal}
+                        </span>
+                      ))}
+                      {property.published_portals.length > 2 && (
+                        <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                          +{property.published_portals.length - 2}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                    <span className="text-xs text-slate-500">Sem portais</span>
+                  </div>
+                )}
+                
+                {/* Website Pages */}
+                {property.published_pages && property.published_pages.length > 0 ? (
+                  <div className="flex items-center gap-1.5">
+                    <ExternalLink className="w-3 h-3 text-green-600 flex-shrink-0" />
+                    <div className="flex flex-wrap gap-1">
+                      {property.published_pages.map((page, idx) => (
+                        <span key={idx} className="text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+                          {page === 'zugruppe' ? 'ZuGruppe' :
+                           page === 'zuhaus' ? 'ZuHaus' :
+                           page === 'zuhandel' ? 'ZuHandel' :
+                           page === 'homepage_featured' ? 'Homepage' :
+                           page === 'investor_section' ? 'Investidores' :
+                           page === 'luxury_collection' ? 'Luxo' : page}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <ExternalLink className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                    <span className="text-xs text-slate-500">Sem páginas web</span>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex flex-wrap gap-1 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
               <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
                 <Button variant="outline" size="sm" className="h-7 text-xs px-2"><Eye className="w-3 h-3 mr-1" />Ver</Button>
