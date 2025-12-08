@@ -493,6 +493,22 @@ ${imageGalleryHTML}
                 <p className="text-xl mb-4">{landingPageData.subheadline}</p>
                 <p>{landingPageData.hero_text}</p>
               </div>
+
+              {landingPageData.property.images?.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-3">Galeria de Imagens ({landingPageData.property.images.length})</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {landingPageData.property.images.map((img, i) => (
+                      <img 
+                        key={i} 
+                        src={img} 
+                        alt={`${landingPageData.property.title} - ${i+1}`}
+                        className="w-full aspect-video object-cover rounded-lg"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div>
                 <h3 className="font-semibold mb-2">Características</h3>
