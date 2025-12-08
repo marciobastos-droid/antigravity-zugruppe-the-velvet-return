@@ -656,12 +656,13 @@ export default function PropertyDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80 rounded-lg overflow-hidden border border-slate-200">
+                  <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
                     <MapContainer 
                       center={[41.1579, -8.6291]} 
-                      zoom={13} 
+                      zoom={14} 
                       style={{ height: '100%', width: '100%' }}
-                      scrollWheelZoom={false}
+                      scrollWheelZoom={true}
+                      zoomControl={true}
                     >
                       <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -669,16 +670,31 @@ export default function PropertyDetails() {
                       />
                       <Marker position={[41.1579, -8.6291]}>
                         <Popup>
-                          <strong>{property.title}</strong><br />
-                          {property.address}, {property.city}
+                          <div className="p-2">
+                            <strong className="text-base">{property.title}</strong><br />
+                            <span className="text-sm text-slate-600">
+                              {property.address}, {property.city}
+                            </span><br />
+                            <span className="text-lg font-bold text-green-600">
+                              €{property.price?.toLocaleString()}
+                            </span>
+                          </div>
                         </Popup>
                       </Marker>
                     </MapContainer>
                   </div>
-                  <p className="text-sm text-slate-500 mt-3">
-                    {property.address && `${property.address}, `}{property.city}, {property.state}
-                    {property.zip_code && ` - ${property.zip_code}`}
-                  </p>
+                  <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm text-slate-700">
+                        {property.address && <div className="font-medium">{property.address}</div>}
+                        <div>{property.zip_code && `${property.zip_code} `}{property.city}, {property.state}</div>
+                        {property.country && property.country !== 'Portugal' && (
+                          <div className="text-slate-500 mt-1">{property.country}</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -770,7 +786,7 @@ export default function PropertyDetails() {
                                           <SelectItem value={null}>Nenhum</SelectItem>
                                           {allUsers.map((u) => (
                                             <SelectItem key={u.id} value={u.id}>
-                                              {u.full_name || u.email}
+                                              {u.display_name || u.full_name || u.email}
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
