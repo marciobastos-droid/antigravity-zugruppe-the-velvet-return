@@ -1642,8 +1642,12 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="emails" className="flex items-center gap-1">
+                  <MailIcon className="w-3 h-3" />
+                  Emails
+                </TabsTrigger>
                 <TabsTrigger value="whatsapp" className="flex items-center gap-1">
                   <MessageSquare className="w-3 h-3 text-green-600" />
                   WhatsApp
@@ -1654,6 +1658,13 @@ export default function ClientDatabase() {
                   Portal
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="emails">
+                <EmailHistoryPanel 
+                  recipientId={selectedClient.id}
+                  recipientType="client"
+                />
+              </TabsContent>
 
               <TabsContent value="details" className="mt-4">
                 {/* Quick Stats Cards */}
@@ -2071,20 +2082,14 @@ export default function ClientDatabase() {
                         id: selectedClient.id,
                         name: selectedClient.full_name,
                         email: selectedClient.email,
-                        data: {
-                          name: selectedClient.full_name,
-                          email: selectedClient.email,
-                          phone: selectedClient.phone,
-                          city: selectedClient.city,
-                          company_name: selectedClient.company_name
-                        }
+                        data: selectedClient
                       });
                       setEmailDialogOpen(true);
                     }}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-blue-600 hover:bg-blue-700"
                     disabled={!selectedClient.email}
                   >
-                    <Mail className="w-4 h-4 mr-2" />
+                    <MailIcon className="w-4 h-4 mr-2" />
                     Enviar Email
                   </Button>
                   <Button 

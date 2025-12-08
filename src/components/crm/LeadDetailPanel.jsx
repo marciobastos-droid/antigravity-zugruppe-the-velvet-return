@@ -492,16 +492,28 @@ Extrai:
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="grid grid-cols-6 mx-4 mt-4 flex-shrink-0">
+        <TabsList className="grid grid-cols-7 mx-4 mt-4 flex-shrink-0">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
+          <TabsTrigger value="emails" className="text-xs">
+            <Mail className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Emails</span>
+          </TabsTrigger>
           <TabsTrigger value="matching" className="text-xs">Matching</TabsTrigger>
-          <TabsTrigger value="communications" className="text-xs">Comunicações</TabsTrigger>
+          <TabsTrigger value="communications" className="text-xs">Comms</TabsTrigger>
           <TabsTrigger value="properties" className="text-xs">Imóveis</TabsTrigger>
-          <TabsTrigger value="followups" className="text-xs">Follow-ups</TabsTrigger>
+          <TabsTrigger value="followups" className="text-xs">Follow-up</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
         </TabsList>
 
         <div className="flex-1 overflow-y-auto p-4 pb-20" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+          {/* Emails Tab */}
+          <TabsContent value="emails" className="mt-0">
+            <EmailHistoryPanel 
+              recipientId={lead.id}
+              recipientType="opportunity"
+            />
+          </TabsContent>
+
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-0 space-y-4">
             {/* Contact Requirements - busca os requisitos do contacto associado */}
@@ -1008,25 +1020,7 @@ Extrai:
         </div>
       </Tabs>
 
-      {/* Send Email Dialog */}
-      <SendEmailDialog
-        open={emailDialogOpen}
-        onOpenChange={setEmailDialogOpen}
-        recipient={{
-          type: 'opportunity',
-          id: lead.id,
-          name: lead.buyer_name,
-          email: lead.buyer_email,
-          data: {
-            name: lead.buyer_name,
-            email: lead.buyer_email,
-            phone: lead.buyer_phone,
-            location: lead.location,
-            property_title: lead.property_title,
-            budget: lead.budget
-          }
-        }}
-      />
+
 
       {/* Client History Timeline */}
       {lead.buyer_email && (
