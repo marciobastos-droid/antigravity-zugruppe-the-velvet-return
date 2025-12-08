@@ -121,36 +121,62 @@ export default function ZuGruppe() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    // Debug: contar configurações
-    const totalActive = activeProperties.length;
+    console.log('=== ZuGruppe Filter Debug START ===');
+    console.log('[Total Properties Loaded]', properties.length);
+    console.log('[Active Properties]', activeProperties.length);
+    console.log('[Active Tab]', activeTab);
+    
+    // Análise detalhada de published_pages
+    const propertiesWithPages = activeProperties.map(p => ({
+      id: p.id,
+      ref_id: p.ref_id,
+      title: p.title,
+      status: p.status,
+      property_type: p.property_type,
+      published_pages: p.published_pages,
+      published_pages_type: typeof p.published_pages,
+      is_array: Array.isArray(p.published_pages),
+      length: Array.isArray(p.published_pages) ? p.published_pages.length : 0
+    }));
+    
+    console.log('[Properties Analysis]', propertiesWithPages);
+    
+    // Contar por configuração
     const withPublishedPages = activeProperties.filter(p => {
       const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
       return pp.length > 0;
-    }).length;
-    const withZugruppe = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zugruppe")
-    ).length;
-    const withZuhaus = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
-    ).length;
-    const withZuhandel = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
-    ).length;
-    
-    console.log('[ZuGruppe Debug]', {
-      totalActive,
-      withPublishedPages,
-      configured: { zugruppe: withZugruppe, zuhaus: withZuhaus, zuhandel: withZuhandel },
-      activeTab
     });
     
-    // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
+    const withZugruppe = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zugruppe")
+    );
+    
+    const withZuhaus = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
+    );
+    
+    const withZuhandel = activeProperties.filter(p => 
+      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
+    );
+    
+    console.log('[Stats]', {
+      totalActive: activeProperties.length,
+      withPublishedPages: withPublishedPages.length,
+      withZugruppe: withZugruppe.length,
+      withZuhaus: withZuhaus.length,
+      withZuhandel: withZuhandel.length
+    });
+    
+    console.log('[Properties with zugruppe]', withZugruppe.map(p => ({ id: p.id, ref_id: p.ref_id, pages: p.published_pages })));
+    
+    // Filtrar por publicação
+    const rejected = [];
     filtered = filtered.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       
-      // Se não tem published_pages definido OU está vazio, não mostrar
+      // Se não tem published_pages definido OU está vazio
       if (!publishedPages || publishedPages.length === 0) {
-        console.log('[ZuGruppe] Rejected (no pages):', p.ref_id || p.id);
+        rejected.push({ id: p.id, ref_id: p.ref_id, reason: 'no_pages', publishedPages });
         return false;
       }
       
@@ -160,7 +186,10 @@ export default function ZuGruppe() {
         const hasZuhaus = publishedPages.includes("zuhaus");
         const pass = hasZuhaus && isResidential;
         if (!pass) {
-          console.log('[ZuGruppe] Rejected (residential):', p.ref_id || p.id, { 
+          rejected.push({ 
+            id: p.id, 
+            ref_id: p.ref_id, 
+            reason: 'residential_filter',
             type: p.property_type, 
             isResidential, 
             hasZuhaus, 
@@ -173,7 +202,10 @@ export default function ZuGruppe() {
         const hasZuhandel = publishedPages.includes("zuhandel");
         const pass = hasZuhandel && isCommercial;
         if (!pass) {
-          console.log('[ZuGruppe] Rejected (commercial):', p.ref_id || p.id, { 
+          rejected.push({ 
+            id: p.id, 
+            ref_id: p.ref_id, 
+            reason: 'commercial_filter',
             type: p.property_type, 
             isCommercial, 
             hasZuhandel, 
@@ -184,13 +216,21 @@ export default function ZuGruppe() {
       } else {
         const hasZugruppe = publishedPages.includes("zugruppe");
         if (!hasZugruppe) {
-          console.log('[ZuGruppe] Rejected (all):', p.ref_id || p.id, { publishedPages });
+          rejected.push({ 
+            id: p.id, 
+            ref_id: p.ref_id, 
+            reason: 'no_zugruppe_in_pages',
+            publishedPages 
+          });
         }
         return hasZugruppe;
       }
     });
     
-    console.log('[ZuGruppe] Filtered result:', filtered.length, 'properties');
+    console.log('[Rejected Properties]', rejected.length, rejected);
+    console.log('[Accepted Properties]', filtered.length);
+    console.log('=== ZuGruppe Filter Debug END ===');
+    
     return filtered;
   }, [activeTab, activeProperties]);
 
