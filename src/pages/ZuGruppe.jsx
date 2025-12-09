@@ -21,6 +21,7 @@ import { debounce } from "lodash";
 import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common/PortugalLocations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
+import PropertiesMap from "../components/maps/PropertiesMap";
 
 export default function ZuGruppe() {
   const { data: properties = [], isLoading } = useQuery({
