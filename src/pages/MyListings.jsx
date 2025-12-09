@@ -27,6 +27,9 @@ import PublicationHub from "../components/publication/PublicationHub";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
+import OptimizedImage from "../components/common/OptimizedImage";
+import { QUERY_CONFIG } from "../components/utils/queryClient";
+import { Home as HomeIcon } from "lucide-react";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
@@ -54,12 +57,12 @@ const PropertyCard = memo(function PropertyCard({
       <CardContent className="p-0">
         <div className="flex flex-col">
           <div className="relative h-48 overflow-hidden bg-slate-100">
-            <img
+            <OptimizedImage
               src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
               alt={property.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              loading="lazy"
-              decoding="async"
+              className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+              fallbackIcon={HomeIcon}
+              strategy="lazy"
             />
             <div className="absolute top-2 left-2" onClick={(e) => {
               e.stopPropagation();
@@ -274,6 +277,7 @@ export default function MyListings() {
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => base44.auth.me(),
+    ...QUERY_CONFIG.user
   });
 
   // Buscar permissões do utilizador
@@ -290,7 +294,8 @@ export default function MyListings() {
   // Buscar tags criadas nas ferramentas
   const { data: systemTags = [] } = useQuery({
     queryKey: ['tags'],
-    queryFn: () => base44.entities.Tag.list('name')
+    queryFn: () => base44.entities.Tag.list('name'),
+    ...QUERY_CONFIG.static
   });
 
   // Filtrar apenas tags de imóveis ou gerais
@@ -301,7 +306,8 @@ export default function MyListings() {
   // Buscar empreendimentos
   const { data: developments = [] } = useQuery({
     queryKey: ['developments'],
-    queryFn: () => base44.entities.Development.list('name')
+    queryFn: () => base44.entities.Development.list('name'),
+    ...QUERY_CONFIG.properties
   });
 
   // Buscar agentes (combinar Users com entidade Agent)
@@ -341,7 +347,8 @@ export default function MyListings() {
       }
       
       return usersList;
-    }
+    },
+    ...QUERY_CONFIG.agents
   });
 
   // Fetch total count for metadata
@@ -360,7 +367,8 @@ export default function MyListings() {
       const sample = await base44.entities.Property.list('-updated_date', 1);
       return { total: sample.length > 0 ? 1000 : 0, canViewAll }; // Placeholder - we'll fetch all for filtering
     },
-    enabled: !!user
+    enabled: !!user,
+    ...QUERY_CONFIG.properties
   });
 
   const { data: properties = [], isLoading } = useQuery({
@@ -401,8 +409,7 @@ export default function MyListings() {
       );
     },
     enabled: !!user,
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 5 * 60 * 1000 // Keep in cache for 5 minutes
+    ...QUERY_CONFIG.properties
   });
 
   const deleteMutation = useMutation({
