@@ -447,68 +447,74 @@ export default function Website() {
           {/* Search Card */}
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-2xl border-0">
-              <CardContent className="p-4 md:p-6">
+              <CardContent className="p-3 sm:p-4 md:p-6">
                 {/* Tabs de Categoria */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-4">
-                  <TabsList className="grid grid-cols-3 w-full">
-                    <TabsTrigger value="all" className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      Todos os Imóveis
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
+                  <TabsList className="grid grid-cols-3 w-full h-auto">
+                    <TabsTrigger value="all" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                      <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Todos os Imóveis</span>
+                      <span className="sm:hidden">Todos</span>
                     </TabsTrigger>
-                    <TabsTrigger value="residential" className="flex items-center gap-2">
-                      <Home className="w-4 h-4" />
-                      Residencial
+                    <TabsTrigger value="residential" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                      <Home className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Residencial</span>
+                      <span className="sm:hidden">Casa</span>
                     </TabsTrigger>
-                    <TabsTrigger value="commercial" className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      Comercial
+                    <TabsTrigger value="commercial" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                      <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Comercial</span>
+                      <span className="sm:hidden">Loja</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {/* Quick Filter Tabs */}
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                <div className="flex gap-1.5 sm:gap-2 mb-3 sm:mb-4 overflow-x-auto pb-2 -mx-1 px-1">
                   <Button 
                     variant={listingType === "all" ? "default" : "outline"}
                     onClick={() => setListingType("all")}
-                    className="whitespace-nowrap"
+                    size="sm"
+                    className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
                     Todos
                   </Button>
                   <Button 
                     variant={listingType === "sale" ? "default" : "outline"}
                     onClick={() => setListingType("sale")}
-                    className="whitespace-nowrap"
+                    size="sm"
+                    className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
                     🏷️ Comprar
                   </Button>
                   <Button 
                     variant={listingType === "rent" ? "default" : "outline"}
                     onClick={() => setListingType("rent")}
-                    className="whitespace-nowrap"
+                    size="sm"
+                    className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
                     🔑 Arrendar
                   </Button>
                 </div>
 
                 {/* Main Search */}
-                <div className="flex flex-col md:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" />
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Pesquisar por localização, título..."
-                      className="pl-12 h-12 text-lg border-slate-200"
+                      placeholder="Pesquisar por localização..."
+                      className="pl-10 sm:pl-12 h-10 sm:h-12 text-sm sm:text-base md:text-lg border-slate-200"
                     />
                   </div>
                   <Select value={city} onValueChange={setCity}>
-                    <SelectTrigger className="w-full md:w-48 h-12">
-                      <MapPin className="w-4 h-4 mr-2 text-slate-400" />
+                    <SelectTrigger className="w-full sm:w-40 md:w-48 h-10 sm:h-12 text-sm sm:text-base">
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-slate-400" />
                       <SelectValue placeholder="Cidade" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas as Cidades</SelectItem>
+                      <SelectItem value="all">Todas</SelectItem>
                       {allCities.map(c => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
@@ -517,12 +523,13 @@ export default function Website() {
                   <Button 
                     onClick={() => setShowFilters(!showFilters)}
                     variant="outline"
-                    className="h-12 gap-2"
+                    className="h-10 sm:h-12 gap-1 sm:gap-2 text-sm sm:text-base"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
-                    <span className="hidden md:inline">Filtros</span>
+                    <span className="sm:hidden">Filtros</span>
+                    <span className="hidden sm:inline">Filtros</span>
                     {hasActiveFilters && (
-                      <Badge className="bg-blue-600 text-white ml-1">
+                      <Badge className="bg-blue-600 text-white ml-1 text-xs">
                         {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceMin, priceMax].filter(Boolean).length}
                       </Badge>
                     )}
@@ -531,13 +538,13 @@ export default function Website() {
 
                 {/* Extended Filters */}
                 {(showFilters || layout.showFiltersExpanded) && (
-                  <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
-                    {/* Row 1: Natureza, Quartos, Preço Min/Max, Disponibilidade */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-200 space-y-3 sm:space-y-4">
+                    {/* Row 1: Natureza, Quartos, Preço Min/Max */}
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Natureza</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Natureza</label>
                         <Select value={propertyType} onValueChange={setPropertyType}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder="Todas" />
                           </SelectTrigger>
                           <SelectContent>
@@ -549,9 +556,9 @@ export default function Website() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Quartos</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Quartos</label>
                         <Select value={bedrooms} onValueChange={setBedrooms}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder="Todos" />
                           </SelectTrigger>
                           <SelectContent>
@@ -567,33 +574,33 @@ export default function Website() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Preço Mínimo</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Preço Min</label>
                         <Input
                           type="number"
                           placeholder="€0"
                           value={priceMin}
                           onChange={(e) => setPriceMin(e.target.value)}
-                          className="h-10"
+                          className="h-9 sm:h-10 text-xs sm:text-sm"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Preço Máximo</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Preço Max</label>
                         <Input
                           type="number"
                           placeholder="€∞"
                           value={priceMax}
                           onChange={(e) => setPriceMax(e.target.value)}
-                          className="h-10"
+                          className="h-9 sm:h-10 text-xs sm:text-sm"
                         />
                       </div>
                     </div>
 
-                    {/* Row 1.5: Disponibilidade (moved down) */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Disponibilidade</label>
+                    {/* Row 1.5: Disponibilidade */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+                      <div className="col-span-1">
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Disponibilidade</label>
                         <Select value={availability} onValueChange={setAvailability}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder="Todas" />
                           </SelectTrigger>
                           <SelectContent>
@@ -607,11 +614,11 @@ export default function Website() {
                     </div>
 
                     {/* Row 2: País, Distrito, Concelho */}
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3">
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">País</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">País</label>
                         <Select value={country} onValueChange={setCountry}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder="Todos" />
                           </SelectTrigger>
                           <SelectContent>
@@ -623,9 +630,9 @@ export default function Website() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Distrito</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Distrito</label>
                         <Select value={district} onValueChange={setDistrict}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder="Todos" />
                           </SelectTrigger>
                           <SelectContent>
@@ -637,9 +644,9 @@ export default function Website() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-slate-600 mb-1.5 block">Concelho</label>
+                        <label className="text-xs font-medium text-slate-600 mb-1 sm:mb-1.5 block">Concelho</label>
                         <Select value={city} onValueChange={setCity} disabled={district === "all"}>
-                          <SelectTrigger>
+                          <SelectTrigger className="h-9 sm:h-10 text-xs sm:text-sm">
                             <SelectValue placeholder={district === "all" ? "Escolha distrito" : "Todos"} />
                           </SelectTrigger>
                           <SelectContent>
@@ -918,17 +925,17 @@ export default function Website() {
 
       {/* Featured Properties */}
       {layout.showFeatured && featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <Star className="w-5 h-5 text-amber-600" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-8 sm:py-12">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg">
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Imóveis em Destaque</h2>
-              <p className="text-slate-600">As melhores oportunidades selecionadas para si</p>
+              <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Imóveis em Destaque</h2>
+              <p className="text-xs sm:text-base text-slate-600 hidden sm:block">As melhores oportunidades selecionadas para si</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {featuredProperties.map((property, index) => (
               <PropertyCardCompact key={property.id} property={property} featured index={index} />
             ))}
@@ -937,35 +944,36 @@ export default function Website() {
       )}
 
       {/* Results Section */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Results Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {filteredProperties.length} {activeTab === "residential" ? "imóveis residenciais" : activeTab === "commercial" ? "imóveis comerciais" : "imóveis"} encontrados
+            <h2 className="text-base sm:text-xl font-bold text-slate-900">
+              {filteredProperties.length} {activeTab === "residential" ? "residenciais" : activeTab === "commercial" ? "comerciais" : "imóveis"}
             </h2>
             {hasActiveFilters && (
-              <p className="text-sm text-slate-600">Com os filtros aplicados</p>
+              <p className="text-xs sm:text-sm text-slate-600">Com filtros aplicados</p>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Ordenar por" />
+              <SelectTrigger className="w-36 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm">
+                <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="recent">Mais Recentes</SelectItem>
-                <SelectItem value="price_asc">Preço: Menor → Maior</SelectItem>
-                <SelectItem value="price_desc">Preço: Maior → Menor</SelectItem>
+                <SelectItem value="price_asc">Preço: ↑</SelectItem>
+                <SelectItem value="price_desc">Preço: ↓</SelectItem>
                 <SelectItem value="area">Maior Área</SelectItem>
               </SelectContent>
             </Select>
-            <div className="hidden md:flex border rounded-lg overflow-hidden">
+            <div className="flex border rounded-lg overflow-hidden">
               <Button 
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setViewMode("grid"); setShowMapView(false); }}
-                className="rounded-none"
+                className="rounded-none h-9 w-9 p-0"
+                title="Vista Grid"
               >
                 <Grid3X3 className="w-4 h-4" />
               </Button>
@@ -973,7 +981,8 @@ export default function Website() {
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setViewMode("list"); setShowMapView(false); }}
-                className="rounded-none"
+                className="rounded-none h-9 w-9 p-0 hidden sm:flex"
+                title="Vista Lista"
               >
                 <List className="w-4 h-4" />
               </Button>
@@ -981,7 +990,8 @@ export default function Website() {
                 variant={showMapView ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setShowMapView(!showMapView)}
-                className="rounded-none"
+                className="rounded-none h-9 w-9 p-0"
+                title="Vista Mapa"
               >
                 <MapPin className="w-4 h-4" />
               </Button>
@@ -1016,8 +1026,8 @@ export default function Website() {
             />
             
             <div className={viewMode === "grid" 
-              ? `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${layout.gridColumns === 4 ? 'xl:grid-cols-4' : ''} gap-5`
-              : "space-y-4"
+              ? `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${layout.gridColumns === 4 ? 'xl:grid-cols-4' : ''} gap-3 sm:gap-4 lg:gap-5`
+              : "space-y-3 sm:space-y-4"
             }>
               {paginatedProperties.map((property, index) => (
                 viewMode === "grid" 
@@ -1090,15 +1100,15 @@ export default function Website() {
       </div>
 
       {/* Contact CTA */}
-      <div className={`py-12 ${
+      <div className={`py-8 sm:py-12 ${
         activeTab === "residential"
           ? "bg-gradient-to-r from-[#d22630] to-[#a01d26]"
           : activeTab === "commercial"
           ? "bg-gradient-to-r from-[#75787b] to-[#5a5c5e]"
           : "bg-gradient-to-r from-blue-600 to-blue-700"
       }`}>
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 text-center">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
             {activeTab === "residential" 
               ? "Procura a sua casa de sonho?"
               : activeTab === "commercial"
@@ -1106,42 +1116,42 @@ export default function Website() {
               : "Não encontrou o que procura?"
             }
           </h2>
-          <p className={`mb-6 max-w-2xl mx-auto ${
+          <p className={`text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto ${
             activeTab === "residential" ? "text-slate-200" : activeTab === "commercial" ? "text-slate-200" : "text-blue-100"
           }`}>
             {activeTab === "residential"
-              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel residencial ideal para si e para a sua família."
+              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel residencial ideal."
               : activeTab === "commercial"
-              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal para o seu negócio."
-              : "A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto connosco!"
+              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal."
+              : "A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto!"
             }
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <Button 
-              size="lg" 
+              size="default"
               onClick={() => {
                 trackCTAClick('primary');
                 trackConversion('cta_click');
               }}
-              className={
+              className={`h-10 sm:h-11 text-sm sm:text-base ${
                 activeTab === "residential"
                   ? "bg-white text-[#d22630] hover:bg-slate-100"
                   : activeTab === "commercial"
                   ? "bg-white text-[#75787b] hover:bg-slate-100"
                   : "bg-white text-blue-600 hover:bg-blue-50"
-              }
+              }`}
             >
-              <Phone className="w-5 h-5 mr-2" />
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {cta.primary}
             </Button>
             <Button 
-              size="lg" 
+              size="default"
               onClick={() => {
                 trackCTAClick('secondary');
               }}
-              className="bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors"
+              className="h-10 sm:h-11 text-sm sm:text-base bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors"
             >
-              <Mail className="w-5 h-5 mr-2" />
+              <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               {cta.secondary}
             </Button>
           </div>
@@ -1266,16 +1276,16 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
         </div>
 
         {/* Price */}
-        <div className="absolute bottom-3 right-3">
-          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg">
-            <div className="text-sm font-bold">
+        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 sm:px-2.5 py-1 rounded-lg">
+            <div className="text-xs sm:text-sm font-bold">
               {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-              {property.listing_type === 'rent' && <span className="text-xs font-normal">/mês</span>}
+              {property.listing_type === 'rent' && <span className="text-[10px] sm:text-xs font-normal">/mês</span>}
             </div>
             {property.currency && property.currency !== 'EUR' && (() => {
               const eurValue = convertToEUR(property.price, property.currency);
               return eurValue ? (
-                <div className="text-xs text-white/80">
+                <div className="text-[10px] sm:text-xs text-white/80">
                   ≈ €{eurValue.toLocaleString()}
                 </div>
               ) : null;
@@ -1285,43 +1295,43 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
+      <div className="p-3 sm:p-4">
+        <h3 className="font-semibold text-sm sm:text-base text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
           {property.title}
         </h3>
-        <p className="text-sm text-slate-500 flex items-center gap-1 mb-3">
-          <MapPin className="w-3.5 h-3.5" />
-          {property.city}
+        <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mb-2 sm:mb-3">
+          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+          <span className="truncate">{property.city}</span>
         </p>
         
-        <div className="flex items-center gap-4 text-sm text-slate-600">
+        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600">
           {(property.bedrooms !== undefined && property.bedrooms !== null) && (
             <span className="flex items-center gap-1">
-              <Bed className="w-4 h-4" />
+              <Bed className="w-3 h-3 sm:w-4 sm:h-4" />
               T{property.bedrooms}
             </span>
           )}
           {property.bathrooms > 0 && (
             <span className="flex items-center gap-1">
-              <Bath className="w-4 h-4" />
+              <Bath className="w-3 h-3 sm:w-4 sm:h-4" />
               {property.bathrooms}
             </span>
           )}
           {(property.useful_area || property.square_feet) > 0 && (
             <span className="flex items-center gap-1">
-              <Maximize className="w-4 h-4" />
+              <Maximize className="w-3 h-3 sm:w-4 sm:h-4" />
               {property.useful_area || property.square_feet}m²
             </span>
           )}
         </div>
 
-        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center gap-1.5 sm:gap-2 flex-wrap">
           {property.ref_id && (
-            <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
+            <Badge className="bg-slate-900 text-white border-0 text-[10px] sm:text-xs font-mono px-1.5 sm:px-2 py-0.5">
               {property.ref_id}
             </Badge>
           )}
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
             {propertyTypeLabels[property.property_type] || property.property_type}
           </Badge>
         </div>
@@ -1367,29 +1377,29 @@ const PropertyCardList = React.memo(({ property, index }) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-5 flex flex-col justify-between">
+      <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between">
         <div>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+          <div className="flex items-start justify-between gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 sm:line-clamp-1">
                 {property.title}
               </h3>
-              <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                <MapPin className="w-4 h-4" />
-                {property.city}{property.address && `, ${property.address}`}
+              <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mt-1">
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{property.city}{property.address && `, ${property.address}`}</span>
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-xl font-bold text-slate-900">
+            <div className="text-right flex-shrink-0">
+              <div className="text-base sm:text-xl font-bold text-slate-900">
                 {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
               </div>
               {property.listing_type === 'rent' && (
-                <span className="text-xs text-slate-500">/mês</span>
+                <span className="text-[10px] sm:text-xs text-slate-500">/mês</span>
               )}
               {property.currency && property.currency !== 'EUR' && (() => {
                 const eurValue = convertToEUR(property.price, property.currency);
                 return eurValue ? (
-                  <div className="text-xs text-slate-500">
+                  <div className="text-[10px] sm:text-xs text-slate-500">
                     ≈ €{eurValue.toLocaleString()}
                   </div>
                 ) : null;
@@ -1398,40 +1408,41 @@ const PropertyCardList = React.memo(({ property, index }) => {
           </div>
           
           {property.description && (
-            <p className="text-sm text-slate-600 mt-3 line-clamp-2">
+            <p className="text-xs sm:text-sm text-slate-600 mt-2 sm:mt-3 line-clamp-2 hidden sm:block">
               {property.description}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-5 text-sm text-slate-600">
+        <div className="flex items-center justify-between mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-600">
             {(property.bedrooms !== undefined && property.bedrooms !== null) && (
-              <span className="flex items-center gap-1.5">
-                <Bed className="w-4 h-4" />
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Bed className="w-3 h-3 sm:w-4 sm:h-4" />
                 T{property.bedrooms}
               </span>
             )}
             {property.bathrooms > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Bath className="w-4 h-4" />
-                {property.bathrooms} WC
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Bath className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{property.bathrooms} WC</span>
+                <span className="sm:hidden">{property.bathrooms}</span>
               </span>
             )}
             {(property.useful_area || property.square_feet) > 0 && (
-              <span className="flex items-center gap-1.5">
-                <Maximize className="w-4 h-4" />
+              <span className="flex items-center gap-1 sm:gap-1.5">
+                <Maximize className="w-3 h-3 sm:w-4 sm:h-4" />
                 {property.useful_area || property.square_feet}m²
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             {property.ref_id && (
-              <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
+              <Badge className="bg-slate-900 text-white border-0 text-[10px] sm:text-xs font-mono px-1.5 sm:px-2 py-0.5">
                 {property.ref_id}
               </Badge>
             )}
-            <Badge variant="outline">
+            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 hidden sm:inline-flex">
               {propertyTypeLabels[property.property_type] || property.property_type}
             </Badge>
           </div>

@@ -393,13 +393,13 @@ export default function PropertyDetails() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content - Left Column */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Image Gallery */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+            <div className="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-slate-200">
               <div 
-                className="relative h-80 md:h-[500px] cursor-pointer group"
+                className="relative h-64 sm:h-80 md:h-[500px] cursor-pointer group"
                 onClick={() => setGalleryOpen(true)}
               >
                 <OptimizedImage
@@ -434,13 +434,14 @@ export default function PropertyDetails() {
                 )}
                 
                 {/* View All Photos Button - Prominent */}
-                <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 flex items-center gap-2">
                   <button
                     onClick={() => setGalleryOpen(true)}
-                    className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 px-4 py-2 rounded-lg shadow-lg font-semibold text-sm transition-all hover:scale-105 border border-slate-200"
+                    className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-slate-50 text-slate-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg font-semibold text-xs sm:text-sm transition-all hover:scale-105 border border-slate-200"
                   >
-                    <ImageIcon className="w-4 h-4" />
-                    <span>Ver todas as {images.length} fotos</span>
+                    <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Ver todas as {images.length} fotos</span>
+                    <span className="sm:hidden">{images.length} fotos</span>
                   </button>
                 </div>
                 
@@ -478,19 +479,19 @@ export default function PropertyDetails() {
 
             {/* Property Info Card */}
             <Card>
-              <CardContent className="p-6 md:p-8">
+              <CardContent className="p-4 sm:p-6 md:p-8">
                 {/* Header with Ref ID and Title */}
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   {property.ref_id && (
-                    <Badge variant="outline" className="mb-2 text-sm font-mono">
+                    <Badge variant="outline" className="mb-2 text-xs sm:text-sm font-mono">
                       <Hash className="w-3 h-3 mr-1" />
                       {property.ref_id}
                     </Badge>
                   )}
-                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{property.title}</h1>
-                  <div className="flex items-center text-slate-600 text-lg">
-                    <MapPin className="w-5 h-5 mr-2 flex-shrink-0" />
-                    <span>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2 sm:mb-3">{property.title}</h1>
+                  <div className="flex items-start sm:items-center text-slate-600 text-sm sm:text-base md:text-lg">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <span className="leading-snug">
                       {property.address && `${property.address}, `}
                       {property.city}, {property.state}
                       {property.zip_code && ` - ${property.zip_code}`}
@@ -500,25 +501,25 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Price and Type */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-200">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-slate-200">
                   <div>
-                      <div className="text-4xl font-bold text-slate-900">
+                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
                         {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-                        {property.listing_type === 'rent' && <span className="text-lg font-normal text-slate-500">/mês</span>}
+                        {property.listing_type === 'rent' && <span className="text-sm sm:text-base md:text-lg font-normal text-slate-500">/mês</span>}
                       </div>
                       {property.currency && property.currency !== 'EUR' && (() => {
                         const eurValue = convertToEUR(property.price, property.currency);
                         return eurValue ? (
-                          <div className="text-lg text-slate-500 mt-1">
+                          <div className="text-sm sm:text-base md:text-lg text-slate-500 mt-1">
                             ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
                           </div>
                         ) : null;
                       })()}
-                    <div className="flex gap-2 mt-2">
-                      <Badge className="bg-slate-900 text-white">
+                    <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
+                      <Badge className="bg-slate-900 text-white text-xs sm:text-sm">
                         {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
                       </Badge>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-xs sm:text-sm">
                         <Home className="w-3 h-3 mr-1" />
                         {propertyTypeLabels[property.property_type] || property.property_type}
                       </Badge>
@@ -527,36 +528,36 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Key Features Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-b border-slate-200">
-                  <div className="text-center p-4 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm">
-                      <Bed className="w-5 h-5 text-slate-700" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 py-4 sm:py-6 border-b border-slate-200">
+                  <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
+                      <Bed className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">{property.bedrooms || 0}</div>
-                    <div className="text-sm text-slate-600">Quartos</div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.bedrooms || 0}</div>
+                    <div className="text-xs sm:text-sm text-slate-600">Quartos</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm">
-                      <Bath className="w-5 h-5 text-slate-700" />
+                  <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
+                      <Bath className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">{property.bathrooms || 0}</div>
-                    <div className="text-sm text-slate-600">WCs</div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.bathrooms || 0}</div>
+                    <div className="text-xs sm:text-sm text-slate-600">WCs</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm">
-                      <Maximize className="w-5 h-5 text-slate-700" />
+                  <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
+                      <Maximize className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">
                       {property.useful_area || property.square_feet || 0}
                     </div>
-                    <div className="text-sm text-slate-600">m² úteis</div>
+                    <div className="text-xs sm:text-sm text-slate-600">m² úteis</div>
                   </div>
-                  <div className="text-center p-4 bg-slate-50 rounded-xl">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm">
-                      <Calendar className="w-5 h-5 text-slate-700" />
+                  <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
-                    <div className="text-2xl font-bold text-slate-900">{property.year_built || 'N/A'}</div>
-                    <div className="text-sm text-slate-600">Ano</div>
+                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.year_built || 'N/A'}</div>
+                    <div className="text-xs sm:text-sm text-slate-600">Ano</div>
                   </div>
                 </div>
 
@@ -837,9 +838,9 @@ export default function PropertyDetails() {
           </div>
 
           {/* Sidebar - Right Column */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Agent Card */}
-            <Card className="sticky top-24">
+            <Card className="lg:sticky lg:top-24">
               <CardHeader className="pb-4">
                 <CardTitle className="text-lg">Agente Responsável</CardTitle>
               </CardHeader>
@@ -980,38 +981,40 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Contact Form */}
-                <div className="mt-6 pt-6 border-t">
-                  <h4 className="font-semibold text-slate-900 mb-4">Contactar sobre este imóvel</h4>
-                  
+                <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
+                  <h4 className="font-semibold text-sm sm:text-base text-slate-900 mb-3 sm:mb-4">Contactar sobre este imóvel</h4>
+
                   {messageSent ? (
-                    <div className="text-center py-8 bg-green-50 rounded-lg border-2 border-green-200">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Check className="w-8 h-8 text-green-600" />
+                    <div className="text-center py-6 sm:py-8 bg-green-50 rounded-lg border-2 border-green-200">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                        <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                       </div>
-                      <h5 className="text-lg font-semibold text-green-900 mb-1">Mensagem Enviada!</h5>
-                      <p className="text-sm text-green-700">Entraremos em contacto brevemente.</p>
+                      <h5 className="text-base sm:text-lg font-semibold text-green-900 mb-1">Mensagem Enviada!</h5>
+                      <p className="text-xs sm:text-sm text-green-700 px-4">Entraremos em contacto brevemente.</p>
                       <Button 
                         variant="outline" 
-                        className="mt-4"
+                        size="sm"
+                        className="mt-3 sm:mt-4"
                         onClick={() => setMessageSent(false)}
                       >
                         Enviar outra mensagem
                       </Button>
                     </div>
                   ) : (
-                    <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <form onSubmit={handleContactSubmit} className="space-y-3 sm:space-y-4">
                       <div>
-                        <Label htmlFor="name">Nome *</Label>
+                        <Label htmlFor="name" className="text-xs sm:text-sm">Nome *</Label>
                         <Input
                           id="name"
                           required
                           value={contactForm.name}
                           onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
                           placeholder="O seu nome"
+                          className="h-9 sm:h-10 text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="email">Email *</Label>
+                        <Label htmlFor="email" className="text-xs sm:text-sm">Email *</Label>
                         <Input
                           id="email"
                           type="email"
@@ -1019,19 +1022,21 @@ export default function PropertyDetails() {
                           value={contactForm.email}
                           onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
                           placeholder="email@exemplo.com"
+                          className="h-9 sm:h-10 text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="phone">Telefone</Label>
+                        <Label htmlFor="phone" className="text-xs sm:text-sm">Telefone</Label>
                         <Input
                           id="phone"
                           value={contactForm.phone}
                           onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
                           placeholder="+351 912 345 678"
+                          className="h-9 sm:h-10 text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="message">Mensagem *</Label>
+                        <Label htmlFor="message" className="text-xs sm:text-sm">Mensagem *</Label>
                         <Textarea
                           id="message"
                           required
@@ -1039,11 +1044,12 @@ export default function PropertyDetails() {
                           onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
                           placeholder={`Olá, tenho interesse no imóvel "${property.title}". Gostaria de obter mais informações...`}
                           rows={4}
+                          className="text-sm resize-none"
                         />
                       </div>
                       <Button 
                         type="submit" 
-                        className="w-full bg-slate-900 hover:bg-slate-800"
+                        className="w-full bg-slate-900 hover:bg-slate-800 h-10 sm:h-11 text-sm sm:text-base"
                         disabled={sendingMessage}
                       >
                         {sendingMessage ? (
