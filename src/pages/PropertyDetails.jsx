@@ -34,6 +34,7 @@ import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import PublicationStatus from "../components/property/PublicationStatus";
 import PropertyQualityScore from "../components/property/PropertyQualityScore";
 import AIPricingAnalysis from "../components/property/AIPricingAnalysis";
+import PremiumAnalytics from "../components/subscription/PremiumAnalytics";
 
 export default function PropertyDetails() {
   // Auth check for admin features only - page is public
@@ -774,6 +775,7 @@ export default function PropertyDetails() {
               <>
                 <PropertyQualityScore property={property} />
                 <AIPricingAnalysis property={property} />
+                <PremiumAnalytics propertyId={property.id} />
               </>
             )}
 
