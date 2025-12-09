@@ -1279,12 +1279,9 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
   // Track engagement
   const { trackAction } = usePropertyEngagement(property.id, property.title);
 
-  // URL SEO-friendly
-  const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
-  
   return (
     <Link 
-      to={seoUrl}
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
       onClick={() => trackAction('clicked', { source: 'website_grid' })}
     >
@@ -1401,12 +1398,11 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
 const PropertyCardList = React.memo(({ property, index }) => {
   const image = property.images?.[0];
   const { trackAction } = usePropertyEngagement(property.id, property.title);
-  const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
   const { t } = useLocalization();
 
   return (
     <Link 
-      to={seoUrl}
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
       onClick={() => trackAction('clicked', { source: 'website_list' })}
     >

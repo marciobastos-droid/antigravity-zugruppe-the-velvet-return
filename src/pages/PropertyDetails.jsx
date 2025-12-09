@@ -308,8 +308,14 @@ export default function PropertyDetails() {
       updatePropertyMutation.mutate({ visibility });
     };
 
-  // SEO: Keep clean PropertyDetails URL without changing it
-  // The SEO URLs are only for sharing and external links
+  // Generate SEO-friendly URL for meta tags and sharing (not for internal navigation)
+  const seoCanonicalUrl = React.useMemo(() => {
+    if (property && typeof window !== 'undefined') {
+      const baseUrl = window.location.origin;
+      return `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
+    }
+    return typeof window !== 'undefined' ? window.location.href : '';
+  }, [property]);
 
   const energyCertificateColors = {
     'A+': 'bg-green-600 text-white',
@@ -368,7 +374,7 @@ export default function PropertyDetails() {
         description={metaDescription}
         keywords={metaKeywords}
         image={propertyImage}
-        url={typeof window !== 'undefined' ? window.location.href : undefined}
+        url={seoCanonicalUrl}
         structuredData={structuredData}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
