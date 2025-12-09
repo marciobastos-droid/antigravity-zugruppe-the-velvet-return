@@ -907,8 +907,14 @@ export default function Website() {
         </div>
       </div>
 
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup />
+
+      {/* AI Chat Widget */}
+      <AIChatWidget />
+
       {/* Featured Properties */}
-      {featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && activeTab === "all" && (
+      {layout.showFeatured && featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-amber-100 rounded-lg">
