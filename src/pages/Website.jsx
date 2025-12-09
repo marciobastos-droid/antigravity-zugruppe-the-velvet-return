@@ -30,6 +30,7 @@ import AIChatWidget from "../components/website/AIChatWidget";
 import { useABTesting } from "../components/website/ABTestingController";
 import { HelmetProvider } from "react-helmet-async";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
+import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
 
 export default function Website() {
   const { data: properties = [], isLoading } = useQuery({
@@ -1267,9 +1268,6 @@ export default function Website() {
       </HelmetProvider>
     );
   }
-
-// Import SEO helper at top
-import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
 
 // Compact Card for Grid View - Memoized
 const PropertyCardCompact = React.memo(({ property, featured, index }) => {
