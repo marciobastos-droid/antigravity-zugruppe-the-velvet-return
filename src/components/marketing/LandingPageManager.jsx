@@ -162,16 +162,15 @@ export default function LandingPageManager() {
                   </div>
 
                   <div className="flex items-center gap-2 ml-4">
-                    {page.status === 'published' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(`/lp/${page.slug}`, '_blank')}
-                      >
-                        <ExternalLink className="w-4 h-4 mr-1" />
-                        Ver
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(`/lp/${page.slug}?preview=true`, '_blank')}
+                      title={page.status === 'draft' ? 'Pré-visualizar' : 'Ver página'}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      {page.status === 'draft' ? 'Preview' : 'Ver'}
+                    </Button>
                     
                     <Button
                       variant="outline"
