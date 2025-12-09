@@ -17,7 +17,6 @@ import TeamManagement from './pages/TeamManagement';
 import Franchising from './pages/Franchising';
 import GmailCallback from './pages/GmailCallback';
 import PrivacyPolicy from './pages/PrivacyPolicy';
-import ZuGruppe from './pages/ZuGruppe';
 import DenunciationChannel from './pages/DenunciationChannel';
 import TermsConditions from './pages/TermsConditions';
 import CookiePolicy from './pages/CookiePolicy';
@@ -25,6 +24,7 @@ import ManageData from './pages/ManageData';
 import ZuHaus from './pages/ZuHaus';
 import ZuHandel from './pages/ZuHandel';
 import InvestorSection from './pages/InvestorSection';
+import Website from './pages/Website';
 import __Layout from './Layout.jsx';
 
 
@@ -48,7 +48,6 @@ export const PAGES = {
     "Franchising": Franchising,
     "GmailCallback": GmailCallback,
     "PrivacyPolicy": PrivacyPolicy,
-    "ZuGruppe": ZuGruppe,
     "DenunciationChannel": DenunciationChannel,
     "TermsConditions": TermsConditions,
     "CookiePolicy": CookiePolicy,
@@ -56,10 +55,11 @@ export const PAGES = {
     "ZuHaus": ZuHaus,
     "ZuHandel": ZuHandel,
     "InvestorSection": InvestorSection,
+    "Website": Website,
 }
 
 export const pagesConfig = {
-    mainPage: "ZuGruppe",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };

@@ -55,7 +55,7 @@ export default function Layout({ children, currentPageName }) {
   // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
-    { name: "WebSite", path: createPageUrl("ZuGruppe"), icon: Building2, id: "nav-zugruppe", visibility: 'all', pagePermKey: 'browse' },
+    { name: "WebSite", path: createPageUrl("Website"), icon: Building2, id: "nav-website", visibility: 'all', pagePermKey: 'browse' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     

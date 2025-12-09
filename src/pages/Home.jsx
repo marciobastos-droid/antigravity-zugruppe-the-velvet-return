@@ -45,7 +45,7 @@ export default function Home() {
   {
     image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
     title: "WebSite",
-    path: "ZuGruppe"
+    path: "Website"
   },
   {
     image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
