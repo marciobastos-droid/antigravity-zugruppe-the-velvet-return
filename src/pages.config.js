@@ -25,6 +25,7 @@ import ZuHaus from './pages/ZuHaus';
 import ZuHandel from './pages/ZuHandel';
 import InvestorSection from './pages/InvestorSection';
 import Website from './pages/Website';
+import Subscriptions from './pages/Subscriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "ZuHandel": ZuHandel,
     "InvestorSection": InvestorSection,
     "Website": Website,
+    "Subscriptions": Subscriptions,
 }
 
 export const pagesConfig = {
