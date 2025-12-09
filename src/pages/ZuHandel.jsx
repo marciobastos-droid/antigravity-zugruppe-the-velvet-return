@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
+import PropertiesMap from "../components/maps/PropertiesMap";
 
 export default function ZuHandel() {
   const queryClient = useQueryClient();
@@ -261,6 +262,27 @@ export default function ZuHandel() {
                 />
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Map Section */}
+      {filteredProperties.length > 0 && (
+        <div className="py-12 bg-white">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+                Explore no Mapa
+              </h2>
+              <p className="text-slate-600">
+                Visualize todos os espaços comerciais disponíveis geograficamente
+              </p>
+            </div>
+            <PropertiesMap 
+              properties={filteredProperties} 
+              brandColor="#75787b"
+              height="500px"
+            />
           </div>
         </div>
       )}

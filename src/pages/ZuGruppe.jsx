@@ -75,6 +75,7 @@ export default function ZuGruppe() {
   // Debounced state for range inputs
   const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 0]);
   const [debouncedYearBuilt, setDebouncedYearBuilt] = React.useState([0, 0]);
+  const [showMapView, setShowMapView] = React.useState(false);
 
   // Initialize ranges when data loads
   React.useEffect(() => {
@@ -927,7 +928,7 @@ export default function ZuGruppe() {
               <Button 
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setViewMode("grid")}
+                onClick={() => { setViewMode("grid"); setShowMapView(false); }}
                 className="rounded-none"
               >
                 <Grid3X3 className="w-4 h-4" />
@@ -935,14 +936,37 @@ export default function ZuGruppe() {
               <Button 
                 variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
-                onClick={() => setViewMode("list")}
+                onClick={() => { setViewMode("list"); setShowMapView(false); }}
                 className="rounded-none"
               >
                 <List className="w-4 h-4" />
               </Button>
+              <Button 
+                variant={showMapView ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowMapView(!showMapView)}
+                className="rounded-none"
+              >
+                <MapPin className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
+
+        {/* Map View */}
+        {showMapView && paginatedProperties.length > 0 && (
+          <div className="mb-8">
+            <PropertiesMap 
+              properties={sortedProperties} 
+              brandColor={
+                activeTab === "residential" ? "#d22630" : 
+                activeTab === "commercial" ? "#75787b" : 
+                "#3b82f6"
+              }
+              height="600px"
+            />
+          </div>
+        )}
 
         {/* Properties Grid/List */}
         {paginatedProperties.length > 0 ? (
