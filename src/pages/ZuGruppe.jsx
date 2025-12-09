@@ -7,7 +7,7 @@ import {
   Search, Filter, X, Home, Building2, MapPin, 
   Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
   Grid3X3, List, Heart, Phone, Mail, Euro, Calendar,
-  ChevronLeft, ChevronRight, Sparkles, Zap, Car, TreePine, Check
+  ChevronLeft, ChevronRight, Sparkles, Zap, Car, TreePine, Check, Image as ImageIcon
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
