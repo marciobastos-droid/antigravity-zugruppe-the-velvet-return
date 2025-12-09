@@ -51,7 +51,7 @@ export default function ZuGruppe() {
     };
   }, [properties]);
 
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [activeTab, setActiveTab] = React.useState("residential");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [listingType, setListingType] = React.useState("all");
