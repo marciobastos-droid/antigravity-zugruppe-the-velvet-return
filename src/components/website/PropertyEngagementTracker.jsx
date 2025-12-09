@@ -7,27 +7,27 @@ import { base44 } from "@/api/base44Client";
  */
 export function usePropertyEngagement(propertyId, propertyTitle) {
   const startTime = React.useRef(Date.now());
+  const [user, setUser] = React.useState(null);
+  const [isAuthChecked, setIsAuthChecked] = React.useState(false);
   const [tracked, setTracked] = React.useState({
     view: false,
     timeSpent: false
   });
 
-  // Track view on mount
+  // Check auth once on mount
   React.useEffect(() => {
-    if (!propertyId || tracked.view) return;
+    base44.auth.me()
+      .then(u => setUser(u))
+      .catch(() => setUser(null))
+      .finally(() => setIsAuthChecked(true));
+  }, []);
+
+  // Track view on mount (only after auth check)
+  React.useEffect(() => {
+    if (!propertyId || tracked.view || !isAuthChecked || !user?.email) return;
 
     const trackView = async () => {
       try {
-        // Get authenticated user
-        const user = await base44.auth.me().catch(() => null);
-        
-        // Only track if user is authenticated (PropertyInteraction requires profile_id)
-        if (!user?.email) {
-          console.log('[PropertyEngagement] Skipping view tracking - no authenticated user');
-          return;
-        }
-
-        // Create property interaction record
         await base44.entities.PropertyInteraction.create({
           profile_id: user.email,
           property_id: propertyId,
@@ -38,7 +38,6 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
           }
         });
 
-        // Try to sync to CRM (non-blocking)
         syncEngagementToCRM(propertyId, { views: 1 }).catch(e => 
           console.warn('Failed to sync view to CRM:', e)
         );
@@ -50,22 +49,17 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
     };
 
     trackView();
-  }, [propertyId, tracked.view, propertyTitle]);
+  }, [propertyId, tracked.view, propertyTitle, isAuthChecked, user]);
 
   // Track time spent on page
   React.useEffect(() => {
-    if (!propertyId) return;
+    if (!propertyId || !isAuthChecked || !user?.email) return;
 
     const trackTimeSpent = async () => {
       const timeSpent = Math.floor((Date.now() - startTime.current) / 1000);
       
-      // Only track if spent more than 10 seconds
       if (timeSpent > 10 && !tracked.timeSpent) {
         try {
-          const user = await base44.auth.me().catch(() => null);
-          if (!user?.email) return; // Skip if not authenticated
-
-          // Update interaction with time spent
           const interactions = await base44.entities.PropertyInteraction.filter({ 
             profile_id: user.email,
             property_id: propertyId 
@@ -85,26 +79,19 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
       }
     };
 
-    // Track on unmount or after 30 seconds
     const timer = setTimeout(trackTimeSpent, 30000);
     
     return () => {
       clearTimeout(timer);
       trackTimeSpent();
     };
-  }, [propertyId, tracked.timeSpent]);
+  }, [propertyId, tracked.timeSpent, isAuthChecked, user]);
 
   // Track specific actions
   const trackAction = React.useCallback(async (action, metadata = {}) => {
-    if (!propertyId) return;
+    if (!propertyId || !user?.email) return;
 
     try {
-      const user = await base44.auth.me().catch(() => null);
-      if (!user?.email) {
-        console.log('[PropertyEngagement] Skipping action tracking - no authenticated user');
-        return;
-      }
-
       await base44.entities.PropertyInteraction.create({
         profile_id: user.email,
         property_id: propertyId,
@@ -112,7 +99,6 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
         property_features: metadata
       });
 
-      // Sync to CRM
       const engagementUpdate = {};
       if (action === 'shortlisted') engagementUpdate.saves = 1;
       if (action === 'contacted') engagementUpdate.inquiries = 1;
@@ -126,7 +112,7 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
     } catch (error) {
       console.warn('Failed to track action:', error);
     }
-  }, [propertyId]);
+  }, [propertyId, user]);
 
   return { trackAction };
 }
