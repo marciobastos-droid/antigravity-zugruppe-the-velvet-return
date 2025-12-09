@@ -6,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Users, Building2, Mail, Bell, TrendingUp, ArrowRight } from "lucide-react";
+import { Wand2, Users, Building2, Mail, Bell, TrendingUp, ArrowRight } from "lucide-react";
 
 export default function AIMatchingSuggestions({ user }) {
   const [newMatches, setNewMatches] = React.useState([]);
@@ -113,7 +113,7 @@ Equipa Zugruppe`
     return (
       <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
         <CardContent className="p-6 text-center">
-          <Sparkles className="w-8 h-8 text-amber-600 animate-pulse mx-auto" />
+          <Wand2 className="w-8 h-8 text-amber-600 animate-pulse mx-auto" />
           <p className="text-sm text-slate-600 mt-2">A processar matches...</p>
         </CardContent>
       </Card>
@@ -125,7 +125,7 @@ Equipa Zugruppe`
       <Card className="border-slate-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="w-5 h-5 text-amber-600" />
+            <Wand2 className="w-5 h-5 text-amber-600" />
             Sugestões IA
           </CardTitle>
         </CardHeader>
@@ -140,7 +140,7 @@ Equipa Zugruppe`
     <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-amber-600" />
+          <Wand2 className="w-6 h-6 text-amber-600" />
           Sugestões de Matching IA
         </CardTitle>
         <p className="text-sm text-slate-600">
@@ -212,7 +212,7 @@ Equipa Zugruppe`
 
         <Link to={createPageUrl("ClientPreferences")}>
           <Button className="w-full bg-amber-600 hover:bg-amber-700">
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Wand2 className="w-4 h-4 mr-2" />
             Ver Todos os Matches
           </Button>
         </Link>
