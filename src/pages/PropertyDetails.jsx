@@ -230,7 +230,7 @@ export default function PropertyDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">ID do imóvel não especificado</h2>
           <p className="text-slate-600 mb-4">O link está incompleto ou inválido</p>
-          <Link to={createPageUrl("ZuGruppe")}>
+          <Link to={createPageUrl("Website")}>
             <Button>Ver Imóveis</Button>
           </Link>
         </div>
@@ -244,7 +244,7 @@ export default function PropertyDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Imóvel não encontrado</h2>
           <p className="text-slate-600 mb-4">ID: {propertyId}</p>
-          <Link to={createPageUrl("ZuGruppe")}>
+          <Link to={createPageUrl("Website")}>
             <Button>Ver Imóveis</Button>
           </Link>
         </div>
@@ -342,7 +342,7 @@ export default function PropertyDetails() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Link to={createPageUrl("Browse")}>
+          <Link to={createPageUrl("Website")}>
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
