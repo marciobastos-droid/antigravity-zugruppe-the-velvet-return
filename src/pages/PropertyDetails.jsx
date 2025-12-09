@@ -676,7 +676,7 @@ export default function PropertyDetails() {
 
                 {/* Tags */}
                 {property.tags && property.tags.length > 0 && (
-                  <div className="py-6 border-b border-slate-200">
+                  <div className="py-6">
                     <h3 className="text-lg font-semibold text-slate-900 mb-3">Tags</h3>
                     <div className="flex flex-wrap gap-2">
                       {property.tags.map((tag, idx) => (
@@ -687,30 +687,8 @@ export default function PropertyDetails() {
                     </div>
                   </div>
                 )}
-
-                {/* External Links - Only for owners */}
-                {isOwner && (property.external_id || property.source_url) && (
-                  <div className="pt-6">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {property.external_id && (
-                        <Badge variant="secondary" className="text-sm">
-                          <Hash className="w-3 h-3 mr-1" />
-                          ID Externo: {property.external_id}
-                        </Badge>
-                      )}
-                      {property.source_url && (
-                        <a href={property.source_url} target="_blank" rel="noopener noreferrer">
-                          <Badge variant="secondary" className="text-sm hover:bg-blue-100 cursor-pointer">
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Ver Anúncio Original
-                          </Badge>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+                </Card>
 
             {/* Map */}
             {property.city && (() => {
