@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
+import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -138,6 +139,7 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              <LanguageCurrencySelector variant="compact" />
               {user && <NotificationBell user={user} />}
               {user ? (
                 <div className="hidden lg:flex items-center gap-3">
