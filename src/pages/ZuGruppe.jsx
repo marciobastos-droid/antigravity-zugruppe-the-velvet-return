@@ -22,6 +22,7 @@ import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import PropertiesMap from "../components/maps/PropertiesMap";
+import LazyImage from "../components/common/LazyImage";
 
 export default function ZuGruppe() {
   const { data: properties = [], isLoading } = useQuery({
@@ -1145,9 +1146,8 @@ export default function ZuGruppe() {
           );
           }
 
-// Compact Card for Grid View
-function PropertyCardCompact({ property, featured }) {
-  const [imgError, setImgError] = React.useState(false);
+// Compact Card for Grid View - Memoized
+const PropertyCardCompact = React.memo(({ property, featured }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
 
@@ -1163,12 +1163,11 @@ function PropertyCardCompact({ property, featured }) {
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {!imgError && images[imgIndex] ? (
-          <img
+        {images[imgIndex] ? (
+          <LazyImage
             src={images[imgIndex]}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
@@ -1269,9 +1268,8 @@ function PropertyCardCompact({ property, featured }) {
   );
 }
 
-// List Card for List View
-function PropertyCardList({ property }) {
-  const [imgError, setImgError] = React.useState(false);
+// List Card for List View - Memoized
+const PropertyCardList = React.memo(({ property }) => {
   const image = property.images?.[0];
 
   const propertyTypeLabels = {
@@ -1286,12 +1284,11 @@ function PropertyCardList({ property }) {
     >
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
-        {!imgError && image ? (
-          <img
+        {image ? (
+          <LazyImage
             src={image}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            onError={() => setImgError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

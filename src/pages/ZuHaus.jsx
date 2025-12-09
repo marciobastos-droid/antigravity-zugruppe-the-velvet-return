@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import PropertiesMap from "../components/maps/PropertiesMap";
+import LazyImage from "../components/common/LazyImage";
 
 export default function ZuHaus() {
   const queryClient = useQueryClient();
@@ -392,8 +393,7 @@ export default function ZuHaus() {
   );
 }
 
-function PropertyCardEnhanced({ property, onContact }) {
-  const [imgError, setImgError] = React.useState(false);
+const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
 
@@ -410,12 +410,11 @@ function PropertyCardEnhanced({ property, onContact }) {
       <div className="relative">
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
           <div className="relative h-56 overflow-hidden bg-slate-100">
-            {!imgError && images[imgIndex] ? (
-              <img
+            {images[imgIndex] ? (
+              <LazyImage
                 src={images[imgIndex]}
                 alt={property.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                onError={() => setImgError(true)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
