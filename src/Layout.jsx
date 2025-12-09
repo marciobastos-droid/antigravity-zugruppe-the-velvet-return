@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
+import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -94,8 +95,9 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Toaster position="top-right" richColors />
+    <LocalizationProvider>
+      <div className="min-h-screen bg-slate-50">
+        <Toaster position="top-right" richColors />
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -349,6 +351,7 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
+      </div>
+      </LocalizationProvider>
+      );
+      }
