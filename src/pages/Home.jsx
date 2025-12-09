@@ -19,7 +19,13 @@ export default function Home() {
 
   const { data: user } = useQuery({
     queryKey: ['user'],
-    queryFn: () => base44.auth.me()
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch {
+        return null;
+      }
+    }
   });
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
@@ -56,7 +62,13 @@ export default function Home() {
   // Marcas da empresa - carregadas da base de dados
   const { data: brandItems = [], refetch: refetchBrands } = useQuery({
     queryKey: ['brandItems'],
-    queryFn: () => base44.entities.BrandItem.list('order')
+    queryFn: async () => {
+      try {
+        return await base44.entities.BrandItem.list('order');
+      } catch {
+        return [];
+      }
+    }
   });
 
   const handleEditBrand = (brand) => {
