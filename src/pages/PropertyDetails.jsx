@@ -36,6 +36,12 @@ import PropertyQualityScore from "../components/property/PropertyQualityScore";
 import AIPricingAnalysis from "../components/property/AIPricingAnalysis";
 import PremiumAnalytics from "../components/subscription/PremiumAnalytics";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
+import { 
+  generatePropertyMetaDescription, 
+  generatePropertyKeywords, 
+  generatePropertyStructuredData,
+  generatePropertySEOUrl 
+} from "../components/utils/seoHelpers";
 
 export default function PropertyDetails() {
   // Auth check for admin features only - page is public
@@ -299,6 +305,18 @@ export default function PropertyDetails() {
       updatePropertyMutation.mutate({ visibility });
     };
 
+  // SEO: Atualizar URL para formato amigável (sem recarregar página)
+  React.useEffect(() => {
+    if (property && typeof window !== 'undefined') {
+      const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
+      const currentPath = window.location.pathname + window.location.search;
+
+      if (currentPath !== seoUrl && !currentPath.includes('/imoveis/')) {
+        window.history.replaceState({}, '', seoUrl);
+      }
+    }
+  }, [property]);
+
   const energyCertificateColors = {
     'A+': 'bg-green-600 text-white',
     'A': 'bg-green-500 text-white',
@@ -342,18 +360,23 @@ export default function PropertyDetails() {
     pending_validation: "bg-orange-100 text-orange-800 border-orange-300"
   };
 
-  const seoKeywords = [
-    propertyTypeLabels[property.property_type] || property.property_type,
-    property.city,
-    property.state,
-    property.listing_type === 'sale' ? 'Venda' : 'Arrendamento',
-    'Imóvel',
-    property.bedrooms ? `T${property.bedrooms}` : '',
-    'Portugal'
-  ].filter(Boolean).join(', ');
+  // SEO Meta Tags
+  const metaTitle = `${property.title} | ${property.city} | Zugruppe`;
+  const metaDescription = generatePropertyMetaDescription(property);
+  const metaKeywords = generatePropertyKeywords(property);
+  const propertyImage = images[0];
+  const structuredData = generatePropertyStructuredData(property, propertyImage);
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEOHead
+        title={metaTitle}
+        description={metaDescription}
+        keywords={metaKeywords}
+        image={propertyImage}
+        url={typeof window !== 'undefined' ? window.location.href : undefined}
+        structuredData={structuredData}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

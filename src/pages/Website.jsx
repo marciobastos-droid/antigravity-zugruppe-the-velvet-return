@@ -392,25 +392,81 @@ export default function Website() {
     );
   }
 
-  const pageTitles = {
-    all: "Todos os Imóveis - Apartamentos, Moradias e Espaços Comerciais",
-    residential: "Imóveis Residenciais - Apartamentos e Moradias de Qualidade",
-    commercial: "Espaços Comerciais - Lojas, Escritórios e Armazéns"
+  // SEO dinâmico baseado em filtros ativos
+  const generateDynamicSEO = () => {
+    const baseTitles = {
+      all: "Imóveis",
+      residential: "Imóveis Residenciais",
+      commercial: "Espaços Comerciais"
+    };
+
+    const parts = [baseTitles[activeTab]];
+    const keywordParts = [];
+
+    // Tipo de imóvel
+    if (propertyType !== "all") {
+      const typeLabel = propertyTypeLabels[propertyType];
+      parts.push(typeLabel);
+      keywordParts.push(typeLabel.toLowerCase());
+    }
+
+    // Tipologia
+    if (bedrooms !== "all") {
+      const bedroomLabel = `T${bedrooms}`;
+      parts.push(bedroomLabel);
+      keywordParts.push(bedroomLabel.toLowerCase());
+    }
+
+    // Localização
+    if (city !== "all") {
+      parts.push(city);
+      keywordParts.push(city.toLowerCase());
+    } else if (district !== "all") {
+      parts.push(district);
+      keywordParts.push(district.toLowerCase());
+    }
+
+    // Tipo de negócio
+    if (listingType !== "all") {
+      const typeLabel = listingType === "sale" ? "Venda" : "Arrendamento";
+      parts.push(`para ${typeLabel}`);
+      keywordParts.push(typeLabel.toLowerCase());
+    }
+
+    // Preço
+    if (priceMax) {
+      parts.push(`até €${Number(priceMax).toLocaleString()}`);
+    }
+
+    const title = parts.join(" | ") + " | Zugruppe";
+
+    // Descrição dinâmica
+    let description = `${filteredProperties.length} ${parts.join(" ")}`;
+    if (filteredProperties.length === 0) {
+      description = `Procura por ${parts.join(" ").toLowerCase()}. Explore outras opções disponíveis.`;
+    } else {
+      description += ` disponíveis. Explore imóveis de qualidade com fotos, características e localização.`;
+    }
+
+    // Keywords
+    const baseKeywords = ["imóveis", "portugal", "zugruppe"];
+    if (activeTab === "residential") baseKeywords.push("apartamentos", "moradias", "casas");
+    if (activeTab === "commercial") baseKeywords.push("lojas", "escritórios", "armazéns");
+
+    const keywords = [...baseKeywords, ...keywordParts].join(", ");
+
+    return { title, description, keywords };
   };
 
-  const pageDescriptions = {
-    all: "Explore o nosso portfólio completo de imóveis premium em Portugal e no mundo. Apartamentos, moradias, terrenos e espaços comerciais cuidadosamente selecionados.",
-    residential: "Descubra apartamentos e moradias de excelência. Imóveis residenciais cuidadosamente selecionados para você e sua família em Portugal.",
-    commercial: "Encontre o espaço comercial ideal para o seu negócio. Lojas, escritórios, armazéns e prédios nas melhores localizações."
-  };
+  const dynamicSEO = generateDynamicSEO();
 
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
         <SEOHead
-          title={pageTitles[activeTab]}
-          description={pageDescriptions[activeTab]}
-          keywords="imóveis, Portugal, apartamentos, moradias, casas, venda, arrendamento, imobiliário, propriedades"
+          title={dynamicSEO.title}
+          description={dynamicSEO.description}
+          keywords={dynamicSEO.keywords}
         />
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
@@ -1212,6 +1268,9 @@ export default function Website() {
     );
   }
 
+// Import SEO helper at top
+import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
+
 // Compact Card for Grid View - Memoized
 const PropertyCardCompact = React.memo(({ property, featured, index }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
@@ -1225,9 +1284,12 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
     building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
   };
 
+  // URL SEO-friendly
+  const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
+  
   return (
     <Link 
-      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      to={seoUrl}
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
       onClick={() => trackAction('clicked', { source: 'website_grid' })}
     >
@@ -1344,6 +1406,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
 const PropertyCardList = React.memo(({ property, index }) => {
   const image = property.images?.[0];
   const { trackAction } = usePropertyEngagement(property.id, property.title);
+  const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
 
   const propertyTypeLabels = {
     apartment: "Apartamento", house: "Moradia", land: "Terreno",
@@ -1352,7 +1415,7 @@ const PropertyCardList = React.memo(({ property, index }) => {
 
   return (
     <Link 
-      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      to={seoUrl}
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
       onClick={() => trackAction('clicked', { source: 'website_list' })}
     >
