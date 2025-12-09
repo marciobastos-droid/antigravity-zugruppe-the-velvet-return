@@ -18,8 +18,18 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
 
     const trackView = async () => {
       try {
+        // Get authenticated user
+        const user = await base44.auth.me().catch(() => null);
+        
+        // Only track if user is authenticated (PropertyInteraction requires profile_id)
+        if (!user?.email) {
+          console.log('[PropertyEngagement] Skipping view tracking - no authenticated user');
+          return;
+        }
+
         // Create property interaction record
         await base44.entities.PropertyInteraction.create({
+          profile_id: user.email,
           property_id: propertyId,
           interaction_type: 'viewed',
           time_spent_seconds: 0,
@@ -52,8 +62,12 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
       // Only track if spent more than 10 seconds
       if (timeSpent > 10 && !tracked.timeSpent) {
         try {
+          const user = await base44.auth.me().catch(() => null);
+          if (!user?.email) return; // Skip if not authenticated
+
           // Update interaction with time spent
           const interactions = await base44.entities.PropertyInteraction.filter({ 
+            profile_id: user.email,
             property_id: propertyId 
           });
           
@@ -85,7 +99,14 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
     if (!propertyId) return;
 
     try {
+      const user = await base44.auth.me().catch(() => null);
+      if (!user?.email) {
+        console.log('[PropertyEngagement] Skipping action tracking - no authenticated user');
+        return;
+      }
+
       await base44.entities.PropertyInteraction.create({
+        profile_id: user.email,
         property_id: propertyId,
         interaction_type: action,
         property_features: metadata
