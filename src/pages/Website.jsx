@@ -465,6 +465,19 @@ export default function Website() {
 
   const dynamicSEO = generateDynamicSEO();
 
+  // Generate alternate language URLs
+  const currentURL = typeof window !== 'undefined' ? window.location.href : '';
+  const baseURL = currentURL.split('?')[0];
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const alternateLanguages = ['pt', 'en', 'es', 'fr'].map(lang => {
+    const params = new URLSearchParams(searchParams);
+    params.set('lang', lang);
+    return {
+      locale: lang === 'pt' ? 'pt-PT' : lang === 'en' ? 'en-US' : lang === 'es' ? 'es-ES' : 'fr-FR',
+      url: `${baseURL}?${params.toString()}`
+    };
+  });
+
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
@@ -472,6 +485,19 @@ export default function Website() {
           title={dynamicSEO.title}
           description={dynamicSEO.description}
           keywords={dynamicSEO.keywords}
+          type="website"
+          structuredData={{
+            "@context": "https://schema.org",
+            "@type": "RealEstateAgent",
+            "name": "Zugruppe",
+            "description": dynamicSEO.description,
+            "url": "https://zugruppe.base44.app",
+            "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+            "areaServed": "Portugal",
+            "knowsAbout": ["Residential Real Estate", "Commercial Real Estate", "Property Management"],
+            "numberOfItems": filteredProperties.length
+          }}
+          alternateLanguages={alternateLanguages}
         />
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${

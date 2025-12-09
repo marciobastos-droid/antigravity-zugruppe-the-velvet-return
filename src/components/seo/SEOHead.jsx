@@ -13,7 +13,8 @@ export default function SEOHead({
   availability = "in stock",
   propertyType,
   location,
-  structuredData
+  structuredData,
+  alternateLanguages = []
 }) {
   const siteName = "Zugruppe";
   const defaultTitle = "Zugruppe - Imóveis Premium em Portugal e no Mundo";
@@ -78,15 +79,29 @@ export default function SEOHead({
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={metaDescription} />
       <meta property="og:image" content={metaImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content={title || defaultTitle} />
       <meta property="og:url" content={canonical} />
       <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content="pt_PT" />
+      <meta property="og:locale:alternate" content="en_US" />
+      <meta property="og:locale:alternate" content="es_ES" />
+      <meta property="og:locale:alternate" content="fr_FR" />
 
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
       <meta name="twitter:image" content={metaImage} />
+
+      {/* Hreflang Tags for Multilingual Support */}
+      {alternateLanguages.length > 0 && alternateLanguages.map((lang) => (
+        <link key={lang.locale} rel="alternate" hrefLang={lang.locale} href={lang.url} />
+      ))}
+      {alternateLanguages.length > 0 && (
+        <link rel="alternate" hrefLang="x-default" href={canonical} />
+      )}
 
       {/* Structured Data */}
       {autoStructuredData && (
@@ -100,6 +115,16 @@ export default function SEOHead({
       <meta name="googlebot" content="index, follow" />
       <meta httpEquiv="x-ua-compatible" content="ie=edge" />
       <meta name="format-detection" content="telephone=no" />
+      
+      {/* Additional SEO Enhancements */}
+      <meta name="author" content={siteName} />
+      <meta name="publisher" content={siteName} />
+      {location && (
+        <>
+          <meta name="geo.region" content={location.country === "Portugal" ? "PT" : location.country} />
+          <meta name="geo.placename" content={location.city} />
+        </>
+      )}
     </Helmet>
   );
 }

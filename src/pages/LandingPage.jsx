@@ -135,8 +135,40 @@ export default function LandingPage() {
       
       <SEOHead
         title={page.seo?.meta_title || page.title}
-        description={page.seo?.meta_description || hero.subheadline}
+        description={page.seo?.meta_description || hero.subheadline || `${page.title} - Descubra esta oportunidade única com a Zugruppe`}
+        keywords={`${page.title}, imóveis, portugal, ${page.campaign_name || ''}, landing page`}
         image={page.seo?.og_image || hero.background_image}
+        url={typeof window !== 'undefined' ? window.location.href.split('?')[0] : undefined}
+        type="website"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": page.title,
+          "description": page.seo?.meta_description || hero.subheadline,
+          "url": typeof window !== 'undefined' ? window.location.href.split('?')[0] : undefined,
+          "publisher": {
+            "@type": "Organization",
+            "name": "Zugruppe",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+            }
+          },
+          "primaryImageOfPage": {
+            "@type": "ImageObject",
+            "url": page.seo?.og_image || hero.background_image,
+            "width": 1200,
+            "height": 630
+          },
+          "datePublished": page.published_at,
+          "dateModified": page.updated_date
+        }}
+        alternateLanguages={[
+          { locale: 'pt-PT', url: `${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}?lang=pt` },
+          { locale: 'en-US', url: `${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}?lang=en` },
+          { locale: 'es-ES', url: `${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}?lang=es` },
+          { locale: 'fr-FR', url: `${typeof window !== 'undefined' ? window.location.href.split('?')[0] : ''}?lang=fr` }
+        ]}
       />
 
       <style>{`

@@ -395,6 +395,14 @@ export default function PropertyDetails() {
   const propertyImage = images[0];
   const structuredData = generatePropertyStructuredData(property, propertyImage);
 
+  // Multilingual alternate URLs
+  const alternateLanguages = [
+    { locale: 'pt-PT', url: `${seoCanonicalUrl}&lang=pt` },
+    { locale: 'en-US', url: `${seoCanonicalUrl}&lang=en` },
+    { locale: 'es-ES', url: `${seoCanonicalUrl}&lang=es` },
+    { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50">
       <SEOHead
@@ -403,7 +411,18 @@ export default function PropertyDetails() {
         keywords={metaKeywords}
         image={propertyImage}
         url={seoCanonicalUrl}
+        type="product"
+        price={property.price}
+        currency={property.currency || "EUR"}
+        availability={property.availability_status === "available" ? "in stock" : "out of stock"}
+        propertyType={property.property_type}
+        location={{
+          city: property.city,
+          state: property.state,
+          country: property.country || "Portugal"
+        }}
         structuredData={structuredData}
+        alternateLanguages={alternateLanguages}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
