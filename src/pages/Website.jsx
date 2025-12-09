@@ -29,6 +29,7 @@ import ExitIntentPopup from "../components/website/ExitIntentPopup";
 import AIChatWidget from "../components/website/AIChatWidget";
 import { useABTesting } from "../components/website/ABTestingController";
 import { HelmetProvider } from "react-helmet-async";
+import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
 
 export default function Website() {
   const { data: properties = [], isLoading } = useQuery({
@@ -928,8 +929,8 @@ export default function Website() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredProperties.map(property => (
-              <PropertyCardCompact key={property.id} property={property} featured />
+            {featuredProperties.map((property, index) => (
+              <PropertyCardCompact key={property.id} property={property} featured index={index} />
             ))}
           </div>
         </div>
@@ -1018,10 +1019,10 @@ export default function Website() {
               ? `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${layout.gridColumns === 4 ? 'xl:grid-cols-4' : ''} gap-5`
               : "space-y-4"
             }>
-              {paginatedProperties.map(property => (
+              {paginatedProperties.map((property, index) => (
                 viewMode === "grid" 
-                  ? <PropertyCardCompact key={property.id} property={property} />
-                  : <PropertyCardList key={property.id} property={property} />
+                  ? <PropertyCardCompact key={property.id} property={property} index={index} />
+                  : <PropertyCardList key={property.id} property={property} index={index} />
               ))}
             </div>
 
@@ -1202,9 +1203,12 @@ export default function Website() {
   }
 
 // Compact Card for Grid View - Memoized
-const PropertyCardCompact = React.memo(({ property, featured }) => {
+const PropertyCardCompact = React.memo(({ property, featured, index }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
+  
+  // Track engagement
+  const { trackAction } = usePropertyEngagement(property.id, property.title);
 
   const propertyTypeLabels = {
     apartment: "Apartamento", house: "Moradia", land: "Terreno",
@@ -1215,6 +1219,7 @@ const PropertyCardCompact = React.memo(({ property, featured }) => {
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
+      onClick={() => trackAction('clicked', { source: 'website_grid' })}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
@@ -1223,7 +1228,7 @@ const PropertyCardCompact = React.memo(({ property, featured }) => {
             src={images[imgIndex]}
             alt={property.title}
             className="w-full h-full"
-            priority={imgIndex === 0}
+            priority={index < 4}
             fallbackIcon={Home}
           />
         ) : (
@@ -1326,8 +1331,9 @@ const PropertyCardCompact = React.memo(({ property, featured }) => {
 });
 
 // List Card for List View - Memoized
-const PropertyCardList = React.memo(({ property }) => {
+const PropertyCardList = React.memo(({ property, index }) => {
   const image = property.images?.[0];
+  const { trackAction } = usePropertyEngagement(property.id, property.title);
 
   const propertyTypeLabels = {
     apartment: "Apartamento", house: "Moradia", land: "Terreno",
@@ -1338,6 +1344,7 @@ const PropertyCardList = React.memo(({ property }) => {
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
+      onClick={() => trackAction('clicked', { source: 'website_list' })}
     >
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
@@ -1346,6 +1353,7 @@ const PropertyCardList = React.memo(({ property }) => {
             src={image}
             alt={property.title}
             className="w-full h-full"
+            priority={index < 3}
             fallbackIcon={Home}
           />
         ) : (

@@ -35,6 +35,7 @@ import PublicationStatus from "../components/property/PublicationStatus";
 import PropertyQualityScore from "../components/property/PropertyQualityScore";
 import AIPricingAnalysis from "../components/property/AIPricingAnalysis";
 import PremiumAnalytics from "../components/subscription/PremiumAnalytics";
+import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
 
 export default function PropertyDetails() {
   // Auth check for admin features only - page is public
@@ -143,6 +144,9 @@ export default function PropertyDetails() {
   const queryClient = useQueryClient();
 
   const isSaved = savedProperties.some(sp => sp.property_id === propertyId);
+  
+  // Track engagement
+  const { trackAction } = usePropertyEngagement(propertyId, property?.title);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -156,6 +160,8 @@ export default function PropertyDetails() {
           property_image: property.images?.[0],
           user_email: user.email
         });
+        // Track save action
+        trackAction('shortlisted', { user_email: user.email });
       }
     },
     onSuccess: () => {
@@ -196,6 +202,12 @@ export default function PropertyDetails() {
       setMessageSent(true);
       toast.success("Mensagem enviada com sucesso!");
       setContactForm({ name: '', email: '', phone: '', message: '' });
+      
+      // Track contact action
+      trackAction('contacted', { 
+        contact_name: contactForm.name,
+        contact_email: contactForm.email 
+      });
     } catch (error) {
       console.error('[PropertyDetails] Error sending message:', error);
       toast.error("Erro ao enviar mensagem");

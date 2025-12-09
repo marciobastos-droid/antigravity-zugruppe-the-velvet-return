@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, Trash2, Edit, RefreshCw, CheckCircle, XCircle, Activity, Settings, AlertCircle } from "lucide-react";
 import moment from "moment";
+import CRMSyncDashboard from "../crm/CRMSyncDashboard";
 
 export default function CRMIntegrations() {
   const queryClient = useQueryClient();
@@ -218,11 +219,16 @@ export default function CRMIntegrations() {
         </Button>
       </div>
 
-      <Tabs defaultValue="integrations">
+      <Tabs defaultValue="sync">
         <TabsList>
+          <TabsTrigger value="sync">Dashboard de Sincronização</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="logs">Logs de Sincronização</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="sync" className="space-y-4">
+          <CRMSyncDashboard />
+        </TabsContent>
 
         <TabsContent value="integrations" className="space-y-4">
           {integrations.length === 0 ? (
