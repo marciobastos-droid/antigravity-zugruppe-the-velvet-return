@@ -16,11 +16,15 @@ export default function QuickAppointmentButton({ propertyId, opportunityId, vari
 
   const handleSuccess = () => {
     console.log('[QuickAppointmentButton] Appointment created successfully');
-    setAppointmentCreated(true);
+    
+    // Call parent callback first
     if (onSuccess) {
       console.log('[QuickAppointmentButton] Calling onSuccess callback');
       onSuccess();
     }
+    
+    // Then show local confirmation
+    setAppointmentCreated(true);
   };
 
   if (appointmentCreated) {
