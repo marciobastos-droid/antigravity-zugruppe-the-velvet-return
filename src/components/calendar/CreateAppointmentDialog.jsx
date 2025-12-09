@@ -79,10 +79,18 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
       });
     },
     onSuccess: () => {
+      console.log('[CreateAppointmentDialog] Success, calling callback');
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast.success("Visita agendada com sucesso!");
+      
+      // Call onSuccess BEFORE closing dialog
+      if (onSuccess) {
+        console.log('[CreateAppointmentDialog] Executing onSuccess callback');
+        onSuccess();
+      }
+      
+      // Close dialog and reset form
       onOpenChange(false);
-      if (onSuccess) onSuccess();
       setFormData({
         title: "",
         property_id: "",
