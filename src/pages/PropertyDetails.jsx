@@ -318,17 +318,6 @@ export default function PropertyDetails() {
     pending_validation: "bg-orange-100 text-orange-800 border-orange-300"
   };
 
-  const propertyTypeLabels = {
-    apartment: "Apartamento",
-    house: "Moradia",
-    land: "Terreno",
-    building: "Prédio",
-    farm: "Quinta/Herdade",
-    store: "Loja",
-    warehouse: "Armazém",
-    office: "Escritório"
-  };
-
   const seoKeywords = [
     propertyTypeLabels[property.property_type] || property.property_type,
     property.city,
