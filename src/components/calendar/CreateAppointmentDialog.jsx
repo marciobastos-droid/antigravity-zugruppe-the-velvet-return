@@ -83,26 +83,28 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast.success("Visita agendada com sucesso!");
       
-      // Call onSuccess BEFORE closing dialog
+      // Call onSuccess callback FIRST
       if (onSuccess) {
         console.log('[CreateAppointmentDialog] Executing onSuccess callback');
         onSuccess();
       }
       
-      // Close dialog and reset form
-      onOpenChange(false);
-      setFormData({
-        title: "",
-        property_id: "",
-        lead_id: "",
-        client_name: "",
-        client_email: "",
-        client_phone: "",
-        assigned_agent: currentUser?.email || "",
-        appointment_date: "",
-        duration_minutes: 60,
-        notes: ""
-      });
+      // Add small delay before closing to ensure parent state updates
+      setTimeout(() => {
+        onOpenChange(false);
+        setFormData({
+          title: "",
+          property_id: "",
+          lead_id: "",
+          client_name: "",
+          client_email: "",
+          client_phone: "",
+          assigned_agent: currentUser?.email || "",
+          appointment_date: "",
+          duration_minutes: 60,
+          notes: ""
+        });
+      }, 150);
     }
   });
 

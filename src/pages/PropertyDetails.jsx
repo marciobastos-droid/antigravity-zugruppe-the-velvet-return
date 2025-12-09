@@ -199,21 +199,27 @@ export default function PropertyDetails() {
       });
 
       console.log('[PropertyDetails] Message sent successfully, showing confirmation');
-      setMessageSent(true);
       toast.success("Mensagem enviada com sucesso!");
-      setContactForm({ name: '', email: '', phone: '', message: '' });
       
-      // Track contact action
-      trackAction('contacted', { 
-        contact_name: contactForm.name,
-        contact_email: contactForm.email 
-      });
+      // Track contact action (non-blocking)
+      try {
+        trackAction('contacted', { 
+          contact_name: contactForm.name,
+          contact_email: contactForm.email 
+        });
+      } catch (trackError) {
+        console.warn('[PropertyDetails] Tracking failed:', trackError);
+      }
+      
+      // Show confirmation and reset
+      setContactForm({ name: '', email: '', phone: '', message: '' });
+      setSendingMessage(false);
+      setMessageSent(true);
     } catch (error) {
       console.error('[PropertyDetails] Error sending message:', error);
       toast.error("Erro ao enviar mensagem");
+      setSendingMessage(false);
     }
-    
-    setSendingMessage(false);
   };
 
   const navigateGallery = (direction) => {
