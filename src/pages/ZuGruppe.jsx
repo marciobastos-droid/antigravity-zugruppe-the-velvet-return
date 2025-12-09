@@ -1266,7 +1266,7 @@ const PropertyCardCompact = React.memo(({ property, featured }) => {
       </div>
     </Link>
   );
-}
+});
 
 // List Card for List View - Memoized
 const PropertyCardList = React.memo(({ property }) => {
