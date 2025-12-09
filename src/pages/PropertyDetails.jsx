@@ -58,6 +58,13 @@ export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
   
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[PropertyDetails] URL:', window.location.href);
+    console.log('[PropertyDetails] Property ID:', propertyId);
+    console.log('[PropertyDetails] Search params:', urlParams.toString());
+  }, [propertyId]);
+  
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
@@ -74,14 +81,18 @@ export default function PropertyDetails() {
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', propertyId],
     queryFn: async () => {
+      console.log('[PropertyDetails] Fetching property with ID:', propertyId);
       try {
         const properties = await base44.entities.Property.filter({ id: propertyId });
+        console.log('[PropertyDetails] Properties found:', properties?.length);
         if (!properties || properties.length === 0) {
+          console.error('[PropertyDetails] No property found with ID:', propertyId);
           throw new Error('Property not found');
         }
+        console.log('[PropertyDetails] Property loaded:', properties[0].title);
         return properties[0];
       } catch (err) {
-        console.error('[PropertyDetails] Error:', err);
+        console.error('[PropertyDetails] Error fetching property:', err);
         throw err;
       }
     },
@@ -249,7 +260,11 @@ export default function PropertyDetails() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900" />
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4" />
+          <p className="text-slate-600">A carregar imóvel...</p>
+          <p className="text-xs text-slate-400 mt-2">ID: {propertyId}</p>
+        </div>
       </div>
     );
   }
@@ -269,11 +284,18 @@ export default function PropertyDetails() {
   }
 
   if (error || (!isLoading && !property)) {
+    console.error('[PropertyDetails] Render error state:', { error, property, isLoading, propertyId });
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Imóvel não encontrado</h2>
-          <p className="text-slate-600 mb-4">ID: {propertyId}</p>
+          <p className="text-slate-600 mb-2">ID: {propertyId}</p>
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-left">
+              <p className="text-sm font-semibold text-red-900 mb-1">Erro:</p>
+              <p className="text-xs text-red-700 font-mono">{error.message}</p>
+            </div>
+          )}
           <Link to={createPageUrl("Website")}>
             <Button>Ver Imóveis</Button>
           </Link>
