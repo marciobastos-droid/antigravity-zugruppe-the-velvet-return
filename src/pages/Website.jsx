@@ -995,7 +995,7 @@ export default function Website() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {featuredProperties.map((property, index) => (
-              <PropertyCardCompact key={property.id} property={property} featured index={index} />
+              <PropertyCardCompact key={property.id} property={property} featured index={index} t={t} locale={locale} />
             ))}
           </div>
         </div>
@@ -1089,8 +1089,8 @@ export default function Website() {
             }>
               {paginatedProperties.map((property, index) => (
                 viewMode === "grid" 
-                  ? <PropertyCardCompact key={property.id} property={property} index={index} />
-                  : <PropertyCardList key={property.id} property={property} index={index} />
+                  ? <PropertyCardCompact key={property.id} property={property} index={index} t={t} locale={locale} />
+                  : <PropertyCardList key={property.id} property={property} index={index} t={t} locale={locale} />
               ))}
             </div>
 
@@ -1271,10 +1271,9 @@ export default function Website() {
   }
 
 // Compact Card for Grid View - Memoized
-const PropertyCardCompact = React.memo(({ property, featured, index }) => {
+const PropertyCardCompact = React.memo(({ property, featured, index, t, locale }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
-  const { t } = useLocalization();
   
   // Track engagement
   const { trackAction } = usePropertyEngagement(property.id, property.title);
@@ -1395,10 +1394,9 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
 });
 
 // List Card for List View - Memoized
-const PropertyCardList = React.memo(({ property, index }) => {
+const PropertyCardList = React.memo(({ property, index, t, locale }) => {
   const image = property.images?.[0];
   const { trackAction } = usePropertyEngagement(property.id, property.title);
-  const { t } = useLocalization();
 
   return (
     <Link 
