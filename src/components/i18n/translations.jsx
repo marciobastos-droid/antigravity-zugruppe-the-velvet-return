@@ -203,6 +203,39 @@ export const translations = {
       saveProperty: "Guardar",
       savedProperty: "Guardado",
       required: "*"
+    },
+    dashboard: {
+      title: "Painel de Controlo",
+      myProperties: "Os Meus Imóveis",
+      opportunities: "Oportunidades",
+      clients: "Clientes",
+      appointments: "Agendamentos",
+      analytics: "Análises"
+    },
+    forms: {
+      selectOption: "Selecionar...",
+      chooseFile: "Escolher ficheiro",
+      uploadFile: "Carregar ficheiro",
+      processing: "A processar...",
+      uploading: "A carregar...",
+      required: "Obrigatório",
+      optional: "Opcional"
+    },
+    navigation: {
+      home: "Início",
+      properties: "Imóveis",
+      about: "Sobre Nós",
+      contact: "Contacto",
+      login: "Entrar",
+      logout: "Sair",
+      myAccount: "A Minha Conta"
+    },
+    footer: {
+      rights: "Todos os direitos reservados",
+      license: "Licença IMPIC",
+      terms: "Termos e Condições",
+      privacy: "Política de Privacidade",
+      cookies: "Política de Cookies"
     }
   },
   en: {
@@ -250,7 +283,7 @@ export const translations = {
         office: "Office",
         hotel: "Hotel",
         shop: "Shop",
-        all: "All"
+        all: "All Types"
       },
       listing: {
         sale: "Sale",
@@ -409,6 +442,39 @@ export const translations = {
       saveProperty: "Save",
       savedProperty: "Saved",
       required: "*"
+    },
+    dashboard: {
+      title: "Dashboard",
+      myProperties: "My Properties",
+      opportunities: "Opportunities",
+      clients: "Clients",
+      appointments: "Appointments",
+      analytics: "Analytics"
+    },
+    forms: {
+      selectOption: "Select...",
+      chooseFile: "Choose file",
+      uploadFile: "Upload file",
+      processing: "Processing...",
+      uploading: "Uploading...",
+      required: "Required",
+      optional: "Optional"
+    },
+    navigation: {
+      home: "Home",
+      properties: "Properties",
+      about: "About Us",
+      contact: "Contact",
+      login: "Login",
+      logout: "Logout",
+      myAccount: "My Account"
+    },
+    footer: {
+      rights: "All rights reserved",
+      license: "License IMPIC",
+      terms: "Terms and Conditions",
+      privacy: "Privacy Policy",
+      cookies: "Cookie Policy"
     }
   },
   es: {
@@ -446,7 +512,8 @@ export const translations = {
         warehouse: "Almacén",
         office: "Oficina",
         hotel: "Hotel",
-        shop: "Tienda"
+        shop: "Tienda",
+        all: "Todos los Tipos"
       },
       listing: {
         sale: "Venta",
@@ -472,7 +539,24 @@ export const translations = {
         yearBuilt: "Año de Construcción",
         energyCertificate: "Certificado Energético",
         parking: "Estacionamiento",
-        furnished: "Amueblado"
+        furnished: "Amueblado",
+        allCountries: "Todos los Países",
+        allCities: "Todas las Ciudades",
+        allDistricts: "Todas las Provincias",
+        year: "Año",
+        contactAgent: "Contactar sobre esta propiedad",
+        assignedAgent: "Agente Asignado",
+        scheduleViewing: "Programar Visita",
+        similarProperties: "Propiedades Similares",
+        propertyDetails: "Detalles de la Propiedad",
+        grossArea: "Área Bruta",
+        usefulArea: "Área Útil",
+        finishes: "Acabados",
+        fronts: "Frentes",
+        renovated: "Renovado",
+        exempt: "Exento",
+        noAgent: "Agente no asignado",
+        tags: "Etiquetas"
       },
       status: {
         available: "Disponible",
@@ -484,21 +568,41 @@ export const translations = {
         pending_validation: "Pendiente de Validación"
       },
       search: {
-        searchPlaceholder: "Buscar por ubicación, título...",
-        allCities: "Todas las Ciudades",
-        allDistricts: "Todas las Provincias",
-        allCountries: "Todos los Países",
+        searchPlaceholder: "Buscar por ubicación...",
+        allCities: "Todas",
+        allDistricts: "Todas",
+        allCountries: "Todos",
         filters: "Filtros",
         advancedFilters: "Filtros Avanzados",
         showAdvanced: "Mostrar Filtros Avanzados",
-        hideAdvanced: "Ocultar Filtros Avanzados"
+        hideAdvanced: "Ocultar Filtros Avanzados",
+        sortBy: "Ordenar",
+        recent: "Más Recientes",
+        priceAsc: "Precio: ↑",
+        priceDesc: "Precio: ↓",
+        area: "Mayor Área",
+        gridView: "Vista Cuadrícula",
+        listView: "Vista Lista",
+        mapView: "Vista Mapa"
       },
       results: {
-        found: "{count} propiedades encontradas",
-        foundSingle: "{count} propiedad encontrada",
-        residential: "propiedades residenciales",
-        commercial: "propiedades comerciales",
-        withFilters: "Con los filtros aplicados"
+        found: "{count} propiedades",
+        foundSingle: "{count} propiedad",
+        residential: "residenciales",
+        commercial: "comerciales",
+        withFilters: "Con filtros aplicados",
+        noProperties: "No se encontraron propiedades",
+        adjustFilters: "Intente ajustar los filtros de búsqueda para ver más resultados"
+      },
+      cta: {
+        dreamHome: "¿Busca su casa soñada?",
+        commercialSpace: "¿Busca un espacio comercial específico?",
+        notFound: "¿No encontró lo que busca?",
+        helpResidential: "Nuestro equipo especializado puede ayudarle a encontrar la propiedad residencial ideal.",
+        helpCommercial: "Nuestro equipo especializado puede ayudarle a encontrar la propiedad comercial ideal.",
+        helpGeneral: "Nuestro equipo puede ayudarle a encontrar la propiedad perfecta. ¡Póngase en contacto!",
+        contactUs: "Hablar con Consultor",
+        sendEmail: "Enviar Email"
       }
     },
     pages: {
@@ -556,7 +660,51 @@ export const translations = {
       submit: "Enviar Mensaje",
       sending: "Enviando...",
       success: "¡Mensaje enviado con éxito!",
-      error: "Error al enviar mensaje"
+      error: "Error al enviar mensaje",
+      messagePlaceholder: "Hola, estoy interesado en la propiedad \"{title}\". Me gustaría obtener más información...",
+      messageSent: "¡Mensaje Enviado!",
+      messageConfirmation: "Nos pondremos en contacto en breve.",
+      sendAnother: "Enviar otro mensaje",
+      visitScheduled: "¡Visita Programada!",
+      visitConfirmation: "Recibirá una confirmación en breve.",
+      scheduleAnother: "Programar otra visita",
+      shareProperty: "Compartir",
+      saveProperty: "Guardar",
+      savedProperty: "Guardado",
+      required: "*"
+    },
+    dashboard: {
+      title: "Panel de Control",
+      myProperties: "Mis Propiedades",
+      opportunities: "Oportunidades",
+      clients: "Clientes",
+      appointments: "Citas",
+      analytics: "Análisis"
+    },
+    forms: {
+      selectOption: "Seleccionar...",
+      chooseFile: "Elegir archivo",
+      uploadFile: "Subir archivo",
+      processing: "Procesando...",
+      uploading: "Subiendo...",
+      required: "Obligatorio",
+      optional: "Opcional"
+    },
+    navigation: {
+      home: "Inicio",
+      properties: "Propiedades",
+      about: "Sobre Nosotros",
+      contact: "Contacto",
+      login: "Entrar",
+      logout: "Salir",
+      myAccount: "Mi Cuenta"
+    },
+    footer: {
+      rights: "Todos los derechos reservados",
+      license: "Licencia IMPIC",
+      terms: "Términos y Condiciones",
+      privacy: "Política de Privacidad",
+      cookies: "Política de Cookies"
     }
   },
   fr: {
@@ -594,7 +742,8 @@ export const translations = {
         warehouse: "Entrepôt",
         office: "Bureau",
         hotel: "Hôtel",
-        shop: "Boutique"
+        shop: "Boutique",
+        all: "Tous les Types"
       },
       listing: {
         sale: "Vente",
@@ -620,7 +769,24 @@ export const translations = {
         yearBuilt: "Année de Construction",
         energyCertificate: "Certificat Énergétique",
         parking: "Parking",
-        furnished: "Meublé"
+        furnished: "Meublé",
+        allCountries: "Tous les Pays",
+        allCities: "Toutes les Villes",
+        allDistricts: "Toutes les Régions",
+        year: "Année",
+        contactAgent: "Contacter à propos de cette propriété",
+        assignedAgent: "Agent Assigné",
+        scheduleViewing: "Planifier une Visite",
+        similarProperties: "Propriétés Similaires",
+        propertyDetails: "Détails de la Propriété",
+        grossArea: "Surface Brute",
+        usefulArea: "Surface Utile",
+        finishes: "Finitions",
+        fronts: "Façades",
+        renovated: "Rénové",
+        exempt: "Exempté",
+        noAgent: "Agent non assigné",
+        tags: "Tags"
       },
       status: {
         available: "Disponible",
@@ -632,21 +798,41 @@ export const translations = {
         pending_validation: "En Attente de Validation"
       },
       search: {
-        searchPlaceholder: "Rechercher par emplacement, titre...",
-        allCities: "Toutes les Villes",
-        allDistricts: "Toutes les Régions",
-        allCountries: "Tous les Pays",
+        searchPlaceholder: "Rechercher par emplacement...",
+        allCities: "Toutes",
+        allDistricts: "Toutes",
+        allCountries: "Tous",
         filters: "Filtres",
         advancedFilters: "Filtres Avancés",
         showAdvanced: "Afficher Filtres Avancés",
-        hideAdvanced: "Masquer Filtres Avancés"
+        hideAdvanced: "Masquer Filtres Avancés",
+        sortBy: "Trier",
+        recent: "Plus Récentes",
+        priceAsc: "Prix: ↑",
+        priceDesc: "Prix: ↓",
+        area: "Plus Grande Surface",
+        gridView: "Vue Grille",
+        listView: "Vue Liste",
+        mapView: "Vue Carte"
       },
       results: {
-        found: "{count} propriétés trouvées",
-        foundSingle: "{count} propriété trouvée",
-        residential: "propriétés résidentielles",
-        commercial: "propriétés commerciales",
-        withFilters: "Avec les filtres appliqués"
+        found: "{count} propriétés",
+        foundSingle: "{count} propriété",
+        residential: "résidentielles",
+        commercial: "commerciales",
+        withFilters: "Avec filtres appliqués",
+        noProperties: "Aucune propriété trouvée",
+        adjustFilters: "Essayez d'ajuster les filtres de recherche pour voir plus de résultats"
+      },
+      cta: {
+        dreamHome: "Vous cherchez votre maison de rêve?",
+        commercialSpace: "Vous cherchez un espace commercial spécifique?",
+        notFound: "Vous n'avez pas trouvé ce que vous cherchez?",
+        helpResidential: "Notre équipe spécialisée peut vous aider à trouver la propriété résidentielle idéale.",
+        helpCommercial: "Notre équipe spécialisée peut vous aider à trouver la propriété commerciale idéale.",
+        helpGeneral: "Notre équipe peut vous aider à trouver la propriété parfaite. Contactez-nous!",
+        contactUs: "Parler à un Consultant",
+        sendEmail: "Envoyer un Email"
       }
     },
     pages: {
@@ -704,7 +890,51 @@ export const translations = {
       submit: "Envoyer le Message",
       sending: "Envoi en cours...",
       success: "Message envoyé avec succès!",
-      error: "Erreur lors de l'envoi du message"
+      error: "Erreur lors de l'envoi du message",
+      messagePlaceholder: "Bonjour, je suis intéressé(e) par la propriété \"{title}\". J'aimerais obtenir plus d'informations...",
+      messageSent: "Message Envoyé!",
+      messageConfirmation: "Nous vous contacterons sous peu.",
+      sendAnother: "Envoyer un autre message",
+      visitScheduled: "Visite Programmée!",
+      visitConfirmation: "Vous recevrez une confirmation sous peu.",
+      scheduleAnother: "Programmer une autre visite",
+      shareProperty: "Partager",
+      saveProperty: "Sauvegarder",
+      savedProperty: "Sauvegardé",
+      required: "*"
+    },
+    dashboard: {
+      title: "Tableau de Bord",
+      myProperties: "Mes Propriétés",
+      opportunities: "Opportunités",
+      clients: "Clients",
+      appointments: "Rendez-vous",
+      analytics: "Analyses"
+    },
+    forms: {
+      selectOption: "Sélectionner...",
+      chooseFile: "Choisir un fichier",
+      uploadFile: "Télécharger un fichier",
+      processing: "Traitement...",
+      uploading: "Téléchargement...",
+      required: "Obligatoire",
+      optional: "Optionnel"
+    },
+    navigation: {
+      home: "Accueil",
+      properties: "Propriétés",
+      about: "À Propos",
+      contact: "Contact",
+      login: "Connexion",
+      logout: "Déconnexion",
+      myAccount: "Mon Compte"
+    },
+    footer: {
+      rights: "Tous droits réservés",
+      license: "Licence IMPIC",
+      terms: "Conditions Générales",
+      privacy: "Politique de Confidentialité",
+      cookies: "Politique des Cookies"
     }
   }
 };

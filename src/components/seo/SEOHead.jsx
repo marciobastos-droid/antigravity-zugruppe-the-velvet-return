@@ -17,8 +17,27 @@ export default function SEOHead({
   alternateLanguages = []
 }) {
   const siteName = "Zugruppe";
-  const defaultTitle = "Zugruppe - Imóveis Premium em Portugal e no Mundo";
-  const defaultDescription = "Encontre o seu imóvel ideal com a Zugruppe. Apartamentos, moradias e espaços comerciais de excelência em Portugal e internacionalmente.";
+  
+  // Detect language from URL or use Portuguese as default
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const lang = urlParams.get('lang') || 'pt';
+  
+  const defaultTitles = {
+    pt: "Zugruppe - Imóveis Premium em Portugal e no Mundo",
+    en: "Zugruppe - Premium Real Estate in Portugal and Worldwide",
+    es: "Zugruppe - Propiedades Premium en Portugal y el Mundo",
+    fr: "Zugruppe - Immobilier Premium au Portugal et dans le Monde"
+  };
+  
+  const defaultDescriptions = {
+    pt: "Encontre o seu imóvel ideal com a Zugruppe. Apartamentos, moradias e espaços comerciais de excelência em Portugal e internacionalmente.",
+    en: "Find your ideal property with Zugruppe. Premium apartments, houses and commercial spaces in Portugal and internationally.",
+    es: "Encuentre su propiedad ideal con Zugruppe. Apartamentos, casas y espacios comerciales de excelencia en Portugal e internacionalmente.",
+    fr: "Trouvez votre propriété idéale avec Zugruppe. Appartements, maisons et espaces commerciaux d'excellence au Portugal et à l'international."
+  };
+  
+  const defaultTitle = defaultTitles[lang] || defaultTitles.pt;
+  const defaultDescription = defaultDescriptions[lang] || defaultDescriptions.pt;
   const defaultImage = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png";
   const BASE_DOMAIN = "https://zugruppe.base44.app";
 
@@ -84,10 +103,11 @@ export default function SEOHead({
       <meta property="og:image:alt" content={title || defaultTitle} />
       <meta property="og:url" content={canonical} />
       <meta property="og:site_name" content={siteName} />
-      <meta property="og:locale" content="pt_PT" />
-      <meta property="og:locale:alternate" content="en_US" />
-      <meta property="og:locale:alternate" content="es_ES" />
-      <meta property="og:locale:alternate" content="fr_FR" />
+      <meta property="og:locale" content={lang === 'pt' ? 'pt_PT' : lang === 'en' ? 'en_US' : lang === 'es' ? 'es_ES' : 'fr_FR'} />
+      {lang !== 'pt' && <meta property="og:locale:alternate" content="pt_PT" />}
+      {lang !== 'en' && <meta property="og:locale:alternate" content="en_US" />}
+      {lang !== 'es' && <meta property="og:locale:alternate" content="es_ES" />}
+      {lang !== 'fr' && <meta property="og:locale:alternate" content="fr_FR" />}
 
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
