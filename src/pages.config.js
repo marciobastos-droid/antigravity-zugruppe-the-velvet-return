@@ -26,6 +26,7 @@ import ZuHandel from './pages/ZuHandel';
 import InvestorSection from './pages/InvestorSection';
 import Website from './pages/Website';
 import Subscriptions from './pages/Subscriptions';
+import Support from './pages/Support';
 import __Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "InvestorSection": InvestorSection,
     "Website": Website,
     "Subscriptions": Subscriptions,
+    "Support": Support,
 }
 
 export const pagesConfig = {

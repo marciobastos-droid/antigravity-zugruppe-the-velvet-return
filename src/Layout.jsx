@@ -58,7 +58,6 @@ export default function Layout({ children, currentPageName }) {
     { name: "WebSite", path: createPageUrl("Website"), icon: Building2, id: "nav-website", visibility: 'all', pagePermKey: 'browse' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
-    { name: "Premium", path: createPageUrl("Subscriptions"), icon: Star, id: "nav-subscriptions", visibility: 'all', pagePermKey: 'subscriptions' },
     
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
