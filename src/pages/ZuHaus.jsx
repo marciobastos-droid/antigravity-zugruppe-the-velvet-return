@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import PropertiesMap from "../components/maps/PropertiesMap";
-import LazyImage from "../components/common/LazyImage";
+import OptimizedImage from "../components/common/OptimizedImage";
 
 export default function ZuHaus() {
   const queryClient = useQueryClient();
@@ -418,10 +418,12 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
           <div className="relative h-56 overflow-hidden bg-slate-100">
             {images[imgIndex] ? (
-              <LazyImage
+              <OptimizedImage
                 src={images[imgIndex]}
                 alt={property.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                className="w-full h-full"
+                priority={imgIndex === 0}
+                fallbackIcon={Home}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">

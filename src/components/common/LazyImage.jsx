@@ -24,7 +24,7 @@ export default function LazyImage({
           observer.disconnect();
         }
       },
-      { rootMargin: "50px" }
+      { rootMargin: "300px" } // Lazy loading agressivo: carregar 300px antes
     );
 
     observer.observe(imgRef.current);

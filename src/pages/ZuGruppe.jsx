@@ -23,7 +23,8 @@ import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import PropertiesMap from "../components/maps/PropertiesMap";
-import LazyImage from "../components/common/LazyImage";
+import OptimizedImage from "../components/common/OptimizedImage";
+import ImagePreloader from "../components/seo/ImagePreloader";
 
 export default function ZuGruppe() {
   const { data: properties = [], isLoading } = useQuery({
@@ -991,6 +992,14 @@ export default function ZuGruppe() {
         {/* Properties Grid/List */}
         {paginatedProperties.length > 0 ? (
           <>
+            {/* Pré-carregar imagens da próxima página */}
+            <ImagePreloader 
+              images={sortedProperties.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
+                .flatMap(p => p.images?.[0] || [])
+                .filter(Boolean)
+                .slice(0, 8)}
+            />
+            
             <div className={viewMode === "grid" 
               ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
               : "space-y-4"
@@ -1182,10 +1191,12 @@ const PropertyCardCompact = React.memo(({ property, featured }) => {
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {images[imgIndex] ? (
-          <LazyImage
+          <OptimizedImage
             src={images[imgIndex]}
             alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full"
+            priority={imgIndex === 0}
+            fallbackIcon={Home}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
@@ -1303,10 +1314,11 @@ const PropertyCardList = React.memo(({ property }) => {
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
         {image ? (
-          <LazyImage
+          <OptimizedImage
             src={image}
             alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full"
+            fallbackIcon={Home}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
