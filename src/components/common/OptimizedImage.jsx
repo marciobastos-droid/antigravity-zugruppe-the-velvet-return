@@ -1,7 +1,8 @@
 import React from "react";
+import { optimizeImageUrl, generateSrcSet, CACHE_STRATEGY } from "../utils/cdnOptimizer";
 
 /**
- * Componente de imagem otimizada com suporte a WebP, lazy loading agressivo e preload
+ * Componente de imagem otimizada com CDN, WebP, lazy loading agressivo e preload
  */
 export default function OptimizedImage({ 
   src, 
@@ -10,8 +11,12 @@ export default function OptimizedImage({
   width,
   height,
   priority = false,
+  quality = 80,
+  strategy = 'lazy',
   onLoad,
-  fallbackIcon: FallbackIcon
+  fallbackIcon: FallbackIcon,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+  ...props
 }) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
@@ -53,30 +58,20 @@ export default function OptimizedImage({
     setError(true);
   };
 
-  // Tentar converter URL para WebP se for de serviço compatível
-  const getOptimizedSrc = (originalSrc) => {
-    if (!originalSrc) return originalSrc;
-
-    // Supabase - adicionar parâmetros de transformação
-    if (originalSrc.includes('supabase.co/storage')) {
-      return `${originalSrc}?format=webp&quality=85`;
-    }
-
-    // Unsplash - usar parâmetros de otimização
-    if (originalSrc.includes('unsplash.com')) {
-      const url = new URL(originalSrc);
-      url.searchParams.set('fm', 'webp');
-      url.searchParams.set('q', '85');
-      if (width) url.searchParams.set('w', width);
-      if (height) url.searchParams.set('h', height);
-      url.searchParams.set('fit', 'crop');
-      return url.toString();
-    }
-
-    return originalSrc;
-  };
-
-  const optimizedSrc = getOptimizedSrc(src);
+  // Obter configurações de cache da estratégia
+  const strategySettings = CACHE_STRATEGY[strategy] || CACHE_STRATEGY.lazy;
+  
+  // Otimizar URL com CDN
+  const optimizedSrc = isInView || priority ? optimizeImageUrl(src, {
+    width,
+    height,
+    quality: quality || strategySettings.quality,
+    format: 'webp',
+    fit: 'cover'
+  }) : null;
+  
+  // Gerar srcset para imagens responsivas
+  const srcSet = (isInView || priority) && src ? generateSrcSet(src, [320, 640, 960, 1280, 1920]) : null;
 
   if (error || !src) {
     return (
@@ -97,15 +92,18 @@ export default function OptimizedImage({
         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
       )}
 
-      {/* Imagem real */}
-      {isInView && (
+      {/* Imagem real com CDN */}
+      {isInView && optimizedSrc && (
         <img
           src={optimizedSrc}
+          srcSet={srcSet}
+          sizes={sizes}
           alt={alt}
           width={width}
           height={height}
           loading={priority ? "eager" : "lazy"}
           decoding="async"
+          fetchPriority={priority ? "high" : "auto"}
           onLoad={handleLoad}
           onError={handleError}
           className={`w-full h-full object-cover transition-opacity duration-300 ${
@@ -115,6 +113,7 @@ export default function OptimizedImage({
             contentVisibility: "auto",
             containIntrinsicSize: width && height ? `${width}px ${height}px` : "auto"
           }}
+          {...props}
         />
       )}
     </div>
