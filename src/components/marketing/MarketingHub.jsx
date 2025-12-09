@@ -298,22 +298,61 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
   const exportHTML = () => {
     const images = landingPageData.property.images || [];
     const property = landingPageData.property;
-    const pageTitle = metaTitle || `${landingPageData.headline} - ${property.city}`;
-    const pageDescription = metaDescription || landingPageData.hero_text;
+    
+    // Generate optimized SEO meta tags
+    const propertyTypeLabel = {
+      apartment: 'Apartamento',
+      house: 'Moradia',
+      land: 'Terreno',
+      building: 'Prédio',
+      farm: 'Quinta',
+      store: 'Loja',
+      warehouse: 'Armazém',
+      office: 'Escritório'
+    }[property.property_type] || property.property_type;
 
-    // Generate SEO-friendly URL slug
-    const urlSlug = property.ref_id 
-      ? property.ref_id.toLowerCase()
-      : `${property.property_type}-${property.city}-${property.id}`.toLowerCase().replace(/\s+/g, '-');
+    const bedroomsLabel = property.bedrooms ? `T${property.bedrooms}` : '';
+    const listingAction = property.listing_type === 'sale' ? 'Venda' : 'Arrendamento';
+    
+    // Optimized meta title with location and type
+    const pageTitle = metaTitle || 
+      `${propertyTypeLabel} ${bedroomsLabel} em ${property.city} - ${listingAction} | ZuGruppe`.substring(0, 60);
+    
+    // Optimized meta description with key details
+    const pageDescription = metaDescription || 
+      `${propertyTypeLabel} ${bedroomsLabel} para ${listingAction.toLowerCase()} em ${property.city}. ${property.useful_area || property.square_feet || ''}m². €${property.price?.toLocaleString()}. ${landingPageData.hero_text}`.substring(0, 160);
 
-    // Schema.org structured data
+    // Generate comprehensive SEO-friendly URL slug
+    const propertyTypeSlug = property.property_type.toLowerCase();
+    const citySlug = property.city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+    const bedroomsSlug = property.bedrooms ? `-t${property.bedrooms}` : '';
+    const refSlug = property.ref_id ? `-${property.ref_id.toLowerCase()}` : '';
+    
+    const urlSlug = `${propertyTypeSlug}-${citySlug}${bedroomsSlug}-${listingAction.toLowerCase()}${refSlug}`;
+
+    // Generate rich keywords for SEO
+    const keywords = [
+      propertyTypeLabel,
+      bedroomsLabel,
+      property.city,
+      property.state,
+      listingAction,
+      'imóvel',
+      'Portugal',
+      property.country !== 'Portugal' ? property.country : '',
+      ...(property.amenities || []).slice(0, 3)
+    ].filter(Boolean).join(', ');
+
+    // Rich Schema.org structured data with all details
     const structuredData = {
       "@context": "https://schema.org",
-      "@type": property.listing_type === 'sale' ? "RealEstateListing" : "Residence",
+      "@type": "RealEstateListing",
+      "@id": `https://zugruppe.com/${urlSlug}`,
       "name": property.title,
       "description": property.description || landingPageData.about_section,
       "url": `https://zugruppe.com/${urlSlug}`,
       "image": images,
+      "datePosted": property.created_date,
       "address": {
         "@type": "PostalAddress",
         "streetAddress": property.address || "",
@@ -322,28 +361,88 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
         "postalCode": property.zip_code || "",
         "addressCountry": property.country || "PT"
       },
-      "geo": {
+      "geo": property.latitude && property.longitude ? {
         "@type": "GeoCoordinates",
-        "latitude": "41.1579",
-        "longitude": "-8.6291"
-      },
+        "latitude": property.latitude,
+        "longitude": property.longitude
+      } : undefined,
       "numberOfRooms": property.bedrooms || 0,
+      "numberOfBedrooms": property.bedrooms || 0,
+      "numberOfBathroomsTotal": property.bathrooms || 0,
       "floorSize": {
         "@type": "QuantitativeValue",
         "value": property.useful_area || property.square_feet || 0,
-        "unitCode": "MTK"
+        "unitCode": "MTK",
+        "unitText": "m²"
       },
-      "numberOfBathroomsTotal": property.bathrooms || 0
-    };
-
-    if (property.listing_type === 'sale') {
-      structuredData.offers = {
+      "accommodationCategory": propertyTypeLabel,
+      "yearBuilt": property.year_built,
+      "amenityFeature": (property.amenities || []).slice(0, 10).map(amenity => ({
+        "@type": "LocationFeatureSpecification",
+        "name": amenity
+      })),
+      "offers": {
         "@type": "Offer",
         "price": property.price || 0,
         "priceCurrency": property.currency || "EUR",
-        "availability": "https://schema.org/InStock"
-      };
-    }
+        "availability": property.availability_status === 'available' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "priceValidUntil": new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
+        "itemCondition": "https://schema.org/UsedCondition",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "ZuGruppe",
+          "url": "https://zugruppe.com"
+        }
+      }
+    };
+
+    // Add breadcrumb structured data
+    const breadcrumbData = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Início",
+          "item": "https://zugruppe.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": propertyTypeLabel,
+          "item": `https://zugruppe.com/imoveis/${propertyTypeSlug}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": property.city,
+          "item": `https://zugruppe.com/imoveis/${citySlug}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": property.title,
+          "item": `https://zugruppe.com/${urlSlug}`
+        }
+      ]
+    };
+
+    // Add organization structured data
+    const organizationData = {
+      "@context": "https://schema.org",
+      "@type": "RealEstateAgent",
+      "name": "ZuGruppe",
+      "url": "https://zugruppe.com",
+      "logo": "https://zugruppe.com/logo.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+351-XXX-XXX-XXX",
+        "contactType": "customer service",
+        "areaServed": "PT",
+        "availableLanguage": ["pt", "en"]
+      }
+    };
 
     const imageGalleryHTML = images.length > 0 ? `
   <!-- Image Gallery -->
@@ -361,38 +460,77 @@ IMPORTANTE: Retorna APENAS o JSON válido, sem markdown ou comentários.`,
   </div>` : '';
 
     const html = `<!DOCTYPE html>
-  <html lang="pt">
+  <html lang="pt" prefix="og: http://ogp.me/ns#">
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <!-- SEO Meta Tags -->
+  <!-- Primary Meta Tags -->
   <title>${pageTitle}</title>
+  <meta name="title" content="${pageTitle}">
   <meta name="description" content="${pageDescription}">
-  <meta name="keywords" content="${property.city}, ${property.property_type}, ${property.listing_type === 'sale' ? 'comprar' : 'arrendar'}, imóvel, ${property.state}">
+  <meta name="keywords" content="${keywords}">
   <meta name="author" content="ZuGruppe">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://zugruppe.com/${urlSlug}">
+  
+  <!-- Alternate languages -->
+  <link rel="alternate" hreflang="pt" href="https://zugruppe.com/${urlSlug}">
+  <link rel="alternate" hreflang="en" href="https://zugruppe.com/en/${urlSlug}">
+  <link rel="alternate" hreflang="x-default" href="https://zugruppe.com/${urlSlug}">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:site_name" content="ZuGruppe">
   <meta property="og:url" content="https://zugruppe.com/${urlSlug}">
   <meta property="og:title" content="${pageTitle}">
   <meta property="og:description" content="${pageDescription}">
   <meta property="og:image" content="${images[0] || 'https://zugruppe.com/og-image.jpg'}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${property.title}">
+  ${images.slice(0, 5).map(img => `<meta property="og:image" content="${img}">`).join('\n  ')}
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://zugruppe.com/${urlSlug}">
-  <meta property="twitter:title" content="${pageTitle}">
-  <meta property="twitter:description" content="${pageDescription}">
-  <meta property="twitter:image" content="${images[0] || 'https://zugruppe.com/og-image.jpg'}">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@ZuGruppe">
+  <meta name="twitter:creator" content="@ZuGruppe">
+  <meta name="twitter:url" content="https://zugruppe.com/${urlSlug}">
+  <meta name="twitter:title" content="${pageTitle}">
+  <meta name="twitter:description" content="${pageDescription}">
+  <meta name="twitter:image" content="${images[0] || 'https://zugruppe.com/og-image.jpg'}">
+  <meta name="twitter:image:alt" content="${property.title}">
 
-  <!-- Structured Data -->
+  <!-- Rich Structured Data - RealEstateListing -->
   <script type="application/ld+json">
   ${JSON.stringify(structuredData, null, 2)}
   </script>
 
+  <!-- Breadcrumb Structured Data -->
+  <script type="application/ld+json">
+  ${JSON.stringify(breadcrumbData, null, 2)}
+  </script>
+
+  <!-- Organization Structured Data -->
+  <script type="application/ld+json">
+  ${JSON.stringify(organizationData, null, 2)}
+  </script>
+
+  <!-- Preconnect to external domains for performance -->
+  <link rel="preconnect" href="https://cdn.tailwindcss.com">
+  <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="https://zugruppe.com/favicon.ico">
+  <link rel="apple-touch-icon" href="https://zugruppe.com/apple-touch-icon.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Analytics placeholder -->
+  <!-- Add your GA4 tracking code here -->
+
   </head>
 <body class="bg-gray-50">
   <!-- Hero Section -->
@@ -481,8 +619,13 @@ ${imageGalleryHTML}
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Landing page exportada com SEO otimizado!");
-    };
+    
+    // Show success with URL details
+    toast.success(`Landing page exportada com SEO otimizado!`, {
+      description: `URL sugerido: /${urlSlug}`,
+      duration: 5000
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -567,22 +710,31 @@ ${imageGalleryHTML}
             <CardDescription>Conteúdo otimizado para SEO e pronto para publicação</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="grid md:grid-cols-2 gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div>
-                <Label className="text-xs text-green-700">✓ Meta Tags Configuradas</Label>
-                <p className="text-xs text-slate-600 mt-1">Título e descrição otimizados</p>
+                <Label className="text-xs text-green-700 font-semibold">✓ Meta Tags Otimizadas</Label>
+                <p className="text-xs text-slate-600 mt-1">Título, descrição e keywords otimizados para SEO</p>
               </div>
               <div>
-                <Label className="text-xs text-green-700">✓ Dados Estruturados</Label>
-                <p className="text-xs text-slate-600 mt-1">Schema.org para imóveis</p>
+                <Label className="text-xs text-green-700 font-semibold">✓ Schema.org Rico</Label>
+                <p className="text-xs text-slate-600 mt-1">RealEstateListing + Breadcrumb + Organization</p>
               </div>
               <div>
-                <Label className="text-xs text-green-700">✓ Open Graph Tags</Label>
-                <p className="text-xs text-slate-600 mt-1">Otimizado para redes sociais</p>
+                <Label className="text-xs text-green-700 font-semibold">✓ Open Graph + Twitter Card</Label>
+                <p className="text-xs text-slate-600 mt-1">Múltiplas imagens e dados completos</p>
               </div>
               <div>
-                <Label className="text-xs text-green-700">✓ URL Amigável</Label>
-                <p className="text-xs text-slate-600 mt-1 font-mono">/{landingPageData.property.ref_id || landingPageData.property.id}</p>
+                <Label className="text-xs text-green-700 font-semibold">✓ URL SEO-Friendly</Label>
+                <p className="text-xs text-slate-600 mt-1 font-mono break-all">
+                  /{(() => {
+                    const propertyTypeSlug = landingPageData.property.property_type.toLowerCase();
+                    const citySlug = landingPageData.property.city.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-');
+                    const bedroomsSlug = landingPageData.property.bedrooms ? `-t${landingPageData.property.bedrooms}` : '';
+                    const listingAction = landingPageData.property.listing_type === 'sale' ? 'venda' : 'arrendamento';
+                    const refSlug = landingPageData.property.ref_id ? `-${landingPageData.property.ref_id.toLowerCase()}` : '';
+                    return `${propertyTypeSlug}-${citySlug}${bedroomsSlug}-${listingAction}${refSlug}`;
+                  })()}
+                </p>
               </div>
             </div>
 
