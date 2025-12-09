@@ -12,6 +12,7 @@ import SEOHead from "../components/seo/SEOHead";
 export default function LandingPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const slug = window.location.pathname.split('/lp/')[1] || urlParams.get('slug');
+  const isPreview = urlParams.get('preview') === 'true';
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = React.useState({
@@ -30,8 +31,9 @@ export default function LandingPage() {
       
       const page = pages[0];
       
-      // Track view
-      if (page.status === 'published') {
+      // Track view (only for published pages, not preview)
+      const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === 'true';
+      if (page.status === 'published' && !isPreviewMode) {
         await base44.entities.LandingPage.update(page.id, {
           analytics: {
             ...page.analytics,
@@ -106,7 +108,8 @@ export default function LandingPage() {
     );
   }
 
-  if (page.status !== 'published') {
+  // Allow preview mode even for draft pages
+  if (page.status !== 'published' && !isPreview) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -123,6 +126,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Preview Banner */}
+      {isPreview && (
+        <div className="bg-amber-500 text-white px-4 py-2 text-center font-semibold sticky top-0 z-50">
+          🔍 Modo Pré-visualização - Esta página não está publicada
+        </div>
+      )}
+      
       <SEOHead
         title={page.seo?.meta_title || page.title}
         description={page.seo?.meta_description || hero.subheadline}
