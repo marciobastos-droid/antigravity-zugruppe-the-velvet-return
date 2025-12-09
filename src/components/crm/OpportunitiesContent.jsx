@@ -1090,6 +1090,7 @@ export default function OpportunitiesContent() {
                 onUpdate={(id, data) => updateMutation.mutate({ id, data })}
                 properties={properties}
                 onEdit={() => handleEditOpportunity(selectedLead)}
+                embedded={true}
               />
             ) : (
               <Card className="h-96">

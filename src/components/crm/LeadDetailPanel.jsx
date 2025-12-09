@@ -98,7 +98,7 @@ function ContactRequirementsFromLead({ lead }) {
   return <ContactRequirements contact={contact} />;
 }
 
-export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit }) {
+export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = [], onEdit, embedded = false }) {
   const queryClient = useQueryClient();
   const [newNote, setNewNote] = React.useState("");
   const [addingNote, setAddingNote] = React.useState(false);
@@ -1074,7 +1074,7 @@ Extrai:
     </div>
   );
 
-  // Render as fullscreen dialog or side panel
+  // Render as fullscreen dialog or side panel or embedded
   if (isFullscreen) {
     return (
       <Dialog open={true} onOpenChange={(open) => !open && setIsFullscreen(false)}>
@@ -1082,6 +1082,14 @@ Extrai:
           {panelContent}
         </DialogContent>
       </Dialog>
+    );
+  }
+
+  if (embedded) {
+    return (
+      <div className="h-full overflow-hidden">
+        {panelContent}
+      </div>
     );
   }
 
