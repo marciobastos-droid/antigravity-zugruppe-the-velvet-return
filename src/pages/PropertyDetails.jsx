@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import SEOHead from "../components/seo/SEOHead";
+
 import OptimizedImage from "../components/common/OptimizedImage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
@@ -339,22 +339,6 @@ export default function PropertyDetails() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <SEOHead
-        title={property.title}
-        description={property.description || `${propertyTypeLabels[property.property_type]} em ${property.city} - ${property.listing_type === 'sale' ? 'Para Venda' : 'Para Arrendamento'}`}
-        keywords={seoKeywords}
-        image={images[0]}
-        type="product"
-        price={property.price}
-        currency={property.currency || "EUR"}
-        availability={property.availability_status === "available" ? "available" : "out of stock"}
-        propertyType={property.property_type}
-        location={{
-          city: property.city,
-          state: property.state,
-          country: property.country
-        }}
-      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

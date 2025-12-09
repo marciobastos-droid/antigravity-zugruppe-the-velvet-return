@@ -9,9 +9,6 @@ import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
-import { HelmetProvider } from "react-helmet-async";
-
-
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails"];
 
@@ -42,7 +39,11 @@ export default function Layout({ children, currentPageName }) {
 
   // Render minimal layout for Home page
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
-    return <>{children}</>;
+    return (
+      <LocalizationProvider>
+        {children}
+      </LocalizationProvider>
+    );
   }
 
   const userTypeNormalized = user?.user_type?.toLowerCase() || '';
@@ -99,10 +100,9 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <HelmetProvider>
-      <LocalizationProvider>
-        <div className="min-h-screen bg-slate-50">
-          <Toaster position="top-right" richColors />
+    <LocalizationProvider>
+      <div className="min-h-screen bg-slate-50">
+        <Toaster position="top-right" richColors />
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -267,7 +267,6 @@ export default function Layout({ children, currentPageName }) {
 
       <main className="pb-8">{children}</main>
       </div>
-      </LocalizationProvider>
-      </HelmetProvider>
-      );
-      }
+    </LocalizationProvider>
+  );
+}
