@@ -10,7 +10,7 @@ import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import { HelmetProvider } from "react-helmet-async";
-import { registerServiceWorker } from "./components/utils/registerServiceWorker";
+
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -23,9 +23,6 @@ export default function Layout({ children, currentPageName }) {
 
   React.useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
-    
-    // Registrar Service Worker para CDN cache
-    registerServiceWorker();
   }, []);
 
   // Carregar permissões do utilizador
