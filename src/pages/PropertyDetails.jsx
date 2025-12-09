@@ -47,8 +47,6 @@ export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
   
-  console.log('[PropertyDetails] Property ID from URL:', propertyId);
-  
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
@@ -60,15 +58,13 @@ export default function PropertyDetails() {
   });
   const [sendingMessage, setSendingMessage] = React.useState(false);
   const [messageSent, setMessageSent] = React.useState(false);
+  const [appointmentScheduled, setAppointmentScheduled] = React.useState(false);
 
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', propertyId],
     queryFn: async () => {
-      console.log('[PropertyDetails] Fetching property with ID:', propertyId);
       try {
-        // Tentar buscar como utilizador público primeiro
         const properties = await base44.entities.Property.filter({ id: propertyId });
-        console.log('[PropertyDetails] Properties found:', properties);
         if (!properties || properties.length === 0) {
           throw new Error('Property not found');
         }
@@ -180,7 +176,6 @@ export default function PropertyDetails() {
     setSendingMessage(true);
     
     try {
-      // Create an inquiry/opportunity
       const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
       
       await base44.entities.Opportunity.create({
@@ -197,10 +192,12 @@ export default function PropertyDetails() {
         lead_source: 'website'
       });
 
+      console.log('[PropertyDetails] Message sent successfully, showing confirmation');
       setMessageSent(true);
       toast.success("Mensagem enviada com sucesso!");
       setContactForm({ name: '', email: '', phone: '', message: '' });
     } catch (error) {
+      console.error('[PropertyDetails] Error sending message:', error);
       toast.error("Erro ao enviar mensagem");
     }
     
@@ -830,72 +827,72 @@ export default function PropertyDetails() {
           {/* Sidebar - Right Column */}
           <div className="space-y-6">
             {/* Agent Card */}
-                              <Card className="sticky top-24">
-                                <CardHeader className="pb-4">
-                                  <CardTitle className="text-lg">Agente Responsável</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  {/* Agent Assignment (only for owners/admins) */}
-                                  {isOwner && (
-                                    <div className="mb-4 pb-4 border-b">
-                                      <Label className="text-xs text-slate-500 mb-1 block">Atribuir Agente</Label>
-                                      <Select 
-                                        value={property.agent_id || ""} 
-                                        onValueChange={handleAgentChange}
-                                        disabled={updatePropertyMutation.isPending}
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder="Selecionar agente..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value={null}>Nenhum</SelectItem>
-                                          {allUsers.map((u) => (
-                                            <SelectItem key={u.id} value={u.id}>
-                                              {u.display_name || u.full_name || u.email}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+            <Card className="sticky top-24">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Agente Responsável</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Agent Assignment (only for owners/admins) */}
+                {isOwner && (
+                  <div className="mb-4 pb-4 border-b">
+                    <Label className="text-xs text-slate-500 mb-1 block">Atribuir Agente</Label>
+                    <Select 
+                      value={property.agent_id || ""} 
+                      onValueChange={handleAgentChange}
+                      disabled={updatePropertyMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecionar agente..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Nenhum</SelectItem>
+                        {allUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.display_name || u.full_name || u.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                                      <Label className="text-xs text-slate-500 mb-1 mt-3 block">Visibilidade</Label>
-                                      <Select 
-                                        value={property.visibility || "public"} 
-                                        onValueChange={handleVisibilityChange}
-                                        disabled={updatePropertyMutation.isPending}
-                                      >
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="public">Público</SelectItem>
-                                          <SelectItem value="team_only">Apenas Equipa</SelectItem>
-                                          <SelectItem value="private">Privado</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  )}
+                    <Label className="text-xs text-slate-500 mb-1 mt-3 block">Visibilidade</Label>
+                    <Select 
+                      value={property.visibility || "public"} 
+                      onValueChange={handleVisibilityChange}
+                      disabled={updatePropertyMutation.isPending}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Público</SelectItem>
+                        <SelectItem value="team_only">Apenas Equipa</SelectItem>
+                        <SelectItem value="private">Privado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                                  {assignedAgent ? (
-                                  <div className="space-y-4">
-                                    <div className="flex items-center gap-4">
-                                      {assignedAgent.photo_url ? (
-                                        <img 
-                                          src={assignedAgent.photo_url} 
-                                          alt={assignedAgent.display_name || assignedAgent.full_name}
-                                          className="w-16 h-16 rounded-full object-cover"
-                                        />
-                                      ) : (
-                                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
-                                          <User className="w-8 h-8 text-slate-500" />
-                                        </div>
-                                      )}
-                                      <div>
-                                        <h4 className="font-semibold text-slate-900">{assignedAgent.display_name || assignedAgent.full_name}</h4>
-                                        {assignedAgent.specialization && (
-                                          <p className="text-sm text-slate-600">{assignedAgent.specialization}</p>
-                                        )}
-                                      </div>
-                                    </div>
+                {assignedAgent ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      {assignedAgent.photo_url ? (
+                        <img 
+                          src={assignedAgent.photo_url} 
+                          alt={assignedAgent.display_name || assignedAgent.full_name}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">
+                          <User className="w-8 h-8 text-slate-500" />
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-slate-900">{assignedAgent.display_name || assignedAgent.full_name}</h4>
+                        {assignedAgent.specialization && (
+                          <p className="text-sm text-slate-600">{assignedAgent.specialization}</p>
+                        )}
+                      </div>
+                    </div>
                     
                     <div className="space-y-2">
                       {assignedAgent.phone && (
@@ -963,6 +960,10 @@ export default function PropertyDetails() {
                     propertyId={property.id}
                     variant="default"
                     size="default"
+                    onSuccess={() => {
+                      console.log('[PropertyDetails] Appointment scheduled successfully');
+                      setAppointmentScheduled(true);
+                    }}
                   />
                 </div>
 
@@ -971,10 +972,12 @@ export default function PropertyDetails() {
                   <h4 className="font-semibold text-slate-900 mb-4">Contactar sobre este imóvel</h4>
                   
                   {messageSent ? (
-                    <div className="text-center py-6 bg-green-50 rounded-lg border border-green-200">
-                      <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                      <h5 className="font-semibold text-green-900">Mensagem Enviada!</h5>
-                      <p className="text-sm text-green-700 mt-1">Entraremos em contacto brevemente.</p>
+                    <div className="text-center py-8 bg-green-50 rounded-lg border-2 border-green-200">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Check className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h5 className="text-lg font-semibold text-green-900 mb-1">Mensagem Enviada!</h5>
+                      <p className="text-sm text-green-700">Entraremos em contacto brevemente.</p>
                       <Button 
                         variant="outline" 
                         className="mt-4"
