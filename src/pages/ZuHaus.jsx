@@ -1,6 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import SEOHead from "../components/seo/SEOHead";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
@@ -118,6 +119,12 @@ export default function ZuHaus() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title="ZuHaus - Imóveis Residenciais Premium"
+        description="A sua casa de sonho está aqui. Apartamentos, moradias e condomínios cuidadosamente selecionados para você e sua família em Portugal."
+        keywords="imóveis residenciais, apartamentos, moradias, casas, T1, T2, T3, T4, venda, arrendamento, Portugal"
+        image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a0e94a9a1_ZUHAUS_branco_vermelho-trasnparente_c-slogan.png"
+      />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#d22630]">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')] bg-cover bg-center opacity-20" />

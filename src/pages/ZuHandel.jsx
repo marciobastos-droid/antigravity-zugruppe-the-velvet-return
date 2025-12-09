@@ -1,6 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import SEOHead from "../components/seo/SEOHead";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
@@ -117,6 +118,12 @@ export default function ZuHandel() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title="ZuHandel - Espaços Comerciais de Excelência"
+        description="Encontre o espaço comercial ideal para o seu negócio. Lojas, escritórios, armazéns e prédios nas melhores localizações comerciais de Portugal."
+        keywords="espaços comerciais, lojas, escritórios, armazéns, imóveis comerciais, negócios, venda, arrendamento, Portugal"
+        image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/fbf7ef631_WaterMarkZuHandel.png"
+      />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#75787b]">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-20" />

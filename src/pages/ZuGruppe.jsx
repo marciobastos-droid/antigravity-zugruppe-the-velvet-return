@@ -1,6 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import SEOHead from "../components/seo/SEOHead";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
@@ -382,8 +383,25 @@ export default function ZuGruppe() {
     );
   }
 
+  const pageTitles = {
+    all: "Todos os Imóveis - Apartamentos, Moradias e Espaços Comerciais",
+    residential: "Imóveis Residenciais - Apartamentos e Moradias de Qualidade",
+    commercial: "Espaços Comerciais - Lojas, Escritórios e Armazéns"
+  };
+
+  const pageDescriptions = {
+    all: "Explore o nosso portfólio completo de imóveis premium em Portugal e no mundo. Apartamentos, moradias, terrenos e espaços comerciais cuidadosamente selecionados.",
+    residential: "Descubra apartamentos e moradias de excelência. Imóveis residenciais cuidadosamente selecionados para você e sua família em Portugal.",
+    commercial: "Encontre o espaço comercial ideal para o seu negócio. Lojas, escritórios, armazéns e prédios nas melhores localizações."
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEOHead
+        title={pageTitles[activeTab]}
+        description={pageDescriptions[activeTab]}
+        keywords="imóveis, Portugal, apartamentos, moradias, casas, venda, arrendamento, imobiliário, propriedades"
+      />
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 

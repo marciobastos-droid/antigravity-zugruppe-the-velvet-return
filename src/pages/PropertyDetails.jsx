@@ -1,6 +1,8 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import SEOHead from "../components/seo/SEOHead";
+import OptimizedImage from "../components/common/OptimizedImage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -316,8 +318,45 @@ export default function PropertyDetails() {
     pending_validation: "bg-orange-100 text-orange-800 border-orange-300"
   };
 
+  const propertyTypeLabels = {
+    apartment: "Apartamento",
+    house: "Moradia",
+    land: "Terreno",
+    building: "Prédio",
+    farm: "Quinta/Herdade",
+    store: "Loja",
+    warehouse: "Armazém",
+    office: "Escritório"
+  };
+
+  const seoKeywords = [
+    propertyTypeLabels[property.property_type] || property.property_type,
+    property.city,
+    property.state,
+    property.listing_type === 'sale' ? 'Venda' : 'Arrendamento',
+    'Imóvel',
+    property.bedrooms ? `T${property.bedrooms}` : '',
+    'Portugal'
+  ].filter(Boolean).join(', ');
+
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEOHead
+        title={property.title}
+        description={property.description || `${propertyTypeLabels[property.property_type]} em ${property.city} - ${property.listing_type === 'sale' ? 'Para Venda' : 'Para Arrendamento'}`}
+        keywords={seoKeywords}
+        image={images[0]}
+        type="product"
+        price={property.price}
+        currency={property.currency || "EUR"}
+        availability={property.availability_status === "available" ? "available" : "out of stock"}
+        propertyType={property.property_type}
+        location={{
+          city: property.city,
+          state: property.state,
+          country: property.country
+        }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -372,10 +411,11 @@ export default function PropertyDetails() {
                 className="relative h-80 md:h-[500px] cursor-pointer group"
                 onClick={() => setGalleryOpen(true)}
               >
-                <img
+                <OptimizedImage
                   src={images[selectedImage]}
                   alt={property.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
+                  priority={selectedImage === 0}
                 />
                 
                 {/* Navigation Arrows */}
