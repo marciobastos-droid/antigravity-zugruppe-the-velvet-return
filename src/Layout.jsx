@@ -9,6 +9,7 @@ import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
+import { HelmetProvider } from "react-helmet-async";
 
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
@@ -95,9 +96,10 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <LocalizationProvider>
-      <div className="min-h-screen bg-slate-50">
-        <Toaster position="top-right" richColors />
+    <HelmetProvider>
+      <LocalizationProvider>
+        <div className="min-h-screen bg-slate-50">
+          <Toaster position="top-right" richColors />
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -353,5 +355,6 @@ export default function Layout({ children, currentPageName }) {
       </footer>
       </div>
       </LocalizationProvider>
+      </HelmetProvider>
       );
       }
