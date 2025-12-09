@@ -5,7 +5,14 @@ const LocalizationContext = React.createContext();
 
 export function LocalizationProvider({ children }) {
   const [locale, setLocale] = React.useState(() => {
-    return localStorage.getItem("app_locale") || "pt";
+    // Detect browser language on first visit
+    const saved = localStorage.getItem("app_locale");
+    if (saved) return saved;
+    
+    // Auto-detect from browser
+    const browserLang = navigator.language?.split('-')[0] || 'pt';
+    const supported = ['pt', 'en', 'es', 'fr'];
+    return supported.includes(browserLang) ? browserLang : 'pt';
   });
   
   const [currency, setCurrency] = React.useState(() => {

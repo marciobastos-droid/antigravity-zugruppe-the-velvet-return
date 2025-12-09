@@ -42,8 +42,11 @@ import {
   generatePropertyStructuredData,
   generatePropertySEOUrl 
 } from "../components/utils/seoHelpers";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function PropertyDetails() {
+  const { t, locale } = useLocalization();
+  
   // Auth check for admin features only - page is public
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   
@@ -383,7 +386,7 @@ export default function PropertyDetails() {
           <Link to={createPageUrl("Website")}>
             <Button variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              {t('common.back')}
             </Button>
           </Link>
           
@@ -395,7 +398,7 @@ export default function PropertyDetails() {
                 className="border-blue-500 text-blue-600 hover:bg-blue-50"
               >
                 <Edit className="w-4 h-4 mr-2" />
-                Editar
+                {t('common.edit')}
               </Button>
             )}
             
@@ -407,7 +410,7 @@ export default function PropertyDetails() {
                 className={isSaved ? "border-red-500 text-red-600" : ""}
               >
                 <Heart className={`w-4 h-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
-                {isSaved ? "Guardado" : "Guardar"}
+                {isSaved ? t('contact.savedProperty') : t('contact.saveProperty')}
               </Button>
             )}
             
@@ -417,7 +420,7 @@ export default function PropertyDetails() {
               className="bg-green-500 hover:bg-green-600 text-white border-0"
             >
               <MessageCircle className="w-4 h-4 mr-2" />
-              Partilhar
+              {t('contact.shareProperty')}
             </Button>
           </div>
         </div>
@@ -469,8 +472,8 @@ export default function PropertyDetails() {
                     className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-slate-50 text-slate-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg font-semibold text-xs sm:text-sm transition-all hover:scale-105 border border-slate-200"
                   >
                     <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="hidden sm:inline">Ver todas as {images.length} fotos</span>
-                    <span className="sm:hidden">{images.length} fotos</span>
+                    <span className="hidden sm:inline">{t('common.viewAll')} {images.length} {t('common.photos')}</span>
+                    <span className="sm:hidden">{images.length} {t('common.photos')}</span>
                   </button>
                 </div>
                 
@@ -479,11 +482,11 @@ export default function PropertyDetails() {
                   {property.featured && (
                     <Badge className="bg-amber-400 text-slate-900 border-0">
                       <Star className="w-3 h-3 mr-1 fill-current" />
-                      Destaque
+                      {t('common.featured')}
                     </Badge>
                   )}
                   <Badge className={availabilityColors[property.availability_status] || "bg-green-100 text-green-800"}>
-                    {availabilityLabels[property.availability_status] || "Disponível"}
+                    {t(`property.status.${property.availability_status}`) || t('property.status.available')}
                   </Badge>
                 </div>
               </div>
@@ -534,7 +537,7 @@ export default function PropertyDetails() {
                   <div>
                       <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
                         {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-                        {property.listing_type === 'rent' && <span className="text-sm sm:text-base md:text-lg font-normal text-slate-500">/mês</span>}
+                        {property.listing_type === 'rent' && <span className="text-sm sm:text-base md:text-lg font-normal text-slate-500">{t('common.perMonth')}</span>}
                       </div>
                       {property.currency && property.currency !== 'EUR' && (() => {
                         const eurValue = convertToEUR(property.price, property.currency);
@@ -546,11 +549,11 @@ export default function PropertyDetails() {
                       })()}
                     <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
                       <Badge className="bg-slate-900 text-white text-xs sm:text-sm">
-                        {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+                        {t(`property.listing.${property.listing_type}`)}
                       </Badge>
                       <Badge variant="outline" className="text-xs sm:text-sm">
                         <Home className="w-3 h-3 mr-1" />
-                        {propertyTypeLabels[property.property_type] || property.property_type}
+                        {t(`property.types.${property.property_type}`) || property.property_type}
                       </Badge>
                     </div>
                   </div>
@@ -563,14 +566,14 @@ export default function PropertyDetails() {
                       <Bed className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.bedrooms || 0}</div>
-                    <div className="text-xs sm:text-sm text-slate-600">Quartos</div>
+                    <div className="text-xs sm:text-sm text-slate-600">{t('property.details.bedrooms')}</div>
                   </div>
                   <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
                       <Bath className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.bathrooms || 0}</div>
-                    <div className="text-xs sm:text-sm text-slate-600">WCs</div>
+                    <div className="text-xs sm:text-sm text-slate-600">{t('property.details.bathrooms')}</div>
                   </div>
                   <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
@@ -579,20 +582,20 @@ export default function PropertyDetails() {
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">
                       {property.useful_area || property.square_feet || 0}
                     </div>
-                    <div className="text-xs sm:text-sm text-slate-600">m² úteis</div>
+                    <div className="text-xs sm:text-sm text-slate-600">m²</div>
                   </div>
                   <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
                       <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.year_built || 'N/A'}</div>
-                    <div className="text-xs sm:text-sm text-slate-600">Ano</div>
+                    <div className="text-xs sm:text-sm text-slate-600">{t('property.details.year')}</div>
                   </div>
                 </div>
 
                 {/* Areas, Energy Certificate, Details */}
                 <div className="py-6 border-b border-slate-200">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Detalhes do Imóvel</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">{t('property.details.propertyDetails')}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {property.gross_area > 0 && (
                       <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
@@ -653,16 +656,16 @@ export default function PropertyDetails() {
 
                 {/* Description */}
                 <div className="py-6 border-b border-slate-200">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-3">Descrição</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.description')}</h3>
                   <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                    {property.description || 'Sem descrição disponível.'}
+                    {property.description || (locale === 'en' ? 'No description available.' : 'Sem descrição disponível.')}
                   </p>
                 </div>
 
                 {/* Amenities */}
                 {property.amenities && property.amenities.length > 0 && (
                   <div className="py-6 border-b border-slate-200">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Comodidades</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.amenities')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {property.amenities.map((amenity, idx) => (
                         <Badge key={idx} variant="secondary" className="text-sm py-1.5 px-3">
@@ -677,7 +680,7 @@ export default function PropertyDetails() {
                 {/* Tags */}
                 {property.tags && property.tags.length > 0 && (
                   <div className="py-6">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">Tags</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.tags')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {property.tags.map((tag, idx) => (
                         <Badge key={idx} variant="outline" className="text-sm">
@@ -724,7 +727,7 @@ export default function PropertyDetails() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="w-5 h-5" />
-                      Localização
+                      {t('property.details.location')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -830,8 +833,8 @@ export default function PropertyDetails() {
             {similarProperties.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Imóveis Semelhantes</CardTitle>
-                  <p className="text-sm text-slate-600">Outros imóveis na mesma zona</p>
+                  <CardTitle>{t('property.details.similarProperties')}</CardTitle>
+                  <p className="text-sm text-slate-600">{locale === 'en' ? 'Other properties in the same area' : 'Outros imóveis na mesma zona'}</p>
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -849,7 +852,7 @@ export default function PropertyDetails() {
             {/* Agent Card */}
             <Card className="lg:sticky lg:top-24">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg">Agente Responsável</CardTitle>
+                <CardTitle className="text-lg">{t('property.details.assignedAgent')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {/* Agent Assignment (only for owners/admins) */}
@@ -977,7 +980,7 @@ export default function PropertyDetails() {
                     <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <User className="w-8 h-8 text-slate-400" />
                     </div>
-                    <p className="text-slate-600">Agente não atribuído</p>
+                    <p className="text-slate-600">{t('property.details.noAgent')}</p>
                   </div>
                 )}
 
@@ -996,51 +999,51 @@ export default function PropertyDetails() {
 
                 {/* Contact Form */}
                 <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
-                  <h4 className="font-semibold text-sm sm:text-base text-slate-900 mb-3 sm:mb-4">Contactar sobre este imóvel</h4>
+                  <h4 className="font-semibold text-sm sm:text-base text-slate-900 mb-3 sm:mb-4">{t('property.details.contactAgent')}</h4>
 
                   {messageSent ? (
                     <div className="text-center py-6 sm:py-8 bg-green-50 rounded-lg border-2 border-green-200">
                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
                         <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
                       </div>
-                      <h5 className="text-base sm:text-lg font-semibold text-green-900 mb-1">Mensagem Enviada!</h5>
-                      <p className="text-xs sm:text-sm text-green-700 px-4">Entraremos em contacto brevemente.</p>
+                      <h5 className="text-base sm:text-lg font-semibold text-green-900 mb-1">{t('contact.messageSent')}</h5>
+                      <p className="text-xs sm:text-sm text-green-700 px-4">{t('contact.messageConfirmation')}</p>
                       <Button 
                         variant="outline" 
                         size="sm"
                         className="mt-3 sm:mt-4"
                         onClick={() => setMessageSent(false)}
                       >
-                        Enviar outra mensagem
+                        {t('contact.sendAnother')}
                       </Button>
                     </div>
                   ) : (
                     <form onSubmit={handleContactSubmit} className="space-y-3 sm:space-y-4">
                       <div>
-                        <Label htmlFor="name" className="text-xs sm:text-sm">Nome *</Label>
+                        <Label htmlFor="name" className="text-xs sm:text-sm">{t('contact.name')} {t('contact.required')}</Label>
                         <Input
                           id="name"
                           required
                           value={contactForm.name}
                           onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                          placeholder="O seu nome"
+                          placeholder={locale === 'en' ? 'Your name' : 'O seu nome'}
                           className="h-9 sm:h-10 text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="email" className="text-xs sm:text-sm">Email *</Label>
+                        <Label htmlFor="email" className="text-xs sm:text-sm">{t('contact.email')} {t('contact.required')}</Label>
                         <Input
                           id="email"
                           type="email"
                           required
                           value={contactForm.email}
                           onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                          placeholder="email@exemplo.com"
+                          placeholder={locale === 'en' ? 'email@example.com' : 'email@exemplo.com'}
                           className="h-9 sm:h-10 text-sm"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="phone" className="text-xs sm:text-sm">Telefone</Label>
+                        <Label htmlFor="phone" className="text-xs sm:text-sm">{t('contact.phone')}</Label>
                         <Input
                           id="phone"
                           value={contactForm.phone}
@@ -1050,13 +1053,13 @@ export default function PropertyDetails() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="message" className="text-xs sm:text-sm">Mensagem *</Label>
+                        <Label htmlFor="message" className="text-xs sm:text-sm">{t('contact.message')} {t('contact.required')}</Label>
                         <Textarea
                           id="message"
                           required
                           value={contactForm.message}
                           onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                          placeholder={`Olá, tenho interesse no imóvel "${property.title}". Gostaria de obter mais informações...`}
+                          placeholder={t('contact.messagePlaceholder', { title: property.title })}
                           rows={4}
                           className="text-sm resize-none"
                         />
@@ -1069,12 +1072,12 @@ export default function PropertyDetails() {
                         {sendingMessage ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            A enviar...
+                            {t('contact.sending')}
                           </>
                         ) : (
                           <>
                             <Send className="w-4 h-4 mr-2" />
-                            Enviar Mensagem
+                            {t('contact.submit')}
                           </>
                         )}
                       </Button>

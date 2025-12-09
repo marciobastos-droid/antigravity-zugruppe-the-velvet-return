@@ -19,7 +19,16 @@ export const translations = {
       send: "Enviar",
       success: "Sucesso!",
       error: "Erro",
-      back: "Voltar"
+      back: "Voltar",
+      all: "Todos",
+      or: "ou",
+      name: "Nome",
+      message: "Mensagem",
+      notes: "Notas",
+      featured: "Destaque",
+      perMonth: "/mês",
+      viewAll: "Ver todas",
+      photos: "fotos"
     },
     property: {
       types: {
@@ -34,7 +43,8 @@ export const translations = {
         warehouse: "Armazém",
         office: "Escritório",
         hotel: "Hotel",
-        shop: "Loja"
+        shop: "Loja",
+        all: "Todas"
       },
       listing: {
         sale: "Venda",
@@ -48,8 +58,8 @@ export const translations = {
         bathrooms: "Casas de Banho",
         area: "Área",
         price: "Preço",
-        priceMin: "Preço Mínimo",
-        priceMax: "Preço Máximo",
+        priceMin: "Preço Mín",
+        priceMax: "Preço Máx",
         location: "Localização",
         city: "Cidade",
         state: "Distrito",
@@ -60,7 +70,24 @@ export const translations = {
         yearBuilt: "Ano de Construção",
         energyCertificate: "Certificado Energético",
         parking: "Estacionamento",
-        furnished: "Mobilado"
+        furnished: "Mobilado",
+        allCountries: "Todos os Países",
+        allCities: "Todas as Cidades",
+        allDistricts: "Todos os Distritos",
+        year: "Ano",
+        contactAgent: "Contactar sobre este imóvel",
+        assignedAgent: "Agente Responsável",
+        scheduleViewing: "Agendar Visita",
+        similarProperties: "Imóveis Semelhantes",
+        propertyDetails: "Detalhes do Imóvel",
+        grossArea: "Área Bruta",
+        usefulArea: "Área Útil",
+        finishes: "Acabamentos",
+        fronts: "Frentes",
+        renovated: "Renovado",
+        exempt: "Isento",
+        noAgent: "Agente não atribuído",
+        tags: "Tags"
       },
       status: {
         available: "Disponível",
@@ -72,21 +99,41 @@ export const translations = {
         pending_validation: "Por Validar"
       },
       search: {
-        searchPlaceholder: "Pesquisar por localização, título...",
-        allCities: "Todas as Cidades",
-        allDistricts: "Todos os Distritos",
-        allCountries: "Todos os Países",
+        searchPlaceholder: "Pesquisar por localização...",
+        allCities: "Todas",
+        allDistricts: "Todos",
+        allCountries: "Todos",
         filters: "Filtros",
         advancedFilters: "Filtros Avançados",
         showAdvanced: "Mostrar Filtros Avançados",
-        hideAdvanced: "Esconder Filtros Avançados"
+        hideAdvanced: "Esconder Filtros Avançados",
+        sortBy: "Ordenar",
+        recent: "Mais Recentes",
+        priceAsc: "Preço: ↑",
+        priceDesc: "Preço: ↓",
+        area: "Maior Área",
+        gridView: "Vista Grid",
+        listView: "Vista Lista",
+        mapView: "Vista Mapa"
       },
       results: {
-        found: "{count} imóveis encontrados",
-        foundSingle: "{count} imóvel encontrado",
-        residential: "imóveis residenciais",
-        commercial: "imóveis comerciais",
-        withFilters: "Com os filtros aplicados"
+        found: "{count} imóveis",
+        foundSingle: "{count} imóvel",
+        residential: "residenciais",
+        commercial: "comerciais",
+        withFilters: "Com filtros aplicados",
+        noProperties: "Nenhum imóvel encontrado",
+        adjustFilters: "Tente ajustar os filtros de pesquisa para ver mais resultados"
+      },
+      cta: {
+        dreamHome: "Procura a sua casa de sonho?",
+        commercialSpace: "Procura um espaço comercial específico?",
+        notFound: "Não encontrou o que procura?",
+        helpResidential: "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel residencial ideal.",
+        helpCommercial: "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal.",
+        helpGeneral: "A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto!",
+        contactUs: "Falar com Consultor",
+        sendEmail: "Enviar Email"
       }
     },
     pages: {
@@ -144,7 +191,18 @@ export const translations = {
       submit: "Enviar Mensagem",
       sending: "A enviar...",
       success: "Mensagem enviada com sucesso!",
-      error: "Erro ao enviar mensagem"
+      error: "Erro ao enviar mensagem",
+      messagePlaceholder: "Olá, tenho interesse no imóvel \"{title}\". Gostaria de obter mais informações...",
+      messageSent: "Mensagem Enviada!",
+      messageConfirmation: "Entraremos em contacto brevemente.",
+      sendAnother: "Enviar outra mensagem",
+      visitScheduled: "Visita Agendada!",
+      visitConfirmation: "Receberá uma confirmação brevemente.",
+      scheduleAnother: "Agendar outra visita",
+      shareProperty: "Partilhar",
+      saveProperty: "Guardar",
+      savedProperty: "Guardado",
+      required: "*"
     }
   },
   en: {
@@ -167,7 +225,16 @@ export const translations = {
       send: "Send",
       success: "Success!",
       error: "Error",
-      back: "Back"
+      back: "Back",
+      all: "All",
+      or: "or",
+      name: "Name",
+      message: "Message",
+      notes: "Notes",
+      featured: "Featured",
+      perMonth: "/month",
+      viewAll: "View all",
+      photos: "photos"
     },
     property: {
       types: {
@@ -182,7 +249,8 @@ export const translations = {
         warehouse: "Warehouse",
         office: "Office",
         hotel: "Hotel",
-        shop: "Shop"
+        shop: "Shop",
+        all: "All"
       },
       listing: {
         sale: "Sale",
@@ -208,7 +276,24 @@ export const translations = {
         yearBuilt: "Year Built",
         energyCertificate: "Energy Certificate",
         parking: "Parking",
-        furnished: "Furnished"
+        furnished: "Furnished",
+        allCountries: "All Countries",
+        allCities: "All Cities",
+        allDistricts: "All States",
+        year: "Year",
+        contactAgent: "Contact about this property",
+        assignedAgent: "Assigned Agent",
+        scheduleViewing: "Schedule Viewing",
+        similarProperties: "Similar Properties",
+        propertyDetails: "Property Details",
+        grossArea: "Gross Area",
+        usefulArea: "Useful Area",
+        finishes: "Finishes",
+        fronts: "Fronts",
+        renovated: "Renovated",
+        exempt: "Exempt",
+        noAgent: "No agent assigned",
+        tags: "Tags"
       },
       status: {
         available: "Available",
@@ -220,21 +305,41 @@ export const translations = {
         pending_validation: "Pending Validation"
       },
       search: {
-        searchPlaceholder: "Search by location, title...",
-        allCities: "All Cities",
-        allDistricts: "All Districts",
-        allCountries: "All Countries",
+        searchPlaceholder: "Search by location...",
+        allCities: "All",
+        allDistricts: "All",
+        allCountries: "All",
         filters: "Filters",
         advancedFilters: "Advanced Filters",
         showAdvanced: "Show Advanced Filters",
-        hideAdvanced: "Hide Advanced Filters"
+        hideAdvanced: "Hide Advanced Filters",
+        sortBy: "Sort",
+        recent: "Most Recent",
+        priceAsc: "Price: ↑",
+        priceDesc: "Price: ↓",
+        area: "Largest Area",
+        gridView: "Grid View",
+        listView: "List View",
+        mapView: "Map View"
       },
       results: {
-        found: "{count} properties found",
-        foundSingle: "{count} property found",
-        residential: "residential properties",
-        commercial: "commercial properties",
-        withFilters: "With applied filters"
+        found: "{count} properties",
+        foundSingle: "{count} property",
+        residential: "residential",
+        commercial: "commercial",
+        withFilters: "With filters applied",
+        noProperties: "No properties found",
+        adjustFilters: "Try adjusting the search filters to see more results"
+      },
+      cta: {
+        dreamHome: "Looking for your dream home?",
+        commercialSpace: "Looking for a specific commercial space?",
+        notFound: "Didn't find what you're looking for?",
+        helpResidential: "Our specialized team can help you find the ideal residential property.",
+        helpCommercial: "Our specialized team can help you find the ideal commercial property.",
+        helpGeneral: "Our team can help you find the perfect property. Get in touch!",
+        contactUs: "Talk to Consultant",
+        sendEmail: "Send Email"
       }
     },
     pages: {
@@ -292,7 +397,18 @@ export const translations = {
       submit: "Send Message",
       sending: "Sending...",
       success: "Message sent successfully!",
-      error: "Error sending message"
+      error: "Error sending message",
+      messagePlaceholder: "Hello, I'm interested in the property \"{title}\". I would like to get more information...",
+      messageSent: "Message Sent!",
+      messageConfirmation: "We'll get in touch shortly.",
+      sendAnother: "Send another message",
+      visitScheduled: "Visit Scheduled!",
+      visitConfirmation: "You'll receive a confirmation shortly.",
+      scheduleAnother: "Schedule another visit",
+      shareProperty: "Share",
+      saveProperty: "Save",
+      savedProperty: "Saved",
+      required: "*"
     }
   },
   es: {

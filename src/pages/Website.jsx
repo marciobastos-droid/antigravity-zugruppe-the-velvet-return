@@ -31,8 +31,10 @@ import { useABTesting } from "../components/website/ABTestingController";
 import { HelmetProvider } from "react-helmet-async";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
 import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function Website() {
+  const { t, locale } = useLocalization();
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date')
@@ -396,9 +398,9 @@ export default function Website() {
   // SEO dinâmico baseado em filtros ativos
   const generateDynamicSEO = () => {
     const baseTitles = {
-      all: "Imóveis",
-      residential: "Imóveis Residenciais",
-      commercial: "Espaços Comerciais"
+      all: locale === 'en' ? "Properties" : locale === 'es' ? "Propiedades" : locale === 'fr' ? "Propriétés" : "Imóveis",
+      residential: locale === 'en' ? "Residential Properties" : locale === 'es' ? "Propiedades Residenciales" : locale === 'fr' ? "Propriétés Résidentielles" : "Imóveis Residenciais",
+      commercial: locale === 'en' ? "Commercial Spaces" : locale === 'es' ? "Espacios Comerciales" : locale === 'fr' ? "Espaces Commerciaux" : "Espaços Comerciais"
     };
 
     const parts = [baseTitles[activeTab]];
@@ -510,18 +512,18 @@ export default function Website() {
                   <TabsList className="grid grid-cols-3 w-full h-auto">
                     <TabsTrigger value="all" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Todos os Imóveis</span>
-                      <span className="sm:hidden">Todos</span>
+                      <span className="hidden sm:inline">{t('pages.zugruppe.all')}</span>
+                      <span className="sm:hidden">{t('common.all')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="residential" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Home className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Residencial</span>
-                      <span className="sm:hidden">Casa</span>
+                      <span className="hidden sm:inline">{t('pages.zugruppe.residential')}</span>
+                      <span className="sm:hidden">{locale === 'en' ? 'Home' : 'Casa'}</span>
                     </TabsTrigger>
                     <TabsTrigger value="commercial" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">Comercial</span>
-                      <span className="sm:hidden">Loja</span>
+                      <span className="hidden sm:inline">{t('pages.zugruppe.commercial')}</span>
+                      <span className="sm:hidden">{locale === 'en' ? 'Shop' : 'Loja'}</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
@@ -534,7 +536,7 @@ export default function Website() {
                     size="sm"
                     className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
-                    Todos
+                    {t('common.all')}
                   </Button>
                   <Button 
                     variant={listingType === "sale" ? "default" : "outline"}
@@ -542,7 +544,7 @@ export default function Website() {
                     size="sm"
                     className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
-                    🏷️ Comprar
+                    🏷️ {t('property.listing.buy')}
                   </Button>
                   <Button 
                     variant={listingType === "rent" ? "default" : "outline"}
@@ -550,7 +552,7 @@ export default function Website() {
                     size="sm"
                     className="whitespace-nowrap flex-1 sm:flex-initial text-xs sm:text-sm"
                   >
-                    🔑 Arrendar
+                    🔑 {t('property.listing.toRent')}
                   </Button>
                 </div>
 
@@ -561,17 +563,17 @@ export default function Website() {
                     <Input
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Pesquisar por localização..."
+                      placeholder={t('property.search.searchPlaceholder')}
                       className="pl-10 sm:pl-12 h-10 sm:h-12 text-sm sm:text-base md:text-lg border-slate-200"
                     />
                   </div>
                   <Select value={city} onValueChange={setCity}>
                     <SelectTrigger className="w-full sm:w-40 md:w-48 h-10 sm:h-12 text-sm sm:text-base">
                       <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 text-slate-400" />
-                      <SelectValue placeholder="Cidade" />
+                      <SelectValue placeholder={t('property.details.city')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
+                      <SelectItem value="all">{t('property.search.allCities')}</SelectItem>
                       {allCities.map(c => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
@@ -583,8 +585,7 @@ export default function Website() {
                     className="h-10 sm:h-12 gap-1 sm:gap-2 text-sm sm:text-base"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
-                    <span className="sm:hidden">Filtros</span>
-                    <span className="hidden sm:inline">Filtros</span>
+                    <span>{t('property.search.filters')}</span>
                     {hasActiveFilters && (
                       <Badge className="bg-blue-600 text-white ml-1 text-xs">
                         {[listingType !== "all", propertyType !== "all", bedrooms !== "all", city !== "all", priceMin, priceMax].filter(Boolean).length}
@@ -1006,22 +1007,22 @@ export default function Website() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
             <h2 className="text-base sm:text-xl font-bold text-slate-900">
-              {filteredProperties.length} {activeTab === "residential" ? "residenciais" : activeTab === "commercial" ? "comerciais" : "imóveis"}
+              {filteredProperties.length} {activeTab === "residential" ? t('property.results.residential') : activeTab === "commercial" ? t('property.results.commercial') : (locale === 'en' ? 'properties' : 'imóveis')}
             </h2>
             {hasActiveFilters && (
-              <p className="text-xs sm:text-sm text-slate-600">Com filtros aplicados</p>
+              <p className="text-xs sm:text-sm text-slate-600">{t('property.results.withFilters')}</p>
             )}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-36 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm">
-                <SelectValue placeholder="Ordenar" />
+                <SelectValue placeholder={t('property.search.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="recent">Mais Recentes</SelectItem>
-                <SelectItem value="price_asc">Preço: ↑</SelectItem>
-                <SelectItem value="price_desc">Preço: ↓</SelectItem>
-                <SelectItem value="area">Maior Área</SelectItem>
+                <SelectItem value="recent">{t('property.search.recent')}</SelectItem>
+                <SelectItem value="price_asc">{t('property.search.priceAsc')}</SelectItem>
+                <SelectItem value="price_desc">{t('property.search.priceDesc')}</SelectItem>
+                <SelectItem value="area">{t('property.search.area')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex border rounded-lg overflow-hidden">
@@ -1144,13 +1145,13 @@ export default function Website() {
               <Home className="w-10 h-10 text-slate-400" />
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-2">
-              Nenhum imóvel encontrado
+              {t('property.results.noProperties')}
             </h3>
             <p className="text-slate-600 mb-6 max-w-md mx-auto">
-              Tente ajustar os filtros de pesquisa para ver mais resultados
+              {t('property.results.adjustFilters')}
             </p>
             <Button onClick={clearFilters}>
-              Limpar Filtros
+              {t('common.clearAll')}
             </Button>
           </div>
         )}
@@ -1167,20 +1168,20 @@ export default function Website() {
         <div className="max-w-4xl mx-auto px-3 sm:px-4 text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
             {activeTab === "residential" 
-              ? "Procura a sua casa de sonho?"
+              ? t('property.cta.dreamHome')
               : activeTab === "commercial"
-              ? "Procura um espaço comercial específico?"
-              : "Não encontrou o que procura?"
+              ? t('property.cta.commercialSpace')
+              : t('property.cta.notFound')
             }
           </h2>
           <p className={`text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto ${
             activeTab === "residential" ? "text-slate-200" : activeTab === "commercial" ? "text-slate-200" : "text-blue-100"
           }`}>
             {activeTab === "residential"
-              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel residencial ideal."
+              ? t('property.cta.helpResidential')
               : activeTab === "commercial"
-              ? "A nossa equipa especializada pode ajudá-lo a encontrar o imóvel comercial ideal."
-              : "A nossa equipa pode ajudá-lo a encontrar o imóvel perfeito. Entre em contacto!"
+              ? t('property.cta.helpCommercial')
+              : t('property.cta.helpGeneral')
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
@@ -1199,7 +1200,7 @@ export default function Website() {
               }`}
             >
               <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              {cta.primary}
+              {t('property.cta.contactUs')}
             </Button>
             <Button 
               size="default"
@@ -1209,7 +1210,7 @@ export default function Website() {
               className="h-10 sm:h-11 text-sm sm:text-base bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors"
             >
               <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              {cta.secondary}
+              {t('property.cta.sendEmail')}
             </Button>
           </div>
           </div>
@@ -1273,14 +1274,10 @@ export default function Website() {
 const PropertyCardCompact = React.memo(({ property, featured, index }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
+  const { t } = useLocalization();
   
   // Track engagement
   const { trackAction } = usePropertyEngagement(property.id, property.title);
-
-  const propertyTypeLabels = {
-    apartment: "Apartamento", house: "Moradia", land: "Terreno",
-    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
-  };
 
   // URL SEO-friendly
   const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
@@ -1327,11 +1324,11 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
           {featured && (
             <Badge className="bg-amber-400 text-slate-900 border-0">
               <Star className="w-3 h-3 mr-1" />
-              Destaque
+              {t('common.featured')}
             </Badge>
           )}
           <Badge className="bg-white/95 text-slate-800 border-0">
-            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+            {t(`property.listing.${property.listing_type}`)}
           </Badge>
         </div>
 
@@ -1340,7 +1337,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
           <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 sm:px-2.5 py-1 rounded-lg">
             <div className="text-xs sm:text-sm font-bold">
               {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-              {property.listing_type === 'rent' && <span className="text-[10px] sm:text-xs font-normal">/mês</span>}
+              {property.listing_type === 'rent' && <span className="text-[10px] sm:text-xs font-normal">{t('common.perMonth')}</span>}
             </div>
             {property.currency && property.currency !== 'EUR' && (() => {
               const eurValue = convertToEUR(property.price, property.currency);
@@ -1392,7 +1389,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index }) => {
             </Badge>
           )}
           <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
-            {propertyTypeLabels[property.property_type] || property.property_type}
+            {t(`property.types.${property.property_type}`) || property.property_type}
           </Badge>
         </div>
       </div>
@@ -1405,11 +1402,7 @@ const PropertyCardList = React.memo(({ property, index }) => {
   const image = property.images?.[0];
   const { trackAction } = usePropertyEngagement(property.id, property.title);
   const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
-
-  const propertyTypeLabels = {
-    apartment: "Apartamento", house: "Moradia", land: "Terreno",
-    building: "Prédio", farm: "Quinta/Herdade", store: "Loja", warehouse: "Armazém", office: "Escritório"
-  };
+  const { t } = useLocalization();
 
   return (
     <Link 
@@ -1433,7 +1426,7 @@ const PropertyCardList = React.memo(({ property, index }) => {
           </div>
         )}
         <Badge className="absolute top-3 left-3 bg-white/95 text-slate-800 border-0">
-          {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+          {t(`property.listing.${property.listing_type}`)}
         </Badge>
       </div>
 
@@ -1504,7 +1497,7 @@ const PropertyCardList = React.memo(({ property, index }) => {
               </Badge>
             )}
             <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 hidden sm:inline-flex">
-              {propertyTypeLabels[property.property_type] || property.property_type}
+              {t(`property.types.${property.property_type}`) || property.property_type}
             </Badge>
           </div>
         </div>
