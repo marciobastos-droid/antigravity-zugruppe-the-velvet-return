@@ -19,12 +19,12 @@ export default function SEOHead({
   const defaultTitle = "Zugruppe - Imóveis Premium em Portugal e no Mundo";
   const defaultDescription = "Encontre o seu imóvel ideal com a Zugruppe. Apartamentos, moradias e espaços comerciais de excelência em Portugal e internacionalmente.";
   const defaultImage = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png";
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://zugruppe.com";
+  const BASE_DOMAIN = "https://zugruppe.base44.app";
 
   const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
   const metaDescription = description || defaultDescription;
   const metaImage = image || defaultImage;
-  const canonical = url || (typeof window !== "undefined" ? window.location.href : siteUrl);
+  const canonical = url || (typeof window !== "undefined" ? `${BASE_DOMAIN}${window.location.pathname}${window.location.search}` : BASE_DOMAIN);
 
   // Gerar structured data automaticamente se for imóvel
   let autoStructuredData = structuredData;
