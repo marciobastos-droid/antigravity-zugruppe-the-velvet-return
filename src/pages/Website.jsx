@@ -1276,15 +1276,11 @@ export default function Website() {
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
-  
-  // Track engagement
-  const { trackAction } = usePropertyEngagement(property.id, property.title);
 
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
-      onClick={() => trackAction('clicked', { source: 'website_grid' })}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
@@ -1398,13 +1394,11 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale }
 // List Card for List View - Memoized
 const PropertyCardList = React.memo(({ property, index, t, locale }) => {
   const image = property.images?.[0];
-  const { trackAction } = usePropertyEngagement(property.id, property.title);
 
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
-      onClick={() => trackAction('clicked', { source: 'website_list' })}
     >
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
