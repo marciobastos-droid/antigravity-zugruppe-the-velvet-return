@@ -7,7 +7,7 @@ import {
   Search, Filter, X, Home, Building2, MapPin, 
   Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
   Grid3X3, List, Heart, Phone, Mail, Euro, Calendar,
-  ChevronLeft, ChevronRight, Sparkles, Zap, Car, TreePine, Check, Image as ImageIcon
+  ChevronLeft, ChevronRight, Zap, Car, TreePine, Check
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -641,7 +641,7 @@ export default function ZuGruppe() {
                     {showAdvancedFilters && (
                       <div className="mt-4 pt-4 border-t border-dashed border-slate-300 space-y-4">
                         <div className="flex items-center gap-2 text-sm font-medium text-slate-700 mb-3">
-                          <Sparkles className="w-4 h-4 text-blue-600" />
+                          <Star className="w-4 h-4 text-blue-600" />
                           Filtros Avançados
                         </div>
                         
