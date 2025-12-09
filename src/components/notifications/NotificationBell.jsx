@@ -19,7 +19,7 @@ export default function NotificationBell({ user }) {
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || typeof base44 === 'undefined') return [];
       const notifs = await base44.entities.Notification.filter(
         { user_email: user.email },
         '-created_date',
@@ -27,7 +27,7 @@ export default function NotificationBell({ user }) {
       );
       return notifs;
     },
-    enabled: !!user,
+    enabled: !!user && typeof base44 !== 'undefined',
     refetchInterval: 10000, // Refresh every 10 seconds
   });
 
@@ -37,7 +37,7 @@ export default function NotificationBell({ user }) {
   const { data: newLeads = [] } = useQuery({
     queryKey: ['newLeads', user?.email],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || typeof base44 === 'undefined') return [];
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       
@@ -54,7 +54,7 @@ export default function NotificationBell({ user }) {
       
       return filtered;
     },
-    enabled: !!user,
+    enabled: !!user && typeof base44 !== 'undefined',
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -62,7 +62,7 @@ export default function NotificationBell({ user }) {
   const { data: unreadLeads = [] } = useQuery({
     queryKey: ['unreadLeads', user?.email],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user || typeof base44 === 'undefined') return [];
       
       const allOpps = await base44.entities.Opportunity.filter(
         { is_read: false },
@@ -77,7 +77,7 @@ export default function NotificationBell({ user }) {
       
       return filtered;
     },
-    enabled: !!user,
+    enabled: !!user && typeof base44 !== 'undefined',
     refetchInterval: 30000,
   });
 
