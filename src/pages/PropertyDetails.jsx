@@ -688,42 +688,70 @@ export default function PropertyDetails() {
             </Card>
 
             {/* Map */}
-            {property.city && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    Localização
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
-                    <MapContainer 
-                      center={[41.1579, -8.6291]} 
-                      zoom={14} 
-                      style={{ height: '100%', width: '100%' }}
-                      scrollWheelZoom={true}
-                      zoomControl={true}
-                    >
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      />
-                      <Marker position={[41.1579, -8.6291]}>
-                        <Popup>
-                          <div className="p-2">
-                            <strong className="text-base">{property.title}</strong><br />
-                            <span className="text-sm text-slate-600">
-                              {property.address}, {property.city}
-                            </span><br />
-                            <span className="text-lg font-bold text-green-600">
-                              €{property.price?.toLocaleString()}
-                            </span>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    </MapContainer>
-                  </div>
+            {property.city && (() => {
+              // Coordenadas de cidades portuguesas
+              const cityCoords = {
+                'Lisboa': [38.7223, -9.1393],
+                'Porto': [41.1579, -8.6291],
+                'Braga': [41.5454, -8.4265],
+                'Coimbra': [40.2033, -8.4103],
+                'Faro': [37.0194, -7.9304],
+                'Aveiro': [40.6443, -8.6455],
+                'Viseu': [40.6566, -7.9122],
+                'Setúbal': [38.5244, -8.8882],
+                'Évora': [38.5742, -7.9078],
+                'Leiria': [39.7437, -8.8071],
+                'Funchal': [32.6669, -16.9241],
+                'Ponta Delgada': [37.7412, -25.6756],
+                'Cascais': [38.6979, -9.4215],
+                'Sintra': [38.8029, -9.3817],
+                'Oeiras': [38.6939, -9.3106],
+                'Almada': [38.6799, -9.1571],
+                'Matosinhos': [41.1820, -8.6896],
+                'Vila Nova de Gaia': [41.1239, -8.6118]
+              };
+              
+              // Usar coordenadas da propriedade ou da cidade
+              const coords = property.latitude && property.longitude 
+                ? [property.latitude, property.longitude]
+                : cityCoords[property.city] || [39.5, -8.0]; // Centro de Portugal como fallback
+              
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5" />
+                      Localização
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
+                      <MapContainer 
+                        center={coords} 
+                        zoom={14} 
+                        style={{ height: '100%', width: '100%' }}
+                        scrollWheelZoom={true}
+                        zoomControl={true}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        <Marker position={coords}>
+                          <Popup>
+                            <div className="p-2">
+                              <strong className="text-base">{property.title}</strong><br />
+                              <span className="text-sm text-slate-600">
+                                {property.address}, {property.city}
+                              </span><br />
+                              <span className="text-lg font-bold text-green-600">
+                                €{property.price?.toLocaleString()}
+                              </span>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </MapContainer>
+                    </div>
                   <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
@@ -738,7 +766,8 @@ export default function PropertyDetails() {
                   </div>
                 </CardContent>
               </Card>
-            )}
+              );
+            })()}
 
             {/* AI Features - Quality Score & Pricing */}
             {isOwner && (
