@@ -514,4 +514,4 @@ const CommercialPropertyCard = React.memo(({ property, onContact }) => {
       </CardContent>
     </Card>
   );
-}
+});

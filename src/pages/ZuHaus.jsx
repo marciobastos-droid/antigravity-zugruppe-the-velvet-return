@@ -519,4 +519,4 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
       </CardContent>
     </Card>
   );
-}
+});

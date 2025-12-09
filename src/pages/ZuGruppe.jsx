@@ -1373,4 +1373,4 @@ const PropertyCardList = React.memo(({ property }) => {
       </div>
     </Link>
   );
-}
+});
