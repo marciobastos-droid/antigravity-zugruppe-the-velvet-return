@@ -15,9 +15,6 @@ import { HelmetProvider } from "react-helmet-async";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home"];
 
-// Public pages that don't require authentication
-const PUBLIC_PAGES = ["Website", "Home", "PropertyDetails", "PrivacyPolicy", "TermsConditions", "CookiePolicy", "DenunciationChannel", "ManageData"];
-
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const [user, setUser] = React.useState(null);
@@ -47,10 +44,6 @@ export default function Layout({ children, currentPageName }) {
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
     return <>{children}</>;
   }
-
-  // For public pages, hide navigation if user is not authenticated
-  const isPublicPage = PUBLIC_PAGES.includes(currentPageName);
-  const shouldHideNavigation = isPublicPage && !user;
 
   const userTypeNormalized = user?.user_type?.toLowerCase() || '';
   const isAdmin = user && (user.role === 'admin' || userTypeNormalized === 'admin' || userTypeNormalized === 'gestor');
@@ -110,10 +103,6 @@ export default function Layout({ children, currentPageName }) {
       <LocalizationProvider>
         <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
-      {shouldHideNavigation ? (
-        <main className="pb-8">{children}</main>
-      ) : (
-        <>
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -277,8 +266,6 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       <main className="pb-8">{children}</main>
-      </>
-      )}
       </div>
       </LocalizationProvider>
       </HelmetProvider>
