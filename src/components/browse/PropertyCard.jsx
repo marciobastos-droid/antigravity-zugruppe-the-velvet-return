@@ -1,18 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
+import OptimizedImage from "../common/OptimizedImage";
 
 export default function PropertyCard({ property }) {
-  const [imageError, setImageError] = React.useState(false);
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
   // Reset image index when property changes
   React.useEffect(() => {
     setCurrentImageIndex(0);
-    setImageError(false);
   }, [property.id]);
   
   const images = property.images && property.images.length > 0 
@@ -40,24 +39,16 @@ export default function PropertyCard({ property }) {
     >
       {/* Image */}
       <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-slate-100">
-        {!imageError && images[currentImageIndex] ? (
-          <img
-            src={images[currentImageIndex]}
-            alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <div className="text-center">
-              <ImageIcon className="w-16 h-16 text-slate-300 mx-auto mb-2" />
-              <p className="text-xs text-slate-400">Sem imagem</p>
-            </div>
-          </div>
-        )}
+        <OptimizedImage
+          src={images[currentImageIndex]}
+          alt={property.title}
+          className="w-full h-full group-hover:scale-110 transition-transform duration-500"
+          fallbackIcon={HomeIcon}
+          strategy="lazy"
+        />
         
         {/* Image Navigation Arrows */}
-        {hasMultipleImages && !imageError && (
+        {hasMultipleImages && (
           <>
             <button
               onClick={handlePrevImage}

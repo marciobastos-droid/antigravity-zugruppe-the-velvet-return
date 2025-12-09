@@ -43,6 +43,7 @@ import {
   generatePropertySEOUrl 
 } from "../components/utils/seoHelpers";
 import { useLocalization } from "../components/i18n/LocalizationContext";
+import { QUERY_CONFIG } from "../components/utils/queryClient";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
@@ -85,7 +86,8 @@ export default function PropertyDetails() {
       }
     },
     enabled: !!propertyId,
-    retry: 1
+    retry: 1,
+    ...QUERY_CONFIG.properties
   });
 
   const { data: user } = useQuery({
@@ -97,6 +99,7 @@ export default function PropertyDetails() {
         return null;
       }
     },
+    ...QUERY_CONFIG.user
   });
 
   const { data: savedProperties = [] } = useQuery({
@@ -118,6 +121,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
+    ...QUERY_CONFIG.properties
   });
 
   const { data: agents = [] } = useQuery({
@@ -129,6 +133,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
+    ...QUERY_CONFIG.agents
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -140,6 +145,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
+    ...QUERY_CONFIG.user
   });
 
   const updatePropertyMutation = useMutation({

@@ -32,12 +32,14 @@ import { HelmetProvider } from "react-helmet-async";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
 import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
 import { useLocalization } from "../components/i18n/LocalizationContext";
+import { QUERY_CONFIG } from "../components/utils/queryClient";
 
 export default function Website() {
   const { t, locale } = useLocalization();
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date')
+    queryFn: () => base44.entities.Property.list('-created_date'),
+    ...QUERY_CONFIG.properties
   });
 
   // A/B Testing
