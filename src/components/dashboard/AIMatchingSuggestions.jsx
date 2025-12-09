@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Wand2, Users, Building2, Mail, Bell, TrendingUp, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AIMatchingSuggestions({ user }) {
   const [newMatches, setNewMatches] = React.useState([]);
