@@ -36,6 +36,13 @@ import PropertyQualityScore from "../components/property/PropertyQualityScore";
 import AIPricingAnalysis from "../components/property/AIPricingAnalysis";
 
 export default function PropertyDetails() {
+  // Auth check for admin features only - page is public
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  
+  React.useEffect(() => {
+    base44.auth.isAuthenticated().then(setIsAuthenticated).catch(() => setIsAuthenticated(false));
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
   

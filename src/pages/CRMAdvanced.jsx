@@ -9,6 +9,15 @@ import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
 import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 
 export default function CRMAdvanced() {
+  // Auth check - redirect to login if not authenticated
+  React.useEffect(() => {
+    base44.auth.isAuthenticated().then(isAuth => {
+      if (!isAuth) {
+        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      }
+    });
+  }, []);
+
   // Read tab from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get('tab');
