@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   TrendingUp, TrendingDown, DollarSign, Loader2, 
-  Target, AlertCircle, CheckCircle2, Clock, ArrowUpRight, ArrowDownRight
+  Target, AlertCircle, CheckCircle2, Clock, ArrowUpRight, ArrowDownRight, Wand2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -89,7 +89,7 @@ export default function AIPricingAnalysis({ property }) {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Wand2 className="w-4 h-4 mr-2" />
                 {analysis ? 'Reanalisar' : 'Analisar Preço'}
               </>
             )}
@@ -237,7 +237,7 @@ export default function AIPricingAnalysis({ property }) {
             {analysis.recommendations && analysis.recommendations.length > 0 && (
               <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
                 <p className="text-sm font-medium text-purple-900 mb-2 flex items-center gap-1">
-                  <Sparkles className="w-4 h-4" />
+                  <Wand2 className="w-4 h-4" />
                   Recomendações
                 </p>
                 <ul className="text-sm text-purple-800 space-y-1 ml-4 list-disc">

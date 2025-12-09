@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
-  TrendingUp, Sparkles, RefreshCw, Loader2, 
+  TrendingUp, RefreshCw, Loader2, 
   CheckCircle2, AlertCircle, Info, Star,
-  FileText, Image, Home, Zap
+  FileText, Image, Home, Zap, Wand2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -70,7 +70,7 @@ export default function PropertyQualityScore({ property, compact = false }) {
     return (
       <div className="flex items-center gap-2">
         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${getScoreBgColor(score)}`}>
-          <Sparkles className={`w-3 h-3 ${getScoreColor(score)}`} />
+          <Wand2 className={`w-3 h-3 ${getScoreColor(score)}`} />
           <span className={`font-semibold text-sm ${getScoreColor(score)}`}>
             {score}/100
           </span>
@@ -85,7 +85,7 @@ export default function PropertyQualityScore({ property, compact = false }) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-600" />
+            <Wand2 className="w-5 h-5 text-purple-600" />
             Pontuação de Qualidade
           </CardTitle>
           <Button
