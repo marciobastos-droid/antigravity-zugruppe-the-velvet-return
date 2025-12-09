@@ -74,7 +74,7 @@ export default function Website() {
   const [priceMax, setPriceMax] = React.useState("");
   const [city, setCity] = React.useState("all");
   const [sortBy, setSortBy] = React.useState("recent");
-  const [showFilters, setShowFilters] = React.useState(true);
+  const [showFilters, setShowFilters] = React.useState(false);
   const [viewMode, setViewMode] = React.useState("grid");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [country, setCountry] = React.useState("all");
