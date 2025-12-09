@@ -78,6 +78,9 @@ export default function PropertyDetails() {
   const [messageSent, setMessageSent] = React.useState(false);
   const [appointmentScheduled, setAppointmentScheduled] = React.useState(false);
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  const queryClient = useQueryClient();
+  
   const { data: property, isLoading, error } = useQuery({
     queryKey: ['property', propertyId],
     queryFn: async () => {
@@ -167,11 +170,9 @@ export default function PropertyDetails() {
     },
   });
 
-  const queryClient = useQueryClient();
-
   const isSaved = savedProperties.some(sp => sp.property_id === propertyId);
   
-  // Track engagement
+  // Track engagement - must be called before any conditional returns
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
 
   const saveMutation = useMutation({
