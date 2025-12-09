@@ -28,6 +28,7 @@ import ImagePreloader from "../components/seo/ImagePreloader";
 import ExitIntentPopup from "../components/website/ExitIntentPopup";
 import AIChatWidget from "../components/website/AIChatWidget";
 import { useABTesting } from "../components/website/ABTestingController";
+import { HelmetProvider } from "react-helmet-async";
 
 export default function Website() {
   const { data: properties = [], isLoading } = useQuery({
@@ -403,12 +404,13 @@ export default function Website() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <SEOHead
-        title={pageTitles[activeTab]}
-        description={pageDescriptions[activeTab]}
-        keywords="imóveis, Portugal, apartamentos, moradias, casas, venda, arrendamento, imobiliário, propriedades"
-      />
+    <HelmetProvider>
+      <div className="min-h-screen bg-slate-50">
+        <SEOHead
+          title={pageTitles[activeTab]}
+          description={pageDescriptions[activeTab]}
+          keywords="imóveis, Portugal, apartamentos, moradias, casas, venda, arrendamento, imobiliário, propriedades"
+        />
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 
@@ -1194,9 +1196,10 @@ export default function Website() {
           </div>
           </div>
           </footer>
-          </div>
-          );
-          }
+        </div>
+      </HelmetProvider>
+    );
+  }
 
 // Compact Card for Grid View - Memoized
 const PropertyCardCompact = React.memo(({ property, featured }) => {
