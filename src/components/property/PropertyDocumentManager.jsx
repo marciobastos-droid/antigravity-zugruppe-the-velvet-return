@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   FileText, Plus, Download, Trash2, Upload, Lock, Globe, AlertCircle,
-  Eye, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Search
+  Eye, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Search, Wand2, CheckCircle
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
@@ -92,6 +92,9 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
     status: "draft"
   });
 
+  const [processingOCR, setProcessingOCR] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState({ current: 0, total: 0 });
+
   const { data: documents = [] } = useQuery({
     queryKey: ['property-documents', propertyId],
     queryFn: () => base44.entities.PropertyDocument.filter({ property_id: propertyId }, '-upload_date'),
@@ -119,6 +122,55 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
     setSelectedFiles(files);
   };
 
+  const processDocumentOCR = async (fileUrl, fileName, fileType) => {
+    // Apenas processar PDFs e imagens
+    if (!fileType?.includes('pdf') && !fileType?.includes('image')) {
+      return null;
+    }
+
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analisa este documento e extrai as seguintes informações em formato JSON:
+- document_name: nome do documento ou título (string)
+- document_type: tipo do documento (escolhe o mais apropriado: deed, energy_certificate, insurance, tax_document, floor_plan, inspection_report, building_permit, lease_agreement, contract, proposal, brochure, cpcv, appraisal, invoice, technical_specs, other)
+- expiry_date: data de validade/expiração se existir (formato YYYY-MM-DD ou null)
+- key_entities: nomes de pessoas, empresas ou entidades mencionadas (array de strings)
+- important_dates: outras datas relevantes mencionadas (array de objetos com {date: "YYYY-MM-DD", description: "descrição"})
+- summary: resumo breve do conteúdo (string, máx 200 caracteres)
+- detected_fields: quaisquer campos estruturados encontrados (objeto com pares chave-valor)
+
+Se não conseguires extrair alguma informação, usa null ou array vazio.`,
+        file_urls: [fileUrl],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            document_name: { type: "string" },
+            document_type: { type: "string" },
+            expiry_date: { type: ["string", "null"] },
+            key_entities: { type: "array", items: { type: "string" } },
+            important_dates: { 
+              type: "array", 
+              items: { 
+                type: "object",
+                properties: {
+                  date: { type: "string" },
+                  description: { type: "string" }
+                }
+              }
+            },
+            summary: { type: "string" },
+            detected_fields: { type: "object" }
+          }
+        }
+      });
+
+      return result;
+    } catch (error) {
+      console.error("OCR Error:", error);
+      return null;
+    }
+  };
+
   const handleUploadMultiple = async () => {
     if (selectedFiles.length === 0) {
       toast.error("Selecione pelo menos um ficheiro");
@@ -126,8 +178,14 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
     }
 
     setUploading(true);
+    setProcessingOCR(true);
+    setOcrProgress({ current: 0, total: selectedFiles.length });
+
     try {
-      for (const file of selectedFiles) {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        setOcrProgress({ current: i + 1, total: selectedFiles.length });
+
         let file_url, file_uri;
         
         if (formData.is_public) {
@@ -138,29 +196,45 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
           file_uri = result.file_uri;
         }
 
-        await createMutation.mutateAsync({
+        // Process OCR
+        const uploadedUrl = file_url || file_uri;
+        const ocrData = await processDocumentOCR(uploadedUrl, file.name, file.type);
+
+        // Use OCR data if available, otherwise use form data
+        const docData = {
           property_id: propertyId,
           property_title: propertyTitle,
-          document_name: file.name.split('.')[0],
-          document_type: formData.document_type,
-          description: formData.description,
-          expiry_date: formData.expiry_date || null,
+          document_name: ocrData?.document_name || file.name.split('.')[0],
+          document_type: ocrData?.document_type || formData.document_type,
+          description: ocrData?.summary || formData.description,
+          expiry_date: ocrData?.expiry_date || formData.expiry_date || null,
           is_public: formData.is_public,
           status: formData.status,
           file_url,
           file_uri,
           file_size: file.size,
           file_type: file.type,
-          upload_date: new Date().toISOString()
-        });
+          upload_date: new Date().toISOString(),
+          // OCR metadata
+          ocr_processed: !!ocrData,
+          ocr_data: ocrData ? {
+            key_entities: ocrData.key_entities || [],
+            important_dates: ocrData.important_dates || [],
+            detected_fields: ocrData.detected_fields || {},
+            processed_at: new Date().toISOString()
+          } : null
+        };
+
+        await createMutation.mutateAsync(docData);
       }
       
-      toast.success(`${selectedFiles.length} documentos adicionados`);
+      toast.success(`${selectedFiles.length} documentos processados com OCR`);
       resetForm();
     } catch (error) {
       toast.error("Erro ao carregar ficheiros");
     }
     setUploading(false);
+    setProcessingOCR(false);
   };
 
   const resetForm = () => {
@@ -224,7 +298,12 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
   const filteredDocs = documents.filter(doc => {
     const matchesSearch = !searchTerm || 
       doc.document_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Pesquisar em metadados OCR
+      doc.ocr_data?.key_entities?.some(e => e.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      doc.ocr_data?.detected_fields && Object.values(doc.ocr_data.detected_fields).some(v => 
+        String(v).toLowerCase().includes(searchTerm.toLowerCase())
+      );
     
     if (categoryFilter === "all") return matchesSearch;
     
@@ -301,45 +380,61 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
                     }`}
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-2xl flex-shrink-0">{typeInfo.icon}</span>
-                      <div className="min-w-0 flex-1">
+                    <span className="text-2xl flex-shrink-0">{typeInfo.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
                         <p className="font-medium text-slate-900 truncate">{doc.document_name}</p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <Badge variant="outline" className="text-xs">
-                            {typeInfo.label}
+                        {doc.ocr_processed && (
+                          <Badge className="bg-purple-100 text-purple-700 text-xs" title="Processado com OCR">
+                            <Wand2 className="w-3 h-3" />
                           </Badge>
-                          <Badge className={`text-xs ${statusInfo.color}`}>
-                            {statusInfo.label}
-                          </Badge>
-                          {doc.is_public ? (
-                            <Badge variant="outline" className="text-xs">
-                              <Globe className="w-3 h-3 mr-1" />
-                              Público
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              <Lock className="w-3 h-3 mr-1" />
-                              Privado
-                            </Badge>
-                          )}
-                          {isExpired && (
-                            <Badge className="bg-red-100 text-red-800 text-xs">
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                              Expirado
-                            </Badge>
-                          )}
-                          {isExpiringSoon && !isExpired && (
-                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                              {daysUntilExpiry}d restantes
-                            </Badge>
-                          )}
-                          {doc.upload_date && (
-                            <span className="text-xs text-slate-500">
-                              {format(new Date(doc.upload_date), 'dd/MM/yyyy HH:mm')}
-                            </span>
-                          )}
-                        </div>
+                        )}
                       </div>
+                      {doc.description && (
+                        <p className="text-xs text-slate-600 truncate mt-0.5">{doc.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <Badge variant="outline" className="text-xs">
+                          {typeInfo.label}
+                        </Badge>
+                        <Badge className={`text-xs ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </Badge>
+                        {doc.is_public ? (
+                          <Badge variant="outline" className="text-xs">
+                            <Globe className="w-3 h-3 mr-1" />
+                            Público
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            <Lock className="w-3 h-3 mr-1" />
+                            Privado
+                          </Badge>
+                        )}
+                        {isExpired && (
+                          <Badge className="bg-red-100 text-red-800 text-xs">
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            Expirado
+                          </Badge>
+                        )}
+                        {isExpiringSoon && !isExpired && (
+                          <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                            {daysUntilExpiry}d restantes
+                          </Badge>
+                        )}
+                        {doc.ocr_data?.key_entities?.length > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {doc.ocr_data.key_entities.slice(0, 2).join(', ')}
+                            {doc.ocr_data.key_entities.length > 2 && ` +${doc.ocr_data.key_entities.length - 2}`}
+                          </Badge>
+                        )}
+                        {doc.upload_date && (
+                          <span className="text-xs text-slate-500">
+                            {format(new Date(doc.upload_date), 'dd/MM/yyyy HH:mm')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
                       {(isImage(doc.file_type) || isPDF(doc.file_type)) && (
@@ -496,12 +591,42 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
               </Label>
             </div>
 
+            {processingOCR && (
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Wand2 className="w-4 h-4 text-purple-600 animate-pulse" />
+                  <span className="text-sm font-medium text-purple-900">
+                    Processando OCR... ({ocrProgress.current}/{ocrProgress.total})
+                  </span>
+                </div>
+                <div className="w-full bg-purple-200 rounded-full h-2">
+                  <div 
+                    className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${(ocrProgress.current / ocrProgress.total) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-purple-700 mt-2">
+                  Extraindo informações automaticamente dos documentos...
+                </p>
+              </div>
+            )}
+
             <div className="flex gap-2 justify-end pt-2 border-t">
               <Button variant="outline" onClick={resetForm} disabled={uploading}>
                 Cancelar
               </Button>
               <Button onClick={handleUploadMultiple} disabled={uploading || selectedFiles.length === 0}>
-                {uploading ? "A carregar..." : `Adicionar ${selectedFiles.length} documento${selectedFiles.length > 1 ? 's' : ''}`}
+                {uploading ? (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2 animate-pulse" />
+                    Processando OCR...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Adicionar com OCR ({selectedFiles.length})
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -563,25 +688,91 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
 
             {/* Viewer */}
             <div className="flex-1 overflow-auto bg-slate-100 p-4">
-              {selectedDoc && isImage(selectedDoc.file_type) && (
-                <div className="flex items-center justify-center h-full">
-                  <img
-                    src={selectedDoc.viewUrl}
-                    alt={selectedDoc.document_name}
-                    className="max-w-full max-h-full object-contain shadow-lg"
-                    style={{ transform: `scale(${zoom / 100})` }}
-                  />
+              <div className="grid lg:grid-cols-3 gap-4 h-full">
+                {/* Document Preview - 2/3 width */}
+                <div className="lg:col-span-2 h-full">
+                  {selectedDoc && isImage(selectedDoc.file_type) && (
+                    <div className="flex items-center justify-center h-full">
+                      <img
+                        src={selectedDoc.viewUrl}
+                        alt={selectedDoc.document_name}
+                        className="max-w-full max-h-full object-contain shadow-lg"
+                        style={{ transform: `scale(${zoom / 100})` }}
+                      />
+                    </div>
+                  )}
+                  {selectedDoc && isPDF(selectedDoc.file_type) && (
+                    <div className="flex items-center justify-center h-full">
+                      <iframe
+                        src={`${selectedDoc.viewUrl}#zoom=${zoom}`}
+                        className="w-full h-full border-0 shadow-lg bg-white"
+                        title={selectedDoc.document_name}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-              {selectedDoc && isPDF(selectedDoc.file_type) && (
-                <div className="flex items-center justify-center h-full">
-                  <iframe
-                    src={`${selectedDoc.viewUrl}#zoom=${zoom}`}
-                    className="w-full h-full border-0 shadow-lg bg-white"
-                    title={selectedDoc.document_name}
-                  />
-                </div>
-              )}
+
+                {/* OCR Metadata Panel - 1/3 width */}
+                {selectedDoc?.ocr_data && (
+                  <div className="lg:col-span-1 bg-white rounded-lg p-4 shadow-sm overflow-y-auto">
+                    <div className="flex items-center gap-2 mb-4 pb-3 border-b">
+                      <Wand2 className="w-4 h-4 text-purple-600" />
+                      <h4 className="font-semibold text-slate-900">Dados Extraídos (OCR)</h4>
+                    </div>
+
+                    <div className="space-y-4 text-sm">
+                      {selectedDoc.ocr_data.key_entities?.length > 0 && (
+                        <div>
+                          <Label className="text-xs text-slate-500 mb-1 block">Entidades Mencionadas</Label>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedDoc.ocr_data.key_entities.map((entity, idx) => (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {entity}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDoc.ocr_data.important_dates?.length > 0 && (
+                        <div>
+                          <Label className="text-xs text-slate-500 mb-1 block">Datas Importantes</Label>
+                          <div className="space-y-2">
+                            {selectedDoc.ocr_data.important_dates.map((date, idx) => (
+                              <div key={idx} className="text-xs bg-slate-50 p-2 rounded">
+                                <div className="font-medium text-slate-900">{date.date}</div>
+                                <div className="text-slate-600">{date.description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDoc.ocr_data.detected_fields && Object.keys(selectedDoc.ocr_data.detected_fields).length > 0 && (
+                        <div>
+                          <Label className="text-xs text-slate-500 mb-1 block">Campos Detetados</Label>
+                          <div className="space-y-1">
+                            {Object.entries(selectedDoc.ocr_data.detected_fields).map(([key, value], idx) => (
+                              <div key={idx} className="text-xs flex justify-between bg-slate-50 p-2 rounded">
+                                <span className="font-medium text-slate-600">{key}:</span>
+                                <span className="text-slate-900">{String(value)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDoc.ocr_data.processed_at && (
+                        <div className="pt-3 border-t">
+                          <p className="text-xs text-slate-400">
+                            Processado: {format(new Date(selectedDoc.ocr_data.processed_at), 'dd/MM/yyyy HH:mm')}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </DialogContent>
