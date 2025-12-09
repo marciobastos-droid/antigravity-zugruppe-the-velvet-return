@@ -25,12 +25,18 @@ import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConv
 import PropertiesMap from "../components/maps/PropertiesMap";
 import OptimizedImage from "../components/common/OptimizedImage";
 import ImagePreloader from "../components/seo/ImagePreloader";
+import ExitIntentPopup from "../components/website/ExitIntentPopup";
+import AIChatWidget from "../components/website/AIChatWidget";
+import { useABTesting } from "../components/website/ABTestingController";
 
 export default function Website() {
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date')
   });
+
+  // A/B Testing
+  const { cta, layout, trackConversion, trackCTAClick } = useABTesting();
 
   // Calculate dynamic ranges based on actual data
   const dataRanges = React.useMemo(() => {
@@ -521,7 +527,7 @@ export default function Website() {
                 </div>
 
                 {/* Extended Filters */}
-                {showFilters && (
+                {(showFilters || layout.showFiltersExpanded) && (
                   <div className="mt-4 pt-4 border-t border-slate-200 space-y-4">
                     {/* Row 1: Natureza, Quartos, Preço Min/Max, Disponibilidade */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1001,7 +1007,7 @@ export default function Website() {
             />
             
             <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+              ? `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 ${layout.gridColumns === 4 ? 'xl:grid-cols-4' : ''} gap-5`
               : "space-y-4"
             }>
               {paginatedProperties.map(property => (
@@ -1102,19 +1108,32 @@ export default function Website() {
             }
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button size="lg" className={
-              activeTab === "residential"
-                ? "bg-white text-[#d22630] hover:bg-slate-100"
-                : activeTab === "commercial"
-                ? "bg-white text-[#75787b] hover:bg-slate-100"
-                : "bg-white text-blue-600 hover:bg-blue-50"
-            }>
+            <Button 
+              size="lg" 
+              onClick={() => {
+                trackCTAClick('primary');
+                trackConversion('cta_click');
+              }}
+              className={
+                activeTab === "residential"
+                  ? "bg-white text-[#d22630] hover:bg-slate-100"
+                  : activeTab === "commercial"
+                  ? "bg-white text-[#75787b] hover:bg-slate-100"
+                  : "bg-white text-blue-600 hover:bg-blue-50"
+              }
+            >
               <Phone className="w-5 h-5 mr-2" />
-              Contactar
+              {cta.primary}
             </Button>
-            <Button size="lg" className="bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors">
+            <Button 
+              size="lg" 
+              onClick={() => {
+                trackCTAClick('secondary');
+              }}
+              className="bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors"
+            >
               <Mail className="w-5 h-5 mr-2" />
-              Enviar Email
+              {cta.secondary}
             </Button>
           </div>
           </div>
