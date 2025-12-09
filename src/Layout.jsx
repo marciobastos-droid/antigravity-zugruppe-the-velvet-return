@@ -13,7 +13,7 @@ import { HelmetProvider } from "react-helmet-async";
 
 
 // Pages where layout should be minimal (no header/footer)
-const MINIMAL_LAYOUT_PAGES = ["Home"];
+const MINIMAL_LAYOUT_PAGES = ["Home", "Website"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
