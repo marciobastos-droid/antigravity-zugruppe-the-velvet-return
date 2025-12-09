@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import LandingPageManager from "./LandingPageManager";
 
 // Social Media Post Generator
 function SocialMediaGenerator() {
@@ -1189,7 +1190,7 @@ export default function MarketingHub() {
           </TabsContent>
 
           <TabsContent value="landing" className="mt-6">
-            <LandingPageGenerator />
+            <LandingPageManager />
           </TabsContent>
 
           <TabsContent value="email" className="mt-6">
