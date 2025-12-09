@@ -308,17 +308,8 @@ export default function PropertyDetails() {
       updatePropertyMutation.mutate({ visibility });
     };
 
-  // SEO: Atualizar URL para formato amigável (sem recarregar página)
-  React.useEffect(() => {
-    if (property && typeof window !== 'undefined') {
-      const seoUrl = `${generatePropertySEOUrl(property)}?id=${property.id}`;
-      const currentPath = window.location.pathname + window.location.search;
-
-      if (currentPath !== seoUrl && !currentPath.includes('/imoveis/')) {
-        window.history.replaceState({}, '', seoUrl);
-      }
-    }
-  }, [property]);
+  // SEO: Keep clean PropertyDetails URL without changing it
+  // The SEO URLs are only for sharing and external links
 
   const energyCertificateColors = {
     'A+': 'bg-green-600 text-white',

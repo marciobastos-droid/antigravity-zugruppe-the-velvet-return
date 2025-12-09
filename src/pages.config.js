@@ -27,6 +27,7 @@ import InvestorSection from './pages/InvestorSection';
 import Website from './pages/Website';
 import Subscriptions from './pages/Subscriptions';
 import Support from './pages/Support';
+import PropertySEORouter from './pages/PropertySEORouter';
 import __Layout from './Layout.jsx';
 
 
@@ -60,6 +61,7 @@ export const PAGES = {
     "Website": Website,
     "Subscriptions": Subscriptions,
     "Support": Support,
+    "PropertySEORouter": PropertySEORouter,
 }
 
 export const pagesConfig = {
