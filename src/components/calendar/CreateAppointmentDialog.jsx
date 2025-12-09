@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function CreateAppointmentDialog({ open, onOpenChange, initialDate, propertyId, opportunityId }) {
+export default function CreateAppointmentDialog({ open, onOpenChange, initialDate, propertyId, opportunityId, onSuccess }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: "",
@@ -82,6 +82,7 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       toast.success("Visita agendada com sucesso!");
       onOpenChange(false);
+      if (onSuccess) onSuccess();
       setFormData({
         title: "",
         property_id: "",
