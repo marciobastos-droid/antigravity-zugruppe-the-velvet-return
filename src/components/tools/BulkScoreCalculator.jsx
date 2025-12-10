@@ -26,7 +26,7 @@ export default function BulkScoreCalculator() {
 
     try {
       const propertyIds = properties.map(p => p.id);
-      const batchSize = 10;
+      const batchSize = 5; // Reduzir tamanho do lote
       const batches = [];
 
       for (let i = 0; i < propertyIds.length; i += batchSize) {
@@ -47,6 +47,11 @@ export default function BulkScoreCalculator() {
         }
 
         setProgress(Math.round(((i + 1) / batches.length) * 100));
+
+        // Adicionar delay entre lotes para evitar rate limiting
+        if (i < batches.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
       }
 
       setResults({
