@@ -81,38 +81,21 @@ export default function UserManagementTab({ currentUser }) {
 
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
-      const signupUrl = `${window.location.origin}`;
+      const response = await base44.functions.invoke('inviteUser', data);
       
-      const result = await base44.integrations.Core.SendEmail({
-        to: data.email,
-        subject: "Convite para Zugruppe - Plataforma Imobiliária",
-        body: `Olá ${data.full_name},
-
-Foi convidado(a) para juntar-se à plataforma Zugruppe como ${data.user_type === 'admin' ? 'Administrador' : data.user_type === 'gestor' ? 'Gestor' : 'Agente'}.
-
-Para completar o seu registo, aceda à plataforma:
-${signupUrl}
-
-Utilize o seguinte email para criar a sua conta:
-Email: ${data.email}
-
-${data.phone ? `Telefone: ${data.phone}\n\n` : ''}Após o registo, as suas permissões serão configuradas automaticamente.
-
-Bem-vindo(a) à equipa!
-
-Cumprimentos,
-Equipa Zugruppe`
-      });
-
-      return result;
+      if (response.data?.error) {
+        throw new Error(response.data.error);
+      }
+      
+      return response.data;
     },
     onSuccess: () => {
       setInviteSent(true);
       toast.success("Convite enviado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
-    onError: () => {
-      toast.error("Erro ao enviar convite.");
+    onError: (error) => {
+      toast.error(error.message || "Erro ao enviar convite.");
     }
   });
 
