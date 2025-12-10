@@ -190,7 +190,18 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
 
           {/* Portais Selection */}
           <div>
-            <Label className="text-base font-semibold mb-3 block">Portais Imobiliários</Label>
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-base font-semibold">Portais Imobiliários</Label>
+              {mode === "remove" && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedPortals(AVAILABLE_PORTALS.map(p => p.id))}
+                >
+                  Selecionar Todos
+                </Button>
+              )}
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               {AVAILABLE_PORTALS.map((portal) => {
                 const Icon = portal.icon;
