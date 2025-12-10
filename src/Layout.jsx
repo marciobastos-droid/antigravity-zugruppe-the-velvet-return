@@ -44,7 +44,7 @@ export default function Layout({ children, currentPageName }) {
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
     return (
       <LocalizationProvider>
-        <WebVitalsMonitor enabled={true} debug={false} />
+        <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
         {children}
       </LocalizationProvider>
     );
@@ -105,7 +105,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <LocalizationProvider>
-      <WebVitalsMonitor enabled={true} debug={false} />
+      <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
       <div className="min-h-screen bg-slate-50">
         <Toaster position="top-right" richColors />
       <style>{`

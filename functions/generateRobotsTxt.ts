@@ -31,8 +31,7 @@ Allow: /
       'Content-Type': 'text/plain; charset=utf-8',
       'Cache-Control': 'public, max-age=86400, s-maxage=604800, immutable',
       'CDN-Cache-Control': 'max-age=604800',
-      'Vary': 'Accept-Encoding',
-      'X-Content-Type-Options': 'nosniff'
+      'Surrogate-Control': 'max-age=604800'
     }
   });
 });

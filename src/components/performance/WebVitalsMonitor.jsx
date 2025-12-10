@@ -1,111 +1,66 @@
 import React from "react";
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP } from "web-vitals";
+import { onCLS, onFID, onFCP, onLCP, onTTFB, onINP } from "web-vitals";
 
 /**
- * Monitor de Core Web Vitals
- * Captura e reporta métricas de performance críticas
+ * Monitora Core Web Vitals e envia para analytics
  */
-export default function WebVitalsMonitor({ enabled = true, debug = false }) {
+export default function WebVitalsMonitor({ enabled = true }) {
   React.useEffect(() => {
     if (!enabled || typeof window === 'undefined') return;
 
-    const reportMetric = (metric) => {
-      if (debug) {
-        console.log(`[Web Vitals] ${metric.name}:`, {
-          value: metric.value,
-          rating: metric.rating,
-          delta: metric.delta,
-          id: metric.id
-        });
-      }
+    const sendToAnalytics = (metric) => {
+      const body = JSON.stringify({
+        name: metric.name,
+        value: metric.value,
+        rating: metric.rating,
+        delta: metric.delta,
+        id: metric.id,
+        navigationType: metric.navigationType,
+        pathname: window.location.pathname
+      });
 
-      // Enviar para analytics (Google Analytics, etc)
-      if (window.gtag) {
-        window.gtag('event', metric.name, {
-          value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
-          metric_id: metric.id,
-          metric_value: metric.value,
-          metric_delta: metric.delta,
-          metric_rating: metric.rating
-        });
-      }
-
-      // Enviar para backend (opcional)
+      // Enviar para o servidor/analytics
       if (navigator.sendBeacon) {
-        const body = JSON.stringify({
-          name: metric.name,
-          value: metric.value,
-          rating: metric.rating,
-          delta: metric.delta,
-          id: metric.id,
-          url: window.location.href,
-          timestamp: Date.now()
-        });
-        
         navigator.sendBeacon('/api/web-vitals', body);
+      } else {
+        fetch('/api/web-vitals', {
+          method: 'POST',
+          body,
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true
+        }).catch(console.error);
+      }
+
+      // Log em desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Web Vitals]', metric.name, metric.value, metric.rating);
       }
     };
 
-    // Capturar métricas
-    onCLS(reportMetric);  // Cumulative Layout Shift
-    onFID(reportMetric);  // First Input Delay
-    onLCP(reportMetric);  // Largest Contentful Paint
-    onFCP(reportMetric);  // First Contentful Paint
-    onTTFB(reportMetric); // Time to First Byte
-    onINP(reportMetric);  // Interaction to Next Paint
-  }, [enabled, debug]);
+    // Monitorar métricas
+    onCLS(sendToAnalytics);  // Cumulative Layout Shift
+    onFID(sendToAnalytics);  // First Input Delay
+    onFCP(sendToAnalytics);  // First Contentful Paint
+    onLCP(sendToAnalytics);  // Largest Contentful Paint
+    onTTFB(sendToAnalytics); // Time to First Byte
+    onINP(sendToAnalytics);  // Interaction to Next Paint
+  }, [enabled]);
 
-  return null; // Componente invisível
+  return null;
 }
 
 /**
- * Hook para monitoramento manual de performance
+ * Hook para acessar Web Vitals programaticamente
  */
 export function useWebVitals(callback) {
   React.useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!callback) return;
 
     onCLS(callback);
     onFID(callback);
-    onLCP(callback);
     onFCP(callback);
+    onLCP(callback);
     onTTFB(callback);
     onINP(callback);
   }, [callback]);
-}
-
-/**
- * Hook para capturar métricas específicas
- */
-export function usePerformanceMetrics() {
-  const [metrics, setMetrics] = React.useState({
-    cls: null,
-    fid: null,
-    lcp: null,
-    fcp: null,
-    ttfb: null,
-    inp: null
-  });
-
-  React.useEffect(() => {
-    const updateMetric = (metric) => {
-      setMetrics(prev => ({
-        ...prev,
-        [metric.name.toLowerCase()]: {
-          value: metric.value,
-          rating: metric.rating,
-          delta: metric.delta
-        }
-      }));
-    };
-
-    onCLS(updateMetric);
-    onFID(updateMetric);
-    onLCP(updateMetric);
-    onFCP(updateMetric);
-    onTTFB(updateMetric);
-    onINP(updateMetric);
-  }, []);
-
-  return metrics;
 }
