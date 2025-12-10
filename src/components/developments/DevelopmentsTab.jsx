@@ -173,6 +173,7 @@ export default function DevelopmentsTab() {
       contact_phone: dev.contact_phone || "",
       notes: dev.notes || ""
     });
+    setShowAIGenerator(!!dev.description);
     setDialogOpen(true);
   };
 
