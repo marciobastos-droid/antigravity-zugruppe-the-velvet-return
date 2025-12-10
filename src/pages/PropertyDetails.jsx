@@ -1195,7 +1195,7 @@ export default function PropertyDetails() {
   );
 }
 
-// Memoized Map Component
+// Memoized Map Component with proper Leaflet handling
 const PropertyMap = React.memo(({ property }) => {
   const cityCoords = {
     'Lisboa': [38.7223, -9.1393],
@@ -1223,13 +1223,19 @@ const PropertyMap = React.memo(({ property }) => {
     : cityCoords[property.city] || [39.5, -8.0];
   
   return (
-    <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
+    <div key={`map-${property.id}`} className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
       <MapContainer 
+        key={`leaflet-${property.id}`}
         center={coords} 
         zoom={14} 
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
         zoomControl={true}
+        whenReady={() => {
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 100);
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -1251,4 +1257,4 @@ const PropertyMap = React.memo(({ property }) => {
       </MapContainer>
     </div>
   );
-});
+}, (prev, next) => prev.property.id === next.property.id);
