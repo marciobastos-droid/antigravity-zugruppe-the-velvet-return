@@ -930,18 +930,12 @@ export default function PropertyDetails() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       {assignedAgent.photo_url ? (
-                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-200 bg-slate-100 flex-shrink-0">
-                          <img 
-                            src={assignedAgent.photo_url} 
-                            alt={assignedAgent.display_name || assignedAgent.full_name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              console.warn('[PropertyDetails] Agent photo failed to load:', assignedAgent.photo_url);
-                              e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = `<div class="w-full h-full bg-slate-200 flex items-center justify-center"><svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></div>`;
-                            }}
-                          />
-                        </div>
+                        <OptimizedImage
+                          src={assignedAgent.photo_url}
+                          alt={assignedAgent.display_name || assignedAgent.full_name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
+                          fallbackIcon={User}
+                        />
                       ) : (
                         <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
                           <User className="w-8 h-8 text-slate-500" />
@@ -980,29 +974,57 @@ export default function PropertyDetails() {
                       <p className="text-sm text-slate-600 pt-2 border-t">{assignedAgent.bio}</p>
                     )}
                   </div>
+                ) : property.assigned_consultant_name || property.assigned_consultant ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      {property.assigned_consultant_photo ? (
+                        <OptimizedImage
+                          src={property.assigned_consultant_photo}
+                          alt={property.assigned_consultant_name || property.assigned_consultant}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
+                          fallbackIcon={User}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
+                          <User className="w-8 h-8 text-slate-500" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-slate-900 truncate">
+                          {property.assigned_consultant_name || property.assigned_consultant}
+                        </h4>
+                        <p className="text-sm text-slate-600">Consultor Responsável</p>
+                      </div>
+                    </div>
+                    
+                    {property.assigned_consultant_phone && (
+                      <a 
+                        href={`tel:${property.assigned_consultant_phone}`}
+                        className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                      >
+                        <Phone className="w-4 h-4" />
+                        {property.assigned_consultant_phone}
+                      </a>
+                    )}
+                    {property.assigned_consultant && (
+                      <a 
+                        href={`mailto:${property.assigned_consultant}`}
+                        className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {property.assigned_consultant}
+                      </a>
+                    )}
+                  </div>
                 ) : property.agent_name ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-slate-500" />
+                      <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300">
+                        <User className="w-8 h-8 text-slate-500" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-900">{property.agent_name}</h4>
                         <p className="text-sm text-slate-600">Agente Imobiliário</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : property.assigned_consultant_name || property.assigned_consultant ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-slate-500" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-slate-900">
-                          {property.assigned_consultant_name || property.assigned_consultant}
-                        </h4>
-                        <p className="text-sm text-slate-600">Consultor Responsável</p>
                       </div>
                     </div>
                   </div>
