@@ -61,12 +61,12 @@ export default function OptimizedImage({
   // Obter configurações de cache da estratégia
   const strategySettings = CACHE_STRATEGY[strategy] || CACHE_STRATEGY.lazy;
   
-  // Otimizar URL com CDN
+  // Otimizar URL com CDN - usar WebP com fallback
   const optimizedSrc = isInView || priority ? optimizeImageUrl(src, {
     width,
     height,
     quality: quality || strategySettings.quality,
-    format: 'webp',
+    format: 'auto', // Auto-detecta melhor formato (WebP, AVIF)
     fit: 'cover'
   }) : null;
   
@@ -92,29 +92,38 @@ export default function OptimizedImage({
         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
       )}
 
-      {/* Imagem real com CDN */}
+      {/* Imagem real com CDN e otimizações avançadas */}
       {isInView && optimizedSrc && (
-        <img
-          src={optimizedSrc}
-          srcSet={srcSet}
-          sizes={sizes}
-          alt={alt}
-          width={width}
-          height={height}
-          loading={priority ? "eager" : "lazy"}
-          decoding="async"
-          fetchPriority={priority ? "high" : "auto"}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`w-full h-full object-cover transition-opacity duration-300 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          style={{
-            contentVisibility: "auto",
-            containIntrinsicSize: width && height ? `${width}px ${height}px` : "auto"
-          }}
-          {...props}
-        />
+        <picture>
+          {/* WebP para browsers modernos */}
+          <source 
+            type="image/webp" 
+            srcSet={srcSet?.replace(/\.(jpg|jpeg|png)/gi, '.webp')} 
+            sizes={sizes}
+          />
+          {/* Fallback original */}
+          <img
+            src={optimizedSrc}
+            srcSet={srcSet}
+            sizes={sizes}
+            alt={alt}
+            width={width}
+            height={height}
+            loading={priority ? "eager" : "lazy"}
+            decoding="async"
+            fetchPriority={priority ? "high" : "auto"}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              isLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            style={{
+              contentVisibility: "auto",
+              containIntrinsicSize: width && height ? `${width}px ${height}px` : "auto"
+            }}
+            {...props}
+          />
+        </picture>
       )}
     </div>
   );

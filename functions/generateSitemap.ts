@@ -61,7 +61,10 @@ ${propertyUrls.map(url => `  <url>
       status: 200,
       headers: {
         'Content-Type': 'application/xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600' // Cache por 1 hora
+        'Cache-Control': 'public, max-age=3600, s-maxage=7200, stale-while-revalidate=86400',
+        'CDN-Cache-Control': 'max-age=7200',
+        'Vary': 'Accept-Encoding',
+        'X-Content-Type-Options': 'nosniff'
       }
     });
   } catch (error) {

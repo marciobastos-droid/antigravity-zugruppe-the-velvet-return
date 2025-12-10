@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import { useGuestFeatures } from "./components/visitors/useGuestFeatures";
+import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails"];
 
@@ -43,6 +44,7 @@ export default function Layout({ children, currentPageName }) {
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
     return (
       <LocalizationProvider>
+        <WebVitalsMonitor enabled={true} debug={false} />
         {children}
       </LocalizationProvider>
     );
@@ -103,6 +105,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <LocalizationProvider>
+      <WebVitalsMonitor enabled={true} debug={false} />
       <div className="min-h-screen bg-slate-50">
         <Toaster position="top-right" richColors />
       <style>{`
