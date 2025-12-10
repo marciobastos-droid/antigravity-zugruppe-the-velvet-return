@@ -176,7 +176,7 @@ export default function PropertyDetails() {
   const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
 
   const isSaved = savedProperties.some(sp => sp.property_id === propertyId);
-  
+
   // Track engagement - must be called before any conditional returns
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
 
@@ -192,11 +192,11 @@ export default function PropertyDetails() {
           property_image: property.images?.[0],
           user_email: user.email
         });
-        // Track save action (only if user is authenticated)
-        if (user?.email) {
-          trackAction('shortlisted', { user_email: user.email });
-        }
-        }
+                // Track save action (only if user is authenticated)
+                if (user?.email) {
+                  trackAction('shortlisted', { user_email: user.email });
+                }
+              }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
@@ -204,14 +204,68 @@ export default function PropertyDetails() {
     },
   });
 
-  const handleWhatsAppShare = () => {
+  // ALL COMPUTED VALUES USING HOOKS MUST BE BEFORE EARLY RETURNS
+  // Generate SEO-friendly URL for meta tags
+  const seoCanonicalUrl = React.useMemo(() => {
+    if (property && typeof window !== 'undefined') {
+      const baseUrl = window.location.origin;
+      return `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
+    }
+    return typeof window !== 'undefined' ? window.location.href : '';
+  }, [property]);
+
+  // Memoize computed values
+  const images = React.useMemo(() => {
+    return property?.images && property.images.length > 0 
+      ? property.images 
+      : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200"];
+  }, [property?.images]);
+
+  const similarProperties = React.useMemo(() => {
+    return allProperties
+      .filter(p => 
+        p.id !== propertyId &&
+        p.status === 'active' &&
+        (p.city === property?.city || p.state === property?.state) &&
+        p.property_type === property?.property_type
+      )
+      .slice(0, 3);
+  }, [allProperties, propertyId, property?.city, property?.state, property?.property_type]);
+
+  const isOwner = React.useMemo(() => {
+    return user && (property?.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
+  }, [user, property?.created_by]);
+
+  const assignedAgent = React.useMemo(() => {
+    return agents.find(a => a.id === property?.agent_id || a.email === property?.agent_id) 
+      || allUsers.find(u => u.id === property?.agent_id || u.email === property?.agent_id)
+      || allUsers.find(u => u.email === property?.assigned_consultant);
+  }, [agents, allUsers, property?.agent_id, property?.assigned_consultant]);
+
+  // SEO data
+  const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
+  const metaDescription = React.useMemo(() => property ? generatePropertyMetaDescription(property) : '', [property]);
+  const metaKeywords = React.useMemo(() => property ? generatePropertyKeywords(property) : '', [property]);
+  const propertyImage = React.useMemo(() => images[0], [images]);
+  const structuredData = React.useMemo(() => property ? generatePropertyStructuredData(property, propertyImage) : null, [property, propertyImage]);
+
+  const alternateLanguages = React.useMemo(() => [
+    { locale: 'pt-PT', url: `${seoCanonicalUrl}&lang=pt` },
+    { locale: 'en-US', url: `${seoCanonicalUrl}&lang=en` },
+    { locale: 'es-ES', url: `${seoCanonicalUrl}&lang=es` },
+    { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
+  ], [seoCanonicalUrl]);
+
+  // Callback functions - stable references
+  const handleWhatsAppShare = React.useCallback(() => {
+    if (!property) return;
     const url = window.location.href;
     const text = `${property.title} - €${property.price?.toLocaleString()}\n${url}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(whatsappUrl, '_blank');
-  };
+  }, [property]);
 
-  const handleContactSubmit = async (e) => {
+  const handleContactSubmit = React.useCallback(async (e) => {
     e.preventDefault();
     setSendingMessage(true);
     
@@ -256,16 +310,29 @@ export default function PropertyDetails() {
       toast.error("Erro ao enviar mensagem");
       setSendingMessage(false);
     }
-  };
+  }, [property, contactForm, user?.email, trackAction]);
 
-  const navigateGallery = (direction) => {
-    const images = property.images || [];
+  const navigateGallery = React.useCallback((direction) => {
+    if (!property?.images) return;
+    const imgs = property.images;
     if (direction === 'prev') {
-      setSelectedImage(prev => prev === 0 ? images.length - 1 : prev - 1);
+      setSelectedImage(prev => prev === 0 ? imgs.length - 1 : prev - 1);
     } else {
-      setSelectedImage(prev => prev === images.length - 1 ? 0 : prev + 1);
+      setSelectedImage(prev => prev === imgs.length - 1 ? 0 : prev + 1);
     }
-  };
+  }, [property?.images]);
+
+  const handleAgentChange = React.useCallback((agentId) => {
+    const agent = allUsers.find(u => u.id === agentId) || agents.find(a => a.id === agentId);
+    updatePropertyMutation.mutate({
+      agent_id: agentId || null,
+      agent_name: agent?.full_name || null
+    });
+  }, [allUsers, agents, updatePropertyMutation]);
+
+  const handleVisibilityChange = React.useCallback((visibility) => {
+    updatePropertyMutation.mutate({ visibility });
+  }, [updatePropertyMutation]);
 
   if (isLoading) {
     return (
@@ -314,47 +381,7 @@ export default function PropertyDetails() {
     );
   }
 
-  const images = property.images && property.images.length > 0 
-    ? property.images 
-    : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200"];
-
-  const similarProperties = allProperties
-    .filter(p => 
-      p.id !== propertyId &&
-      p.status === 'active' &&
-      (p.city === property.city || p.state === property.state) &&
-      p.property_type === property.property_type
-    )
-    .slice(0, 3);
-
-  const isOwner = user && (property.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
-
-    // Find assigned agent or consultant - check both Agent entity and User entity
-    const assignedAgent = agents.find(a => a.id === property.agent_id || a.email === property.agent_id) 
-      || allUsers.find(u => u.id === property.agent_id || u.email === property.agent_id)
-      || allUsers.find(u => u.email === property.assigned_consultant); // Check consultant by email
-
-    const handleAgentChange = (agentId) => {
-      const agent = allUsers.find(u => u.id === agentId) || agents.find(a => a.id === agentId);
-      updatePropertyMutation.mutate({
-        agent_id: agentId || null,
-        agent_name: agent?.full_name || null
-      });
-    };
-
-    const handleVisibilityChange = (visibility) => {
-      updatePropertyMutation.mutate({ visibility });
-    };
-
-  // Generate SEO-friendly URL for meta tags and sharing (not for internal navigation)
-  const seoCanonicalUrl = React.useMemo(() => {
-    if (property && typeof window !== 'undefined') {
-      const baseUrl = window.location.origin;
-      return `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
-    }
-    return typeof window !== 'undefined' ? window.location.href : '';
-  }, [property]);
-
+  // Constant lookups
   const energyCertificateColors = {
     'A+': 'bg-green-600 text-white',
     'A': 'bg-green-500 text-white',
@@ -398,42 +425,29 @@ export default function PropertyDetails() {
     pending_validation: "bg-orange-100 text-orange-800 border-orange-300"
   };
 
-  // SEO Meta Tags
-  const metaTitle = `${property.title} | ${property.city} | Zugruppe`;
-  const metaDescription = generatePropertyMetaDescription(property);
-  const metaKeywords = generatePropertyKeywords(property);
-  const propertyImage = images[0];
-  const structuredData = generatePropertyStructuredData(property, propertyImage);
-
-  // Multilingual alternate URLs
-  const alternateLanguages = [
-    { locale: 'pt-PT', url: `${seoCanonicalUrl}&lang=pt` },
-    { locale: 'en-US', url: `${seoCanonicalUrl}&lang=en` },
-    { locale: 'es-ES', url: `${seoCanonicalUrl}&lang=es` },
-    { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
-  ];
-
   return (
     <div className="min-h-screen bg-slate-50">
-      <SEOHead
-        title={metaTitle}
-        description={metaDescription}
-        keywords={metaKeywords}
-        image={propertyImage}
-        url={seoCanonicalUrl}
-        type="product"
-        price={property.price}
-        currency={property.currency || "EUR"}
-        availability={property.availability_status === "available" ? "in stock" : "out of stock"}
-        propertyType={property.property_type}
-        location={{
-          city: property.city,
-          state: property.state,
-          country: property.country || "Portugal"
-        }}
-        structuredData={structuredData}
-        alternateLanguages={alternateLanguages}
-      />
+      {property && (
+        <SEOHead
+          title={metaTitle}
+          description={metaDescription}
+          keywords={metaKeywords}
+          image={propertyImage}
+          url={seoCanonicalUrl}
+          type="product"
+          price={property.price}
+          currency={property.currency || "EUR"}
+          availability={property.availability_status === "available" ? "in stock" : "out of stock"}
+          propertyType={property.property_type}
+          location={{
+            city: property.city,
+            state: property.state,
+            country: property.country || "Portugal"
+          }}
+          structuredData={structuredData}
+          alternateLanguages={alternateLanguages}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
