@@ -170,9 +170,6 @@ export default function Website() {
     return () => debouncedUpdate.cancel();
   }, [searchTerm]);
 
-  const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
-  const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
-
   const activeProperties = properties.filter(p => p.status === 'active');
   
   // Filtrar por tab ativa e publicação
