@@ -1742,13 +1742,13 @@ export default function MyListings() {
                                           <Layers className="w-4 h-4" />
                                         </Button>
                                       </div>
-                {totalPages > 1 && viewMode === "cards" && (
-                  <p className="text-sm text-slate-600">
-                    Página {currentPage} de {totalPages}
-                  </p>
-                )}
-              </div>
-            </div>
+                                      {totalPages > 1 && (viewMode === "cards" || viewMode === "table") && (
+                                      <p className="text-sm text-slate-600">
+                                      Página {currentPage} de {totalPages}
+                                      </p>
+                                      )}
+                                      </div>
+                                      </div>
 
             {viewMode === "table" ? (
                                 <PropertiesTable
