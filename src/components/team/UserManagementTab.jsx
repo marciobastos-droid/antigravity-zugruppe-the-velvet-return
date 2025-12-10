@@ -81,21 +81,33 @@ export default function UserManagementTab({ currentUser }) {
 
   const createUserMutation = useMutation({
     mutationFn: async (data) => {
-      const response = await base44.functions.invoke('inviteUser', data);
+      // Generate unique invite code
+      const inviteCode = Math.random().toString(36).substring(2, 15);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.date + 7); // 7 days expiry
       
-      if (response.data?.error) {
-        throw new Error(response.data.error);
-      }
+      // Create invite record
+      await base44.entities.UserInvite.create({
+        email: data.email,
+        full_name: data.full_name,
+        phone: data.phone || "",
+        user_type: data.user_type,
+        status: "pending",
+        invited_by: currentUser.email,
+        invite_code: inviteCode,
+        expires_at: expiresAt.toISOString()
+      });
       
-      return response.data;
+      return { inviteCode, email: data.email };
     },
     onSuccess: () => {
       setInviteSent(true);
-      toast.success("Convite enviado com sucesso!");
+      toast.success("Convite criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['invites'] });
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao enviar convite.");
+      toast.error(error.message || "Erro ao criar convite.");
     }
   });
 
@@ -225,8 +237,18 @@ export default function UserManagementTab({ currentUser }) {
             {inviteSent ? (
               <div className="py-8 text-center">
                 <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Convite Enviado!</h3>
-                <p className="text-slate-600 mb-4">Email enviado para {formData.email}</p>
+                <h3 className="text-lg font-semibold mb-2">Convite Criado!</h3>
+                <p className="text-slate-600 mb-2">
+                  Link de convite para <strong>{formData.email}</strong>:
+                </p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-mono break-all text-slate-700">
+                    {window.location.origin}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Partilhe este link com o novo utilizador. Ao registar-se, receberá automaticamente as permissões de {formData.user_type}.
+                  </p>
+                </div>
                 <Button onClick={() => { setInviteSent(false); setCreateDialogOpen(false); }}>
                   Fechar
                 </Button>
