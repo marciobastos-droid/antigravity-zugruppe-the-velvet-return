@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -285,13 +286,15 @@ export default function PropertyDetails() {
         buyer_email: contactForm.email
       });
       
-      // Gerar ref_id
+      // Gerar ref_id - NÃO bloqueia se falhar
       let refId = null;
       try {
         const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
         refId = refData?.ref_id;
+        console.log('[PropertyDetails] ref_id generated:', refId);
       } catch (refError) {
         console.warn('[PropertyDetails] Failed to generate ref_id, continuing without it:', refError);
+        // NÃO fazer throw - continuar sem ref_id
       }
       
       // Criar oportunidade
@@ -360,8 +363,32 @@ export default function PropertyDetails() {
       setMessageSent(true);
     } catch (error) {
       console.error('[PropertyDetails] Error sending message:', error);
-      toast.error(`Erro ao enviar mensagem: ${error.message || 'Erro desconhecido'}`);
       setSendingMessage(false);
+      
+      // Melhor tratamento de erros
+      let errorMessage = 'Erro desconhecido ao enviar mensagem';
+      
+      if (error.response) {
+        // Erro de resposta HTTP
+        if (error.response.data) {
+          if (typeof error.response.data === 'object' && error.response.data.error) {
+            errorMessage = error.response.data.error;
+          } else if (typeof error.response.data === 'string') {
+            errorMessage = error.response.data;
+          }
+        } else {
+          errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
+        }
+      } else if (error.message) {
+        // Erro de rede ou parsing
+        if (error.message.includes('JSON')) {
+          errorMessage = 'Erro ao processar resposta do servidor. A mensagem pode ter sido enviada com sucesso.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(`Erro ao enviar mensagem: ${errorMessage}`);
     }
   }, [property, contactForm, user?.email, trackAction]);
 
