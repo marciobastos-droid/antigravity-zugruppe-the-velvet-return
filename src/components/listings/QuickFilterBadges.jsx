@@ -50,8 +50,8 @@ export default function QuickFilterBadges({
       withoutDevelopment: properties.filter(p => !p.development_id).length,
       
       // Consultores
-      withConsultant: properties.filter(p => p.assigned_consultant).length,
-      withoutConsultant: properties.filter(p => !p.assigned_consultant).length
+      withConsultant: properties.filter(p => p.assigned_consultant && p.assigned_consultant !== "").length,
+      withoutConsultant: properties.filter(p => !p.assigned_consultant || p.assigned_consultant === "").length
     };
     return counts;
   }, [properties]);
