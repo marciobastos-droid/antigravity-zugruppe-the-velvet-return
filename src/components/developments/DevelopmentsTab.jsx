@@ -12,10 +12,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { 
   Building2, Plus, Search, MapPin, Euro, 
-  Edit, Trash2, Eye, Home, Camera, TrendingUp
+  Edit, Trash2, Eye, Home, Camera, TrendingUp, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import DevelopmentDetail from "@/components/developments/DevelopmentDetail";
+import AIDevelopmentDescriptionGenerator from "@/components/developments/AIDevelopmentDescriptionGenerator";
 
 export default function DevelopmentsTab() {
   const queryClient = useQueryClient();
@@ -26,6 +27,7 @@ export default function DevelopmentsTab() {
   const [editingDev, setEditingDev] = React.useState(null);
   const [selectedDev, setSelectedDev] = React.useState(null);
   const [uploading, setUploading] = React.useState(false);
+  const [showAIGenerator, setShowAIGenerator] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -345,13 +347,34 @@ export default function DevelopmentsTab() {
               </div>
 
               <div>
-                <Label>Descrição</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descrição do empreendimento..."
-                  rows={3}
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAIGenerator(!showAIGenerator)}
+                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    {showAIGenerator ? "Esconder IA" : "Melhorar com IA"}
+                  </Button>
+                </div>
+                {showAIGenerator ? (
+                  <AIDevelopmentDescriptionGenerator
+                    development={{ ...editingDev, ...formData }}
+                    onUpdate={async (id, data) => {
+                      setFormData({...formData, description: data.description});
+                    }}
+                  />
+                ) : (
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Descrição do empreendimento..."
+                    rows={3}
+                  />
+                )}
               </div>
 
               <div className="grid md:grid-cols-3 gap-4">
