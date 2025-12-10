@@ -192,9 +192,11 @@ export default function PropertyDetails() {
           property_image: property.images?.[0],
           user_email: user.email
         });
-        // Track save action
-        trackAction('shortlisted', { user_email: user.email });
-      }
+        // Track save action (only if user is authenticated)
+        if (user?.email) {
+          trackAction('shortlisted', { user_email: user.email });
+        }
+        }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
@@ -233,14 +235,16 @@ export default function PropertyDetails() {
       console.log('[PropertyDetails] Message sent successfully, showing confirmation');
       toast.success("Mensagem enviada com sucesso!");
       
-      // Track contact action (non-blocking)
-      try {
-        trackAction('contacted', { 
-          contact_name: contactForm.name,
-          contact_email: contactForm.email 
-        });
-      } catch (trackError) {
-        console.warn('[PropertyDetails] Tracking failed:', trackError);
+      // Track contact action (non-blocking, only if authenticated)
+      if (user?.email) {
+        try {
+          trackAction('contacted', { 
+            contact_name: contactForm.name,
+            contact_email: contactForm.email 
+          });
+        } catch (trackError) {
+          console.warn('[PropertyDetails] Tracking failed:', trackError);
+        }
       }
       
       // Show confirmation and reset

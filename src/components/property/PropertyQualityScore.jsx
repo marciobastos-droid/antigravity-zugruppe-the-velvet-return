@@ -13,6 +13,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function PropertyQualityScore({ property, compact = false }) {
+  // Safety check: return null if no property
+  if (!property) return null;
+  
   const queryClient = useQueryClient();
   const [showDetails, setShowDetails] = React.useState(false);
 

@@ -12,6 +12,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function AIPricingAnalysis({ property }) {
+  // Safety check: return null if no property
+  if (!property) return null;
+  
   const queryClient = useQueryClient();
   const [analysis, setAnalysis] = React.useState(property.ai_price_analysis || null);
 

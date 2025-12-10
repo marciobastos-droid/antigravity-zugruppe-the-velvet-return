@@ -28,8 +28,28 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
 
     const trackView = async () => {
       try {
+        // Get or create buyer profile for this user
+        let profile = null;
+        try {
+          const profiles = await base44.entities.BuyerProfile.filter({ buyer_email: user.email });
+          profile = profiles[0];
+          
+          if (!profile) {
+            profile = await base44.entities.BuyerProfile.create({
+              buyer_name: user.full_name || user.email,
+              buyer_email: user.email,
+              listing_type: 'sale',
+              profile_type: 'cliente_comprador',
+              lead_source: 'website'
+            });
+          }
+        } catch (profileError) {
+          console.warn('[PropertyEngagement] Could not create/fetch profile:', profileError);
+          return;
+        }
+
         await base44.entities.PropertyInteraction.create({
-          profile_id: user.email,
+          profile_id: profile.id,
           property_id: propertyId,
           interaction_type: 'viewed',
           time_spent_seconds: 0,
@@ -60,8 +80,12 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
       
       if (timeSpent > 10 && !tracked.timeSpent) {
         try {
+          // Get profile ID first
+          const profiles = await base44.entities.BuyerProfile.filter({ buyer_email: user.email });
+          if (profiles.length === 0) return; // Skip if no profile
+          
           const interactions = await base44.entities.PropertyInteraction.filter({ 
-            profile_id: user.email,
+            profile_id: profiles[0].id,
             property_id: propertyId 
           });
           
@@ -89,11 +113,38 @@ export function usePropertyEngagement(propertyId, propertyTitle) {
 
   // Track specific actions
   const trackAction = React.useCallback(async (action, metadata = {}) => {
-    if (!propertyId || !user?.email) return;
+    if (!propertyId) return;
+    
+    // Skip if user is not authenticated
+    if (!user?.email) {
+      console.log('[PropertyEngagement] Skipping track - user not authenticated');
+      return;
+    }
 
     try {
+      // Get or create buyer profile for this user
+      let profile = null;
+      try {
+        const profiles = await base44.entities.BuyerProfile.filter({ buyer_email: user.email });
+        profile = profiles[0];
+        
+        if (!profile) {
+          // Create a basic profile for the user
+          profile = await base44.entities.BuyerProfile.create({
+            buyer_name: user.full_name || user.email,
+            buyer_email: user.email,
+            listing_type: 'sale',
+            profile_type: 'cliente_comprador',
+            lead_source: 'website'
+          });
+        }
+      } catch (profileError) {
+        console.warn('[PropertyEngagement] Could not create/fetch profile:', profileError);
+        return; // Skip tracking if profile creation fails
+      }
+
       await base44.entities.PropertyInteraction.create({
-        profile_id: user.email,
+        profile_id: profile.id,
         property_id: propertyId,
         interaction_type: action,
         property_features: metadata
