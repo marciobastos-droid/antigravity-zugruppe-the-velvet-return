@@ -270,26 +270,76 @@ export default function PropertyDetails() {
 
   const handleContactSubmit = React.useCallback(async (e) => {
     e.preventDefault();
+    
+    if (!contactForm.name || !contactForm.email || !contactForm.message) {
+      toast.error("Por favor preencha todos os campos obrigatórios");
+      return;
+    }
+    
     setSendingMessage(true);
     
     try {
-      const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+      console.log('[PropertyDetails] Creating opportunity...', {
+        property_id: property.id,
+        buyer_name: contactForm.name,
+        buyer_email: contactForm.email
+      });
       
-      await base44.entities.Opportunity.create({
-        ref_id: refData.ref_id,
+      // Gerar ref_id
+      let refId = null;
+      try {
+        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+        refId = refData?.ref_id;
+      } catch (refError) {
+        console.warn('[PropertyDetails] Failed to generate ref_id, continuing without it:', refError);
+      }
+      
+      // Criar oportunidade
+      const opportunityData = {
         lead_type: 'comprador',
         property_id: property.id,
         property_title: property.title,
-        seller_email: property.created_by || property.agent_id,
+        seller_email: property.created_by || property.assigned_consultant || property.agent_id,
         buyer_name: contactForm.name,
         buyer_email: contactForm.email,
-        buyer_phone: contactForm.phone,
+        buyer_phone: contactForm.phone || '',
         message: `Contacto via página do imóvel:\n\n${contactForm.message}`,
         status: 'new',
         lead_source: 'website'
-      });
-
-      console.log('[PropertyDetails] Message sent successfully, showing confirmation');
+      };
+      
+      if (refId) {
+        opportunityData.ref_id = refId;
+      }
+      
+      const newOpportunity = await base44.entities.Opportunity.create(opportunityData);
+      
+      console.log('[PropertyDetails] Opportunity created successfully:', newOpportunity);
+      
+      // Enviar notificação ao agente/vendedor
+      try {
+        const recipientEmail = property.assigned_consultant || property.created_by || property.agent_id;
+        if (recipientEmail) {
+          await base44.integrations.Core.SendEmail({
+            to: recipientEmail,
+            subject: `Nova mensagem sobre ${property.title}`,
+            body: `
+              <h2>Nova mensagem sobre o imóvel</h2>
+              <p><strong>Imóvel:</strong> ${property.title} (${property.ref_id || property.id})</p>
+              <p><strong>De:</strong> ${contactForm.name} (${contactForm.email})</p>
+              ${contactForm.phone ? `<p><strong>Telefone:</strong> ${contactForm.phone}</p>` : ''}
+              <p><strong>Mensagem:</strong></p>
+              <p>${contactForm.message}</p>
+              <br>
+              <p><a href="${window.location.origin}${createPageUrl('CRMAdvanced')}">Ver no CRM</a></p>
+            `
+          });
+          console.log('[PropertyDetails] Email notification sent to:', recipientEmail);
+        }
+      } catch (emailError) {
+        console.warn('[PropertyDetails] Failed to send email notification:', emailError);
+      }
+      
       toast.success("Mensagem enviada com sucesso!");
       
       // Track contact action (non-blocking, only if authenticated)
@@ -310,7 +360,7 @@ export default function PropertyDetails() {
       setMessageSent(true);
     } catch (error) {
       console.error('[PropertyDetails] Error sending message:', error);
-      toast.error("Erro ao enviar mensagem");
+      toast.error(`Erro ao enviar mensagem: ${error.message || 'Erro desconhecido'}`);
       setSendingMessage(false);
     }
   }, [property, contactForm, user?.email, trackAction]);
