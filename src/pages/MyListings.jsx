@@ -30,6 +30,7 @@ import { useUndoAction } from "@/components/common/useUndoAction";
 import OptimizedImage from "../components/common/OptimizedImage";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { Home as HomeIcon } from "lucide-react";
+import QuickFilterBadges from "../components/listings/QuickFilterBadges";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
@@ -1199,27 +1200,14 @@ export default function MyListings() {
           <PropertiesByAgentView />
         ) : (
         <>
-        {/* Quick Filters */}
-        <div className="flex items-center gap-2 mb-4">
-          <Button
-            variant={filters.created_by === user?.email ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              if (filters.created_by === user?.email) {
-                // Remove filter
-                const { created_by, ...rest } = filters;
-                setFilters(rest);
-              } else {
-                // Add filter
-                setFilters(prev => ({ ...prev, created_by: user?.email }));
-              }
-            }}
-            className="flex items-center gap-2"
-          >
-            <Users className="w-4 h-4" />
-            Apenas os Meus Imóveis
-          </Button>
-        </div>
+        {/* Quick Filter Badges */}
+        <QuickFilterBadges
+          properties={properties}
+          filters={filters}
+          onFilterChange={setFilters}
+          agents={agents}
+          developments={developments}
+        />
 
         {/* Advanced Filters */}
         <AdvancedFilters
@@ -1231,7 +1219,7 @@ export default function MyListings() {
           filteredCount={filteredProperties.length}
           showSavedFilters={true}
           showLogicToggle={true}
-          className="mb-6"
+          className="mb-4"
         />
 
         {selectedProperties.length > 0 && (
