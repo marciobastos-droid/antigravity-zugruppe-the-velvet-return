@@ -18,8 +18,7 @@ import OpportunityKanban from "../opportunities/OpportunityKanban";
 import OpportunitiesTable from "./OpportunitiesTable";
 import SendEmailDialog from "../email/SendEmailDialog";
 import EmailHistoryPanel from "../email/EmailHistoryPanel";
-import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
-import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
+import OpportunityQuickFilters from "./OpportunityQuickFilters";
 import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
 import { useAgentNames } from "@/components/common/useAgentNames";
 
@@ -39,10 +38,9 @@ export default function OpportunitiesContent() {
   const [editingOpportunity, setEditingOpportunity] = React.useState(null);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [emailRecipient, setEmailRecipient] = React.useState(null);
-  const [filterLogic, setFilterLogic] = React.useState("AND");
   const [isBulkScoring, setIsBulkScoring] = React.useState(false);
   
-  // Estado dos filtros avançados
+  // Estado dos filtros simplificados
   const [filters, setFilters] = React.useState({
     search: "",
     status: "all",
@@ -51,11 +49,7 @@ export default function OpportunitiesContent() {
     lead_source: "all",
     assigned_to: "all",
     priority: "all",
-    converted: "all",
-    created_date: {},
-    updated_date: {},
-    budget: {},
-    estimated_value: {}
+    converted: "all"
   });
 
   const { data: user } = useQuery({
@@ -128,211 +122,42 @@ export default function OpportunitiesContent() {
     return converted;
   }, [clientContacts]);
 
-  // Extract unique campaign names
-  const allCampaigns = React.useMemo(() => {
-    const campaignsSet = new Set();
-    facebookLeads.forEach(lead => {
-      if (lead.campaign_name) campaignsSet.add(lead.campaign_name);
-    });
-    opportunities.forEach(opp => {
-      if (opp.source_url?.includes('facebook') && opp.message) {
-        const campaignMatch = opp.message.match(/Campanha:\s*(.+?)(?:\n|$)/i);
-        if (campaignMatch) campaignsSet.add(campaignMatch[1].trim());
-      }
-    });
-    return Array.from(campaignsSet).sort();
-  }, [facebookLeads, opportunities]);
-
-  // Configuração dos filtros avançados para oportunidades
-  const filterConfig = React.useMemo(() => ({
-    search: {
-      type: FILTER_TYPES.text,
-      label: "Pesquisar",
-      placeholder: "Nome ou email...",
-      searchFields: ["buyer_name", "buyer_email", "buyer_phone", "location"]
-    },
-    status: {
-      type: FILTER_TYPES.select,
-      label: "Estado",
-      field: "status",
-      options: [
-        { value: "new", label: "Novo" },
-        { value: "contacted", label: "Contactado" },
-        { value: "visit_scheduled", label: "Visita Agendada" },
-        { value: "proposal", label: "Proposta" },
-        { value: "negotiation", label: "Negociação" },
-        { value: "won", label: "Fechado ✓" },
-        { value: "lost", label: "Perdido" }
-      ]
-    },
-    lead_type: {
-      type: FILTER_TYPES.select,
-      label: "Tipo",
-      field: "lead_type",
-      options: [
-        { value: "comprador", label: "Comprador" },
-        { value: "vendedor", label: "Vendedor" },
-        { value: "parceiro_comprador", label: "Parceiro Comprador" },
-        { value: "parceiro_vendedor", label: "Parceiro Vendedor" }
-      ]
-    },
-    qualification_status: {
-      type: FILTER_TYPES.select,
-      label: "Qualificação",
-      field: "qualification_status",
-      options: [
-        { value: "hot", label: "🔥 Hot" },
-        { value: "warm", label: "🌡️ Warm" },
-        { value: "cold", label: "❄️ Cold" },
-        { value: "unqualified", label: "Não Qualificado" }
-      ]
-    },
-    lead_source: {
-      type: FILTER_TYPES.select,
-      label: "Origem",
-      field: "lead_source",
-      options: [
-        { value: "facebook_ads", label: "Facebook Ads" },
-        { value: "website", label: "Website" },
-        { value: "referral", label: "Referência" },
-        { value: "direct_contact", label: "Contacto Direto" },
-        { value: "real_estate_portal", label: "Portal Imobiliário" },
-        { value: "networking", label: "Networking" },
-        { value: "other", label: "Outro" }
-      ]
-    },
-    assigned_to: {
-      type: FILTER_TYPES.select,
-      label: "Agente",
-      field: "assigned_to",
-      options: [
-        { value: "unassigned", label: "Sem agente" },
-        ...getAgentOptions()
-      ]
-    },
-    priority: {
-      type: FILTER_TYPES.select,
-      label: "Prioridade",
-      field: "priority",
-      options: [
-        { value: "urgent", label: "🔴 Urgente" },
-        { value: "high", label: "Alta" },
-        { value: "medium", label: "Média" },
-        { value: "low", label: "Baixa" }
-      ],
-      advanced: true
-    },
-    converted: {
-      type: FILTER_TYPES.select,
-      label: "Convertido",
-      field: "converted",
-      options: [
-        { value: "yes", label: "✅ Convertido" },
-        { value: "no", label: "❌ Não Convertido" }
-      ]
-    },
-    created_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Criação",
-      field: "created_date",
-      advanced: true
-    },
-    updated_date: {
-      type: FILTER_TYPES.dateRange,
-      label: "Data de Atualização",
-      field: "updated_date",
-      advanced: true
-    },
-    budget: {
-      type: FILTER_TYPES.numberRange,
-      label: "Orçamento",
-      field: "budget",
-      prefix: "€",
-      advanced: true
-    },
-    estimated_value: {
-      type: FILTER_TYPES.numberRange,
-      label: "Valor Estimado",
-      field: "estimated_value",
-      prefix: "€",
-      advanced: true
-    }
-  }), [users]);
-
-  // Aplicar filtros avançados - com tratamento especial para "unassigned"
+  // Aplicar filtros
   const filteredOpportunities = React.useMemo(() => {
     return opportunities.filter(opp => {
-      const results = Object.entries(filters).map(([key, value]) => {
-        const config = filterConfig[key];
-        if (!config) return true;
-        
-        if (value === "" || value === "all" || value === null || value === undefined) return true;
-        if (Array.isArray(value) && value.length === 0) return true;
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          const hasValue = Object.values(value).some(v => v !== null && v !== "" && v !== undefined);
-          if (!hasValue) return true;
-        }
+      // Search
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch = 
+          opp.buyer_name?.toLowerCase().includes(searchLower) ||
+          opp.buyer_email?.toLowerCase().includes(searchLower) ||
+          opp.buyer_phone?.toLowerCase().includes(searchLower) ||
+          opp.location?.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
 
-        // Tratamento especial para assigned_to com "unassigned"
-        if (key === "assigned_to" && value === "unassigned") {
-          return !opp.assigned_to;
-        }
+      // Status
+      if (filters.status !== "all" && opp.status !== filters.status) return false;
 
-        // Tratamento especial para converted - precisa verificar nos contactos
-        if (key === "converted") {
-          // This will be checked separately below
-          return true;
-        }
+      // Lead Type
+      if (filters.lead_type !== "all" && opp.lead_type !== filters.lead_type) return false;
 
-        // Pesquisa de texto
-        if (config.type === "text" && config.searchFields) {
-          const searchValue = String(value).toLowerCase();
-          return config.searchFields.some(field => {
-            const fieldValue = opp[field];
-            return fieldValue && String(fieldValue).toLowerCase().includes(searchValue);
-          });
-        }
+      // Qualification
+      if (filters.qualification_status !== "all" && opp.qualification_status !== filters.qualification_status) return false;
 
-        // Select simples
-        if (config.type === "select") {
-          return opp[config.field] === value;
-        }
+      // Lead Source
+      if (filters.lead_source !== "all" && opp.lead_source !== filters.lead_source) return false;
 
-        // Date range
-        if (config.type === "dateRange") {
-          const dateValue = opp[config.field];
-          if (!dateValue) return true;
-          const date = new Date(dateValue);
-          if (value.from) {
-            const fromDate = new Date(value.from);
-            fromDate.setHours(0, 0, 0, 0);
-            if (date < fromDate) return false;
-          }
-          if (value.to) {
-            const toDate = new Date(value.to);
-            toDate.setHours(23, 59, 59, 999);
-            if (date > toDate) return false;
-          }
-          return true;
-        }
+      // Assigned
+      if (filters.assigned_to === "unassigned" && opp.assigned_to) return false;
+      if (filters.assigned_to === "all_assigned" && !opp.assigned_to) return false;
+      if (filters.assigned_to !== "all" && filters.assigned_to !== "unassigned" && filters.assigned_to !== "all_assigned" && opp.assigned_to !== filters.assigned_to) return false;
 
-        // Number range
-        if (config.type === "numberRange") {
-          const numValue = opp[config.field];
-          if (numValue === null || numValue === undefined) return true;
-          if (value.min !== null && value.min !== undefined && numValue < value.min) return false;
-          if (value.max !== null && value.max !== undefined && numValue > value.max) return false;
-          return true;
-        }
+      // Priority
+      if (filters.priority !== "all" && opp.priority !== filters.priority) return false;
 
-        return true;
-      });
-
-      const passesFilters = filterLogic === "OR" ? results.some(r => r) : results.every(r => r);
-      if (!passesFilters) return false;
-
-      // Verificar filtro de convertido separadamente
-      if (filters.converted && filters.converted !== "all") {
+      // Converted
+      if (filters.converted !== "all") {
         const isConverted = convertedOpportunityIds.has(opp.id);
         if (filters.converted === "yes" && !isConverted) return false;
         if (filters.converted === "no" && isConverted) return false;
@@ -340,7 +165,7 @@ export default function OpportunitiesContent() {
 
       return true;
     });
-  }, [opportunities, filters, filterConfig, filterLogic, convertedOpportunityIds]);
+  }, [opportunities, filters, convertedOpportunityIds]);
 
   // Derivar selectedLead dos dados atuais das oportunidades
   const selectedLead = React.useMemo(() => {
@@ -804,17 +629,26 @@ export default function OpportunitiesContent() {
         </Card>
       )}
 
-      {/* Filters */}
+      {/* Quick Filters with Badges */}
       {viewMode !== "dashboard" && (
-        <AdvancedFilters
-          filterConfig={filterConfig}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Input
+              value={filters.search}
+              onChange={(e) => setFilters({...filters, search: e.target.value})}
+              placeholder="Pesquisar por nome, email, telefone..."
+              className="pl-3 h-10"
+            />
+          </div>
+        </div>
+      )}
+
+      {viewMode !== "dashboard" && (
+        <OpportunityQuickFilters
+          opportunities={opportunities}
           filters={filters}
-          onFiltersChange={setFilters}
-          savedFiltersKey="opportunities"
-          totalCount={opportunities.length}
-          filteredCount={filteredOpportunities.length}
-          showSavedFilters={true}
-          showLogicToggle={true}
+          onFilterChange={setFilters}
+          convertedOpportunityIds={convertedOpportunityIds}
         />
       )}
 
