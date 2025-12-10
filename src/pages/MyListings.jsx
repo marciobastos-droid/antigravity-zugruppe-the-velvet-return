@@ -58,12 +58,14 @@ const PropertyCard = memo(function PropertyCard({
       <CardContent className="p-0">
         <div className="flex flex-col">
           <div className="relative h-48 overflow-hidden bg-slate-100">
-            <OptimizedImage
+            <img
               src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
               alt={property.title}
-              className="w-full h-full group-hover:scale-105 transition-transform duration-300"
-              fallbackIcon={HomeIcon}
-              strategy="lazy"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              onError={(e) => {
+                e.target.src = "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400";
+              }}
             />
             <div className="absolute top-2 left-2" onClick={(e) => {
               e.stopPropagation();
