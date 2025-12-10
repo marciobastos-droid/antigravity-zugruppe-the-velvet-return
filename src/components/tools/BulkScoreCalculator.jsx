@@ -39,7 +39,7 @@ export default function BulkScoreCalculator() {
         const batch = batches[i];
         
         const response = await base44.functions.invoke('calculatePropertyScore', {
-          property_ids: batch
+          propertyIds: batch
         });
 
         if (response.data?.results) {
