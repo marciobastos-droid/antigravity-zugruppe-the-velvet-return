@@ -19,23 +19,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2 as Loader2Icon } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import PropertyCard from "../components/browse/PropertyCard";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
-import EditPropertyDialog from "../components/listings/EditPropertyDialog";
-import MaintenanceManager from "../components/property/MaintenanceManager";
-import LeaseManager from "../components/property/LeaseManager";
-import PropertyDocumentManager from "../components/property/PropertyDocumentManager";
-import ScheduleViewing from "../components/property/ScheduleViewing";
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
-import PublicationStatus from "../components/property/PublicationStatus";
-import PropertyQualityScore from "../components/property/PropertyQualityScore";
-import AIPricingAnalysis from "../components/property/AIPricingAnalysis";
-import PremiumAnalytics from "../components/subscription/PremiumAnalytics";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
+
+// Lazy load heavy components
+const MapContainer = React.lazy(() => import('react-leaflet').then(m => ({ default: m.MapContainer })));
+const TileLayer = React.lazy(() => import('react-leaflet').then(m => ({ default: m.TileLayer })));
+const Marker = React.lazy(() => import('react-leaflet').then(m => ({ default: m.Marker })));
+const Popup = React.lazy(() => import('react-leaflet').then(m => ({ default: m.Popup })));
+const EditPropertyDialog = React.lazy(() => import("../components/listings/EditPropertyDialog"));
+const MaintenanceManager = React.lazy(() => import("../components/property/MaintenanceManager"));
+const LeaseManager = React.lazy(() => import("../components/property/LeaseManager"));
+const PropertyDocumentManager = React.lazy(() => import("../components/property/PropertyDocumentManager"));
+const PublicationStatus = React.lazy(() => import("../components/property/PublicationStatus"));
+const PropertyQualityScore = React.lazy(() => import("../components/property/PropertyQualityScore"));
+const AIPricingAnalysis = React.lazy(() => import("../components/property/AIPricingAnalysis"));
+const PremiumAnalytics = React.lazy(() => import("../components/subscription/PremiumAnalytics"));
 import { 
   generatePropertyMetaDescription, 
   generatePropertyKeywords, 
@@ -104,7 +107,7 @@ export default function PropertyDetails() {
     },
     enabled: !!propertyId,
     retry: 1,
-    ...QUERY_CONFIG.properties
+    ...QUERY_CONFIG.singleProperty
   });
 
   const { data: user } = useQuery({
@@ -774,70 +777,18 @@ export default function PropertyDetails() {
                 </Card>
 
             {/* Map */}
-            {property.city && (() => {
-              // Coordenadas de cidades portuguesas
-              const cityCoords = {
-                'Lisboa': [38.7223, -9.1393],
-                'Porto': [41.1579, -8.6291],
-                'Braga': [41.5454, -8.4265],
-                'Coimbra': [40.2033, -8.4103],
-                'Faro': [37.0194, -7.9304],
-                'Aveiro': [40.6443, -8.6455],
-                'Viseu': [40.6566, -7.9122],
-                'Setúbal': [38.5244, -8.8882],
-                'Évora': [38.5742, -7.9078],
-                'Leiria': [39.7437, -8.8071],
-                'Funchal': [32.6669, -16.9241],
-                'Ponta Delgada': [37.7412, -25.6756],
-                'Cascais': [38.6979, -9.4215],
-                'Sintra': [38.8029, -9.3817],
-                'Oeiras': [38.6939, -9.3106],
-                'Almada': [38.6799, -9.1571],
-                'Matosinhos': [41.1820, -8.6896],
-                'Vila Nova de Gaia': [41.1239, -8.6118]
-              };
-              
-              // Usar coordenadas da propriedade ou da cidade
-              const coords = property.latitude && property.longitude 
-                ? [property.latitude, property.longitude]
-                : cityCoords[property.city] || [39.5, -8.0]; // Centro de Portugal como fallback
-              
-              return (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      {t('property.details.location')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
-                      <MapContainer 
-                        center={coords} 
-                        zoom={14} 
-                        style={{ height: '100%', width: '100%' }}
-                        scrollWheelZoom={true}
-                        zoomControl={true}
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <Marker position={coords}>
-                          <Popup>
-                            <div className="p-2">
-                              <strong className="text-base">{property.title}</strong><br />
-                              <span className="text-sm text-slate-600">
-                                {property.address}, {property.city}
-                              </span><br />
-                              <span className="text-lg font-bold text-green-600">
-                                €{property.price?.toLocaleString()}
-                              </span>
-                            </div>
-                          </Popup>
-                        </Marker>
-                      </MapContainer>
-                    </div>
+            {property.city && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    {t('property.details.location')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <React.Suspense fallback={<div className="h-96 bg-slate-100 rounded-xl animate-pulse" />}>
+                    <PropertyMap property={property} />
+                  </React.Suspense>
                   <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
@@ -852,21 +803,22 @@ export default function PropertyDetails() {
                   </div>
                 </CardContent>
               </Card>
-              );
-            })()}
+            )}
 
             {/* AI Features - Quality Score & Pricing */}
             {isOwner && (
-              <>
+              <React.Suspense fallback={<Card><CardContent className="p-8"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></CardContent></Card>}>
                 <PropertyQualityScore property={property} />
                 <AIPricingAnalysis property={property} />
                 <PremiumAnalytics propertyId={property.id} />
-              </>
+              </React.Suspense>
             )}
 
             {/* Publication Status */}
             {isOwner && (
-              <PublicationStatus property={property} variant="detailed" />
+              <React.Suspense fallback={<Card><CardContent className="p-4"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></CardContent></Card>}>
+                <PublicationStatus property={property} variant="detailed" />
+              </React.Suspense>
             )}
 
             {/* Property Management Section */}
@@ -876,35 +828,37 @@ export default function PropertyDetails() {
                   <CardTitle>Gestão do Imóvel</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="maintenance" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
-                      <TabsTrigger value="leases">Arrendamentos</TabsTrigger>
-                      <TabsTrigger value="documents">Documentos</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="maintenance" className="mt-6">
-                      <MaintenanceManager 
-                        propertyId={propertyId} 
-                        propertyTitle={property.title}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="leases" className="mt-6">
-                      <LeaseManager 
-                        propertyId={propertyId} 
-                        propertyTitle={property.title}
-                        propertyAddress={`${property.address}, ${property.city}`}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="documents" className="mt-6">
-                      <PropertyDocumentManager 
-                        propertyId={propertyId} 
-                        propertyTitle={property.title}
-                      />
-                    </TabsContent>
-                  </Tabs>
+                  <React.Suspense fallback={<div className="py-8"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>}>
+                    <Tabs defaultValue="maintenance" className="w-full">
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
+                        <TabsTrigger value="leases">Arrendamentos</TabsTrigger>
+                        <TabsTrigger value="documents">Documentos</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="maintenance" className="mt-6">
+                        <MaintenanceManager 
+                          propertyId={propertyId} 
+                          propertyTitle={property.title}
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="leases" className="mt-6">
+                        <LeaseManager 
+                          propertyId={propertyId} 
+                          propertyTitle={property.title}
+                          propertyAddress={`${property.address}, ${property.city}`}
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="documents" className="mt-6">
+                        <PropertyDocumentManager 
+                          propertyId={propertyId} 
+                          propertyTitle={property.title}
+                        />
+                      </TabsContent>
+                    </Tabs>
+                  </React.Suspense>
                 </CardContent>
               </Card>
             )}
@@ -1226,13 +1180,75 @@ export default function PropertyDetails() {
           </DialogContent>
         </Dialog>
         
-        <EditPropertyDialog
-          property={editingProperty}
-          open={!!editingProperty}
-          onOpenChange={(open) => !open && setEditingProperty(null)}
-        />
+        {editingProperty && (
+          <React.Suspense fallback={null}>
+            <EditPropertyDialog
+              property={editingProperty}
+              open={!!editingProperty}
+              onOpenChange={(open) => !open && setEditingProperty(null)}
+            />
+          </React.Suspense>
+        )}
       </div>
       </div>
     </HelmetProvider>
   );
 }
+
+// Memoized Map Component
+const PropertyMap = React.memo(({ property }) => {
+  const cityCoords = {
+    'Lisboa': [38.7223, -9.1393],
+    'Porto': [41.1579, -8.6291],
+    'Braga': [41.5454, -8.4265],
+    'Coimbra': [40.2033, -8.4103],
+    'Faro': [37.0194, -7.9304],
+    'Aveiro': [40.6443, -8.6455],
+    'Viseu': [40.6566, -7.9122],
+    'Setúbal': [38.5244, -8.8882],
+    'Évora': [38.5742, -7.9078],
+    'Leiria': [39.7437, -8.8071],
+    'Funchal': [32.6669, -16.9241],
+    'Ponta Delgada': [37.7412, -25.6756],
+    'Cascais': [38.6979, -9.4215],
+    'Sintra': [38.8029, -9.3817],
+    'Oeiras': [38.6939, -9.3106],
+    'Almada': [38.6799, -9.1571],
+    'Matosinhos': [41.1820, -8.6896],
+    'Vila Nova de Gaia': [41.1239, -8.6118]
+  };
+  
+  const coords = property.latitude && property.longitude 
+    ? [property.latitude, property.longitude]
+    : cityCoords[property.city] || [39.5, -8.0];
+  
+  return (
+    <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
+      <MapContainer 
+        center={coords} 
+        zoom={14} 
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={true}
+        zoomControl={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={coords}>
+          <Popup>
+            <div className="p-2">
+              <strong className="text-base">{property.title}</strong><br />
+              <span className="text-sm text-slate-600">
+                {property.address}, {property.city}
+              </span><br />
+              <span className="text-lg font-bold text-green-600">
+                €{property.price?.toLocaleString()}
+              </span>
+            </div>
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  );
+});

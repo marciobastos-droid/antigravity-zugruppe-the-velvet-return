@@ -1354,7 +1354,7 @@ export default function Website() {
     );
   }
 
-// Compact Card for Grid View - Memoized
+// Compact Card for Grid View - Highly Optimized Memoization
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
@@ -1484,11 +1484,16 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
         <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
       </button>
     </div>
-  );
-});
+    );
+    }, (prevProps, nextProps) => {
+    // Custom comparison for better performance
+    return prevProps.property.id === nextProps.property.id &&
+         prevProps.isFavorited === nextProps.isFavorited &&
+         prevProps.locale === nextProps.locale;
+    });
 
-// List Card for List View - Memoized
-const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
+    // List Card for List View - Highly Optimized Memoization
+    const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
   const image = property.images?.[0];
 
   return (
