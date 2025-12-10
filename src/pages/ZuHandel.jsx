@@ -32,8 +32,9 @@ export default function ZuHandel() {
   const [selectedProperty, setSelectedProperty] = React.useState(null);
 
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date')
+    queryKey: ['properties', 'zuhandel'],
+    queryFn: () => base44.entities.Property.list('-created_date'),
+    staleTime: 0 // Force refresh on navigation
   });
 
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];

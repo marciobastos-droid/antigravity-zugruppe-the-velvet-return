@@ -32,8 +32,9 @@ export default function ZuHaus() {
   const [selectedProperty, setSelectedProperty] = React.useState(null);
 
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => base44.entities.Property.list('-created_date')
+    queryKey: ['properties', 'zuhaus'],
+    queryFn: () => base44.entities.Property.list('-created_date'),
+    staleTime: 0 // Force refresh on navigation
   });
 
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];

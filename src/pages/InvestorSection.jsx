@@ -73,7 +73,7 @@ export default function InvestorSection() {
   
   // Fetch investor properties only if valid
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['investorProperties'],
+    queryKey: ['investorProperties', accessKey],
     queryFn: async () => {
       const allProperties = await base44.entities.Property.list('-created_date');
       return allProperties.filter(p => 
@@ -81,7 +81,8 @@ export default function InvestorSection() {
         p.status === 'active'
       );
     },
-    enabled: validationStatus === 'valid'
+    enabled: validationStatus === 'valid',
+    staleTime: 0 // Force refresh on navigation
   });
   
   // Loading state
