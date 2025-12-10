@@ -1025,8 +1025,8 @@ export default function MyListings() {
     
     // Filtro de consultor
     if (filters.assigned_consultant && filters.assigned_consultant !== "all") {
-      if (filters.assigned_consultant === "unassigned") {
-        filtered = filtered.filter(p => !p.assigned_consultant);
+      if (filters.assigned_consultant === "unassigned" || filters.assigned_consultant === "none") {
+        filtered = filtered.filter(p => !p.assigned_consultant || p.assigned_consultant === "");
       } else {
         filtered = filtered.filter(p => p.assigned_consultant === filters.assigned_consultant);
       }
