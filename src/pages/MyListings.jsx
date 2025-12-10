@@ -237,7 +237,9 @@ export default function MyListings() {
   const [editingProperty, setEditingProperty] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
   const [viewMode, setViewMode] = useState("cards");
-    const [groupBy, setGroupBy] = useState("none");
+  const [groupBy, setGroupBy] = useState("none");
+  const [sortBy, setSortBy] = useState("updated_date");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [filterLogic, setFilterLogic] = useState("AND");
   const [assignDevelopmentOpen, setAssignDevelopmentOpen] = useState(false);
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
