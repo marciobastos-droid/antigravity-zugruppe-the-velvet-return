@@ -26,6 +26,8 @@ export const translations = {
       message: "Mensagem",
       notes: "Notas",
       featured: "Destaque",
+      favorites: "Favoritos",
+      myFavorites: "Os Meus Favoritos",
       perMonth: "/mês",
       viewAll: "Ver todas",
       photos: "fotos"
@@ -265,6 +267,8 @@ export const translations = {
       message: "Message",
       notes: "Notes",
       featured: "Featured",
+      favorites: "Favorites",
+      myFavorites: "My Favorites",
       perMonth: "/month",
       viewAll: "View all",
       photos: "photos"
@@ -497,7 +501,18 @@ export const translations = {
       send: "Enviar",
       success: "¡Éxito!",
       error: "Error",
-      back: "Volver"
+      back: "Volver",
+      all: "Todos",
+      or: "o",
+      name: "Nombre",
+      message: "Mensaje",
+      notes: "Notas",
+      featured: "Destacado",
+      favorites: "Favoritos",
+      myFavorites: "Mis Favoritos",
+      perMonth: "/mes",
+      viewAll: "Ver todas",
+      photos: "fotos"
     },
     property: {
       types: {
@@ -727,7 +742,18 @@ export const translations = {
       send: "Envoyer",
       success: "Succès!",
       error: "Erreur",
-      back: "Retour"
+      back: "Retour",
+      all: "Tous",
+      or: "ou",
+      name: "Nom",
+      message: "Message",
+      notes: "Notes",
+      featured: "En Vedette",
+      favorites: "Favoris",
+      myFavorites: "Mes Favoris",
+      perMonth: "/mois",
+      viewAll: "Voir toutes",
+      photos: "photos"
     },
     property: {
       types: {
