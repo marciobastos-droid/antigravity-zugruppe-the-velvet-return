@@ -120,7 +120,12 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
   };
 
   const handleSubmit = () => {
-    if (selectedPortals.length === 0 && selectedPages.length === 0) {
+    if (mode === "remove" && selectedPortals.length === 0 && selectedPages.length === 0) {
+      toast.error("Selecione pelo menos um portal ou página para remover");
+      return;
+    }
+    
+    if (mode !== "remove" && selectedPortals.length === 0 && selectedPages.length === 0) {
       toast.error("Selecione pelo menos um portal ou página");
       return;
     }
