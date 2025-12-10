@@ -145,6 +145,7 @@ export default function DevelopmentsTab() {
     });
     setEditingDev(null);
     setDialogOpen(false);
+    setShowAIGenerator(false);
   };
 
   const handleEdit = (dev) => {
