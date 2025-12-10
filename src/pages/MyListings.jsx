@@ -1001,7 +1001,7 @@ export default function MyListings() {
   // Aplicar filtros avançados
   const baseFilteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
   
-  // Aplicar filtros customizados manualmente
+  // Aplicar filtros customizados e ordenação
   const filteredProperties = useMemo(() => {
     let filtered = baseFilteredProperties;
     
