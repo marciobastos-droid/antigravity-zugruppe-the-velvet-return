@@ -269,7 +269,17 @@ export default function MyListings() {
     created_date: {},
     updated_date: {},
     featured: null,
-    last_import: null
+    last_import: null,
+    bedrooms: "all",
+    useful_area: {},
+    availability_status: "all",
+    assigned_consultant: "all",
+    development_id: "all",
+    has_images: null,
+    has_energy_certificate: null,
+    published_portals: [],
+    published_pages: [],
+    visibility: "all"
   });
   
   const ITEMS_PER_PAGE = viewMode === "cards" ? 40 : 30;
@@ -681,59 +691,121 @@ export default function MyListings() {
     return Array.from(citiesSet).sort();
   }, [properties, filters.state]);
 
+  // Extrair valores únicos para filtros dinâmicos
+  const uniqueConsultants = useMemo(() => {
+    const consultants = new Set();
+    properties.forEach(p => {
+      if (p.assigned_consultant) consultants.add(p.assigned_consultant);
+    });
+    return Array.from(consultants);
+  }, [properties]);
+
+  const uniqueDevelopments = useMemo(() => {
+    const devs = new Map();
+    properties.forEach(p => {
+      if (p.development_id && p.development_name) {
+        devs.set(p.development_id, p.development_name);
+      }
+    });
+    return Array.from(devs.entries()).map(([id, name]) => ({ value: id, label: name }));
+  }, [properties]);
+
+  const uniquePortals = useMemo(() => {
+    const portals = new Set();
+    properties.forEach(p => {
+      if (p.published_portals) {
+        p.published_portals.forEach(portal => portals.add(portal));
+      }
+    });
+    return Array.from(portals).sort();
+  }, [properties]);
+
+  const uniquePages = useMemo(() => {
+    const pages = new Set();
+    properties.forEach(p => {
+      if (p.published_pages) {
+        p.published_pages.forEach(page => pages.add(page));
+      }
+    });
+    return Array.from(pages).sort();
+  }, [properties]);
+
   // Configuração dos filtros avançados - memoized
   const filterConfig = useMemo(() => ({
     search: {
       type: FILTER_TYPES.text,
       label: "Pesquisar",
-      placeholder: "Título, cidade, morada...",
-      searchFields: ["title", "city", "address", "ref_id"]
-    },
-    created_by: {
-      type: FILTER_TYPES.text,
-      label: "Criado Por",
-      field: "created_by",
-      advanced: true
+      placeholder: "Título, cidade, morada, ref...",
+      searchFields: ["title", "city", "address", "ref_id", "description"]
     },
     status: {
       type: FILTER_TYPES.select,
       label: "Estado",
       field: "status",
       options: [
-        { value: "active", label: "Ativo" },
-        { value: "pending", label: "Pendente" },
-        { value: "sold", label: "Vendido" },
-        { value: "rented", label: "Arrendado" },
-        { value: "off_market", label: "Desativado" }
+        { value: "active", label: "✅ Ativo" },
+        { value: "pending", label: "⏳ Pendente" },
+        { value: "sold", label: "💰 Vendido" },
+        { value: "rented", label: "🔑 Arrendado" },
+        { value: "off_market", label: "⛔ Desativado" }
       ]
+    },
+    availability_status: {
+      type: FILTER_TYPES.select,
+      label: "Disponibilidade",
+      field: "availability_status",
+      options: [
+        { value: "available", label: "Disponível" },
+        { value: "sold", label: "Vendido" },
+        { value: "reserved", label: "Reservado" },
+        { value: "rented", label: "Arrendado" },
+        { value: "prospecting", label: "Em Prospecção" },
+        { value: "withdrawn", label: "Retirado" },
+        { value: "pending_validation", label: "Por Validar" }
+      ],
+      advanced: true
     },
     property_type: {
       type: FILTER_TYPES.select,
-      label: "Tipo de Imóvel",
+      label: "Tipo",
       field: "property_type",
       options: [
-        { value: "house", label: "Moradia" },
-        { value: "apartment", label: "Apartamento" },
-        { value: "condo", label: "Condomínio" },
-        { value: "townhouse", label: "Casa Geminada" },
-        { value: "building", label: "Prédio" },
-        { value: "land", label: "Terreno" },
-        { value: "commercial", label: "Comercial" },
-        { value: "warehouse", label: "Armazém" },
-        { value: "office", label: "Escritório" },
-        { value: "store", label: "Loja" },
-        { value: "farm", label: "Quinta" },
-        { value: "development", label: "Empreendimento" }
+        { value: "house", label: "🏠 Moradia" },
+        { value: "apartment", label: "🏢 Apartamento" },
+        { value: "condo", label: "🏘️ Condomínio" },
+        { value: "townhouse", label: "🏡 Casa Geminada" },
+        { value: "building", label: "🏛️ Prédio" },
+        { value: "land", label: "🌾 Terreno" },
+        { value: "commercial", label: "💼 Comercial" },
+        { value: "warehouse", label: "🏭 Armazém" },
+        { value: "office", label: "🏢 Escritório" },
+        { value: "store", label: "🏪 Loja" },
+        { value: "farm", label: "🌳 Quinta" }
       ]
     },
     listing_type: {
       type: FILTER_TYPES.select,
-      label: "Tipo de Anúncio",
+      label: "Negócio",
       field: "listing_type",
       options: [
         { value: "sale", label: "Venda" },
         { value: "rent", label: "Arrendamento" }
       ]
+    },
+    bedrooms: {
+      type: FILTER_TYPES.select,
+      label: "Quartos",
+      field: "bedrooms",
+      options: [
+        { value: "0", label: "T0" },
+        { value: "1", label: "T1" },
+        { value: "2", label: "T2" },
+        { value: "3", label: "T3" },
+        { value: "4", label: "T4" },
+        { value: "5", label: "T5" },
+        { value: "6+", label: "T6+" }
+      ],
+      customFilter: true
     },
     country: {
       type: FILTER_TYPES.select,
@@ -748,13 +820,8 @@ export default function MyListings() {
         { value: "United States", label: "🇺🇸 Estados Unidos" },
         { value: "Brazil", label: "🇧🇷 Brasil" },
         { value: "Angola", label: "🇦🇴 Angola" }
-      ]
-    },
-    price: {
-      type: FILTER_TYPES.numberRange,
-      label: "Preço",
-      field: "price",
-      prefix: "€"
+      ],
+      advanced: true
     },
     state: {
       type: FILTER_TYPES.select,
@@ -770,12 +837,108 @@ export default function MyListings() {
       options: allCities.map(c => ({ value: c, label: c })),
       advanced: true
     },
+    price: {
+      type: FILTER_TYPES.numberRange,
+      label: "Preço",
+      field: "price",
+      prefix: "€"
+    },
+    useful_area: {
+      type: FILTER_TYPES.numberRange,
+      label: "Área Útil (m²)",
+      field: "useful_area",
+      suffix: "m²",
+      advanced: true
+    },
+    assigned_consultant: {
+      type: FILTER_TYPES.select,
+      label: "Consultor",
+      field: "assigned_consultant",
+      options: [
+        { value: "unassigned", label: "Sem consultor" },
+        ...uniqueConsultants.map(c => {
+          const agent = agents.find(a => a.email === c);
+          return { value: c, label: agent?.full_name || c };
+        })
+      ],
+      advanced: true,
+      customFilter: true
+    },
+    development_id: {
+      type: FILTER_TYPES.select,
+      label: "Empreendimento",
+      field: "development_id",
+      options: [
+        { value: "none", label: "Sem empreendimento" },
+        ...uniqueDevelopments
+      ],
+      advanced: true,
+      customFilter: true
+    },
     tags: {
       type: FILTER_TYPES.multiSelect,
       label: "Etiquetas",
       field: "tags",
       options: propertyTags.map(t => ({ value: t.name, label: t.name })),
       advanced: true
+    },
+    published_portals: {
+      type: FILTER_TYPES.multiSelect,
+      label: "Publicado em Portais",
+      field: "published_portals",
+      options: uniquePortals.map(p => ({ 
+        value: p, 
+        label: p === 'idealista' ? 'Idealista' :
+               p === 'imovirtual' ? 'Imovirtual' :
+               p === 'casafari' ? 'Casafari' :
+               p === 'olx' ? 'OLX' :
+               p === 'supercasa' ? 'Supercasa' : p
+      })),
+      advanced: true,
+      customFilter: true
+    },
+    published_pages: {
+      type: FILTER_TYPES.multiSelect,
+      label: "Publicado no Website",
+      field: "published_pages",
+      options: uniquePages.map(p => ({ 
+        value: p, 
+        label: p === 'zugruppe' ? 'ZuGruppe' :
+               p === 'zuhaus' ? 'ZuHaus' :
+               p === 'zuhandel' ? 'ZuHandel' :
+               p === 'investor_section' ? 'Investidores' : p
+      })),
+      advanced: true,
+      customFilter: true
+    },
+    visibility: {
+      type: FILTER_TYPES.select,
+      label: "Visibilidade",
+      field: "visibility",
+      options: [
+        { value: "public", label: "🌐 Público" },
+        { value: "team_only", label: "👥 Apenas Equipa" },
+        { value: "private", label: "🔒 Privado" }
+      ],
+      advanced: true
+    },
+    has_images: {
+      type: FILTER_TYPES.boolean,
+      label: "Com Imagens",
+      field: "has_images",
+      trueLabel: "Sim",
+      falseLabel: "Não",
+      advanced: true,
+      customFilter: true
+    },
+    has_energy_certificate: {
+      type: FILTER_TYPES.boolean,
+      label: "Com Cert. Energético",
+      field: "has_energy_certificate",
+      trueLabel: "Sim",
+      falseLabel: "Não",
+      advanced: true,
+      customFilter: true
     },
     created_date: {
       type: FILTER_TYPES.dateRange,
@@ -805,8 +968,14 @@ export default function MyListings() {
       falseLabel: "Não",
       advanced: true,
       customFilter: true
+    },
+    created_by: {
+      type: FILTER_TYPES.text,
+      label: "Criado Por",
+      field: "created_by",
+      advanced: true
     }
-  }), [allStates, allCities, propertyTags]);
+  }), [allStates, allCities, propertyTags, uniqueConsultants, uniqueDevelopments, uniquePortals, uniquePages, agents]);
   
   // Calcular data/hora da última importação (imóveis com source_url)
   const lastImportTimestamp = useMemo(() => {
@@ -829,21 +998,84 @@ export default function MyListings() {
   // Aplicar filtros avançados
   const baseFilteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
   
-  // Aplicar filtro de última importação manualmente
+  // Aplicar filtros customizados manualmente
   const filteredProperties = useMemo(() => {
-    // Verificar se filtro está ativo (pode ser true ou "true")
-    const isLastImportActive = filters.last_import === true || filters.last_import === "true";
+    let filtered = baseFilteredProperties;
     
-    if (!isLastImportActive || !lastImportTimestamp) {
-      return baseFilteredProperties;
+    // Filtro de última importação
+    const isLastImportActive = filters.last_import === true || filters.last_import === "true";
+    if (isLastImportActive && lastImportTimestamp) {
+      filtered = filtered.filter(p => {
+        if (!p.source_url) return false;
+        const createdDate = new Date(p.created_date);
+        return createdDate >= lastImportTimestamp;
+      });
     }
     
-    return baseFilteredProperties.filter(p => {
-      if (!p.source_url) return false;
-      const createdDate = new Date(p.created_date);
-      return createdDate >= lastImportTimestamp;
-    });
-  }, [baseFilteredProperties, filters.last_import, lastImportTimestamp]);
+    // Filtro de quartos
+    if (filters.bedrooms && filters.bedrooms !== "all") {
+      filtered = filtered.filter(p => {
+        if (filters.bedrooms === "6+") {
+          return p.bedrooms >= 6;
+        }
+        return String(p.bedrooms) === filters.bedrooms;
+      });
+    }
+    
+    // Filtro de consultor
+    if (filters.assigned_consultant && filters.assigned_consultant !== "all") {
+      if (filters.assigned_consultant === "unassigned") {
+        filtered = filtered.filter(p => !p.assigned_consultant);
+      } else {
+        filtered = filtered.filter(p => p.assigned_consultant === filters.assigned_consultant);
+      }
+    }
+    
+    // Filtro de empreendimento
+    if (filters.development_id && filters.development_id !== "all") {
+      if (filters.development_id === "none") {
+        filtered = filtered.filter(p => !p.development_id);
+      } else {
+        filtered = filtered.filter(p => p.development_id === filters.development_id);
+      }
+    }
+    
+    // Filtro de imagens
+    const hasImagesFilter = filters.has_images === true || filters.has_images === "true";
+    const noImagesFilter = filters.has_images === false || filters.has_images === "false";
+    if (hasImagesFilter) {
+      filtered = filtered.filter(p => p.images && p.images.length > 0);
+    } else if (noImagesFilter) {
+      filtered = filtered.filter(p => !p.images || p.images.length === 0);
+    }
+    
+    // Filtro de certificado energético
+    const hasCertFilter = filters.has_energy_certificate === true || filters.has_energy_certificate === "true";
+    const noCertFilter = filters.has_energy_certificate === false || filters.has_energy_certificate === "false";
+    if (hasCertFilter) {
+      filtered = filtered.filter(p => p.energy_certificate && p.energy_certificate !== "isento");
+    } else if (noCertFilter) {
+      filtered = filtered.filter(p => !p.energy_certificate || p.energy_certificate === "isento");
+    }
+    
+    // Filtro de portais publicados (multi-select)
+    if (filters.published_portals && filters.published_portals.length > 0) {
+      filtered = filtered.filter(p => {
+        if (!p.published_portals || p.published_portals.length === 0) return false;
+        return filters.published_portals.some(portal => p.published_portals.includes(portal));
+      });
+    }
+    
+    // Filtro de páginas publicadas (multi-select)
+    if (filters.published_pages && filters.published_pages.length > 0) {
+      filtered = filtered.filter(p => {
+        if (!p.published_pages || p.published_pages.length === 0) return false;
+        return filters.published_pages.some(page => p.published_pages.includes(page));
+      });
+    }
+    
+    return filtered;
+  }, [baseFilteredProperties, filters, lastImportTimestamp]);
 
   const toggleSelectAll = useCallback(() => {
     setSelectedProperties(prev =>
