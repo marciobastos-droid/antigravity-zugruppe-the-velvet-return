@@ -39,14 +39,15 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
     mutationFn: async ({ portals, pages, mode }) => {
       const selectedProperties = properties.filter(p => selectedPropertyIds.includes(p.id));
       
-      // Atualizar em lotes de 5 para evitar rate limit
-      const batchSize = 5;
+      // Atualizar em lotes de 3 para evitar rate limit (reduzido de 5)
+      const batchSize = 3;
       let completed = 0;
       
       for (let i = 0; i < selectedProperties.length; i += batchSize) {
         const batch = selectedProperties.slice(i, i + batchSize);
         
-        const batchUpdates = batch.map(property => {
+        // Processar sequencialmente dentro do lote para evitar rate limit
+        for (const property of batch) {
           let newPortals, newPages;
           
           if (mode === "add") {
@@ -64,18 +65,20 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
             newPages = pages;
           }
           
-          return base44.entities.Property.update(property.id, {
+          await base44.entities.Property.update(property.id, {
             published_portals: newPortals,
             published_pages: newPages
           });
-        });
+          
+          completed++;
+          
+          // Pequeno delay entre cada atualização (200ms)
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
         
-        await Promise.all(batchUpdates);
-        completed += batch.length;
-        
-        // Pequeno delay entre lotes
+        // Delay maior entre lotes (800ms)
         if (i + batchSize < selectedProperties.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 800));
         }
       }
     },
