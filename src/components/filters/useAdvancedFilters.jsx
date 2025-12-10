@@ -17,6 +17,9 @@ export function useAdvancedFilters(items, filters, filterConfig, filterLogic = "
         const config = filterConfig[key];
         if (!config) return true;
 
+        // Ignorar filtros customizados (serão processados manualmente)
+        if (config.customFilter) return true;
+
         // Verificar se o filtro está vazio
         if (value === "" || value === "all" || value === null || value === undefined) return true;
         if (Array.isArray(value) && value.length === 0) return true;
