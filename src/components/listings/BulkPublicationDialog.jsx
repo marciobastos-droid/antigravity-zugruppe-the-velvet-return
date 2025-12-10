@@ -478,36 +478,35 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
               </Badge>
             )}
           </div>
-        </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 justify-end pt-4 border-t mt-6">
-          <Button variant="outline" onClick={handleClose}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={updateMutation.isPending || (selectedPortals.length === 0 && selectedPages.length === 0)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {updateMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                A processar...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="w-4 h-4 mr-2" />
-                {mode === "add" ? "Adicionar a" : 
-                 mode === "remove" ? "Remover de" : 
-                 mode === "deactivate" ? "Desativar em" :
-                 mode === "republish" ? "Republicar em" : 
-                 "Substituir em"} {selectedPropertyIds.length} Imóveis
-              </>
-            )}
-          </Button>
-        </div>
-          </TabsContent>
+          {/* Actions */}
+          <div className="flex gap-3 justify-end pt-4 border-t mt-6">
+            <Button variant="outline" onClick={handleClose}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={updateMutation.isPending || (selectedPortals.length === 0 && selectedPages.length === 0)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A processar...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {mode === "add" ? "Adicionar a" : 
+                   mode === "remove" ? "Remover de" : 
+                   mode === "deactivate" ? "Desativar em" :
+                   mode === "republish" ? "Republicar em" : 
+                   "Substituir em"} {selectedPropertyIds.length} Imóveis
+                </>
+              )}
+            </Button>
+          </div>
+        </TabsContent>
 
           {/* Scheduled Tab */}
           <TabsContent value="scheduled" className="space-y-6 mt-4">
