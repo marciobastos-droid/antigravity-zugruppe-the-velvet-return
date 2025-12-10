@@ -990,18 +990,23 @@ export default function MyListings() {
   
   // Calcular data/hora da última importação (imóveis com source_url)
   const lastImportTimestamp = useMemo(() => {
-    const importedProperties = properties.filter(p => p.source_url);
+    const importedProperties = properties.filter(p => p.source_url && p.created_date);
     if (importedProperties.length === 0) return null;
     
     // Agrupar por minuto de criação para identificar lotes de importação
-    const sortedByDate = [...importedProperties].sort((a, b) => 
-      new Date(b.created_date) - new Date(a.created_date)
-    );
+    const sortedByDate = [...importedProperties].sort((a, b) => {
+      const dateA = new Date(a.created_date);
+      const dateB = new Date(b.created_date);
+      if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+      return dateB - dateA;
+    });
     
-    if (sortedByDate.length === 0) return null;
+    if (sortedByDate.length === 0 || !sortedByDate[0].created_date) return null;
     
     // Pegar a data mais recente
     const latestDate = new Date(sortedByDate[0].created_date);
+    if (isNaN(latestDate.getTime())) return null;
+    
     // Considerar como "mesma importação" tudo criado nos últimos 5 minutos da última importação
     return new Date(latestDate.getTime() - 5 * 60 * 1000);
   }, [properties]);
@@ -1017,8 +1022,9 @@ export default function MyListings() {
     const isLastImportActive = filters.last_import === true || filters.last_import === "true";
     if (isLastImportActive && lastImportTimestamp) {
       filtered = filtered.filter(p => {
-        if (!p.source_url) return false;
+        if (!p.source_url || !p.created_date) return false;
         const createdDate = new Date(p.created_date);
+        if (isNaN(createdDate.getTime())) return false;
         return createdDate >= lastImportTimestamp;
       });
     }

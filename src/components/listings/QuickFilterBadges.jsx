@@ -14,16 +14,21 @@ export default function QuickFilterBadges({
   
   // Calcular data/hora da última importação
   const lastImportTimestamp = React.useMemo(() => {
-    const importedProperties = properties.filter(p => p.source_url);
+    const importedProperties = properties.filter(p => p.source_url && p.created_date);
     if (importedProperties.length === 0) return null;
     
-    const sortedByDate = [...importedProperties].sort((a, b) => 
-      new Date(b.created_date) - new Date(a.created_date)
-    );
+    const sortedByDate = [...importedProperties].sort((a, b) => {
+      const dateA = new Date(a.created_date);
+      const dateB = new Date(b.created_date);
+      if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+      return dateB - dateA;
+    });
     
-    if (sortedByDate.length === 0) return null;
+    if (sortedByDate.length === 0 || !sortedByDate[0].created_date) return null;
     
     const latestDate = new Date(sortedByDate[0].created_date);
+    if (isNaN(latestDate.getTime())) return null;
+    
     return new Date(latestDate.getTime() - 5 * 60 * 1000);
   }, [properties]);
   
