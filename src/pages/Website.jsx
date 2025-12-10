@@ -33,6 +33,10 @@ import { usePropertyEngagement } from "../components/website/PropertyEngagementT
 import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
+import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
+import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function Website() {
   const { t, locale } = useLocalization();
@@ -44,6 +48,10 @@ export default function Website() {
 
   // A/B Testing
   const { cta, layout, trackConversion, trackCTAClick } = useABTesting();
+  
+  // Guest features
+  const { addFavorite, removeFavorite, isFavorite, favoritesCount, isGuest, user } = useGuestFeatures();
+  const [showRegisterPrompt, setShowRegisterPrompt] = React.useState(false);
 
   // Calculate dynamic ranges based on actual data
   const dataRanges = React.useMemo(() => {
@@ -385,6 +393,22 @@ export default function Website() {
       setCity("all");
     }
   }, [district]);
+
+  // Handle toggle favorite
+  const handleToggleFavorite = async (property) => {
+    if (isFavorite(property.id)) {
+      await removeFavorite(property.id);
+      toast.success('Imóvel removido dos favoritos');
+    } else {
+      const result = await addFavorite(property);
+      toast.success('Imóvel adicionado aos favoritos');
+      
+      // Show register prompt if user has 3 favorites
+      if (result === 'prompt_register') {
+        setTimeout(() => setShowRegisterPrompt(true), 500);
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -1009,6 +1033,13 @@ export default function Website() {
       {/* AI Chat Widget */}
       <AIChatWidget />
 
+      {/* Register Prompt for Guests */}
+      <RegisterPromptDialog 
+        open={showRegisterPrompt} 
+        onOpenChange={setShowRegisterPrompt}
+        favoritesCount={favoritesCount}
+      />
+
       {/* Featured Properties */}
       {layout.showFeatured && featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-8 sm:py-12">
@@ -1023,7 +1054,16 @@ export default function Website() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {featuredProperties.map((property, index) => (
-              <PropertyCardCompact key={property.id} property={property} featured index={index} t={t} locale={locale} />
+              <PropertyCardCompact 
+                key={property.id} 
+                property={property} 
+                featured 
+                index={index} 
+                t={t} 
+                locale={locale}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorited={isFavorite(property.id)}
+              />
             ))}
           </div>
         </div>
@@ -1117,8 +1157,24 @@ export default function Website() {
             }>
               {paginatedProperties.map((property, index) => (
                 viewMode === "grid" 
-                  ? <PropertyCardCompact key={property.id} property={property} index={index} t={t} locale={locale} />
-                  : <PropertyCardList key={property.id} property={property} index={index} t={t} locale={locale} />
+                  ? <PropertyCardCompact 
+                      key={property.id} 
+                      property={property} 
+                      index={index} 
+                      t={t} 
+                      locale={locale}
+                      onToggleFavorite={handleToggleFavorite}
+                      isFavorited={isFavorite(property.id)}
+                    />
+                  : <PropertyCardList 
+                      key={property.id} 
+                      property={property} 
+                      index={index} 
+                      t={t} 
+                      locale={locale}
+                      onToggleFavorite={handleToggleFavorite}
+                      isFavorited={isFavorite(property.id)}
+                    />
               ))}
             </div>
 
@@ -1299,15 +1355,16 @@ export default function Website() {
   }
 
 // Compact Card for Grid View - Memoized
-const PropertyCardCompact = React.memo(({ property, featured, index, t, locale }) => {
+const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
 
   return (
-    <Link 
-      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100"
-    >
+    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative">
+      <Link 
+        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+        className="block"
+      >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {images[imgIndex] ? (
@@ -1413,19 +1470,33 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale }
           </Badge>
         </div>
       </div>
-    </Link>
+      </Link>
+
+      {/* Favorite Button */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFavorite?.(property);
+        }}
+        className="absolute top-3 right-3 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 z-10"
+      >
+        <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
+      </button>
+    </div>
   );
 });
 
 // List Card for List View - Memoized
-const PropertyCardList = React.memo(({ property, index, t, locale }) => {
+const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
   const image = property.images?.[0];
 
   return (
-    <Link 
-      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100"
-    >
+    <div className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative">
+      <Link 
+        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+        className="flex flex-1"
+      >
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
         {image ? (
@@ -1518,6 +1589,19 @@ const PropertyCardList = React.memo(({ property, index, t, locale }) => {
           </div>
         </div>
       </div>
-    </Link>
+      </Link>
+
+      {/* Favorite Button */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFavorite?.(property);
+        }}
+        className="absolute top-4 right-4 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 z-10"
+      >
+        <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
+      </button>
+    </div>
   );
 });

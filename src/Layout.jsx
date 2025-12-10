@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, FileBarChart, Star } from "lucide-react";
+import { Home, Plus, LayoutDashboard, MessageSquare, Building2, Users, Menu, X, Wrench, BarChart3, FileBarChart, Star, Heart } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
+import { useGuestFeatures } from "./components/visitors/useGuestFeatures";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails"];
 
@@ -17,6 +18,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
   const [userPermissions, setUserPermissions] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { favoritesCount } = useGuestFeatures();
 
   React.useEffect(() => {
     if (typeof base44 !== 'undefined') {
@@ -147,6 +149,19 @@ export default function Layout({ children, currentPageName }) {
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
               <LanguageCurrencySelector variant="compact" />
+
+              {/* Favorites Icon with Badge */}
+              <Link to={createPageUrl("Favorites")} className="relative">
+                <Button variant="ghost" size="icon" className="relative">
+                  <Heart className="w-5 h-5 text-slate-600" />
+                  {favoritesCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 px-1 bg-red-500 text-white text-xs">
+                      {favoritesCount}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
+
               {user && <NotificationBell user={user} />}
               {user ? (
                 <div className="hidden lg:flex items-center gap-3">

@@ -28,6 +28,7 @@ import Website from './pages/Website';
 import Subscriptions from './pages/Subscriptions';
 import Support from './pages/Support';
 import LandingPage from './pages/LandingPage';
+import Favorites from './pages/Favorites';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "Subscriptions": Subscriptions,
     "Support": Support,
     "LandingPage": LandingPage,
+    "Favorites": Favorites,
 }
 
 export const pagesConfig = {
