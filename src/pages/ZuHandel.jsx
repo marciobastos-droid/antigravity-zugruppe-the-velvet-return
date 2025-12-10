@@ -76,7 +76,19 @@ export default function ZuHandel() {
   const handleContactSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      await base44.entities.Opportunity.create({
+      console.log('[ZuHandel] Creating opportunity...', formData);
+      
+      // Gerar ref_id (não bloqueia se falhar)
+      let refId = null;
+      try {
+        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
+        refId = refData?.ref_id;
+        console.log('[ZuHandel] ref_id generated:', refId);
+      } catch (refError) {
+        console.warn('[ZuHandel] Failed to generate ref_id, continuing without it:', refError);
+      }
+
+      const opportunityData = {
         lead_type: "comprador",
         buyer_name: formData.name,
         buyer_email: formData.email,
@@ -87,17 +99,47 @@ export default function ZuHandel() {
         property_title: selectedProperty?.title || null,
         status: "new",
         lead_source: "website"
-      });
+      };
+      
+      if (refId) {
+        opportunityData.ref_id = refId;
+      }
+
+      const newOpportunity = await base44.entities.Opportunity.create(opportunityData);
+      console.log('[ZuHandel] Opportunity created:', newOpportunity);
+
+      // Enviar notificação por email ao responsável
+      try {
+        const recipientEmail = selectedProperty?.assigned_consultant || selectedProperty?.created_by || selectedProperty?.agent_id;
+        if (recipientEmail) {
+          await base44.integrations.Core.SendEmail({
+            to: recipientEmail,
+            subject: `Nova mensagem ZuHandel: ${selectedProperty?.title || 'Contacto Geral'}`,
+            body: `
+              <h2>Nova mensagem recebida via ZuHandel</h2>
+              ${selectedProperty ? `<p><strong>Imóvel:</strong> ${selectedProperty.title} (${selectedProperty.ref_id || selectedProperty.id})</p>` : ''}
+              <p><strong>De:</strong> ${formData.name} (${formData.email})</p>
+              <p><strong>Telefone:</strong> ${formData.phone}</p>
+              ${formData.company ? `<p><strong>Empresa:</strong> ${formData.company}</p>` : ''}
+              <p><strong>Mensagem:</strong></p>
+              <p>${formData.message}</p>
+              <br>
+              <p><a href="${window.location.origin}${createPageUrl('CRMAdvanced')}">Ver no CRM</a></p>
+            `
+          });
+          console.log('[ZuHandel] Email notification sent to:', recipientEmail);
+        }
+      } catch (emailError) {
+        console.warn('[ZuHandel] Failed to send email notification:', emailError);
+      }
+
       toast.success("Mensagem enviada com sucesso!");
-      setTimeout(() => {
-        setContactDialogOpen(false);
-        setSelectedProperty(null);
-      }, 2000);
+      setIsSubmitting(false);
     } catch (error) {
+      console.error('[ZuHandel] Error sending message:', error);
+      setIsSubmitting(false);
       toast.error("Erro ao enviar mensagem.");
       throw error;
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
