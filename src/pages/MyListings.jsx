@@ -1077,8 +1077,46 @@ export default function MyListings() {
       });
     }
     
+    // Aplicar ordenação
+    if (sortBy) {
+      filtered = [...filtered].sort((a, b) => {
+        let aVal, bVal;
+        
+        switch (sortBy) {
+          case "created_date":
+            aVal = new Date(a.created_date);
+            bVal = new Date(b.created_date);
+            break;
+          case "updated_date":
+            aVal = new Date(a.updated_date);
+            bVal = new Date(b.updated_date);
+            break;
+          case "price":
+            aVal = a.price || 0;
+            bVal = b.price || 0;
+            break;
+          case "featured":
+            aVal = a.featured ? 1 : 0;
+            bVal = b.featured ? 1 : 0;
+            break;
+          case "title":
+            aVal = (a.title || "").toLowerCase();
+            bVal = (b.title || "").toLowerCase();
+            break;
+          default:
+            return 0;
+        }
+        
+        if (sortOrder === "asc") {
+          return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+        } else {
+          return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+        }
+      });
+    }
+    
     return filtered;
-  }, [baseFilteredProperties, filters, lastImportTimestamp]);
+  }, [baseFilteredProperties, filters, lastImportTimestamp, sortBy, sortOrder]);
 
   const toggleSelectAll = useCallback(() => {
     setSelectedProperties(prev =>
