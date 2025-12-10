@@ -238,7 +238,18 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
 
           {/* Pages Selection */}
           <div>
-            <Label className="text-base font-semibold mb-3 block">Páginas do Website</Label>
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-base font-semibold">Páginas do Website</Label>
+              {mode === "remove" && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedPages(AVAILABLE_PAGES.map(p => p.id))}
+                >
+                  Selecionar Todos
+                </Button>
+              )}
+            </div>
             <div className="space-y-2">
               {AVAILABLE_PAGES.map((page) => {
                 const Icon = page.icon;
