@@ -44,6 +44,8 @@ import {
 } from "../components/utils/seoHelpers";
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
+import SEOHead from "../components/seo/SEOHead";
+import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
@@ -169,6 +171,9 @@ export default function PropertyDetails() {
       toast.success("Imóvel atualizado!");
     },
   });
+
+  // Guest features hook - must be called before any conditional returns
+  const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
 
   const isSaved = savedProperties.some(sp => sp.property_id === propertyId);
   
@@ -447,17 +452,27 @@ export default function PropertyDetails() {
               </Button>
             )}
             
-            {user && (
-              <Button
-                variant="outline"
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending}
-                className={isSaved ? "border-red-500 text-red-600" : ""}
-              >
-                <Heart className={`w-4 h-4 mr-2 ${isSaved ? "fill-current" : ""}`} />
-                {isSaved ? t('contact.savedProperty') : t('contact.saveProperty')}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (isGuest) {
+                  if (isFavorite(propertyId)) {
+                    await removeFavorite(propertyId);
+                    toast.success("Imóvel removido dos favoritos");
+                  } else {
+                    const result = await addFavorite(property);
+                    toast.success("Imóvel guardado com sucesso!");
+                  }
+                } else {
+                  saveMutation.mutate();
+                }
+              }}
+              disabled={!isGuest && saveMutation.isPending}
+              className={(isSaved || isFavorite(propertyId)) ? "border-red-500 text-red-600" : ""}
+            >
+              <Heart className={`w-4 h-4 mr-2 ${(isSaved || isFavorite(propertyId)) ? "fill-current" : ""}`} />
+              {(isSaved || isFavorite(propertyId)) ? t('contact.savedProperty') : t('contact.saveProperty')}
+            </Button>
             
             <Button
               variant="outline"
