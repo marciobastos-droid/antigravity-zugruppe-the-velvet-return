@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp, Download } from "lucide-react";
 
 export default function QuickFilterBadges({ 
   properties, 
@@ -11,6 +11,22 @@ export default function QuickFilterBadges({
   developments = []
 }) {
   const [expanded, setExpanded] = React.useState(false);
+  
+  // Calcular data/hora da última importação
+  const lastImportTimestamp = React.useMemo(() => {
+    const importedProperties = properties.filter(p => p.source_url);
+    if (importedProperties.length === 0) return null;
+    
+    const sortedByDate = [...importedProperties].sort((a, b) => 
+      new Date(b.created_date) - new Date(a.created_date)
+    );
+    
+    if (sortedByDate.length === 0) return null;
+    
+    const latestDate = new Date(sortedByDate[0].created_date);
+    return new Date(latestDate.getTime() - 5 * 60 * 1000);
+  }, [properties]);
+  
   // Calcular estatísticas
   const stats = React.useMemo(() => {
     const counts = {
@@ -51,10 +67,17 @@ export default function QuickFilterBadges({
       
       // Consultores
       withConsultant: properties.filter(p => p.assigned_consultant && p.assigned_consultant !== "").length,
-      withoutConsultant: properties.filter(p => !p.assigned_consultant || p.assigned_consultant === "").length
+      withoutConsultant: properties.filter(p => !p.assigned_consultant || p.assigned_consultant === "").length,
+      
+      // Última importação
+      lastImport: lastImportTimestamp ? properties.filter(p => {
+        if (!p.source_url) return false;
+        const createdDate = new Date(p.created_date);
+        return createdDate >= lastImportTimestamp;
+      }).length : 0
     };
     return counts;
-  }, [properties]);
+  }, [properties, lastImportTimestamp]);
 
   const toggleFilter = (filterKey, value) => {
     const currentValue = filters[filterKey];
@@ -123,6 +146,7 @@ export default function QuickFilterBadges({
           <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
           <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
           <FilterBadge filterKey="has_images" value={false} label="Sem Imagens" count={stats.withoutImages} color="red" icon={Image} />
+          <FilterBadge filterKey="last_import" value={true} label="Última Importação" count={stats.lastImport} color="indigo" icon={Download} />
         </div>
 
         {/* Botão Expandir */}
