@@ -46,6 +46,7 @@ import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import SEOHead from "../components/seo/SEOHead";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
+import { HelmetProvider } from "react-helmet-async";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
@@ -426,9 +427,10 @@ export default function PropertyDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {property && (
-        <SEOHead
+    <HelmetProvider>
+      <div className="min-h-screen bg-slate-50">
+        {property && (
+          <SEOHead
           title={metaTitle}
           description={metaDescription}
           keywords={metaKeywords}
@@ -1230,6 +1232,6 @@ export default function PropertyDetails() {
           onOpenChange={(open) => !open && setEditingProperty(null)}
         />
       </div>
-    </div>
+    </HelmetProvider>
   );
 }
