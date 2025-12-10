@@ -1632,11 +1632,85 @@ export default function MyListings() {
         ) : (
           <>
             {/* View Mode Toggle */}
-            <div className="mb-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
+            <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={toggleSelectAll}>
                   {selectedProperties.length === filteredProperties.length ? 'Desselecionar' : 'Selecionar'} Todos
                 </Button>
+                
+                {/* Sort Controls */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px] h-9">
+                    <SelectValue placeholder="Ordenar por..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="updated_date">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        Data de Atualização
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="created_date">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        Data de Criação
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="price">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-3 h-3" />
+                        Preço
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="featured">
+                      <div className="flex items-center gap-2">
+                        <Star className="w-3 h-3" />
+                        Destaque
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="title">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-3 h-3" />
+                        Título
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                  title={sortOrder === "asc" ? "Crescente" : "Decrescente"}
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </Button>
+                
+                {viewMode === "grouped" && (
+                  <Select value={groupBy} onValueChange={setGroupBy}>
+                    <SelectTrigger className="w-[180px] h-9">
+                      <SelectValue placeholder="Agrupar por..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem Agrupamento</SelectItem>
+                      <SelectItem value="development">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-3 h-3" />
+                          Empreendimento
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="consultant">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3 h-3" />
+                          Consultor
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="status">Estado</SelectItem>
+                      <SelectItem value="property_type">Tipo</SelectItem>
+                      <SelectItem value="city">Cidade</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex border rounded-lg overflow-hidden">
