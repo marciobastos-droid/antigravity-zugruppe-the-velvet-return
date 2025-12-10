@@ -45,22 +45,25 @@ export default function PropertyQualityScore({ property, compact = false }) {
   const details = property.quality_score_details;
 
   const getScoreColor = (score) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-blue-600";
+    if (score >= 85) return "text-green-600";
+    if (score >= 70) return "text-blue-600";
+    if (score >= 55) return "text-cyan-600";
     if (score >= 40) return "text-yellow-600";
     return "text-red-600";
   };
 
   const getScoreBgColor = (score) => {
-    if (score >= 80) return "bg-green-100 border-green-300";
-    if (score >= 60) return "bg-blue-100 border-blue-300";
+    if (score >= 85) return "bg-green-100 border-green-300";
+    if (score >= 70) return "bg-blue-100 border-blue-300";
+    if (score >= 55) return "bg-cyan-100 border-cyan-300";
     if (score >= 40) return "bg-yellow-100 border-yellow-300";
     return "bg-red-100 border-red-300";
   };
 
   const getGrade = (score) => {
-    if (score >= 80) return { label: "Excelente", icon: Star, color: "text-green-600" };
-    if (score >= 60) return { label: "Bom", icon: CheckCircle2, color: "text-blue-600" };
+    if (score >= 85) return { label: "Excelente", icon: Star, color: "text-green-600" };
+    if (score >= 70) return { label: "Muito Bom", icon: CheckCircle2, color: "text-blue-600" };
+    if (score >= 55) return { label: "Bom", icon: CheckCircle2, color: "text-cyan-600" };
     if (score >= 40) return { label: "Médio", icon: Info, color: "text-yellow-600" };
     return { label: "Precisa Melhorias", icon: AlertCircle, color: "text-red-600" };
   };
@@ -177,6 +180,22 @@ export default function PropertyQualityScore({ property, compact = false }) {
                   <Progress value={(details.details.score / details.details.max) * 100} className="h-2" />
                 </div>
 
+                {/* Publication */}
+                {details.publication && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium">Publicação</span>
+                      </div>
+                      <span className="text-sm font-semibold text-blue-600">
+                        {details.publication.score}/{details.publication.max}
+                      </span>
+                    </div>
+                    <Progress value={(details.publication.score / details.publication.max) * 100} className="h-2 bg-blue-100" />
+                  </div>
+                )}
+
                 {/* AI Usage */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -193,17 +212,24 @@ export default function PropertyQualityScore({ property, compact = false }) {
 
                 {/* Breakdown Summary */}
                 <div className="pt-3 border-t space-y-1.5">
-                  <p className="text-xs font-semibold text-slate-700">Resumo:</p>
+                  <p className="text-xs font-semibold text-slate-700">Detalhes:</p>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center gap-1">
-                      {details.breakdown.description ? 
+                      {details.breakdown.has_price ? 
                         <CheckCircle2 className="w-3 h-3 text-green-600" /> : 
-                        <AlertCircle className="w-3 h-3 text-slate-400" />
+                        <AlertCircle className="w-3 h-3 text-red-500" />
                       }
-                      <span>Descrição completa</span>
+                      <span>Preço definido</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {details.breakdown.images >= 5 ? 
+                      {details.breakdown.description_length >= 150 ? 
+                        <CheckCircle2 className="w-3 h-3 text-green-600" /> : 
+                        <AlertCircle className="w-3 h-3 text-amber-500" />
+                      }
+                      <span>{details.breakdown.description_length} chars descrição</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {details.breakdown.images >= 7 ? 
                         <CheckCircle2 className="w-3 h-3 text-green-600" /> : 
                         <AlertCircle className="w-3 h-3 text-amber-500" />
                       }
@@ -214,14 +240,21 @@ export default function PropertyQualityScore({ property, compact = false }) {
                         <CheckCircle2 className="w-3 h-3 text-green-600" /> : 
                         <AlertCircle className="w-3 h-3 text-slate-400" />
                       }
-                      <span>Áreas definidas</span>
+                      <span>Área definida</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {details.breakdown.ai_features_count > 0 ? 
-                        <CheckCircle2 className="w-3 h-3 text-purple-600" /> : 
+                      {details.breakdown.portals_count > 0 ? 
+                        <CheckCircle2 className="w-3 h-3 text-blue-600" /> : 
                         <AlertCircle className="w-3 h-3 text-slate-400" />
                       }
-                      <span>{details.breakdown.ai_features_count} IA features</span>
+                      <span>{details.breakdown.portals_count} portais</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {details.breakdown.pages_count > 0 ? 
+                        <CheckCircle2 className="w-3 h-3 text-green-600" /> : 
+                        <AlertCircle className="w-3 h-3 text-slate-400" />
+                      }
+                      <span>{details.breakdown.pages_count} páginas</span>
                     </div>
                   </div>
                 </div>
@@ -231,17 +264,52 @@ export default function PropertyQualityScore({ property, compact = false }) {
         )}
 
         {/* Suggestions */}
-        {score < 80 && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm font-medium text-blue-900 mb-2">💡 Sugestões para Melhorar:</p>
-            <ul className="text-xs text-blue-700 space-y-1 ml-4 list-disc">
-              {!details?.breakdown.description && <li>Adicionar descrição detalhada (100+ caracteres)</li>}
-              {details?.breakdown.images < 5 && <li>Adicionar mais fotos (mínimo 5 recomendado)</li>}
-              {!details?.breakdown.has_area && <li>Preencher área útil do imóvel</li>}
-              {!details?.breakdown.has_energy_cert && <li>Adicionar certificado energético</li>}
-              {details?.breakdown.amenities_count < 3 && <li>Listar comodidades do imóvel</li>}
-              {details?.breakdown.ai_features_count === 0 && <li>Usar ferramentas de IA para otimizar o anúncio</li>}
-            </ul>
+        {score < 85 && details?.suggestions && details.suggestions.length > 0 && (
+          <div className="space-y-2">
+            {/* High Priority Suggestions */}
+            {details.suggestions.filter(s => s.priority === 'high').length > 0 && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm font-semibold text-red-900 mb-2 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  Crítico:
+                </p>
+                <ul className="text-xs text-red-700 space-y-1 ml-5 list-disc">
+                  {details.suggestions.filter(s => s.priority === 'high').map((s, i) => (
+                    <li key={i}>{s.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Medium Priority Suggestions */}
+            {details.suggestions.filter(s => s.priority === 'medium').length > 0 && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-1">
+                  <Info className="w-4 h-4" />
+                  Importante:
+                </p>
+                <ul className="text-xs text-amber-700 space-y-1 ml-5 list-disc">
+                  {details.suggestions.filter(s => s.priority === 'medium').map((s, i) => (
+                    <li key={i}>{s.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Low Priority Suggestions */}
+            {score < 70 && details.suggestions.filter(s => s.priority === 'low').length > 0 && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  Melhorias:
+                </p>
+                <ul className="text-xs text-blue-700 space-y-1 ml-5 list-disc">
+                  {details.suggestions.filter(s => s.priority === 'low').slice(0, 5).map((s, i) => (
+                    <li key={i}>{s.text}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
