@@ -281,14 +281,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Extract text content - aumentar limite para capturar mais imóveis
+    // Extract text content
     const textContent = pageContent
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<[^>]+>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .substring(0, 50000); // Aumentado para 50k para capturar mais imóveis
+      .substring(0, 25000);
 
     // Extract images
     const images = extractImages(pageContent, url);
@@ -324,48 +324,39 @@ Campos por unidade: title, price (número), bedrooms (número), bathrooms (núme
 FORMATO:
 {"properties":[{"title":"The Unique - Apartamento T1","price":445000,"bedrooms":1,"bathrooms":1,"square_feet":58.24,"city":"Aveiro","state":"Aveiro","property_type":"apartment","listing_type":"sale","external_id":"LS05277-T1-42C","address":"Cais da Fonte Nova"}]}`;
     } else if (pageType === 'listing') {
-      prompt = `Extrai TODOS os imóveis da listagem principal desta página de pesquisa. Portal: ${portal.name}
+      prompt = `Extrai APENAS os imóveis listados DIRETAMENTE nesta página. Portal: ${portal.name}
 URL da listagem: ${url}
 
-TEXTO COMPLETO DA PÁGINA:
-${textContent}
+TEXTO DA PÁGINA:
+${textContent.substring(0, 20000)}
 
-REGRAS CRÍTICAS - MÁXIMA EXTRAÇÃO:
-1. **EXTRAI TODOS OS IMÓVEIS** listados na área principal de resultados
-2. Conta quantos imóveis existem e extrai TODOS (normalmente 20-30 por página)
-3. Cada card/anúncio de imóvel deve ser extraído, mesmo que faltem alguns dados
-4. NÃO LIMITES a extração - queremos o MÁXIMO de imóveis possível
-5. IGNORA apenas:
-   - Seções de publicidade/patrocinado explícitas
-   - Rodapé e navegação
-   - Banners promocionais
-6. SE UM IMÓVEL APARECER NA LISTA PRINCIPAL, EXTRAI-O (mesmo sem todos os campos)
-7. Responde APENAS com JSON válido
-8. Números sem símbolos (495000 não "495.000€")
-9. Preços portugueses: 875.000€ = 875000, 1.450.000€ = 1450000
+REGRAS CRÍTICAS - SEGUE À RISCA:
+1. Extrai APENAS imóveis que são listados como resultados de pesquisa NESTA PÁGINA
+2. NÃO incluas imóveis de:
+   - Seções "Imóveis Relacionados", "Pode também gostar", "Sugestões"
+   - Rodapé ou navegação lateral
+   - Links para outras páginas
+   - Imóveis "em destaque" que não fazem parte da lista principal
+   - Publicidade ou promoções
+3. Cada imóvel deve ter dados concretos (preço, localização, tipologia)
+4. Se não tiveres certeza se é um imóvel da lista principal, NÃO incluas
+5. Responde APENAS com JSON válido, sem texto adicional
+6. Usa aspas duplas para strings
+7. Números sem aspas e sem símbolos (495000 não "495.000€")
+8. Sem vírgulas no final antes de } ou ]
+9. Extrai a DESCRIÇÃO de cada imóvel se disponível (texto descritivo do anúncio)
+10. CRÍTICO: Extrai o detail_url - link INDIVIDUAL de cada imóvel (não o link da listagem)
 
-CAMPOS OBRIGATÓRIOS (mínimo):
-- title: título do anúncio
-- price: preço em número
-- city: cidade
+IMPORTANTE sobre detail_url:
+- Cada imóvel deve ter seu link ESPECÍFICO e COMPLETO
+- Exemplo: "https://www.idealista.pt/imovel/34231937/" 
+- Se for relativo, adiciona o domínio completo
+- Este é o link que leva à página de DETALHES daquele imóvel específico
 
-CAMPOS OPCIONAIS (extrai se disponível):
-- description: descrição do anúncio
-- bedrooms: número de quartos (T0=0, T1=1, T2=2, T3=3, T4=4, T5=5)
-- bathrooms: número de WCs
-- square_feet: área em m²
-- state: distrito
-- property_type: apartment/house/land/building
-- listing_type: sale/rent
-- external_id: referência/ID do anúncio
-- detail_url: link COMPLETO para página individual
+Campos por imóvel: title, description (texto descritivo do anúncio), price (número), bedrooms (número), bathrooms (número), square_feet (número), city, state, property_type (apartment/house/land), listing_type (sale/rent), external_id, detail_url (link individual completo)
 
-**OBJETIVO: EXTRAIR O MÁXIMO DE IMÓVEIS POSSÍVEL - NÃO SEJAS RESTRITIVO**
-
-FORMATO:
-{"properties":[{"title":"T2 em Lisboa","price":295000,"bedrooms":2,"city":"Lisboa","detail_url":"https://..."},{"title":"T3 no Porto","price":350000,"bedrooms":3,"city":"Porto"},...]}
-
-IMPORTANTE: Se a página tiver 25 imóveis, retorna 25. Se tiver 50, retorna 50. NÃO LIMITES!`;
+FORMATO EXACTO:
+{"properties":[{"title":"Titulo","description":"Apartamento com vista mar, cozinha equipada, varanda...","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"city":"Lisboa","state":"Lisboa","property_type":"apartment","listing_type":"sale","external_id":"REF123","detail_url":"https://www.idealista.pt/imovel/123"}]}`;
     } else {
       prompt = `Extrai os dados deste imóvel. Portal: ${portal.name}
 
@@ -412,7 +403,7 @@ FORMATO EXACTO:
           messages: [
             {
               role: 'system',
-              content: 'Tu es um especialista em extração de dados imobiliários. Extrai o MÁXIMO de imóveis possível. Responde APENAS com JSON válido, sem markdown ou texto adicional.'
+              content: 'Tu es um especialista em extração de dados imobiliários. Responde APENAS com JSON válido, sem markdown ou texto adicional.'
             },
             {
               role: 'user',
@@ -420,7 +411,7 @@ FORMATO EXACTO:
             }
           ],
           temperature: 0,
-          max_tokens: 16384,
+          max_tokens: 8192,
           response_format: { type: "json_object" }
         })
       }
@@ -463,44 +454,39 @@ FORMATO EXACTO:
 
     // Handle listing or development page
     if ((pageType === 'listing' || pageType === 'development') && parsedData.properties) {
-      // Validação MÍNIMA - aceitar imóveis com campos básicos
+      // Filter out properties that likely don't belong to the main listing
       const validProperties = parsedData.properties.filter(p => {
-        // Validação super flexível - apenas requer título OU preço
-        if (!p.title && !p.price) return false;
-        
-        // Se tem título, aceitar mesmo sem preço (pode ser "Preço sob consulta")
-        if (p.title && p.title.length >= 3) return true;
-        
-        // Se tem preço, aceitar mesmo com título curto
-        if (p.price && p.price > 0) return true;
-        
-        return false;
+        // Must have a price
+        if (!p.price || p.price <= 0) return false;
+        // Must have a title with some substance
+        if (!p.title || p.title.length < 5) return false;
+        // Must have location info
+        if (!p.city && !p.state) return false;
+        // Filter out obvious non-property entries
+        const titleLower = (p.title || '').toLowerCase();
+        if (titleLower.includes('publicidade') || 
+            titleLower.includes('patrocinado') ||
+            titleLower.includes('anúncio') ||
+            titleLower.includes('banner')) {
+          return false;
+        }
+        return true;
       });
       
       const properties = validProperties.map(p => ({
         ...p,
         source_url: p.detail_url || url,
-        images: p.images || [],
+        images: [],
         property_type: p.property_type || 'apartment',
-        listing_type: p.listing_type || 'sale',
-        // Garantir campos obrigatórios com valores default
-        title: p.title || `Imóvel em ${p.city || 'Portugal'}`,
-        price: p.price || 0,
-        city: p.city || 'N/A',
-        state: p.state || p.city || 'N/A'
+        listing_type: p.listing_type || 'sale'
       }));
-
-      console.log(`[searchPropertyAI] Extraídos ${properties.length} imóveis de ${portal.name}`);
 
       return Response.json({
         success: true,
         is_listing_page: true,
         total_found: properties.length,
-        extracted_count: validProperties.length,
-        filtered_count: parsedData.properties.length - validProperties.length,
         properties: properties,
-        portal: portal.name,
-        page_type: pageType
+        portal: portal.name
       });
     }
 

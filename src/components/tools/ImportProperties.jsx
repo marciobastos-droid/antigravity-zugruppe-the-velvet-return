@@ -858,14 +858,7 @@ IMPORTANTE:
         throw new Error(`Nenhum imóvel encontrado em ${portal.name}. Verifica o link.`);
       }
       
-      // Log detection result
-      console.log('[ImportProperties] Resultado da extração:', {
-        is_listing_page: result.is_listing_page,
-        total_found: result.total_found,
-        extracted: result.properties.length,
-        page_type: result.page_type
-      });
-      
+      // Show detection result
       if (isDetailPage) {
         setProgress(`✅ Imóvel individual detetado`);
         toast.info(`Página individual - 1 imóvel`);
@@ -874,8 +867,8 @@ IMPORTANTE:
           result.properties = [result.properties[0]];
         }
       } else if (result.is_listing_page) {
-        setProgress(`📋 Listagem detetada! ${result.properties.length} imóveis extraídos`);
-        toast.success(`✅ ${result.properties.length} imóveis encontrados na página!`, { duration: 4000 });
+        setProgress(`📋 Listagem detetada! Encontrados ${result.properties.length} imóveis${result.total_found ? ` de ${result.total_found} total` : ''}`);
+        toast.info(`Página de listagem detetada com ${result.properties.length} imóveis`);
       }
 
       setProgress("A validar dados...");
@@ -1240,8 +1233,7 @@ IMPORTANTE:
       // Check if it's a listing page with multiple properties
       if (data.is_listing_page && data.properties && data.properties.length > 0) {
         const properties = data.properties;
-        console.log(`[ImportProperties] Listagem detetada: ${properties.length} imóveis`);
-        setProgress(`📋 A processar ${properties.length} imóveis da listagem...`);
+        setProgress(`📋 Listagem detetada! ${properties.length} imóveis encontrados...`);
         
         // Validate properties
         const validationResults = properties.map(prop => ({
@@ -1722,31 +1714,20 @@ IMPORTANTE:
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-xs text-blue-900 font-medium mb-1">🚀 IA Avançada - Extração Máxima</p>
+            <p className="text-xs text-blue-900 font-medium mb-1">🔒 Sistema Melhorado</p>
             <p className="text-xs text-blue-700">
-              ✓ <strong>Extrai TODOS os imóveis</strong> da página de listagem (até 50+ imóveis)
+              ✓ <strong>Deteta automaticamente listagens</strong> e importa todos os imóveis
               <br />
-              ✓ Validação flexível - aceita imóveis com campos parciais
+              ✓ Extração precisa de preços formato português (495.000 € = 495000)
               <br />
-              ✓ Deteta automaticamente tipo de página (listagem vs individual)
-              <br />
-              ✓ Preços formato PT: 875.000€ = 875000, 1.450.000€ = 1450000
+              ✓ Suporte para Idealista, Imovirtual, Casa Sapo e mais
             </p>
           </div>
           
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-3">
-            <p className="text-xs text-purple-900 font-medium mb-1 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              💡 Máxima Extração Ativada
-            </p>
-            <p className="text-xs text-purple-700">
-              A <strong>IA Avançada</strong> está configurada para extrair o <strong>MÁXIMO de imóveis</strong> da página.
-              <br />
-              • Listagens: captura 20-50+ imóveis de uma vez
-              <br />
-              • Aceita imóveis com dados parciais (completa depois)
-              <br />
-              • Melhor para: idealista.pt/comprar-casas/lisboa/
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-900 font-medium mb-1">💡 Dica: Importar múltiplos imóveis</p>
+            <p className="text-xs text-amber-700">
+              Cole o link de uma <strong>página de pesquisa/listagem</strong> (ex: idealista.pt/comprar-casas/lisboa/) para importar todos os imóveis de uma vez!
             </p>
           </div>
         </CardContent>
