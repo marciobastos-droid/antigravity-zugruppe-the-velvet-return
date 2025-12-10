@@ -1232,6 +1232,7 @@ export default function PropertyDetails() {
           onOpenChange={(open) => !open && setEditingProperty(null)}
         />
       </div>
+      </div>
     </HelmetProvider>
   );
 }
