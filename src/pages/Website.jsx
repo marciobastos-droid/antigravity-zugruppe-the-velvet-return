@@ -41,9 +41,9 @@ import { toast } from "sonner";
 export default function Website() {
   const { t, locale } = useLocalization();
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties', 'website'],
     queryFn: () => base44.entities.Property.list('-created_date'),
-    ...QUERY_CONFIG.properties
+    staleTime: 0 // Force refresh on navigation
   });
 
   // A/B Testing
