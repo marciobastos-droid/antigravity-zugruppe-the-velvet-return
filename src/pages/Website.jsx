@@ -39,9 +39,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function Website() {
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { t, locale } = useLocalization();
-  
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties'],
     queryFn: () => base44.entities.Property.list('-created_date'),
@@ -51,36 +49,9 @@ export default function Website() {
   // A/B Testing
   const { cta, layout, trackConversion, trackCTAClick } = useABTesting();
   
-  // Guest features - MUST be called before any returns
+  // Guest features
   const { addFavorite, removeFavorite, isFavorite, favoritesCount, isGuest, user } = useGuestFeatures();
-  
-  // State management
   const [showRegisterPrompt, setShowRegisterPrompt] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState("residential");
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [debouncedSearch, setDebouncedSearch] = React.useState("");
-  const [listingType, setListingType] = React.useState("all");
-  const [propertyType, setPropertyType] = React.useState("all");
-  const [bedrooms, setBedrooms] = React.useState("all");
-  const [priceMin, setPriceMin] = React.useState("");
-  const [priceMax, setPriceMax] = React.useState("");
-  const [city, setCity] = React.useState("all");
-  const [sortBy, setSortBy] = React.useState("recent");
-  const [showFilters, setShowFilters] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState("grid");
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [country, setCountry] = React.useState("all");
-  const [district, setDistrict] = React.useState("all");
-  const [availability, setAvailability] = React.useState("all");
-  const [pricePerSqmRange, setPricePerSqmRange] = React.useState([0, 0]);
-  const [yearBuiltRange, setYearBuiltRange] = React.useState([0, 0]);
-  const [energyCertificate, setEnergyCertificate] = React.useState("all");
-  const [parking, setParking] = React.useState("all");
-  const [selectedAmenities, setSelectedAmenities] = React.useState([]);
-  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
-  const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 0]);
-  const [debouncedYearBuilt, setDebouncedYearBuilt] = React.useState([0, 0]);
-  const [showMapView, setShowMapView] = React.useState(false);
 
   // Calculate dynamic ranges based on actual data
   const dataRanges = React.useMemo(() => {
@@ -101,8 +72,69 @@ export default function Website() {
     };
   }, [properties]);
 
+  const [activeTab, setActiveTab] = React.useState("residential");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const [listingType, setListingType] = React.useState("all");
+  const [propertyType, setPropertyType] = React.useState("all");
+  const [bedrooms, setBedrooms] = React.useState("all");
+  const [priceMin, setPriceMin] = React.useState("");
+  const [priceMax, setPriceMax] = React.useState("");
+  const [city, setCity] = React.useState("all");
+  const [sortBy, setSortBy] = React.useState("recent");
+  const [showFilters, setShowFilters] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState("grid");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [country, setCountry] = React.useState("all");
+  const [district, setDistrict] = React.useState("all");
+  const [availability, setAvailability] = React.useState("all");
+  
+  // Advanced filters
+  const [pricePerSqmRange, setPricePerSqmRange] = React.useState([0, 0]); // Will be set after data loads
+  const [yearBuiltRange, setYearBuiltRange] = React.useState([0, 0]); // Will be set after data loads
+  const [energyCertificate, setEnergyCertificate] = React.useState("all");
+  const [parking, setParking] = React.useState("all");
+  const [selectedAmenities, setSelectedAmenities] = React.useState([]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = React.useState(false);
+  
+  // Debounced state for range inputs
+  const [debouncedPricePerSqm, setDebouncedPricePerSqm] = React.useState([0, 0]);
+  const [debouncedYearBuilt, setDebouncedYearBuilt] = React.useState([0, 0]);
+  const [showMapView, setShowMapView] = React.useState(false);
+
+  // Initialize ranges when data loads
+  React.useEffect(() => {
+    if (properties.length > 0 && pricePerSqmRange[1] === 0) {
+      setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
+      setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
+      setDebouncedPricePerSqm([0, dataRanges.maxPricePerSqm]);
+      setDebouncedYearBuilt([dataRanges.minYear, dataRanges.maxYear]);
+    }
+  }, [properties, dataRanges]);
+  
   const ITEMS_PER_PAGE = 12;
   
+  // Debounce price per sqm
+  React.useEffect(() => {
+    const handler = debounce(() => {
+      setDebouncedPricePerSqm(pricePerSqmRange);
+      setCurrentPage(1);
+    }, 500);
+    handler();
+    return () => handler.cancel();
+  }, [pricePerSqmRange]);
+  
+  // Debounce year built
+  React.useEffect(() => {
+    const handler = debounce(() => {
+      setDebouncedYearBuilt(yearBuiltRange);
+      setCurrentPage(1);
+    }, 500);
+    handler();
+    return () => handler.cancel();
+  }, [yearBuiltRange]);
+  
+  // Common amenities for filtering
   const COMMON_AMENITIES = [
     { value: "piscina", label: "Piscina", icon: "🏊" },
     { value: "garagem", label: "Garagem", icon: "🚗" },
@@ -128,39 +160,6 @@ export default function Website() {
     { value: "box", label: "Box" }
   ];
 
-  const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
-  const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
-
-  // Initialize ranges when data loads
-  React.useEffect(() => {
-    if (properties.length > 0 && pricePerSqmRange[1] === 0) {
-      setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
-      setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
-      setDebouncedPricePerSqm([0, dataRanges.maxPricePerSqm]);
-      setDebouncedYearBuilt([dataRanges.minYear, dataRanges.maxYear]);
-    }
-  }, [properties, dataRanges]);
-  
-  // Debounce search term
-  React.useEffect(() => {
-    const handler = debounce(() => {
-      setDebouncedPricePerSqm(pricePerSqmRange);
-      setCurrentPage(1);
-    }, 500);
-    handler();
-    return () => handler.cancel();
-  }, [pricePerSqmRange]);
-  
-  // Debounce year built
-  React.useEffect(() => {
-    const handler = debounce(() => {
-      setDebouncedYearBuilt(yearBuiltRange);
-      setCurrentPage(1);
-    }, 500);
-    handler();
-    return () => handler.cancel();
-  }, [yearBuiltRange]);
-  
   React.useEffect(() => {
     const debouncedUpdate = debounce(() => {
       setDebouncedSearch(searchTerm);
@@ -169,6 +168,9 @@ export default function Website() {
     debouncedUpdate();
     return () => debouncedUpdate.cancel();
   }, [searchTerm]);
+
+  const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
+  const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
   const activeProperties = properties.filter(p => p.status === 'active');
   
