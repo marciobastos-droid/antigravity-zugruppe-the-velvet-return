@@ -603,6 +603,14 @@ export default function MyListings() {
       }, [deleteMutation, properties, executeWithUndo, queryClient]);
 
   const handleBulkDelete = useCallback(() => {
+        if (!window.confirm(`Tem a certeza que deseja eliminar ${selectedProperties.length} imóve${selectedProperties.length > 1 ? 'is' : 'l'}?`)) {
+          return;
+        }
+
+        if (!window.confirm(`⚠️ CONFIRMA A ELIMINAÇÃO?\n\nEsta ação vai eliminar permanentemente ${selectedProperties.length} imóve${selectedProperties.length > 1 ? 'is' : 'l'}.\n\nClique em OK para confirmar.`)) {
+          return;
+        }
+
         const propertiesToDelete = properties.filter(p => selectedProperties.includes(p.id));
         const propertiesData = propertiesToDelete.map(p => {
           const data = { ...p };
