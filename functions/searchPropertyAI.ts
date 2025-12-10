@@ -2,6 +2,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
+if (!OPENAI_API_KEY) {
+  console.error('[searchPropertyAI] OPENAI_API_KEY não configurada');
+}
+
 // Supported portals configuration
 const SUPPORTED_PORTALS = {
   idealista: { domain: 'idealista.pt', name: 'Idealista' },
@@ -377,6 +381,14 @@ FORMATO EXACTO:
 {"title":"Titulo","description":"Descrição completa do imóvel incluindo características, acabamentos, localização, etc.","property_type":"apartment","listing_type":"sale","price":100000,"bedrooms":2,"bathrooms":1,"square_feet":80,"address":"Rua X","city":"Lisboa","state":"Lisboa","external_id":"REF123","images":["url1.jpg","url2.jpg"]}`;
     }
 
+    // Validate API key
+    if (!OPENAI_API_KEY) {
+      return Response.json({ 
+        success: false,
+        error: 'Chave da API OpenAI não configurada. Configure OPENAI_API_KEY nos segredos da aplicação.'
+      }, { status: 500 });
+    }
+
     // Call OpenAI API with JSON mode
     const openaiResponse = await fetch(
       'https://api.openai.com/v1/chat/completions',
@@ -406,12 +418,16 @@ FORMATO EXACTO:
     );
 
     if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
+      const errorData = await openaiResponse.json().catch(() => ({}));
+      const errorMsg = errorData.error?.message || openaiResponse.statusText;
+      
+      console.error('[searchPropertyAI] OpenAI API error:', errorMsg);
+      
       return Response.json({ 
         success: false,
-        error: 'Erro na API OpenAI. Tente novamente.',
-        details: errorText.substring(0, 200)
-      });
+        error: `Erro na API OpenAI: ${errorMsg}`,
+        details: errorData.error?.type || 'unknown_error'
+      }, { status: openaiResponse.status });
     }
 
     const openaiData = await openaiResponse.json();
