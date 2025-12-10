@@ -1,8 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Star, Image, FileText, Globe, Home, Building2, Store, Zap, Users, Layers } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function QuickFilterBadges({ 
   properties, 
@@ -11,6 +10,7 @@ export default function QuickFilterBadges({
   agents = [],
   developments = []
 }) {
+  const [expanded, setExpanded] = React.useState(false);
   // Calcular estatísticas
   const stats = React.useMemo(() => {
     const counts = {
@@ -100,148 +100,99 @@ export default function QuickFilterBadges({
     return (
       <Badge
         onClick={() => toggleFilter(filterKey, value)}
-        className={`cursor-pointer transition-all border ${colorClasses[color]} flex items-center gap-1.5 px-3 py-1.5`}
+        className={`cursor-pointer transition-all border ${colorClasses[color]} flex items-center gap-1 px-2.5 py-1 text-xs`}
       >
-        {Icon && <Icon className="w-3.5 h-3.5" />}
+        {Icon && <Icon className="w-3 h-3" />}
         <span className="font-medium">{label}</span>
         <span className={active ? "opacity-90" : "opacity-60"}>({count})</span>
-        {active && <X className="w-3 h-3 ml-1" />}
+        {active && <X className="w-2.5 h-2.5 ml-0.5" />}
       </Badge>
     );
   };
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-4">
-        <div className="space-y-4">
-          {/* Estados */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-green-500 rounded" />
-              Estado do Anúncio
-            </h3>
+    <div className="mb-4">
+      <div className="bg-white border border-slate-200 rounded-lg p-3">
+        {/* Filtros Principais - Sempre Visíveis */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          <FilterBadge filterKey="status" value="active" label="Ativo" count={stats.active} color="green" />
+          <FilterBadge filterKey="status" value="pending" label="Pendente" count={stats.pending} color="yellow" />
+          <FilterBadge filterKey="listing_type" value="sale" label="Venda" count={stats.sale} color="blue" />
+          <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" />
+          <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
+          <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
+          <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
+          <FilterBadge filterKey="has_images" value={false} label="Sem Imagens" count={stats.withoutImages} color="red" icon={Image} />
+        </div>
+
+        {/* Botão Expandir */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setExpanded(!expanded)}
+          className="w-full text-xs text-slate-600 hover:text-slate-900 h-7 mt-1"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-3 h-3 mr-1" />
+              Menos filtros
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-3 h-3 mr-1" />
+              Mais filtros rápidos
+            </>
+          )}
+        </Button>
+
+        {/* Filtros Adicionais - Colapsáveis */}
+        {expanded && (
+          <div className="mt-3 pt-3 border-t border-slate-200 space-y-3">
             <div className="flex flex-wrap gap-2">
-              <FilterBadge filterKey="status" value="active" label="Ativo" count={stats.active} color="green" />
-              <FilterBadge filterKey="status" value="pending" label="Pendente" count={stats.pending} color="yellow" />
               <FilterBadge filterKey="status" value="sold" label="Vendido" count={stats.sold} color="blue" />
               <FilterBadge filterKey="status" value="rented" label="Arrendado" count={stats.rented} color="purple" />
-            </div>
-          </div>
-
-          {/* Tipo de Negócio */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-blue-500 rounded" />
-              Tipo de Negócio
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <FilterBadge filterKey="listing_type" value="sale" label="Venda" count={stats.sale} color="blue" icon={Home} />
-              <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" icon={Home} />
-            </div>
-          </div>
-
-          {/* Tipos de Imóvel */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-indigo-500 rounded" />
-              Tipo de Imóvel
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
-              <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
               <FilterBadge filterKey="property_type" value="land" label="Terrenos" count={stats.land} color="amber" />
-              <FilterBadge filterKey="property_type" value="store" label="Lojas" count={stats.store} color="slate" icon={Store} />
-            </div>
-          </div>
-
-          {/* Características */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-amber-500 rounded" />
-              Características
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
+              <FilterBadge filterKey="property_type" value="store" label="Lojas" count={stats.store} color="slate" />
               <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
-              <FilterBadge filterKey="has_images" value={false} label="Sem Imagens" count={stats.withoutImages} color="red" icon={Image} />
-              <FilterBadge filterKey="has_energy_certificate" value={true} label="Com Cert. Energ." count={stats.withCert} color="green" icon={Zap} />
-              <FilterBadge filterKey="has_energy_certificate" value={false} label="Sem Cert. Energ." count={stats.withoutCert} color="slate" icon={Zap} />
-            </div>
-          </div>
-
-          {/* Publicação */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-purple-500 rounded" />
-              Publicação
-            </h3>
-            <div className="flex flex-wrap gap-2">
               <Badge
                 onClick={() => {
-                  // Criar filtro customizado: imóveis publicados em pelo menos um portal OU página
                   if (filters.published_portals?.length > 0 || filters.published_pages?.length > 0) {
                     onFilterChange({ ...filters, published_portals: [], published_pages: [] });
                   } else {
-                    // Trigger: mostrar apenas imóveis com publicação
                     const allPortals = [...new Set(properties.flatMap(p => p.published_portals || []))];
                     const allPages = [...new Set(properties.flatMap(p => p.published_pages || []))];
                     onFilterChange({ ...filters, published_portals: allPortals, published_pages: allPages });
                   }
                 }}
-                className={`cursor-pointer transition-all border flex items-center gap-1.5 px-3 py-1.5 ${
+                className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 ${
                   (filters.published_portals?.length > 0 || filters.published_pages?.length > 0)
                     ? "bg-purple-600 text-white border-purple-600"
                     : "bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100"
                 }`}
               >
-                <Globe className="w-3.5 h-3.5" />
-                <span className="font-medium">Publicados</span>
-                <span className="opacity-60">({stats.publishedPortals + stats.publishedPages})</span>
+                <Globe className="w-3 h-3" />
+                <span className="text-xs font-medium">Publicados</span>
+                <span className="text-xs opacity-60">({stats.publishedPortals + stats.publishedPages})</span>
+                {(filters.published_portals?.length > 0 || filters.published_pages?.length > 0) && <X className="w-3 h-3 ml-1" />}
               </Badge>
-              <FilterBadge 
-                filterKey="visibility" 
-                value="public" 
-                label="Públicos" 
-                count={properties.filter(p => p.visibility === 'public').length} 
-                color="green" 
-              />
-              <FilterBadge 
-                filterKey="visibility" 
-                value="team_only" 
-                label="Apenas Equipa" 
-                count={properties.filter(p => p.visibility === 'team_only').length} 
-                color="blue" 
-              />
-            </div>
-          </div>
-
-          {/* Organização */}
-          <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-2">
-              <div className="w-1 h-4 bg-slate-500 rounded" />
-              Organização
-            </h3>
-            <div className="flex flex-wrap gap-2">
               <FilterBadge 
                 filterKey="development_id" 
                 value="none" 
                 label="Sem Empreendimento" 
                 count={stats.withoutDevelopment} 
-                color="slate" 
-                icon={Layers}
+                color="slate"
               />
               <FilterBadge 
                 filterKey="assigned_consultant" 
                 value="unassigned" 
                 label="Sem Consultor" 
                 count={stats.withoutConsultant} 
-                color="slate" 
-                icon={Users}
+                color="slate"
               />
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        )}
+      </div>
+    </div>
   );
 }
