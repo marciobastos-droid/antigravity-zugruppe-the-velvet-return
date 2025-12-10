@@ -26,11 +26,10 @@ import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConv
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
 
-// Lazy load heavy components
-const MapContainer = React.lazy(() => import('react-leaflet').then(m => ({ default: m.MapContainer })));
-const TileLayer = React.lazy(() => import('react-leaflet').then(m => ({ default: m.TileLayer })));
-const Marker = React.lazy(() => import('react-leaflet').then(m => ({ default: m.Marker })));
-const Popup = React.lazy(() => import('react-leaflet').then(m => ({ default: m.Popup })));
+// Import Leaflet components normally (lazy loading causes initialization issues)
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+
+// Lazy load heavy management components only
 const EditPropertyDialog = React.lazy(() => import("../components/listings/EditPropertyDialog"));
 const MaintenanceManager = React.lazy(() => import("../components/property/MaintenanceManager"));
 const LeaseManager = React.lazy(() => import("../components/property/LeaseManager"));
@@ -786,9 +785,7 @@ export default function PropertyDetails() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <React.Suspense fallback={<div className="h-96 bg-slate-100 rounded-xl animate-pulse" />}>
-                    <PropertyMap property={property} />
-                  </React.Suspense>
+                  <PropertyMap property={property} />
                   <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" />
@@ -1195,8 +1192,10 @@ export default function PropertyDetails() {
   );
 }
 
-// Memoized Map Component with proper Leaflet handling
+// Memoized Map Component with proper Leaflet cleanup
 const PropertyMap = React.memo(({ property }) => {
+  const [mapKey, setMapKey] = React.useState(0);
+  
   const cityCoords = {
     'Lisboa': [38.7223, -9.1393],
     'Porto': [41.1579, -8.6291],
@@ -1222,20 +1221,20 @@ const PropertyMap = React.memo(({ property }) => {
     ? [property.latitude, property.longitude]
     : cityCoords[property.city] || [39.5, -8.0];
   
+  // Force remount when property changes to avoid Leaflet reinitialization errors
+  React.useEffect(() => {
+    setMapKey(prev => prev + 1);
+  }, [property.id]);
+  
   return (
-    <div key={`map-${property.id}`} className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
+    <div className="h-96 rounded-xl overflow-hidden border-2 border-slate-200 shadow-lg">
       <MapContainer 
-        key={`leaflet-${property.id}`}
+        key={`map-${property.id}-${mapKey}`}
         center={coords} 
         zoom={14} 
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
         zoomControl={true}
-        whenReady={() => {
-          setTimeout(() => {
-            window.dispatchEvent(new Event('resize'));
-          }, 100);
-        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
