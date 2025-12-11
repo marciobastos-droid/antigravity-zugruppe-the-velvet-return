@@ -52,6 +52,36 @@ function DateRangeFilter({ label, value, onChange }) {
 
 // Componente para filtro de intervalo numérico
 function NumberRangeFilter({ label, value, onChange, prefix = "", suffix = "" }) {
+  const [localMin, setLocalMin] = React.useState(value?.min || "");
+  const [localMax, setLocalMax] = React.useState(value?.max || "");
+
+  React.useEffect(() => {
+    setLocalMin(value?.min || "");
+    setLocalMax(value?.max || "");
+  }, [value?.min, value?.max]);
+
+  const handleMinBlur = () => {
+    onChange({ ...value, min: localMin ? Number(localMin) : null });
+  };
+
+  const handleMaxBlur = () => {
+    onChange({ ...value, max: localMax ? Number(localMax) : null });
+  };
+
+  const handleMinKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleMinBlur();
+      e.target.blur();
+    }
+  };
+
+  const handleMaxKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleMaxBlur();
+      e.target.blur();
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Label className="text-xs font-medium text-slate-600">{label}</Label>
@@ -60,8 +90,10 @@ function NumberRangeFilter({ label, value, onChange, prefix = "", suffix = "" })
           {prefix && <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{prefix}</span>}
           <Input
             type="number"
-            value={value?.min || ""}
-            onChange={(e) => onChange({ ...value, min: e.target.value ? Number(e.target.value) : null })}
+            value={localMin}
+            onChange={(e) => setLocalMin(e.target.value)}
+            onBlur={handleMinBlur}
+            onKeyDown={handleMinKeyDown}
             className={`text-sm ${prefix ? "pl-6" : ""}`}
             placeholder="Min"
           />
@@ -71,8 +103,10 @@ function NumberRangeFilter({ label, value, onChange, prefix = "", suffix = "" })
           {prefix && <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{prefix}</span>}
           <Input
             type="number"
-            value={value?.max || ""}
-            onChange={(e) => onChange({ ...value, max: e.target.value ? Number(e.target.value) : null })}
+            value={localMax}
+            onChange={(e) => setLocalMax(e.target.value)}
+            onBlur={handleMaxBlur}
+            onKeyDown={handleMaxKeyDown}
             className={`text-sm ${prefix ? "pl-6" : ""}`}
             placeholder="Max"
           />
