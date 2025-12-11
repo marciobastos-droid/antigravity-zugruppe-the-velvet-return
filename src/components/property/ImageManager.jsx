@@ -143,15 +143,15 @@ export default function ImageManager({ property, onUpdate, onChange }) {
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Gestão de Imagens</h3>
-            <p className="text-sm text-slate-600">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900">Gestão de Imagens</h3>
+            <p className="text-xs sm:text-sm text-slate-600">
               {images.length} imagens • Arraste para reordenar
             </p>
           </div>
-          <Button onClick={saveChanges} disabled={saving} className="bg-blue-600">
+          <Button onClick={saveChanges} disabled={saving} className="bg-blue-600 w-full sm:w-auto">
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -165,19 +165,20 @@ export default function ImageManager({ property, onUpdate, onChange }) {
 
         {/* Extract from Source */}
         {property.source_url && (
-          <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
-                  Extrair Imagens do Link de Origem
+          <div className="mb-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+              <div className="flex-1 min-w-0">
+                <Label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                  <span>Extrair Imagens do Link de Origem</span>
                 </Label>
                 <p className="text-xs text-slate-600 mt-1">Extrai automaticamente imagens do anúncio original</p>
               </div>
               <Button 
                 onClick={extractImagesFromSource} 
                 disabled={extracting}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto flex-shrink-0"
+                size="sm"
               >
                 {extracting ? (
                   <>
@@ -196,46 +197,48 @@ export default function ImageManager({ property, onUpdate, onChange }) {
               href={property.source_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+              className="text-xs text-blue-600 hover:underline flex items-center gap-1 break-all"
             >
-              <ExternalLink className="w-3 h-3" />
-              {property.source_url.substring(0, 60)}...
+              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{property.source_url.substring(0, 60)}...</span>
             </a>
           </div>
         )}
 
         {/* Extracted Images Preview */}
         {extractedImages.length > 0 && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <Label className="text-sm font-medium mb-3 block flex items-center justify-between">
-              <span>Imagens Extraídas ({extractedImages.length})</span>
+          <div className="mb-4 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+              <Label className="text-xs sm:text-sm font-medium">
+                Imagens Extraídas ({extractedImages.length})
+              </Label>
               <Button 
                 size="sm"
                 onClick={() => addExtractedImages(extractedImages.map(img => img.url))}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Adicionar Todas
               </Button>
-            </Label>
-            <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-60 overflow-y-auto">
               {extractedImages.map((img, idx) => (
-                <div key={idx} className="relative group">
+                <div key={idx} className="relative group aspect-video">
                   <img
                     src={img.url}
                     alt={`Extraída ${idx + 1}`}
-                    className="w-full h-20 object-cover rounded border border-green-300"
+                    className="w-full h-full object-cover rounded border border-green-300"
                   />
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => addExtractedImages([img.url])}
-                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-black/70"
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-black/70 rounded"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                   {img.category && (
-                    <Badge className="absolute top-1 left-1 text-xs bg-green-600">
+                    <Badge className="absolute top-1 left-1 text-[10px] bg-green-600 px-1 py-0">
                       {img.category}
                     </Badge>
                   )}
@@ -246,17 +249,17 @@ export default function ImageManager({ property, onUpdate, onChange }) {
         )}
 
         {/* Add Image URL */}
-        <div className="mb-4 p-4 bg-slate-50 rounded-lg">
-          <Label className="text-sm font-medium mb-2 block">Adicionar Imagem por URL</Label>
-          <div className="flex gap-2">
+        <div className="mb-4 p-3 sm:p-4 bg-slate-50 rounded-lg">
+          <Label className="text-xs sm:text-sm font-medium mb-2 block">Adicionar Imagem por URL</Label>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               value={newImageUrl}
               onChange={(e) => setNewImageUrl(e.target.value)}
               placeholder="https://exemplo.com/imagem.jpg"
               onKeyPress={(e) => e.key === 'Enter' && addImageUrl()}
-              className="flex-1"
+              className="flex-1 text-sm"
             />
-            <Button onClick={addImageUrl} variant="outline">
+            <Button onClick={addImageUrl} variant="outline" size="sm" className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-1" />
               Adicionar
             </Button>
@@ -264,9 +267,9 @@ export default function ImageManager({ property, onUpdate, onChange }) {
         </div>
 
         {/* Upload Files */}
-        <div className="mb-6">
-          <Label className="text-sm font-medium mb-2 block">Carregar Imagens</Label>
-          <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+        <div className="mb-4 sm:mb-6">
+          <Label className="text-xs sm:text-sm font-medium mb-2 block">Carregar Imagens</Label>
+          <label className="flex items-center justify-center gap-2 p-3 sm:p-4 border-2 border-dashed border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
             <input
               type="file"
               multiple
@@ -277,13 +280,13 @@ export default function ImageManager({ property, onUpdate, onChange }) {
             />
             {uploading ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                <span className="text-sm text-blue-600">A carregar...</span>
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin text-blue-600" />
+                <span className="text-xs sm:text-sm text-blue-600">A carregar...</span>
               </>
             ) : (
               <>
-                <Upload className="w-5 h-5 text-slate-500" />
-                <span className="text-sm text-slate-600">Clique ou arraste ficheiros</span>
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+                <span className="text-xs sm:text-sm text-slate-600">Clique ou arraste ficheiros</span>
               </>
             )}
           </label>
@@ -291,9 +294,9 @@ export default function ImageManager({ property, onUpdate, onChange }) {
 
         {/* Images Grid with Drag & Drop */}
         {images.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
-            <ImageIcon className="w-16 h-16 mx-auto mb-3 opacity-50" />
-            <p>Nenhuma imagem adicionada</p>
+          <div className="text-center py-8 sm:py-12 text-slate-500">
+            <ImageIcon className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Nenhuma imagem adicionada</p>
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>
@@ -302,7 +305,7 @@ export default function ImageManager({ property, onUpdate, onChange }) {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="space-y-3"
+                  className="space-y-2 max-h-[400px] overflow-y-auto pr-2"
                 >
                   {images.map((url, index) => (
                     <Draggable key={url + index} draggableId={url + index} index={index}>
@@ -318,13 +321,13 @@ export default function ImageManager({ property, onUpdate, onChange }) {
                             {/* Drag Handle */}
                             <div
                               {...provided.dragHandleProps}
-                              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600"
+                              className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 flex-shrink-0"
                             >
                               <GripVertical className="w-4 h-4" />
                             </div>
 
                             {/* Position Badge */}
-                            <div className="flex-shrink-0 w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-xs font-semibold text-slate-700">
+                            <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-slate-100 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-semibold text-slate-700">
                               {index + 1}
                             </div>
 
@@ -332,31 +335,31 @@ export default function ImageManager({ property, onUpdate, onChange }) {
                             <img
                               src={url}
                               alt={`Imagem ${index + 1}`}
-                              className="w-12 h-12 object-cover rounded border border-slate-200"
+                              className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded border border-slate-200 flex-shrink-0"
                             />
 
                             {/* Main Badge */}
                             {index === 0 && (
-                              <div className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-semibold flex items-center gap-1">
+                              <div className="hidden sm:flex px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-semibold items-center gap-1 flex-shrink-0">
                                 <Star className="w-3 h-3 fill-amber-500" />
                                 Principal
                               </div>
                             )}
 
                             {/* URL */}
-                            <div className="flex-1 min-w-0">
+                            <div className="flex-1 min-w-0 hidden sm:block">
                               <p className="text-xs text-slate-600 truncate">{url}</p>
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
                               <a
                                 href={url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1.5 hover:bg-slate-100 rounded transition-colors"
+                                className="p-1 sm:p-1.5 hover:bg-slate-100 rounded transition-colors"
                               >
-                                <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+                                <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500" />
                               </a>
                               
                               {index !== 0 && (
@@ -364,9 +367,10 @@ export default function ImageManager({ property, onUpdate, onChange }) {
                                   size="sm"
                                   variant="ghost"
                                   onClick={() => setMainImage(index)}
-                                  className="text-amber-600 hover:bg-amber-50 h-7 w-7 p-0"
+                                  className="text-amber-600 hover:bg-amber-50 h-6 w-6 sm:h-7 sm:w-7 p-0"
+                                  title="Definir como principal"
                                 >
-                                  <Star className="w-3.5 h-3.5" />
+                                  <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                 </Button>
                               )}
                               
@@ -374,9 +378,9 @@ export default function ImageManager({ property, onUpdate, onChange }) {
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => removeImage(index)}
-                                className="text-red-600 hover:bg-red-50 h-7 w-7 p-0"
+                                className="text-red-600 hover:bg-red-50 h-6 w-6 sm:h-7 sm:w-7 p-0"
                               >
-                                <X className="w-3.5 h-3.5" />
+                                <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               </Button>
                             </div>
                           </div>
@@ -393,13 +397,13 @@ export default function ImageManager({ property, onUpdate, onChange }) {
 
         {images.length > 0 && (
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-2 text-sm text-blue-800">
+            <div className="flex items-start gap-2 text-xs sm:text-sm text-blue-800">
               <ImageIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium mb-1">Dicas:</p>
-                <ul className="space-y-1 text-xs">
+                <p className="font-medium mb-1 text-xs sm:text-sm">Dicas:</p>
+                <ul className="space-y-0.5 sm:space-y-1 text-[10px] sm:text-xs">
                   <li>• Arraste as imagens para reordenar</li>
-                  <li>• A primeira imagem é a imagem principal (capa)</li>
+                  <li>• A primeira imagem é a imagem principal</li>
                   <li>• Clique na estrela para definir como principal</li>
                   <li>• Guarde as alterações quando terminar</li>
                 </ul>
