@@ -74,25 +74,27 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Render each property card separately to avoid page breaks
-      const cards = element.querySelectorAll('.no-break');
+      // Render entire content as single page
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: 1200,
+        windowHeight: element.scrollHeight
+      });
       
-      for (let i = 0; i < cards.length; i++) {
-        if (i > 0) {
-          pdf.addPage();
-        }
-        
-        const canvas = await html2canvas(cards[i], {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff'
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = pageWidth - 20;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Se altura exceder página, ajustar escala
+      if (imgHeight > pageHeight - 20) {
+        const scale = (pageHeight - 20) / imgHeight;
+        const scaledWidth = imgWidth * scale;
+        const scaledHeight = imgHeight * scale;
+        pdf.addImage(imgData, 'PNG', 10, 10, scaledWidth, scaledHeight);
+      } else {
         pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
       }
       
@@ -307,8 +309,8 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               page-break-inside: avoid;
             }
             .print-checkbox {
-              width: 14px;
-              height: 14px;
+              width: 12px;
+              height: 12px;
               border: 1.5px solid #333;
               display: inline-block;
               margin-right: 6px;
@@ -316,11 +318,11 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
             }
             .signature-line {
               border-top: 1.5px solid #333;
-              margin-top: 70px;
-              padding-top: 10px;
+              margin-top: 100px;
+              padding-top: 8px;
             }
             @page {
-              margin: 1.5cm;
+              margin: 1cm 1.5cm;
               size: A4;
             }
             @media print {
@@ -331,7 +333,15 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               .print-content {
                 width: 100%;
                 max-width: none;
+                font-size: 11px;
+                transform: scale(0.95);
+                transform-origin: top left;
               }
+              h1 { font-size: 20px !important; }
+              h2 { font-size: 16px !important; }
+              h4 { font-size: 13px !important; }
+              .text-xs { font-size: 9px !important; }
+              .text-sm { font-size: 10px !important; }
             }
           }
         `}
@@ -629,7 +639,7 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-3 gap-12 mt-12 mb-6">
+                    <div className="grid grid-cols-3 gap-12 mt-24 mb-6">
                       <div className="signature-line text-center text-sm font-medium">
                         O(A) Cliente
                       </div>
