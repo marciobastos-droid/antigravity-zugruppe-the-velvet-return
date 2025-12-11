@@ -217,6 +217,7 @@ export default function Tools() {
                 <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
                 <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
                 <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
+                <ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" className="bg-red-50 border-red-300 hover:bg-red-100" />
                 <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
                 <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
                 <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
@@ -367,6 +368,7 @@ export default function Tools() {
         {activeTab === "bulkScore" && <BulkScoreCalculator />}
         {activeTab === "crmSync" && <CRMSyncPanel />}
         {activeTab === "marketingHub" && <MarketingHub />}
+        {activeTab === "gmailLinker" && <GmailLinker />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
