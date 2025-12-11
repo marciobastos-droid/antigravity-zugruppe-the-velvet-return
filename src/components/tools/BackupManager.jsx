@@ -453,7 +453,7 @@ export default function BackupManager() {
                 <>
                   <Upload className="w-4 h-4 mr-2" />
                   Confirmar Restauro
-                </Upload>
+                </>
               )}
             </Button>
           </DialogFooter>
