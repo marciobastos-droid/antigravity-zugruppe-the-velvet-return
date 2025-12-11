@@ -26,6 +26,7 @@ import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
 import VisitRouteGenerator from "../components/visits/VisitRouteGenerator";
 import PublicationHub from "../components/publication/PublicationHub";
 import MarketingPlanGenerator from "../components/marketing/MarketingPlanGenerator";
+import BulkActionsBar from "../components/listings/BulkActionsBar";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
@@ -554,6 +555,19 @@ export default function MyListings() {
       setSelectedProperties([]);
       setAssignConsultantOpen(false);
       setSelectedConsultant("");
+      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+    },
+  });
+
+  const bulkToggleFeaturedMutation = useMutation({
+    mutationFn: async ({ ids, featured }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.Property.update(id, { featured })
+      ));
+    },
+    onSuccess: (_, { ids, featured }) => {
+      toast.success(`${ids.length} imóveis ${featured ? 'marcados como' : 'removidos dos'} destaques`);
+      setSelectedProperties([]);
       queryClient.invalidateQueries({ queryKey: ['myProperties'] });
     },
   });
@@ -1306,350 +1320,65 @@ export default function MyListings() {
         />
 
         {selectedProperties.length > 0 && (
-          <Card className="mb-4 sm:mb-6 border-blue-500 bg-blue-50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <span className="font-medium text-sm sm:text-base text-blue-900">
-                    {selectedProperties.length} selecionado{selectedProperties.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Popover open={bulkStatusOpen} onOpenChange={setBulkStatusOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <CheckSquare className="w-4 h-4 mr-2" />
-                        Alterar Estado
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-3" align="end">
-                      <div className="space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Alterar estado para:</p>
-                        <Select value={bulkStatus} onValueChange={setBulkStatus}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecionar estado..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="active">✅ Ativo</SelectItem>
-                            <SelectItem value="pending">⏳ Pendente</SelectItem>
-                            <SelectItem value="sold">💰 Vendido</SelectItem>
-                            <SelectItem value="rented">🔑 Arrendado</SelectItem>
-                            <SelectItem value="off_market">⛔ Desativado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setBulkStatusOpen(false);
-                              setBulkStatus("");
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            disabled={!bulkStatus || bulkStatusChangeMutation.isPending}
-                            onClick={() => {
-                              bulkStatusChangeMutation.mutate({
-                                ids: selectedProperties,
-                                status: bulkStatus
-                              });
-                            }}
-                          >
-                            {bulkStatusChangeMutation.isPending ? "A alterar..." : "Aplicar"}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Popover open={bulkVisibilityOpen} onOpenChange={setBulkVisibilityOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <Eye className="w-4 h-4 mr-2" />
-                        Alterar Visibilidade
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-3" align="end">
-                      <div className="space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Alterar visibilidade para:</p>
-                        <Select value={bulkVisibility} onValueChange={setBulkVisibility}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecionar visibilidade..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="public">🌐 Público</SelectItem>
-                            <SelectItem value="team_only">👥 Apenas Equipa</SelectItem>
-                            <SelectItem value="private">🔒 Privado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setBulkVisibilityOpen(false);
-                              setBulkVisibility("");
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            disabled={!bulkVisibility || bulkVisibilityChangeMutation.isPending}
-                            onClick={() => {
-                              bulkVisibilityChangeMutation.mutate({
-                                ids: selectedProperties,
-                                visibility: bulkVisibility
-                              });
-                            }}
-                          >
-                            {bulkVisibilityChangeMutation.isPending ? "A alterar..." : "Aplicar"}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Popover open={assignConsultantOpen} onOpenChange={setAssignConsultantOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <Users className="w-4 h-4 mr-2" />
-                        Atribuir Consultor
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72 p-3" align="end">
-                      <div className="space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Selecionar Consultor</p>
-                        <Select value={selectedConsultant} onValueChange={setSelectedConsultant}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Escolher consultor..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
-                            {agents.filter(a => a.is_active !== false).map((agent) => (
-                              <SelectItem key={agent.id} value={agent.email}>
-                                {agent.display_name || agent.full_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setAssignConsultantOpen(false);
-                              setSelectedConsultant("");
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            disabled={!selectedConsultant || bulkAssignConsultantMutation.isPending}
-                            onClick={() => {
-                              const consultant = agents.find(a => a.email === selectedConsultant);
-                              bulkAssignConsultantMutation.mutate({
-                                ids: selectedProperties,
-                                consultantEmail: selectedConsultant === "none" ? null : selectedConsultant,
-                                consultantName: selectedConsultant === "none" ? null : consultant?.full_name
-                              });
-                            }}
-                          >
-                            {bulkAssignConsultantMutation.isPending ? "A atribuir..." : "Atribuir"}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <Tag className="w-4 h-4 mr-2" />
-                        Adicionar Etiqueta
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="end">
-                      <div className="max-h-64 overflow-y-auto space-y-1">
-                        {propertyTags.length === 0 ? (
-                          <p className="text-sm text-slate-500 text-center py-2">Sem etiquetas disponíveis</p>
-                        ) : (
-                          propertyTags.map((tag) => (
-                            <button
-                              key={tag.id}
-                              onClick={() => bulkAddTagMutation.mutate({ ids: selectedProperties, tagName: tag.name })}
-                              className="w-full flex items-center p-2 rounded-lg text-left hover:bg-slate-50 transition-colors"
-                            >
-                              <Badge
-                                style={{
-                                  backgroundColor: `${tag.color}20`,
-                                  color: tag.color,
-                                  borderColor: tag.color
-                                }}
-                                className="border"
-                              >
-                                <Tag className="w-3 h-3 mr-1" />
-                                {tag.name}
-                              </Badge>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Button variant="outline" size="sm" className="bg-white" onClick={() => setBulkPhotoDialogOpen(true)}>
-                    <Image className="w-4 h-4 mr-2" />
-                    Aplicar Fotos
-                  </Button>
-                  <Button variant="outline" size="sm" className="bg-white" onClick={() => setBulkPublicationDialogOpen(true)}>
-                    <Globe className="w-4 h-4 mr-2" />
-                    Gerir Publicação
-                  </Button>
-                  <Button variant="outline" size="sm" className="bg-white" onClick={() => setCreateDevelopmentDialogOpen(true)}>
-                    <Building2 className="w-4 h-4 mr-2" />
-                    Criar Empreendimento
-                  </Button>
-                  <Button variant="outline" size="sm" className="bg-white border-green-500 text-green-700 hover:bg-green-50" onClick={() => setVisitRouteOpen(true)}>
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Roteiro de Visita
-                  </Button>
-                  <Popover open={assignAgentOpen} onOpenChange={setAssignAgentOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <Users className="w-4 h-4 mr-2" />
-                        Atribuir Agente
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72 p-3" align="end">
-                      <div className="space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Selecionar Agente</p>
-                        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Escolher agente..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {agents.filter(a => a.is_active !== false).map((agent) => (
-                              <SelectItem key={agent.id} value={agent.id}>
-                                {agent.display_name || agent.full_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setAssignAgentOpen(false);
-                              setSelectedAgent("");
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            disabled={!selectedAgent || bulkAssignAgentMutation.isPending}
-                            onClick={() => {
-                              const agent = agents.find(a => a.id === selectedAgent);
-                              if (agent) {
-                                bulkAssignAgentMutation.mutate({
-                                  ids: selectedProperties,
-                                  agentId: agent.id,
-                                  agentName: agent.full_name
-                                });
-                              }
-                            }}
-                          >
-                            {bulkAssignAgentMutation.isPending ? "A atribuir..." : "Atribuir"}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Popover open={assignDevelopmentOpen} onOpenChange={setAssignDevelopmentOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-white">
-                        <Building2 className="w-4 h-4 mr-2" />
-                        Atribuir Empreendimento
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-72 p-3" align="end">
-                      <div className="space-y-3">
-                        <p className="text-sm font-medium text-slate-900">Selecionar Empreendimento</p>
-                        <Select value={selectedDevelopment} onValueChange={setSelectedDevelopment}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Escolher empreendimento..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {developments.map((dev) => (
-                              <SelectItem key={dev.id} value={dev.id}>
-                                {dev.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => {
-                              setAssignDevelopmentOpen(false);
-                              setSelectedDevelopment("");
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            disabled={!selectedDevelopment || bulkAssignDevelopmentMutation.isPending}
-                            onClick={() => {
-                              const dev = developments.find(d => d.id === selectedDevelopment);
-                              if (dev) {
-                                bulkAssignDevelopmentMutation.mutate({
-                                  ids: selectedProperties,
-                                  developmentId: dev.id,
-                                  developmentName: dev.name
-                                });
-                              }
-                            }}
-                          >
-                            {bulkAssignDevelopmentMutation.isPending ? "A atribuir..." : "Atribuir"}
-                          </Button>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleBulkDelete}
-                    disabled={bulkDeleteMutation.isPending}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Eliminar
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setSelectedProperties([])}>
-                    Cancelar
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <BulkActionsBar
+            selectedCount={selectedProperties.length}
+            onClearSelection={() => setSelectedProperties([])}
+            onBulkStatusChange={(status) => {
+              bulkStatusChangeMutation.mutate({ ids: selectedProperties, status });
+            }}
+            onBulkVisibilityChange={(visibility) => {
+              bulkVisibilityChangeMutation.mutate({ ids: selectedProperties, visibility });
+            }}
+            onBulkFeaturedToggle={(featured) => {
+              bulkToggleFeaturedMutation.mutate({ ids: selectedProperties, featured });
+            }}
+            onBulkAssignAgent={(agentId) => {
+              const agent = agents.find(a => a.id === agentId);
+              if (agent) {
+                bulkAssignAgentMutation.mutate({
+                  ids: selectedProperties,
+                  agentId: agent.id,
+                  agentName: agent.full_name
+                });
+              }
+            }}
+            onBulkAssignConsultant={(consultantEmail) => {
+              const consultant = agents.find(a => a.email === consultantEmail);
+              bulkAssignConsultantMutation.mutate({
+                ids: selectedProperties,
+                consultantEmail: consultantEmail === "none" ? null : consultantEmail,
+                consultantName: consultantEmail === "none" ? null : consultant?.full_name
+              });
+            }}
+            onBulkAddTag={(tagName) => {
+              bulkAddTagMutation.mutate({ ids: selectedProperties, tagName });
+            }}
+            onBulkAssignDevelopment={(developmentId) => {
+              const dev = developments.find(d => d.id === developmentId);
+              if (dev) {
+                bulkAssignDevelopmentMutation.mutate({
+                  ids: selectedProperties,
+                  developmentId: dev.id,
+                  developmentName: dev.name
+                });
+              }
+            }}
+            onBulkDelete={handleBulkDelete}
+            onGenerateVisitRoute={() => setVisitRouteOpen(true)}
+            agents={agents}
+            developments={developments}
+            propertyTags={propertyTags}
+            isProcessing={
+              bulkStatusChangeMutation.isPending ||
+              bulkVisibilityChangeMutation.isPending ||
+              bulkToggleFeaturedMutation.isPending ||
+              bulkAssignAgentMutation.isPending ||
+              bulkAssignConsultantMutation.isPending ||
+              bulkAddTagMutation.isPending ||
+              bulkAssignDevelopmentMutation.isPending ||
+              bulkDeleteMutation.isPending
+            }
+          />
         )}
 
         {properties.length === 0 ? (
