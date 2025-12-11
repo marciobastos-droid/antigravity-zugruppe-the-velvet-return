@@ -25,6 +25,7 @@ import CreateDevelopmentFromProperties from "@/components/developments/CreateDev
 import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
 import VisitRouteGenerator from "../components/visits/VisitRouteGenerator";
 import PublicationHub from "../components/publication/PublicationHub";
+import MarketingPlanGenerator from "../components/marketing/MarketingPlanGenerator";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
@@ -223,6 +224,19 @@ const PropertyCard = memo(function PropertyCard({
                 <Wand2 className="w-3 h-3" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="h-8 text-[10px] sm:text-xs px-2 text-red-600 touch-manipulation active:scale-95"><Trash2 className="w-3 h-3" /></Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPropertyForPlan(property);
+                  setMarketingPlanOpen(true);
+                }}
+                className="h-8 text-[10px] sm:text-xs px-2 border-green-300 text-green-600 touch-manipulation active:scale-95"
+                title="Plano de Marketing"
+              >
+                <FileText className="w-3 h-3" />
+              </Button>
             </div>
           </div>
         </div>
@@ -271,6 +285,8 @@ export default function MyListings() {
   const [assignConsultantOpen, setAssignConsultantOpen] = useState(false);
   const [selectedConsultant, setSelectedConsultant] = useState("");
   const [visitRouteOpen, setVisitRouteOpen] = useState(false);
+  const [marketingPlanOpen, setMarketingPlanOpen] = useState(false);
+  const [selectedPropertyForPlan, setSelectedPropertyForPlan] = useState(null);
   
   const [filters, setFilters] = useState({
     search: "",
@@ -1990,6 +2006,13 @@ export default function MyListings() {
           properties={properties.filter(p => selectedProperties.includes(p.id))}
           open={visitRouteOpen}
           onOpenChange={setVisitRouteOpen}
+        />
+
+        {/* Marketing Plan Generator */}
+        <MarketingPlanGenerator
+          property={selectedPropertyForPlan}
+          open={marketingPlanOpen}
+          onOpenChange={setMarketingPlanOpen}
         />
         </>
         )}
