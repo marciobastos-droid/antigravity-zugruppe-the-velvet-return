@@ -20,34 +20,6 @@ export default function OptimizedImage({
 }) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [error, setError] = React.useState(false);
-  const [isInView, setIsInView] = React.useState(priority);
-  const imgRef = React.useRef(null);
-
-  // Intersection Observer para lazy loading agressivo
-  React.useEffect(() => {
-    if (priority) return; // Skip observer para imagens prioritárias
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsInView(true);
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        rootMargin: "200px", // Carregar 200px antes de entrar no viewport
-        threshold: 0.01
-      }
-    );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [priority]);
 
   const handleLoad = () => {
     setIsLoaded(true);
@@ -57,21 +29,6 @@ export default function OptimizedImage({
   const handleError = () => {
     setError(true);
   };
-
-  // Obter configurações de cache da estratégia
-  const strategySettings = CACHE_STRATEGY[strategy] || CACHE_STRATEGY.lazy;
-  
-  // Otimizar URL com CDN - usar WebP com fallback
-  const optimizedSrc = isInView || priority ? optimizeImageUrl(src, {
-    width,
-    height,
-    quality: quality || strategySettings.quality,
-    format: 'auto', // Auto-detecta melhor formato (WebP, AVIF)
-    fit: 'cover'
-  }) : null;
-  
-  // Gerar srcset para imagens responsivas
-  const srcSet = (isInView || priority) && src ? generateSrcSet(src, [320, 640, 960, 1280, 1920]) : null;
 
   if (error || !src) {
     return (
@@ -86,45 +43,26 @@ export default function OptimizedImage({
   }
 
   return (
-    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden ${className}`}>
       {/* Placeholder enquanto carrega */}
-      {!isLoaded && isInView && (
+      {!isLoaded && (
         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
       )}
 
-      {/* Imagem real com CDN e otimizações avançadas */}
-      {isInView && optimizedSrc && (
-        <picture>
-          {/* WebP para browsers modernos */}
-          <source 
-            type="image/webp" 
-            srcSet={srcSet?.replace(/\.(jpg|jpeg|png)/gi, '.webp')} 
-            sizes={sizes}
-          />
-          {/* Fallback original */}
-          <img
-            src={optimizedSrc}
-            srcSet={srcSet}
-            sizes={sizes}
-            alt={alt}
-            width={width}
-            height={height}
-            loading={priority ? "eager" : "lazy"}
-            decoding="async"
-            fetchPriority={priority ? "high" : "auto"}
-            onLoad={handleLoad}
-            onError={handleError}
-            className={`w-full h-full object-cover transition-opacity duration-300 ${
-              isLoaded ? "opacity-100" : "opacity-0"
-            }`}
-            style={{
-              contentVisibility: "auto",
-              containIntrinsicSize: width && height ? `${width}px ${height}px` : "auto"
-            }}
-            {...props}
-          />
-        </picture>
-      )}
+      {/* Imagem real */}
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={priority ? "eager" : "lazy"}
+        onLoad={handleLoad}
+        onError={handleError}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+        {...props}
+      />
     </div>
   );
 }
