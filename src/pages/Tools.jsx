@@ -29,6 +29,7 @@ import FacebookFormManager from "../components/tools/FacebookFormManager";
 import MarketIntelligence from "../components/tools/MarketIntelligence";
 import ListingOptimizer from "../components/tools/ListingOptimizer";
 import EmailSender from "../components/tools/EmailSender";
+import GmailLinker from "../components/integrations/GmailLinker";
 import SMTPConfiguration from "../components/tools/SMTPConfiguration";
 import DuplicateChecker from "../components/tools/DuplicateChecker";
 import PropertyInconsistencyChecker from "../components/tools/PropertyInconsistencyChecker";
