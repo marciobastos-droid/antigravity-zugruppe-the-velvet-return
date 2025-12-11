@@ -137,24 +137,40 @@ export default function Tools() {
           <Card className="border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Facebook className="w-5 h-5 text-purple-600" />
+                <Megaphone className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(8 ferramentas)</span>
+                <span className="text-sm text-purple-600">(10 ferramentas)</span>
               </div>
               
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="marketingHub" icon={Megaphone} label="Hub de Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
-                <ToolButton toolId="marketingCampaigns" icon={TrendingUp} label="Campanhas Marketing" />
+              <div className="flex flex-wrap gap-2 mb-4">
+                <ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
+                <ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" />
                 <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
-                <ToolButton toolId="socialAdCreator" icon={Share2} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
+                <ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
                 <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
                 <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" />
                 <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
                 <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" className="bg-green-50 border-green-300 hover:bg-green-100" />
                 <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
+                <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
               </div>
-              </CardContent>
-              </Card>
+
+              {/* Subgrupo Facebook */}
+              <div className="pl-4 border-l-4 border-blue-400 bg-blue-50/60 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <Facebook className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-semibold text-blue-900 text-base">Facebook</h4>
+                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">3 ferramentas</Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" className="bg-white border-blue-200 hover:bg-blue-50" />
+                  <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" className="bg-white border-blue-200 hover:bg-blue-50" />
+                  <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" className="bg-white border-blue-200 hover:bg-blue-50" />
+                </div>
+              </div>
+
+            </CardContent>
+          </Card>
 
           {/* Lead Management Group */}
           <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
@@ -189,7 +205,6 @@ export default function Tools() {
                     <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
                     <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
                     <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
-                    <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
                     <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
                     <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" className="bg-green-50 border-green-300 hover:bg-green-100" />
                     <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
@@ -269,7 +284,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <DollarSign className="w-5 h-5 text-green-600" />
                 <h3 className="font-bold text-green-900 text-lg">Finanças</h3>
-                <span className="text-sm text-green-600">(1 ferramenta)</span>
+                <span className="text-sm text-green-600">(2 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -301,7 +316,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Folder className="w-5 h-5 text-slate-600" />
                 <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
-                <span className="text-sm text-slate-600">(6 ferramentas)</span>
+                <span className="text-sm text-slate-600">(8 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2">
@@ -318,7 +333,11 @@ export default function Tools() {
               </Card>
               </div>
 
+        {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
+        {activeTab === "facebookCampaigns" && <FacebookCampaignDashboard />}
+        {activeTab === "facebookLeads" && <FacebookLeadsIntegration />}
+        {activeTab === "facebookForms" && <FacebookFormManager />}
         {activeTab === "leadManagement" && <LeadManagementHub />}
         {activeTab === "duplicateChecker" && <DuplicateChecker />}
         {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
@@ -369,7 +388,6 @@ export default function Tools() {
         {activeTab === "investorProperties" && <InvestorPropertiesManager />}
         {activeTab === "bulkScore" && <BulkScoreCalculator />}
         {activeTab === "crmSync" && <CRMSyncPanel />}
-        {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "gmailLinker" && <GmailLinker />}
         {activeTab === "backupManager" && <BackupManager />}
         {activeTab === "gmailSync" && (
