@@ -68,6 +68,19 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
     }
   }, [opportunityId, opportunities]);
 
+  React.useEffect(() => {
+    if (propertyId && properties.length > 0 && !formData.title) {
+      const property = properties.find(p => p.id === propertyId);
+      if (property) {
+        setFormData(prev => ({
+          ...prev,
+          property_id: propertyId,
+          title: `Visita: ${property.title}`
+        }));
+      }
+    }
+  }, [propertyId, properties]);
+
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const property = properties.find(p => p.id === data.property_id);
@@ -142,7 +155,17 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createMutation.mutate(formData);
+    
+    // Auto-generate title if not provided
+    const submitData = { ...formData };
+    if (!submitData.title) {
+      const property = properties.find(p => p.id === submitData.property_id);
+      submitData.title = property 
+        ? `Visita: ${property.title}` 
+        : `Visita com ${submitData.client_name}`;
+    }
+    
+    createMutation.mutate(submitData);
   };
 
   return (
@@ -155,12 +178,11 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <Label>Título *</Label>
+              <Label>Título</Label>
               <Input
-                required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Visita ao imóvel..."
+                placeholder="Visita ao imóvel... (gerado automaticamente se vazio)"
               />
             </div>
 
