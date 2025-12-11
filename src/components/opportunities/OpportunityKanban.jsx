@@ -20,7 +20,7 @@ import moment from "moment";
 const STAGES = [
   { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", icon: Clock },
   { id: "contacted", label: "Contactado", color: "bg-blue-50 border-blue-300", icon: Phone },
-  { id: "visit_scheduled", label: "Qualificado", color: "bg-purple-50 border-purple-300", icon: CheckCircle2 },
+  { id: "visit_scheduled", label: "Visita", color: "bg-purple-50 border-purple-300", icon: Calendar },
   { id: "proposal", label: "Proposta", color: "bg-amber-50 border-amber-300", icon: Euro },
   { id: "negotiation", label: "Negociação", color: "bg-orange-50 border-orange-300", icon: Building2 },
   { id: "won", label: "Ganho", color: "bg-green-50 border-green-300", icon: CheckCircle2 },
