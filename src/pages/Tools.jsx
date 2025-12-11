@@ -66,6 +66,8 @@ import InvestorKeysManager from "../components/tools/InvestorKeysManager";
 import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";
 import MarketingHub from "../components/marketing/MarketingHub";
 import BackupManager from "../components/tools/BackupManager";
+import ExcelImportExport from "../components/tools/ExcelImportExport";
+import CRMIntegrations from "../components/tools/CRMIntegrations";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -139,7 +141,7 @@ export default function Tools() {
               <div className="flex items-center gap-2 mb-3">
                 <Megaphone className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(10 ferramentas)</span>
+                <span className="text-sm text-purple-600">(12 ferramentas)</span>
               </div>
               
               <div className="flex flex-wrap gap-2 mb-4">
@@ -153,6 +155,8 @@ export default function Tools() {
                 <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" className="bg-green-50 border-green-300 hover:bg-green-100" />
                 <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
                 <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
+                <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" className="bg-green-50 border-green-300 hover:bg-green-100" />
+                <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
               </div>
 
               {/* Subgrupo Facebook */}
@@ -390,6 +394,8 @@ export default function Tools() {
         {activeTab === "crmSync" && <CRMSyncPanel />}
         {activeTab === "gmailLinker" && <GmailLinker />}
         {activeTab === "backupManager" && <BackupManager />}
+        {activeTab === "excelImport" && <ExcelImportExport />}
+        {activeTab === "crmIntegrations" && <CRMIntegrations />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">

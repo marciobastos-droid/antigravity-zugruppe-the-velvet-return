@@ -17,10 +17,11 @@ import {
   Loader2, Download, Upload, ExternalLink, Clock,
   Building2, MapPin, Euro, Bed, AlertCircle, Sparkles,
   Eye, Trash2, Link2, Unlink, Calendar, TrendingUp,
-  Search, Filter, MoreHorizontal, Play, Pause
+  Search, Filter, MoreHorizontal, Play, Pause, BarChart3
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import PortalSyncStatus from "./PortalSyncStatus";
 
 const PORTALS = [
   {
@@ -247,9 +248,10 @@ export default function PortalIntegrations() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="portals">Portais</TabsTrigger>
           <TabsTrigger value="import">Importação Rápida</TabsTrigger>
+          <TabsTrigger value="status">Status Sync</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
         </TabsList>
 
@@ -496,6 +498,39 @@ export default function PortalIntegrations() {
                   <Badge variant="outline">+ Qualquer URL com IA</Badge>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Status Sync Tab */}
+        <TabsContent value="status" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+                Status de Sincronização por Portal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {PORTALS.filter(p => portalConfigs[p.id]?.active).length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <Globe className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Nenhum portal ativo</p>
+                  <p className="text-sm">Ative portais no separador "Portais"</p>
+                </div>
+              ) : (
+                PORTALS.filter(p => portalConfigs[p.id]?.active).map(portal => (
+                  <div key={portal.id}>
+                    <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                      <div className={`p-1.5 rounded ${portal.color}`}>
+                        <Globe className="w-4 h-4" />
+                      </div>
+                      {portal.name}
+                    </h4>
+                    <PortalSyncStatus portalId={portal.id} portalName={portal.name} />
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </TabsContent>
