@@ -268,9 +268,12 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               vertical-align: middle;
             }
             .signature-line {
-              border-top: 1px solid #333;
-              margin-top: 40px;
-              padding-top: 8px;
+              border-top: 1.5px solid #333;
+              margin-top: 70px;
+              padding-top: 10px;
+            }
+            @page {
+              margin: 1.5cm;
             }
           }
         `}
@@ -332,9 +335,9 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
 
             {/* Property Cards */}
             {properties.map((property, index) => (
-              <div key={property.id} className={`no-break mb-8 ${index > 0 ? 'page-break' : ''}`}>
+              <div key={property.id} className={`no-break ${index > 0 ? 'page-break' : ''}`}>
                 <Card className="border-2 border-slate-200">
-                  <CardContent className="p-6 space-y-5">
+                  <CardContent className="p-8 space-y-6">
                     {/* Property Header - Referência, Responsável, Oportunidade */}
                     <div className="flex items-center justify-between text-xs text-slate-600">
                       <div>
@@ -541,15 +544,15 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                     </div>
 
                     {/* Observations */}
-                    <div className="pb-4 border-b border-slate-200">
-                      <div className="font-semibold text-slate-900 mb-2">Observações</div>
-                      <div className="border border-slate-300 rounded-lg p-3" style={{ minHeight: "100px" }}></div>
+                    <div className="pb-6 border-b border-slate-200">
+                      <div className="font-semibold text-slate-900 mb-3">Observações</div>
+                      <div className="border border-slate-300 rounded-lg p-4" style={{ minHeight: "120px" }}></div>
                     </div>
 
                     {/* Terms and Conditions */}
-                    <div className="pb-4 border-b border-slate-200">
-                      <div className="font-semibold text-slate-900 mb-2 text-sm">Termos e Condições</div>
-                      <div className="text-xs text-slate-700 leading-relaxed space-y-2">
+                    <div className="pb-6 border-b border-slate-200">
+                      <div className="font-semibold text-slate-900 mb-3 text-sm">Termos e Condições</div>
+                      <div className="text-[11px] text-slate-700 leading-relaxed space-y-2">
                         <p>
                           O Potencial Comprador reconhece que realizou esta visita no âmbito de um contrato de mediação imobiliária entre a 
                           Privileged Approach Unipessoal Lda e o proprietário pelo que se compromete a comunicar à Privileged Approach 
@@ -568,14 +571,14 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-3 gap-8 mt-6 mb-4">
-                      <div className="signature-line text-center text-xs">
+                    <div className="grid grid-cols-3 gap-12 mt-8 mb-6">
+                      <div className="signature-line text-center text-sm font-medium">
                         O(A) Cliente
                       </div>
-                      <div className="signature-line text-center text-xs">
+                      <div className="signature-line text-center text-sm font-medium">
                         O(A) Proprietário(a)
                       </div>
-                      <div className="signature-line text-center text-xs">
+                      <div className="signature-line text-center text-sm font-medium">
                         A Mediadora
                       </div>
                     </div>
