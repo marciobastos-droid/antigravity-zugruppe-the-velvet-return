@@ -16,8 +16,9 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
 
-export default function VisitRouteGenerator({ properties, open, onOpenChange }) {
+export default function VisitRouteGenerator({ properties, opportunityId, open, onOpenChange }) {
   const printRef = useRef();
   const [visitDate, setVisitDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState("09:00");
@@ -27,6 +28,36 @@ export default function VisitRouteGenerator({ properties, open, onOpenChange }) 
   const [agentName, setAgentName] = useState("");
   const [notes, setNotes] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // Buscar dados da oportunidade se fornecido
+  const { data: opportunity } = useQuery({
+    queryKey: ['opportunity', opportunityId],
+    queryFn: async () => {
+      if (!opportunityId) return null;
+      const opps = await base44.entities.Opportunity.filter({ id: opportunityId });
+      return opps[0] || null;
+    },
+    enabled: !!opportunityId && open
+  });
+
+  // Preencher dados do cliente automaticamente da oportunidade
+  React.useEffect(() => {
+    if (opportunity && open) {
+      setClientName(opportunity.buyer_name || "");
+      setClientEmail(opportunity.buyer_email || "");
+      setClientPhone(opportunity.buyer_phone || "");
+    }
+  }, [opportunity, open]);
+
+  // Buscar dados do consultor do primeiro imóvel
+  React.useEffect(() => {
+    if (properties && properties.length > 0 && open) {
+      const firstProperty = properties[0];
+      if (firstProperty.assigned_consultant_name) {
+        setAgentName(firstProperty.assigned_consultant_name);
+      }
+    }
+  }, [properties, open]);
 
   const handlePrint = () => {
     window.print();
@@ -313,7 +344,7 @@ export default function VisitRouteGenerator({ properties, open, onOpenChange }) 
                         <span className="font-semibold">Responsável da visita:</span> {agentName || 'ZuGruppe'}
                       </div>
                       <div>
-                        <span className="font-semibold">Oportunidade:</span> -
+                        <span className="font-semibold">Oportunidade:</span> {opportunity?.ref_id || '-'}
                       </div>
                     </div>
 
@@ -363,9 +394,9 @@ export default function VisitRouteGenerator({ properties, open, onOpenChange }) 
                       <div className="text-right text-xs">
                         <div className="font-semibold text-slate-900 mb-1">Proprietário</div>
                         <div className="text-slate-600 space-y-0.5">
-                          <div>Nome: {property.assigned_consultant_name || '-'}</div>
-                          <div>Email: {property.assigned_consultant ? property.assigned_consultant.replace(/(.{4}).*(@.*)/, '$1*******$2') : '-'}</div>
-                          <div>Telefone: {property.assigned_consultant_phone ? property.assigned_consultant_phone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2***') : '-'}</div>
+                          <div>Nome: {property.owner_name || '-'}</div>
+                          <div>Email: {property.owner_email ? property.owner_email.replace(/(.{4}).*(@.*)/, '$1*******$2') : '-'}</div>
+                          <div>Telefone: {property.owner_phone ? property.owner_phone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2***') : '-'}</div>
                         </div>
                       </div>
                     </div>
