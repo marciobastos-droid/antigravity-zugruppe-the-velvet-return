@@ -65,6 +65,7 @@ import PropertyFeedsManager from "../components/feeds/PropertyFeedsManager";
 import InvestorKeysManager from "../components/tools/InvestorKeysManager";
 import InvestorPropertiesManager from "../components/tools/InvestorPropertiesManager";
 import MarketingHub from "../components/marketing/MarketingHub";
+import BackupManager from "../components/tools/BackupManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -310,6 +311,7 @@ export default function Tools() {
                 <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
                 <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
+                <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" className="bg-green-100 border-green-400 hover:bg-green-200" />
                 <ToolButton toolId="auditLog" icon={FileText} label="Log de Auditoria" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
               </div>
               </CardContent>
@@ -369,6 +371,7 @@ export default function Tools() {
         {activeTab === "crmSync" && <CRMSyncPanel />}
         {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "gmailLinker" && <GmailLinker />}
+        {activeTab === "backupManager" && <BackupManager />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
