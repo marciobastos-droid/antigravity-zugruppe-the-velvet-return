@@ -8,9 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { 
   FileText, Plus, Download, Trash2, Upload, Lock, Globe, AlertCircle,
-  Eye, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Search, Wand2, CheckCircle
+  Eye, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Search, Wand2, CheckCircle,
+  Folder, User, Building2, Link2, ExternalLink, Filter
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
@@ -72,7 +74,7 @@ const STATUS_OPTIONS = [
   { value: "cancelled", label: "Cancelado", color: "bg-gray-100 text-gray-600" }
 ];
 
-export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
+export default function PropertyDocumentManager({ propertyId, propertyTitle, contactId, contactName }) {
   const queryClient = useQueryClient();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -81,15 +83,21 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("folders"); // "folders" or "list"
+  const [expandedFolders, setExpandedFolders] = useState(["legal", "technical", "financial"]);
   const [zoom, setZoom] = useState(100);
   const [currentPage, setCurrentPage] = useState(0);
+  const [linkContactDialogOpen, setLinkContactDialogOpen] = useState(false);
+  const [selectedDocForLink, setSelectedDocForLink] = useState(null);
 
   const [formData, setFormData] = useState({
     document_type: "other",
     description: "",
     expiry_date: "",
     is_public: false,
-    status: "draft"
+    status: "draft",
+    linked_contact_ids: contactId ? [contactId] : [],
+    linked_contact_names: contactName ? [contactName] : []
   });
 
   const [processingOCR, setProcessingOCR] = useState(false);
@@ -99,6 +107,11 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle }) {
     queryKey: ['property-documents', propertyId],
     queryFn: () => base44.entities.PropertyDocument.filter({ property_id: propertyId }, '-upload_date'),
     enabled: !!propertyId
+  });
+
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
   });
 
   const createMutation = useMutation({
@@ -222,7 +235,9 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
             important_dates: ocrData.important_dates || [],
             detected_fields: ocrData.detected_fields || {},
             processed_at: new Date().toISOString()
-          } : null
+          } : null,
+          linked_contact_ids: formData.linked_contact_ids || [],
+          linked_contact_names: formData.linked_contact_names || []
         };
 
         await createMutation.mutateAsync(docData);
@@ -245,8 +260,44 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
       description: "",
       expiry_date: "",
       is_public: false,
-      status: "draft"
+      status: "draft",
+      linked_contact_ids: contactId ? [contactId] : [],
+      linked_contact_names: contactName ? [contactName] : []
     });
+  };
+
+  const updateDocumentMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.PropertyDocument.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['property-documents'] });
+      toast.success("Documento atualizado");
+      setLinkContactDialogOpen(false);
+    },
+  });
+
+  const handleLinkContact = (contactToLink) => {
+    const currentLinked = selectedDocForLink.linked_contact_ids || [];
+    const currentNames = selectedDocForLink.linked_contact_names || [];
+    
+    if (currentLinked.includes(contactToLink.id)) {
+      // Remove
+      updateDocumentMutation.mutate({
+        id: selectedDocForLink.id,
+        data: {
+          linked_contact_ids: currentLinked.filter(id => id !== contactToLink.id),
+          linked_contact_names: currentNames.filter(name => name !== contactToLink.full_name)
+        }
+      });
+    } else {
+      // Add
+      updateDocumentMutation.mutate({
+        id: selectedDocForLink.id,
+        data: {
+          linked_contact_ids: [...currentLinked, contactToLink.id],
+          linked_contact_names: [...currentNames, contactToLink.full_name]
+        }
+      });
+    }
   };
 
   const handleViewDocument = async (doc) => {
@@ -303,7 +354,9 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
       doc.ocr_data?.key_entities?.some(e => e.toLowerCase().includes(searchTerm.toLowerCase())) ||
       doc.ocr_data?.detected_fields && Object.values(doc.ocr_data.detected_fields).some(v => 
         String(v).toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      ) ||
+      // Pesquisar em contactos vinculados
+      doc.linked_contact_names?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     if (categoryFilter === "all") return matchesSearch;
     
@@ -312,6 +365,17 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
     );
     return matchesSearch && category && DOC_CATEGORIES[categoryFilter]?.types.some(t => t.id === doc.document_type);
   });
+
+  // Agrupar documentos por categoria para visualização em pastas
+  const docsByCategory = React.useMemo(() => {
+    const grouped = {};
+    Object.keys(DOC_CATEGORIES).forEach(catKey => {
+      grouped[catKey] = filteredDocs.filter(doc => {
+        return DOC_CATEGORIES[catKey].types.some(t => t.id === doc.document_type);
+      });
+    });
+    return grouped;
+  }, [filteredDocs]);
 
   const isImage = (fileType) => fileType?.startsWith('image/');
   const isPDF = (fileType) => fileType === 'application/pdf';
@@ -325,27 +389,48 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
               <FileText className="w-5 h-5" />
               Documentos do Imóvel ({documents.length})
             </CardTitle>
-            <Button onClick={() => setUploadDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Documentos
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                <Button 
+                  size="sm" 
+                  variant={viewMode === "folders" ? "default" : "ghost"}
+                  className="h-7 px-2"
+                  onClick={() => setViewMode("folders")}
+                >
+                  <Folder className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  className="h-7 px-2"
+                  onClick={() => setViewMode("list")}
+                >
+                  <FileText className="w-4 h-4" />
+                </Button>
+              </div>
+              <Button onClick={() => setUploadDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
         <CardContent>
-          {documents.length > 3 && (
-            <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Pesquisar documentos..."
-                  className="pl-8"
-                />
-              </div>
+          {/* Search and Filters */}
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Pesquisar documentos, OCR, contactos..."
+                className="pl-8 h-9"
+              />
+            </div>
+            {viewMode === "list" && (
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-48 h-9">
                   <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
@@ -355,125 +440,81 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          )}
+            )}
+          </div>
 
           {filteredDocs.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <FileText className="w-16 h-16 mx-auto mb-3 opacity-30" />
               <p>Sem documentos</p>
             </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredDocs.map((doc) => {
-                const typeInfo = getDocTypeInfo(doc.document_type);
-                const daysUntilExpiry = doc.expiry_date ? differenceInDays(new Date(doc.expiry_date), new Date()) : null;
-                const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
-                const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
-                const statusInfo = STATUS_OPTIONS.find(s => s.value === doc.status) || STATUS_OPTIONS[0];
+          ) : viewMode === "folders" ? (
+            /* Folder View */
+            <Accordion type="multiple" value={expandedFolders} onValueChange={setExpandedFolders} className="space-y-2">
+              {Object.entries(DOC_CATEGORIES).map(([catKey, category]) => {
+                const categoryDocs = docsByCategory[catKey] || [];
+                if (categoryDocs.length === 0 && searchTerm) return null;
 
                 return (
-                  <div 
-                    key={doc.id} 
-                    className={`flex items-center justify-between p-3 rounded-lg border ${
-                      isExpired ? "border-red-200 bg-red-50" : "hover:bg-slate-50 border-slate-200"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0">{typeInfo.icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-slate-900 truncate">{doc.document_name}</p>
-                        {doc.ocr_processed && (
-                          <Badge className="bg-purple-100 text-purple-700 text-xs" title="Processado com OCR">
-                            <Wand2 className="w-3 h-3" />
-                          </Badge>
-                        )}
-                      </div>
-                      {doc.description && (
-                        <p className="text-xs text-slate-600 truncate mt-0.5">{doc.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant="outline" className="text-xs">
-                          {typeInfo.label}
+                  <AccordionItem key={catKey} value={catKey} className={`border rounded-lg ${category.color}`}>
+                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex items-center gap-3">
+                          <Folder className="w-5 h-5 text-slate-600" />
+                          <span className="font-semibold text-slate-900">{category.label}</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {categoryDocs.length}
                         </Badge>
-                        <Badge className={`text-xs ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </Badge>
-                        {doc.is_public ? (
-                          <Badge variant="outline" className="text-xs">
-                            <Globe className="w-3 h-3 mr-1" />
-                            Público
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs">
-                            <Lock className="w-3 h-3 mr-1" />
-                            Privado
-                          </Badge>
-                        )}
-                        {isExpired && (
-                          <Badge className="bg-red-100 text-red-800 text-xs">
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            Expirado
-                          </Badge>
-                        )}
-                        {isExpiringSoon && !isExpired && (
-                          <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                            {daysUntilExpiry}d restantes
-                          </Badge>
-                        )}
-                        {doc.ocr_data?.key_entities?.length > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            {doc.ocr_data.key_entities.slice(0, 2).join(', ')}
-                            {doc.ocr_data.key_entities.length > 2 && ` +${doc.ocr_data.key_entities.length - 2}`}
-                          </Badge>
-                        )}
-                        {doc.upload_date && (
-                          <span className="text-xs text-slate-500">
-                            {format(new Date(doc.upload_date), 'dd/MM/yyyy HH:mm')}
-                          </span>
-                        )}
                       </div>
-                    </div>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      {(isImage(doc.file_type) || isPDF(doc.file_type)) && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleViewDocument(doc)}
-                          title="Visualizar"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      {categoryDocs.length === 0 ? (
+                        <p className="text-sm text-slate-500 text-center py-4">Sem documentos nesta categoria</p>
+                      ) : (
+                        <div className="space-y-2 mt-2">
+                          {categoryDocs.map((doc) => (
+                            <DocumentRow 
+                              key={doc.id} 
+                              doc={doc} 
+                              onView={handleViewDocument}
+                              onDownload={handleDownload}
+                              onDelete={() => deleteMutation.mutate(doc.id)}
+                              onLinkContact={() => {
+                                setSelectedDocForLink(doc);
+                                setLinkContactDialogOpen(true);
+                              }}
+                              getDocTypeInfo={getDocTypeInfo}
+                              isImage={isImage}
+                              isPDF={isPDF}
+                            />
+                          ))}
+                        </div>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDownload(doc)}
-                        title="Descarregar"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
-                        onClick={() => {
-                          if (confirm("Eliminar documento?")) {
-                            deleteMutation.mutate(doc.id);
-                          }
-                        }}
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 );
               })}
+            </Accordion>
+          ) : (
+            /* List View */
+            <div className="space-y-2">
+              {filteredDocs.map((doc) => (
+                <DocumentRow 
+                  key={doc.id} 
+                  doc={doc} 
+                  onView={handleViewDocument}
+                  onDownload={handleDownload}
+                  onDelete={() => deleteMutation.mutate(doc.id)}
+                  onLinkContact={() => {
+                    setSelectedDocForLink(doc);
+                    setLinkContactDialogOpen(true);
+                  }}
+                  getDocTypeInfo={getDocTypeInfo}
+                  isImage={isImage}
+                  isPDF={isPDF}
+                />
+              ))}
             </div>
           )}
         </CardContent>
@@ -589,6 +630,50 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
               <Label htmlFor="is_public" className="text-sm cursor-pointer">
                 Documento público (visível em feeds e integrações)
               </Label>
+            </div>
+
+            {/* Link to Contacts */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Vincular a Contactos</Label>
+              <div className="border rounded-lg p-3 bg-slate-50 max-h-40 overflow-y-auto">
+                {allContacts.length === 0 ? (
+                  <p className="text-xs text-slate-500 text-center py-2">Sem contactos disponíveis</p>
+                ) : (
+                  <div className="space-y-1">
+                    {allContacts.slice(0, 10).map(contact => {
+                      const isLinked = formData.linked_contact_ids?.includes(contact.id);
+                      return (
+                        <div key={contact.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`contact-${contact.id}`}
+                            checked={isLinked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  linked_contact_ids: [...(formData.linked_contact_ids || []), contact.id],
+                                  linked_contact_names: [...(formData.linked_contact_names || []), contact.full_name]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  linked_contact_ids: formData.linked_contact_ids?.filter(id => id !== contact.id) || [],
+                                  linked_contact_names: formData.linked_contact_names?.filter(name => name !== contact.full_name) || []
+                                });
+                              }
+                            }}
+                            className="rounded"
+                          />
+                          <Label htmlFor={`contact-${contact.id}`} className="text-xs cursor-pointer flex-1">
+                            {contact.full_name}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {processingOCR && (
@@ -777,6 +862,185 @@ Se não conseguires extrair alguma informação, usa null ou array vazio.`,
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Link Contact Dialog */}
+      <Dialog open={linkContactDialogOpen} onOpenChange={setLinkContactDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Vincular Documento a Contactos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            <p className="text-sm text-slate-600">
+              Documento: <strong>{selectedDocForLink?.document_name}</strong>
+            </p>
+            
+            {selectedDocForLink?.linked_contact_names?.length > 0 && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <Label className="text-xs font-semibold text-green-900 mb-2 block">Contactos Vinculados</Label>
+                <div className="flex flex-wrap gap-1">
+                  {selectedDocForLink.linked_contact_names.map((name, idx) => (
+                    <Badge key={idx} className="bg-green-100 text-green-800 text-xs">
+                      <User className="w-3 h-3 mr-1" />
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border rounded-lg p-3 max-h-64 overflow-y-auto space-y-1">
+              {allContacts.map(contact => {
+                const isLinked = selectedDocForLink?.linked_contact_ids?.includes(contact.id);
+                return (
+                  <div 
+                    key={contact.id} 
+                    className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer ${
+                      isLinked ? 'bg-blue-50 border border-blue-200' : ''
+                    }`}
+                    onClick={() => handleLinkContact(contact)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isLinked}
+                        onChange={() => {}}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">{contact.full_name}</span>
+                    </div>
+                    {isLinked && <CheckCircle className="w-4 h-4 text-blue-600" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+// Document Row Component
+function DocumentRow({ doc, onView, onDownload, onDelete, onLinkContact, getDocTypeInfo, isImage, isPDF }) {
+  const typeInfo = getDocTypeInfo(doc.document_type);
+  const daysUntilExpiry = doc.expiry_date ? differenceInDays(new Date(doc.expiry_date), new Date()) : null;
+  const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
+  const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry >= 0 && daysUntilExpiry <= 30;
+  const statusInfo = STATUS_OPTIONS.find(s => s.value === doc.status) || STATUS_OPTIONS[0];
+
+  return (
+    <div 
+      className={`flex items-center justify-between p-3 rounded-lg border ${
+        isExpired ? "border-red-200 bg-red-50" : "hover:bg-slate-50 border-slate-200 bg-white"
+      }`}
+    >
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <span className="text-2xl flex-shrink-0">{typeInfo.icon}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="font-medium text-slate-900 truncate">{doc.document_name}</p>
+            {doc.ocr_processed && (
+              <Badge className="bg-purple-100 text-purple-700 text-xs" title="Processado com OCR">
+                <Wand2 className="w-3 h-3" />
+              </Badge>
+            )}
+          </div>
+          {doc.description && (
+            <p className="text-xs text-slate-600 truncate mt-0.5">{doc.description}</p>
+          )}
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <Badge variant="outline" className="text-xs">
+              {typeInfo.label}
+            </Badge>
+            <Badge className={`text-xs ${statusInfo.color}`}>
+              {statusInfo.label}
+            </Badge>
+            {doc.is_public ? (
+              <Badge variant="outline" className="text-xs">
+                <Globe className="w-3 h-3 mr-1" />
+                Público
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                <Lock className="w-3 h-3 mr-1" />
+                Privado
+              </Badge>
+            )}
+            {isExpired && (
+              <Badge className="bg-red-100 text-red-800 text-xs">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                Expirado
+              </Badge>
+            )}
+            {isExpiringSoon && !isExpired && (
+              <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                {daysUntilExpiry}d restantes
+              </Badge>
+            )}
+            {doc.linked_contact_names?.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-800">
+                <User className="w-3 h-3 mr-1" />
+                {doc.linked_contact_names.length} contacto{doc.linked_contact_names.length > 1 ? 's' : ''}
+              </Badge>
+            )}
+            {doc.ocr_data?.key_entities?.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {doc.ocr_data.key_entities.slice(0, 2).join(', ')}
+                {doc.ocr_data.key_entities.length > 2 && ` +${doc.ocr_data.key_entities.length - 2}`}
+              </Badge>
+            )}
+            {doc.upload_date && (
+              <span className="text-xs text-slate-500">
+                {format(new Date(doc.upload_date), 'dd/MM/yyyy HH:mm')}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-1 flex-shrink-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={onLinkContact}
+          title="Vincular a contacto"
+        >
+          <Link2 className="w-4 h-4" />
+        </Button>
+        {(isImage(doc.file_type) || isPDF(doc.file_type)) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => onView(doc)}
+            title="Visualizar"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => onDownload(doc)}
+          title="Descarregar"
+        >
+          <Download className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+          onClick={() => {
+            if (confirm("Eliminar documento?")) {
+              onDelete();
+            }
+          }}
+          title="Eliminar"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
