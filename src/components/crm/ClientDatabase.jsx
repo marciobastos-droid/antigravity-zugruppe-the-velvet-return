@@ -1643,8 +1643,12 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
+                <TabsTrigger value="opportunities" className="flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" />
+                  Oportunidades
+                </TabsTrigger>
                 <TabsTrigger value="emails" className="flex items-center gap-1">
                   <Mail className="w-3 h-3" />
                   Emails
@@ -1659,6 +1663,134 @@ export default function ClientDatabase() {
                   Portal
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="opportunities" className="mt-4">
+                {/* Opportunities List with Quick Access */}
+                <div className="space-y-3">
+                  {getClientOpportunities(selectedClient).length === 0 ? (
+                    <Card className="text-center py-8">
+                      <CardContent>
+                        <Target className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-slate-600 mb-3">Sem oportunidades associadas</p>
+                        <Button 
+                          onClick={() => setOpportunityDialogOpen(true)}
+                          size="sm"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Oportunidade
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-slate-900">
+                          {getClientOpportunities(selectedClient).length} Oportunidade{getClientOpportunities(selectedClient).length > 1 ? 's' : ''}
+                        </h4>
+                        <Button 
+                          onClick={() => setOpportunityDialogOpen(true)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Nova
+                        </Button>
+                      </div>
+                      {getClientOpportunities(selectedClient).map(opp => (
+                        <Card key={opp.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-2">
+                                  {opp.ref_id && (
+                                    <Badge variant="outline" className="text-xs font-mono">
+                                      {opp.ref_id}
+                                    </Badge>
+                                  )}
+                                  <Badge className={
+                                    opp.status === 'new' ? 'bg-blue-100 text-blue-800' :
+                                    opp.status === 'contacted' ? 'bg-purple-100 text-purple-800' :
+                                    opp.status === 'visit_scheduled' ? 'bg-amber-100 text-amber-800' :
+                                    opp.status === 'proposal' ? 'bg-indigo-100 text-indigo-800' :
+                                    opp.status === 'negotiation' ? 'bg-orange-100 text-orange-800' :
+                                    opp.status === 'won' ? 'bg-green-100 text-green-800' :
+                                    'bg-red-100 text-red-800'
+                                  }>
+                                    {opp.status === 'new' ? 'Novo' :
+                                     opp.status === 'contacted' ? 'Contactado' :
+                                     opp.status === 'visit_scheduled' ? 'Visita Agendada' :
+                                     opp.status === 'proposal' ? 'Proposta' :
+                                     opp.status === 'negotiation' ? 'Negociação' :
+                                     opp.status === 'won' ? 'Ganho' : 'Perdido'}
+                                  </Badge>
+                                  {opp.qualification_status && (
+                                    <Badge className={
+                                      opp.qualification_status === 'hot' ? 'bg-red-500 text-white' :
+                                      opp.qualification_status === 'warm' ? 'bg-orange-500 text-white' :
+                                      opp.qualification_status === 'cold' ? 'bg-blue-500 text-white' :
+                                      'bg-slate-400 text-white'
+                                    }>
+                                      {opp.qualification_status === 'hot' ? '🔥 Hot' :
+                                       opp.qualification_status === 'warm' ? '🌡️ Warm' :
+                                       opp.qualification_status === 'cold' ? '❄️ Cold' : 'Não Qualificado'}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="font-medium text-slate-900 mb-1">
+                                  {opp.lead_type === 'comprador' ? '🏠 Comprador' : 
+                                   opp.lead_type === 'vendedor' ? '🏷️ Vendedor' : 
+                                   opp.lead_type === 'parceiro_comprador' ? '🤝 Parceiro Comprador' : 
+                                   '🤝 Parceiro Vendedor'}
+                                </p>
+                                {opp.property_title && (
+                                  <p className="text-sm text-slate-600 flex items-center gap-1 mb-2">
+                                    <Building2 className="w-3 h-3" />
+                                    {opp.property_title}
+                                  </p>
+                                )}
+                                {opp.budget && (
+                                  <p className="text-sm text-green-600 font-medium">
+                                    Orçamento: €{opp.budget.toLocaleString()}
+                                  </p>
+                                )}
+                                {opp.estimated_value && (
+                                  <p className="text-sm text-blue-600 font-medium">
+                                    Valor Estimado: €{opp.estimated_value.toLocaleString()}
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    {format(new Date(opp.created_date), "dd/MM/yyyy")}
+                                  </span>
+                                  {opp.probability && (
+                                    <span className="flex items-center gap-1">
+                                      <TrendingUp className="w-3 h-3" />
+                                      {opp.probability}% prob.
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  // Abrir o LeadDetailPanel passando esta oportunidade
+                                  // Implementar state para mostrar LeadDetailPanel
+                                  window.open(`${createPageUrl("CRMAdvanced")}?tab=opportunities&oppId=${opp.id}`, '_blank');
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                Ver Detalhes
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </TabsContent>
 
               <TabsContent value="emails" className="mt-4">
                 <Suspense fallback={<LoadingFallback />}>
@@ -2150,7 +2282,22 @@ export default function ClientDatabase() {
 
               <TabsContent value="communications" className="mt-4">
                 <Suspense fallback={<LoadingFallback />}>
-                  <CommunicationHistory contactId={selectedClient.id} />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-slate-900">
+                        {getClientCommunications(selectedClient.id).length} Comunicação{getClientCommunications(selectedClient.id).length !== 1 ? 'ões' : ''}
+                      </h4>
+                      <Button 
+                        onClick={() => setCommDialogOpen(true)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Registar
+                      </Button>
+                    </div>
+                    <CommunicationHistory contactId={selectedClient.id} />
+                  </div>
                 </Suspense>
               </TabsContent>
 

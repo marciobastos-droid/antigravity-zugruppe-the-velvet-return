@@ -849,32 +849,32 @@ export default function PropertyDetails() {
                 </CardHeader>
                 <CardContent>
                   <React.Suspense fallback={<div className="py-8"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>}>
-                    <Tabs defaultValue="maintenance" className="w-full">
+                    <Tabs defaultValue="documents" className="w-full">
                       <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="documents">Documentos</TabsTrigger>
                         <TabsTrigger value="maintenance">Manutenção</TabsTrigger>
                         <TabsTrigger value="leases">Arrendamentos</TabsTrigger>
-                        <TabsTrigger value="documents">Documentos</TabsTrigger>
                       </TabsList>
-                      
+
+                      <TabsContent value="documents" className="mt-6">
+                        <PropertyDocumentManager 
+                          propertyId={propertyId} 
+                          propertyTitle={property.title}
+                        />
+                      </TabsContent>
+
                       <TabsContent value="maintenance" className="mt-6">
                         <MaintenanceManager 
                           propertyId={propertyId} 
                           propertyTitle={property.title}
                         />
                       </TabsContent>
-                      
+
                       <TabsContent value="leases" className="mt-6">
                         <LeaseManager 
                           propertyId={propertyId} 
                           propertyTitle={property.title}
                           propertyAddress={`${property.address}, ${property.city}`}
-                        />
-                      </TabsContent>
-                      
-                      <TabsContent value="documents" className="mt-6">
-                        <PropertyDocumentManager 
-                          propertyId={propertyId} 
-                          propertyTitle={property.title}
                         />
                       </TabsContent>
                     </Tabs>

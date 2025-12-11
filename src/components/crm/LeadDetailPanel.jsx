@@ -748,6 +748,15 @@ Extrai:
 
           {/* Properties Tab */}
           <TabsContent value="properties" className="mt-0 space-y-4">
+            {/* Documents Section */}
+            <DocumentUploader 
+              leadId={lead.id}
+              leadName={lead.buyer_name}
+              propertyId={lead.property_id}
+              propertyTitle={lead.property_title}
+              entityType="lead"
+            />
+
             <LeadPropertyMatching 
               lead={lead}
               onAssociateProperty={handleAssociateProperty}
