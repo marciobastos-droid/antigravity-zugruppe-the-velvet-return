@@ -23,6 +23,7 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [improvingDescription, setImprovingDescription] = useState(false);
+  const [improvingTitle, setImprovingTitle] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -248,6 +249,62 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     setImprovingDescription(false);
   };
 
+  const handleImproveTitle = async () => {
+    if (!formData.property_type || !formData.city) {
+      toast.error("Preencha o tipo de imóvel e cidade primeiro");
+      return;
+    }
+
+    setImprovingTitle(true);
+
+    try {
+      const propertyDetails = `
+Tipo: ${formData.property_type}
+Negócio: ${formData.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+${formData.bedrooms ? `Quartos: T${formData.bedrooms}` : ''}
+${formData.useful_area || formData.square_feet ? `Área: ${formData.useful_area || formData.square_feet}m²` : ''}
+Localização: ${formData.city}, ${formData.state}
+${formData.development_name ? `Empreendimento: ${formData.development_name}` : ''}
+${formData.energy_certificate ? `Cert. Energético: ${formData.energy_certificate}` : ''}
+${formData.amenities?.length > 0 ? `Destaques: ${formData.amenities.slice(0, 3).join(', ')}` : ''}
+`;
+
+      const improvedTitle = await base44.integrations.Core.InvokeLLM({
+        prompt: `És um especialista em marketing imobiliário português.
+
+MISSÃO: Criar um título CURTO, ATRATIVO e PROFISSIONAL para um imóvel.
+
+DETALHES DO IMÓVEL:
+${propertyDetails}
+
+INSTRUÇÕES:
+1. Máximo 60-80 caracteres
+2. Incluir tipologia (ex: T2, T3, Moradia)
+3. Incluir localização principal
+4. Destacar 1-2 características únicas se houver
+5. Tom profissional e direto
+6. SEM emojis, SEM excesso de adjetivos
+7. Formato: "[Tipo] [Tipologia] em [Localização] [+ característica opcional]"
+
+EXEMPLOS:
+- "Apartamento T2 Renovado no Centro de Lisboa"
+- "Moradia T4 com Piscina em Cascais"
+- "Terreno Urbano 500m² na Comporta"
+- "Escritório Moderno 120m² no Porto"
+
+Retorna APENAS o título melhorado, nada mais.`,
+      });
+
+      setFormData(prev => ({ ...prev, title: improvedTitle.trim() }));
+      toast.success("Título melhorado com IA!");
+    } catch (error) {
+      toast.error("Erro ao melhorar título");
+      console.error(error);
+    }
+
+    setImprovingTitle(false);
+  };
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -428,7 +485,29 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
             <CollapsibleContent className="pt-4 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <Label>Título *</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Título *</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleImproveTitle}
+                      disabled={improvingTitle}
+                      className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                    >
+                      {improvingTitle ? (
+                        <>
+                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                          A melhorar...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3 h-3 mr-2" />
+                          Melhorar com IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <Input
                     required
                     value={formData.title}
