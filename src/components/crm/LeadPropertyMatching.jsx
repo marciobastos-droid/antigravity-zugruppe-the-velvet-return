@@ -9,10 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Home, Sparkles, Loader2, Euro, Bed, Bath, Maximize, 
   MapPin, Check, X, Eye, Plus, ChevronDown, ChevronUp,
-  Send, Mail, MessageSquare, Save, Trash2
+  Send, Mail, MessageSquare, Save, Trash2, Calendar
 } from "lucide-react";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
+import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
 
 export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpdate }) {
   const queryClient = useQueryClient();
@@ -22,6 +23,8 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
   const [selectedForSend, setSelectedForSend] = React.useState([]);
   const [isSending, setIsSending] = React.useState(false);
   const [selectedAssociated, setSelectedAssociated] = React.useState([]);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = React.useState(false);
+  const [propertyToSchedule, setPropertyToSchedule] = React.useState(null);
 
   // Carregar imóveis já associados
   const associatedProperties = lead.associated_properties || [];
@@ -886,6 +889,18 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => {
+                            setPropertyToSchedule(ap.property_id);
+                            setScheduleDialogOpen(true);
+                          }}
+                          className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700"
+                          title="Agendar visita"
+                        >
+                          <Calendar className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => window.open(`/PropertyDetails?id=${ap.property_id}`, '_blank')}
                           className="h-6 w-6 p-0"
                         >
@@ -907,6 +922,20 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
             </div>
           )}
         </CardContent>
+      )}
+
+      {/* Schedule Visit Dialog */}
+      {scheduleDialogOpen && (
+        <CreateAppointmentDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          opportunityId={lead.id}
+          propertyId={propertyToSchedule}
+          onSuccess={() => {
+            toast.success("Visita agendada com sucesso!");
+            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+          }}
+        />
       )}
     </Card>
   );

@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { 
   MapPin, Calendar, Clock, User, Phone, Mail, Printer, 
   FileText, CheckSquare, Home, Bed, Bath, Maximize, Star,
-  Navigation, Download
+  Navigation, Download, Send, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 export default function VisitRouteGenerator({ properties, open, onOpenChange }) {
   const printRef = useRef();
@@ -22,9 +23,64 @@ export default function VisitRouteGenerator({ properties, open, onOpenChange }) 
   const [clientEmail, setClientEmail] = useState("");
   const [agentName, setAgentName] = useState("");
   const [notes, setNotes] = useState("");
+  const [creating, setCreating] = useState(false);
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCreateAppointments = async () => {
+    if (!clientName || !clientEmail) {
+      toast.error("Preencha o nome e email do cliente");
+      return;
+    }
+
+    setCreating(true);
+    
+    try {
+      const user = await base44.auth.me();
+      const appointmentDateTime = `${visitDate}T${startTime}:00`;
+      let currentTime = new Date(appointmentDateTime);
+
+      for (let i = 0; i < properties.length; i++) {
+        const property = properties[i];
+        
+        const appointment = await base44.entities.Appointment.create({
+          title: `Visita: ${property.title}`,
+          property_id: property.id,
+          property_title: property.title,
+          property_address: `${property.address || ''}, ${property.city}`,
+          client_name: clientName,
+          client_email: clientEmail,
+          client_phone: clientPhone,
+          assigned_agent: user.email,
+          appointment_date: currentTime.toISOString(),
+          duration_minutes: 60,
+          notes: notes,
+          status: "scheduled"
+        });
+
+        // Send notifications
+        await base44.functions.invoke('scheduleVisit', {
+          appointmentId: appointment.id,
+          clientEmail: clientEmail,
+          clientPhone: clientPhone,
+          agentEmail: user.email,
+          propertyOwnerEmail: property.created_by,
+          sendCalendarInvite: true
+        });
+
+        // Increment time for next visit (60min + 30min travel)
+        currentTime = new Date(currentTime.getTime() + 90 * 60000);
+      }
+
+      toast.success(`${properties.length} visitas criadas e notificações enviadas!`);
+    } catch (error) {
+      console.error('Error creating appointments:', error);
+      toast.error("Erro ao criar visitas");
+    }
+    
+    setCreating(false);
   };
 
   const propertyTypeLabels = {
@@ -119,11 +175,28 @@ export default function VisitRouteGenerator({ properties, open, onOpenChange }) 
           </div>
 
           <div className="flex gap-2 mt-6">
-            <Button onClick={handlePrint} className="flex-1">
+            <Button 
+              onClick={handleCreateAppointments} 
+              disabled={creating || !clientName || !clientEmail}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              {creating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A criar visitas...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Criar {properties.length} Visita(s) e Enviar
+                </>
+              )}
+            </Button>
+            <Button onClick={handlePrint} variant="outline" className="flex-1">
               <Printer className="w-4 h-4 mr-2" />
               Imprimir
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
           </div>

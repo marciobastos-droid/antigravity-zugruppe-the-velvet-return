@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import moment from "moment";
+import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
 
 const STAGES = [
   { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", icon: Clock },
@@ -34,6 +35,9 @@ export default function OpportunityKanban({
   onEdit,
   onDelete 
 }) {
+  const [scheduleDialogOpen, setScheduleDialogOpen] = React.useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = React.useState(null);
+
   const getOpportunitiesByStage = (stageId) => {
     return opportunities.filter(o => o.status === stageId);
   };
@@ -143,6 +147,14 @@ export default function OpportunityKanban({
                                         <Eye className="w-4 h-4 mr-2" />
                                         Ver Detalhes
                                       </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        setSelectedOpportunity(opp);
+                                        setScheduleDialogOpen(true);
+                                      }}>
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        Agendar Visita
+                                      </DropdownMenuItem>
                                       <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(opp); }}>
                                         Editar
                                       </DropdownMenuItem>
@@ -239,6 +251,21 @@ export default function OpportunityKanban({
           );
         })}
       </div>
+
+      {/* Schedule Visit Dialog */}
+      {selectedOpportunity && (
+        <CreateAppointmentDialog
+          open={scheduleDialogOpen}
+          onOpenChange={setScheduleDialogOpen}
+          opportunityId={selectedOpportunity.id}
+          propertyId={selectedOpportunity.property_id}
+          onSuccess={() => {
+            toast.success("Visita agendada com sucesso!");
+            setScheduleDialogOpen(false);
+            setSelectedOpportunity(null);
+          }}
+        />
+      )}
     </DragDropContext>
   );
 }

@@ -71,17 +71,49 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const property = properties.find(p => p.id === data.property_id);
-      return await base44.entities.Appointment.create({
+      const opportunity = opportunities.find(o => o.id === data.lead_id);
+      
+      // Create appointment
+      const appointment = await base44.entities.Appointment.create({
         ...data,
         property_title: property?.title,
         property_address: property ? `${property.address}, ${property.city}` : "",
         status: "scheduled"
       });
+
+      // Send notifications and calendar invite
+      try {
+        await base44.functions.invoke('scheduleVisit', {
+          appointmentId: appointment.id,
+          clientEmail: data.client_email,
+          clientPhone: data.client_phone,
+          agentEmail: data.assigned_agent,
+          propertyOwnerEmail: property?.created_by,
+          sendCalendarInvite: true
+        });
+      } catch (error) {
+        console.error('Error sending notifications:', error);
+        toast.warning("Visita criada mas houve erro ao enviar notificações");
+      }
+
+      // Update opportunity status if linked
+      if (data.lead_id && opportunity) {
+        try {
+          await base44.entities.Opportunity.update(data.lead_id, {
+            status: 'visit_scheduled',
+            next_followup_date: new Date(data.appointment_date).toISOString()
+          });
+        } catch (error) {
+          console.error('Error updating opportunity:', error);
+        }
+      }
+
+      return appointment;
     },
     onSuccess: () => {
       console.log('[CreateAppointmentDialog] Success, calling callback');
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      toast.success("Visita agendada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['appointments', 'opportunities'] });
+      toast.success("Visita agendada e notificações enviadas!");
       
       // Call onSuccess callback FIRST
       if (onSuccess) {
