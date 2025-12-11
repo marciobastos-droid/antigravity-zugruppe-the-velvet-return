@@ -36,6 +36,7 @@ import ContactMatching from "./ContactMatching";
 import ContactRequirements from "./ContactRequirements";
 import PropertyLinker from "./PropertyLinker";
 import QuickCommunicationLogger from "./QuickCommunicationLogger";
+import VisitRouteGenerator from "../visits/VisitRouteGenerator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,6 +110,7 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
   const [commLoggerOpen, setCommLoggerOpen] = React.useState(false);
+  const [visitRouteOpen, setVisitRouteOpen] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -755,7 +757,18 @@ Extrai:
             {lead.associated_properties?.length > 0 && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Imóveis Associados ({lead.associated_properties.length})</CardTitle>
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    <span>Imóveis Associados ({lead.associated_properties.length})</span>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setVisitRouteOpen(true)}
+                      className="h-7 text-xs"
+                    >
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Gerar Roteiro
+                    </Button>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {lead.associated_properties.map((ap, idx) => {
@@ -1070,6 +1083,15 @@ Extrai:
         open={propertyLinkerOpen}
         onOpenChange={setPropertyLinkerOpen}
         opportunity={lead}
+      />
+
+      {/* Visit Route Generator Dialog */}
+      <VisitRouteGenerator
+        properties={properties.filter(p => 
+          lead.associated_properties?.some(ap => ap.property_id === p.id)
+        )}
+        open={visitRouteOpen}
+        onOpenChange={setVisitRouteOpen}
       />
     </div>
   );
