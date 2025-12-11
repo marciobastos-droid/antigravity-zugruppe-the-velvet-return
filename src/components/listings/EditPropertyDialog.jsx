@@ -295,7 +295,9 @@ EXEMPLOS:
 Retorna APENAS o título melhorado, nada mais.`,
       });
 
-      setFormData(prev => ({ ...prev, title: improvedTitle.trim() }));
+      // Remover aspas do início e fim se existirem
+      const cleanedTitle = improvedTitle.trim().replace(/^["']|["']$/g, '');
+      setFormData(prev => ({ ...prev, title: cleanedTitle }));
       toast.success("Título melhorado com IA!");
     } catch (error) {
       toast.error("Erro ao melhorar título");
