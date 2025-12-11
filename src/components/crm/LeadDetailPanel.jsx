@@ -1090,6 +1090,7 @@ Extrai:
         properties={properties.filter(p => 
           lead.associated_properties?.some(ap => ap.property_id === p.id)
         )}
+        opportunityId={lead.id}
         open={visitRouteOpen}
         onOpenChange={setVisitRouteOpen}
       />
