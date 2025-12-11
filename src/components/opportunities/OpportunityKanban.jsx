@@ -78,7 +78,7 @@ export default function OpportunityKanban({
           const StageIcon = stage.icon;
 
           return (
-            <div key={stage.id} className="flex-shrink-0 w-80">
+            <div key={stage.id} className="flex-shrink-0 w-64">
               <div className={`rounded-t-lg p-3 ${stage.color} border border-b-0`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
