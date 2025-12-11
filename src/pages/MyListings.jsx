@@ -54,10 +54,10 @@ const PropertyCard = memo(function PropertyCard({
   }, [property.id, onToggleSelect]);
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200 group">
-      <CardContent className="p-0">
-        <div className="flex flex-col">
-          <div className="relative h-48 overflow-hidden bg-slate-100">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-200 group h-full flex flex-col">
+      <CardContent className="p-0 flex-1 flex flex-col">
+        <div className="flex flex-col flex-1">
+          <div className="relative h-44 sm:h-48 overflow-hidden bg-slate-100">
             <img
               src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
               alt={property.title}
@@ -67,12 +67,21 @@ const PropertyCard = memo(function PropertyCard({
                 e.target.src = "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400";
               }}
             />
-            <div className="absolute top-2 left-2" onClick={(e) => {
-              e.stopPropagation();
-              handleSelect();
-            }}>
-              <div className="bg-white/90 backdrop-blur-sm rounded p-1">
-                <Checkbox checked={isSelected} onCheckedChange={handleSelect} />
+            <div 
+              className="absolute top-2 left-2 z-10 cursor-pointer touch-manipulation active:scale-95" 
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleSelect();
+              }}
+            >
+              <div className="bg-white/95 backdrop-blur-sm rounded p-2 shadow-sm hover:shadow-md transition-shadow">
+                <Checkbox 
+                  checked={isSelected} 
+                  onCheckedChange={handleSelect}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5"
+                />
               </div>
             </div>
             {property.featured && (
@@ -93,8 +102,8 @@ const PropertyCard = memo(function PropertyCard({
               </Badge>
             </div>
           </div>
-          <div className="p-3" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
-            <h3 className="font-semibold text-slate-900 line-clamp-1 mb-1 text-sm">{property.title}</h3>
+          <div className="p-3 flex-1 flex flex-col" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
+            <h3 className="font-semibold text-slate-900 line-clamp-2 mb-1 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[3rem]">{property.title}</h3>
             <div className="flex items-center text-slate-600 mb-2 text-xs">
               <MapPin className="w-3 h-3 mr-1" />
               <span className="line-clamp-1">
@@ -106,10 +115,10 @@ const PropertyCard = memo(function PropertyCard({
               {property.bathrooms > 0 && <span>🚿 {property.bathrooms}</span>}
               {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
             </div>
-            <div className="flex flex-wrap gap-1 mb-2">
-              <Badge variant="outline" className="text-xs">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
-              <Badge variant="outline" className="text-xs">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
-              <Badge className={`${statusColors[property.status]} text-xs`}>{statusLabels[property.status]}</Badge>
+            <div className="flex flex-wrap gap-1 mb-2 text-xs">
+              <Badge variant="outline" className="text-[10px] sm:text-xs">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
+              <Badge variant="outline" className="text-[10px] sm:text-xs">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
+              <Badge className={`${statusColors[property.status]} text-[10px] sm:text-xs`}>{statusLabels[property.status]}</Badge>
             </div>
             
             {/* Publication Status */}
@@ -181,12 +190,12 @@ const PropertyCard = memo(function PropertyCard({
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-1 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-wrap gap-1 pt-2 border-t mt-auto" onClick={(e) => e.stopPropagation()}>
               <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-                <Button variant="outline" size="sm" className="h-7 text-xs px-2"><Eye className="w-3 h-3 mr-1" />Ver</Button>
+                <Button variant="outline" size="sm" className="h-8 text-[10px] sm:text-xs px-2 touch-manipulation active:scale-95"><Eye className="w-3 h-3 mr-1" />Ver</Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={() => onEdit(property)} className="h-7 text-xs px-2"><Edit className="w-3 h-3 mr-1" />Editar</Button>
-              <Button variant="outline" size="sm" onClick={() => onDuplicate(property)} className="h-7 text-xs px-2"><Copy className="w-3 h-3" /></Button>
+              <Button variant="outline" size="sm" onClick={() => onEdit(property)} className="h-8 text-[10px] sm:text-xs px-2 touch-manipulation active:scale-95"><Edit className="w-3 h-3 mr-1" />Editar</Button>
+              <Button variant="outline" size="sm" onClick={() => onDuplicate(property)} className="h-8 text-[10px] sm:text-xs px-2 touch-manipulation active:scale-95"><Copy className="w-3 h-3" /></Button>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -195,7 +204,7 @@ const PropertyCard = memo(function PropertyCard({
                   setSelectedPropertyForPublication(property);
                   setPublicationHubOpen(true);
                 }}
-                className="h-7 text-xs px-2 border-blue-300 text-blue-600"
+                className="h-8 text-[10px] sm:text-xs px-2 border-blue-300 text-blue-600 touch-manipulation active:scale-95"
                 title="Central de Publicação"
               >
                 <BarChart3 className="w-3 h-3" />
@@ -208,11 +217,11 @@ const PropertyCard = memo(function PropertyCard({
                   setSelectedPropertyForAI(property);
                   setAiEnhancerOpen(true);
                 }}
-                className="h-7 text-xs px-2 border-purple-300 text-purple-600"
+                className="h-8 text-[10px] sm:text-xs px-2 border-purple-300 text-purple-600 touch-manipulation active:scale-95"
               >
                 <Wand2 className="w-3 h-3" />
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="h-7 text-xs px-2 text-red-600"><Trash2 className="w-3 h-3" /></Button>
+              <Button variant="outline" size="sm" onClick={() => onDelete(property.id)} className="h-8 text-[10px] sm:text-xs px-2 text-red-600 touch-manipulation active:scale-95"><Trash2 className="w-3 h-3" /></Button>
             </div>
           </div>
         </div>
