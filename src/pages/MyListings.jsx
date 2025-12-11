@@ -861,6 +861,12 @@ export default function MyListings() {
       ],
       customFilter: true
     },
+    price: {
+      type: FILTER_TYPES.numberRange,
+      label: "Preço",
+      field: "price",
+      prefix: "€"
+    },
     country: {
       type: FILTER_TYPES.select,
       label: "País",
@@ -890,12 +896,6 @@ export default function MyListings() {
       field: "city",
       options: allCities.map(c => ({ value: c, label: c })),
       advanced: true
-    },
-    price: {
-      type: FILTER_TYPES.numberRange,
-      label: "Preço",
-      field: "price",
-      prefix: "€"
     },
     useful_area: {
       type: FILTER_TYPES.numberRange,
