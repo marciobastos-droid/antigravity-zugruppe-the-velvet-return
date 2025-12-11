@@ -378,10 +378,10 @@ export default function ZuHaus() {
 
       {/* Contact Dialog */}
       <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">Contacte-nos</DialogTitle>
-            <p className="text-sm text-slate-600">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="pb-2 sm:pb-4">
+            <DialogTitle className="text-lg sm:text-2xl">Contacte-nos</DialogTitle>
+            <p className="text-xs sm:text-sm text-slate-600">
               Preencha o formulário e entraremos em contacto brevemente
             </p>
           </DialogHeader>
@@ -411,10 +411,10 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300">
+    <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
       <div className="relative">
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-          <div className="relative h-56 overflow-hidden bg-slate-100">
+          <div className="relative h-48 sm:h-56 overflow-hidden bg-slate-100">
             {images[imgIndex] ? (
               <OptimizedImage
                 src={images[imgIndex]}
@@ -425,17 +425,17 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-                <Home className="w-16 h-16 text-slate-300" />
+                <Home className="w-12 h-12 sm:w-16 sm:h-16 text-slate-300" />
               </div>
             )}
-            <div className="absolute top-3 left-3">
-              <Badge className="bg-white text-slate-900 border-0">
+            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1.5">
+              <Badge className="bg-white text-slate-900 border-0 text-xs">
                 {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
               </Badge>
             </div>
             {property.featured && (
-              <div className="absolute top-3 right-3">
-                <Badge className="bg-amber-400 text-slate-900 border-0">
+              <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                <Badge className="bg-amber-400 text-slate-900 border-0 text-xs">
                   <Star className="w-3 h-3 mr-1 fill-current" />
                   Destaque
                 </Badge>
@@ -443,29 +443,27 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
             )}
             
             {images.length > 1 && (
-              <>
-                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                  {images.slice(0, 5).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgIndex(i); }}
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {images.slice(0, 5).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setImgIndex(i); }}
+                    className={`w-2 h-2 sm:w-1.5 sm:h-1.5 rounded-full transition-all touch-manipulation ${i === imgIndex ? 'bg-white w-4 sm:w-4' : 'bg-white/60'}`}
+                  />
+                ))}
+              </div>
             )}
           </div>
         </Link>
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-          <div className="text-lg font-bold text-white">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 sm:p-4">
+          <div className="text-base sm:text-lg font-bold text-white">
             {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-            {property.listing_type === 'rent' && <span className="text-sm font-normal">/mês</span>}
+            {property.listing_type === 'rent' && <span className="text-xs sm:text-sm font-normal">/mês</span>}
           </div>
           {property.currency && property.currency !== 'EUR' && (() => {
             const eurValue = convertToEUR(property.price, property.currency);
             return eurValue ? (
-              <div className="text-xs text-white/90 mt-1">
+              <div className="text-xs text-white/90 mt-0.5 sm:mt-1">
                 ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
               </div>
             ) : null;
@@ -473,43 +471,43 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
         </div>
       </div>
 
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4 flex-1 flex flex-col">
         <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}>
-          <h3 className="font-bold text-slate-900 line-clamp-1 mb-1 group-hover:text-[#d22630] transition-colors">
+          <h3 className="font-bold text-base sm:text-lg text-slate-900 line-clamp-2 mb-1 group-hover:text-[#d22630] transition-colors min-h-[3rem] sm:min-h-0">
             {property.title}
           </h3>
-          <p className="text-sm text-slate-600 flex items-center gap-1 mb-3">
-            <MapPin className="w-4 h-4" />
-            {property.city}
+          <p className="text-xs sm:text-sm text-slate-600 flex items-center gap-1 mb-2 sm:mb-3">
+            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+            <span className="truncate">{property.city}</span>
           </p>
         </Link>
 
-        <div className="flex items-center gap-4 text-sm text-slate-600 mb-3 pb-3 border-b">
+        <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3 pb-2 sm:pb-3 border-b flex-wrap">
           {property.bedrooms > 0 && (
             <span className="flex items-center gap-1">
-              <Bed className="w-4 h-4" />
-              T{property.bedrooms}
+              <Bed className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="font-medium">T{property.bedrooms}</span>
             </span>
           )}
           {property.bathrooms > 0 && (
             <span className="flex items-center gap-1">
-              <Bath className="w-4 h-4" />
-              {property.bathrooms}
+              <Bath className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="font-medium">{property.bathrooms}</span>
             </span>
           )}
           {(property.useful_area || property.square_feet) > 0 && (
             <span className="flex items-center gap-1">
-              <Maximize className="w-4 h-4" />
-              {property.useful_area || property.square_feet}m²
+              <Maximize className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="font-medium">{property.useful_area || property.square_feet}m²</span>
             </span>
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-auto">
           <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full">
+            <Button variant="outline" size="sm" className="w-full h-9 sm:h-10 text-xs sm:text-sm touch-manipulation active:scale-95 transition-transform">
               Ver Detalhes
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
             </Button>
           </Link>
           <Button 
@@ -518,7 +516,7 @@ const PropertyCardEnhanced = React.memo(({ property, onContact }) => {
               e.stopPropagation();
               onContact(property);
             }}
-            className="bg-[#d22630] hover:bg-[#a01d26]"
+            className="bg-[#d22630] hover:bg-[#a01d26] h-9 sm:h-10 px-3 sm:px-4 touch-manipulation active:scale-95 transition-transform"
           >
             <MessageCircle className="w-4 h-4" />
           </Button>

@@ -61,17 +61,17 @@ export default function ContactFormEnhanced({
 
   if (submitStatus === 'success') {
     return (
-      <div className="text-center py-8 space-y-4">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle2 className="w-12 h-12 text-green-600" />
+      <div className="text-center py-6 sm:py-8 space-y-3 sm:space-y-4">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-green-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Mensagem Enviada!</h3>
-          <p className="text-slate-600 mb-4">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-2">Mensagem Enviada!</h3>
+          <p className="text-sm sm:text-base text-slate-600 mb-3 sm:mb-4 px-4">
             Obrigado pelo seu contacto. A nossa equipa irá responder brevemente.
           </p>
           {selectedProperty && (
-            <p className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
+            <p className="text-xs sm:text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
               <strong>Imóvel:</strong> {selectedProperty.title}
             </p>
           )}
@@ -79,7 +79,7 @@ export default function ContactFormEnhanced({
         <Button 
           variant="outline" 
           onClick={() => setSubmitStatus(null)}
-          className="mt-4"
+          className="mt-3 sm:mt-4 h-10 sm:h-11 touch-manipulation"
         >
           Enviar Outra Mensagem
         </Button>
@@ -88,11 +88,11 @@ export default function ContactFormEnhanced({
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-3 sm:space-y-4">
       {selectedProperty && (
         <Alert className="bg-blue-50 border-blue-200">
           <Building2 className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-sm text-blue-900">
+          <AlertDescription className="text-xs sm:text-sm text-blue-900">
             <strong>Imóvel selecionado:</strong> {selectedProperty.title}
             {selectedProperty.ref_id && <span className="ml-2 text-blue-700">({selectedProperty.ref_id})</span>}
           </AlertDescription>
@@ -102,7 +102,7 @@ export default function ContactFormEnhanced({
       {submitStatus === 'error' && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             Erro ao enviar mensagem. Por favor tente novamente.
           </AlertDescription>
         </Alert>
@@ -110,7 +110,7 @@ export default function ContactFormEnhanced({
 
       {/* Name Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="name" className="flex items-center gap-1.5">
+        <Label htmlFor="name" className="flex items-center gap-1.5 text-sm">
           <User className="w-3.5 h-3.5" />
           Nome Completo *
         </Label>
@@ -121,7 +121,7 @@ export default function ContactFormEnhanced({
             minLength: { value: 3, message: "Nome deve ter pelo menos 3 caracteres" }
           })}
           placeholder="João Silva"
-          className={errors.name ? "border-red-500" : touchedFields.name && !errors.name ? "border-green-500" : ""}
+          className={`h-10 sm:h-11 text-sm sm:text-base touch-manipulation ${errors.name ? "border-red-500" : touchedFields.name && !errors.name ? "border-green-500" : ""}`}
         />
         {errors.name && (
           <p className="text-xs text-red-600 flex items-center gap-1">
@@ -139,7 +139,7 @@ export default function ContactFormEnhanced({
 
       {/* Email Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="email" className="flex items-center gap-1.5">
+        <Label htmlFor="email" className="flex items-center gap-1.5 text-sm">
           <Mail className="w-3.5 h-3.5" />
           Email *
         </Label>
@@ -154,7 +154,7 @@ export default function ContactFormEnhanced({
             }
           })}
           placeholder="joao.silva@exemplo.com"
-          className={errors.email ? "border-red-500" : touchedFields.email && !errors.email ? "border-green-500" : ""}
+          className={`h-10 sm:h-11 text-sm sm:text-base touch-manipulation ${errors.email ? "border-red-500" : touchedFields.email && !errors.email ? "border-green-500" : ""}`}
         />
         {errors.email && (
           <p className="text-xs text-red-600 flex items-center gap-1">
@@ -172,7 +172,7 @@ export default function ContactFormEnhanced({
 
       {/* Phone Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="phone" className="flex items-center gap-1.5">
+        <Label htmlFor="phone" className="flex items-center gap-1.5 text-sm">
           <Phone className="w-3.5 h-3.5" />
           Telefone *
         </Label>
@@ -187,7 +187,7 @@ export default function ContactFormEnhanced({
             }
           })}
           placeholder="+351 912 345 678"
-          className={errors.phone ? "border-red-500" : touchedFields.phone && !errors.phone ? "border-green-500" : ""}
+          className={`h-10 sm:h-11 text-sm sm:text-base touch-manipulation ${errors.phone ? "border-red-500" : touchedFields.phone && !errors.phone ? "border-green-500" : ""}`}
         />
         {errors.phone && (
           <p className="text-xs text-red-600 flex items-center gap-1">
@@ -206,7 +206,7 @@ export default function ContactFormEnhanced({
       {/* Company Field (conditional) */}
       {showCompanyField && (
         <div className="space-y-1.5">
-          <Label htmlFor="company" className="flex items-center gap-1.5">
+          <Label htmlFor="company" className="flex items-center gap-1.5 text-sm">
             <Building2 className="w-3.5 h-3.5" />
             Empresa (opcional)
           </Label>
@@ -214,13 +214,14 @@ export default function ContactFormEnhanced({
             id="company"
             {...register("company")}
             placeholder="Nome da empresa"
+            className="h-10 sm:h-11 text-sm sm:text-base touch-manipulation"
           />
         </div>
       )}
 
       {/* Message Field */}
       <div className="space-y-1.5">
-        <Label htmlFor="message">
+        <Label htmlFor="message" className="text-sm">
           Mensagem *
           <span className="text-xs text-slate-500 ml-2">
             ({formValues.message?.length || 0}/500)
@@ -234,8 +235,8 @@ export default function ContactFormEnhanced({
             maxLength: { value: 500, message: "Mensagem não pode ter mais de 500 caracteres" }
           })}
           placeholder="Descreva o seu interesse ou questão..."
-          rows={5}
-          className={errors.message ? "border-red-500" : touchedFields.message && !errors.message ? "border-green-500" : ""}
+          rows={4}
+          className={`resize-none text-sm sm:text-base touch-manipulation ${errors.message ? "border-red-500" : touchedFields.message && !errors.message ? "border-green-500" : ""}`}
         />
         {errors.message && (
           <p className="text-xs text-red-600 flex items-center gap-1">
@@ -248,24 +249,24 @@ export default function ContactFormEnhanced({
       {/* Submit Button */}
       <Button 
         type="submit" 
-        className="w-full text-base py-6"
+        className="w-full h-11 sm:h-12 text-sm sm:text-base font-medium touch-manipulation active:scale-95 transition-transform"
         style={{ backgroundColor: brandColor }}
         disabled={isSubmitting}
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
             A enviar...
           </>
         ) : (
           <>
-            <Mail className="w-5 h-5 mr-2" />
+            <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
             Enviar Mensagem
           </>
         )}
       </Button>
 
-      <p className="text-xs text-center text-slate-500">
+      <p className="text-xs text-center text-slate-500 leading-relaxed">
         Ao enviar, concorda que a nossa equipa entre em contacto consigo.
       </p>
     </form>
