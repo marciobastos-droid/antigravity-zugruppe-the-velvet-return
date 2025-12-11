@@ -10,13 +10,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   MapPin, Calendar, Clock, User, Phone, Mail, Printer, 
   FileText, CheckSquare, Home, Bed, Bath, Maximize, Star,
-  Navigation, Download, Send, Loader2
+  Navigation, Download, Send, Loader2, FileDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function VisitRouteGenerator({ properties, opportunityId, open, onOpenChange }) {
   const printRef = useRef();
@@ -61,6 +63,47 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      toast.info("A gerar PDF...");
+      
+      const element = printRef.current;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      
+      // Render each property card separately to avoid page breaks
+      const cards = element.querySelectorAll('.no-break');
+      
+      for (let i = 0; i < cards.length; i++) {
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        const canvas = await html2canvas(cards[i], {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - 20;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      }
+      
+      const fileName = `Ficha_Visita_${properties[0]?.ref_id || 'Imoveis'}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      pdf.save(fileName);
+      
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error("Erro ao gerar PDF");
+    }
   };
 
   const handleCreateAppointments = async () => {
@@ -230,6 +273,10 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               <Printer className="w-4 h-4 mr-2" />
               Imprimir
             </Button>
+            <Button onClick={handleDownloadPDF} variant="outline" className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700">
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
@@ -274,6 +321,17 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
             }
             @page {
               margin: 1.5cm;
+              size: A4;
+            }
+            @media print {
+              html, body {
+                width: 210mm;
+                height: 297mm;
+              }
+              .print-content {
+                width: 100%;
+                max-width: none;
+              }
             }
           }
         `}
@@ -564,14 +622,14 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                           implicará o dever de indemnizar a Privileged Approach Unipessoal Lda pelos prejuízos causados nos termos gerais da 
                           responsabilidade civil regulada nos artigos 483.º e seguintes do Código Civil.
                         </p>
-                        <p className="font-medium">
+                        <p className="font-medium mt-4">
                           Declaro que li, compreendi e aceito os Termos e Condições e a Política de Privacidade.
                         </p>
                       </div>
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-3 gap-12 mt-8 mb-6">
+                    <div className="grid grid-cols-3 gap-12 mt-12 mb-6">
                       <div className="signature-line text-center text-sm font-medium">
                         O(A) Cliente
                       </div>
