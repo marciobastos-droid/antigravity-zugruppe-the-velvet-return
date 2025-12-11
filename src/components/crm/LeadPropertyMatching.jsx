@@ -21,6 +21,7 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
   const [matches, setMatches] = React.useState([]);
   const [selectedForSend, setSelectedForSend] = React.useState([]);
   const [isSending, setIsSending] = React.useState(false);
+  const [selectedAssociated, setSelectedAssociated] = React.useState([]);
 
   // Carregar imóveis já associados
   const associatedProperties = lead.associated_properties || [];
@@ -503,6 +504,82 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
     setSelectedForSend([]);
   };
 
+  // Enviar imóveis associados por email
+  const handleSendAssociatedByEmail = async () => {
+    if (!lead.buyer_email) {
+      toast.error("Este lead não tem email");
+      return;
+    }
+
+    if (selectedAssociated.length === 0) {
+      toast.error("Selecione pelo menos um imóvel para enviar");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const propertiesToSend = properties.filter(p => selectedAssociated.includes(p.id));
+      
+      const propertiesHtml = propertiesToSend.map(p => `
+        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          ${p.images?.[0] ? `<img src="${p.images[0]}" alt="${p.title}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 12px;" />` : ''}
+          <h3 style="margin: 0 0 8px 0; color: #1e293b;">${p.title}</h3>
+          <p style="margin: 0 0 8px 0; font-size: 18px; font-weight: bold; color: #059669;">€${p.price?.toLocaleString()}</p>
+          <p style="margin: 0 0 8px 0; color: #64748b;">
+            ${p.city}, ${p.state}
+            ${p.bedrooms ? ` • T${p.bedrooms}` : ''}
+            ${p.useful_area || p.square_feet ? ` • ${p.useful_area || p.square_feet}m²` : ''}
+          </p>
+          ${p.description ? `<p style="margin: 0; color: #475569; font-size: 14px;">${p.description.substring(0, 200)}${p.description.length > 200 ? '...' : ''}</p>` : ''}
+          <a href="${window.location.origin}${createPageUrl('PropertyDetails')}?id=${p.id}" style="display: inline-block; margin-top: 12px; padding: 8px 16px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">Ver Detalhes</a>
+        </div>
+      `).join('');
+
+      await base44.integrations.Core.SendEmail({
+        to: lead.buyer_email,
+        subject: `${propertiesToSend.length} Imóveis Selecionados para Si`,
+        body: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e293b;">Olá ${lead.buyer_name}!</h2>
+            <p style="color: #475569;">Selecionámos ${propertiesToSend.length} imóvel${propertiesToSend.length > 1 ? 'is' : ''} que podem interessar-lhe:</p>
+            
+            ${propertiesHtml}
+            
+            <p style="color: #475569; margin-top: 24px;">Se tiver interesse em algum destes imóveis ou quiser agendar uma visita, não hesite em contactar-nos!</p>
+            
+            <p style="color: #475569;">Cumprimentos,<br/>Equipa Zugruppe</p>
+          </div>
+        `
+      });
+
+      // Registar envio no histórico de comunicação
+      const communication = {
+        type: "email",
+        subject: `Envio de ${propertiesToSend.length} imóveis associados`,
+        message: `Enviados: ${propertiesToSend.map(p => p.title).join(', ')}`,
+        sent_at: new Date().toISOString(),
+        sent_by: lead.assigned_to || "sistema",
+        status: "sent"
+      };
+
+      const existingHistory = lead.communication_history || [];
+      await base44.entities.Opportunity.update(lead.id, {
+        communication_history: [...existingHistory, communication],
+        last_contact_date: new Date().toISOString()
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      toast.success(`${propertiesToSend.length} imóvel(is) enviado(s) para ${lead.buyer_email}`);
+      setSelectedAssociated([]);
+    } catch (error) {
+      console.error("Erro ao enviar:", error);
+      toast.error("Erro ao enviar imóveis por email");
+    }
+
+    setIsSending(false);
+  };
+
   const propertyTypeLabels = {
     apartment: "Apartamento",
     house: "Moradia",
@@ -734,19 +811,51 @@ Tem interesse em algum? Podemos agendar uma visita! 🏠`;
           {/* Saved/Associated Properties */}
           {associatedProperties.length > 0 && (
             <div className="mt-4 pt-4 border-t">
-              <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-                <Save className="w-4 h-4" />
-                Imóveis Guardados ({associatedProperties.length})
-              </h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Save className="w-4 h-4" />
+                  Imóveis Guardados ({associatedProperties.length})
+                </h4>
+                {selectedAssociated.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-600">{selectedAssociated.length} selecionados</span>
+                    <Button
+                      size="sm"
+                      onClick={handleSendAssociatedByEmail}
+                      disabled={!lead.buyer_email || isSending}
+                      className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
+                    >
+                      {isSending ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <Mail className="w-3 h-3 mr-1" />
+                      )}
+                      Enviar Email
+                    </Button>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 {associatedProperties.map((ap, idx) => {
                   const prop = properties.find(p => p.id === ap.property_id);
+                  const isSelected = selectedAssociated.includes(ap.property_id);
                   return (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                    <div 
+                      key={idx} 
+                      className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                        isSelected ? 'bg-blue-50 border border-blue-200' : 'bg-slate-50'
+                      }`}
+                    >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Checkbox
-                          checked={selectedForSend.includes(ap.property_id)}
-                          onCheckedChange={() => toggleSelectForSend(ap.property_id)}
+                          checked={isSelected}
+                          onCheckedChange={() => {
+                            setSelectedAssociated(prev => 
+                              prev.includes(ap.property_id)
+                                ? prev.filter(id => id !== ap.property_id)
+                                : [...prev, ap.property_id]
+                            );
+                          }}
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{ap.property_title}</p>
