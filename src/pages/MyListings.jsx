@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Globe, BarChart3, Calendar, Home, Store, TrendingUp, Crown, Wand2 } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Globe, BarChart3, Calendar, Home, Store, TrendingUp, Crown, Wand2, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import BulkPublicationDialog from "../components/listings/BulkPublicationDialog";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
+import VisitRouteGenerator from "../components/visits/VisitRouteGenerator";
 import PublicationHub from "../components/publication/PublicationHub";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
@@ -269,6 +270,7 @@ export default function MyListings() {
   const [bulkVisibility, setBulkVisibility] = useState("");
   const [assignConsultantOpen, setAssignConsultantOpen] = useState(false);
   const [selectedConsultant, setSelectedConsultant] = useState("");
+  const [visitRouteOpen, setVisitRouteOpen] = useState(false);
   
   const [filters, setFilters] = useState({
     search: "",
@@ -1502,6 +1504,10 @@ export default function MyListings() {
                     <Building2 className="w-4 h-4 mr-2" />
                     Criar Empreendimento
                   </Button>
+                  <Button variant="outline" size="sm" className="bg-white border-green-500 text-green-700 hover:bg-green-50" onClick={() => setVisitRouteOpen(true)}>
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Roteiro de Visita
+                  </Button>
                   <Popover open={assignAgentOpen} onOpenChange={setAssignAgentOpen}>
                     <PopoverTrigger asChild>
                       <Button variant="outline" size="sm" className="bg-white">
@@ -1978,6 +1984,13 @@ export default function MyListings() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Visit Route Generator */}
+        <VisitRouteGenerator
+          properties={properties.filter(p => selectedProperties.includes(p.id))}
+          open={visitRouteOpen}
+          onOpenChange={setVisitRouteOpen}
+        />
         </>
         )}
       </div>
