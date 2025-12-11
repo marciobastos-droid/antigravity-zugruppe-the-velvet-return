@@ -77,68 +77,24 @@ export default function ZuHaus() {
   const handleContactSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      console.log('[ZuHaus] Creating opportunity...', formData);
-      
-      // Gerar ref_id (não bloqueia se falhar)
-      let refId = null;
-      try {
-        const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
-        refId = refData?.ref_id;
-        console.log('[ZuHaus] ref_id generated:', refId);
-      } catch (refError) {
-        console.warn('[ZuHaus] Failed to generate ref_id, continuing without it:', refError);
-      }
-
-      const opportunityData = {
-        lead_type: "comprador",
-        buyer_name: formData.name,
-        buyer_email: formData.email,
-        buyer_phone: formData.phone,
-        message: `[ZuHaus] ${formData.message}\n\nImóvel de interesse: ${selectedProperty?.title || 'Geral'}`,
-        property_id: selectedProperty?.id || null,
-        property_title: selectedProperty?.title || null,
-        status: "new",
-        lead_source: "website"
-      };
-      
-      if (refId) {
-        opportunityData.ref_id = refId;
-      }
-
-      const newOpportunity = await base44.entities.Opportunity.create(opportunityData);
-      console.log('[ZuHaus] Opportunity created:', newOpportunity);
-
-      // Enviar notificação por email ao responsável
-      try {
-        const recipientEmail = selectedProperty?.assigned_consultant || selectedProperty?.created_by || selectedProperty?.agent_id;
-        if (recipientEmail) {
-          await base44.integrations.Core.SendEmail({
-            to: recipientEmail,
-            subject: `Nova mensagem ZuHaus: ${selectedProperty?.title || 'Contacto Geral'}`,
-            body: `
-              <h2>Nova mensagem recebida via ZuHaus</h2>
-              ${selectedProperty ? `<p><strong>Imóvel:</strong> ${selectedProperty.title} (${selectedProperty.ref_id || selectedProperty.id})</p>` : ''}
-              <p><strong>De:</strong> ${formData.name} (${formData.email})</p>
-              <p><strong>Telefone:</strong> ${formData.phone}</p>
-              <p><strong>Mensagem:</strong></p>
-              <p>${formData.message}</p>
-              <br>
-              <p><a href="${window.location.origin}${createPageUrl('CRMAdvanced')}">Ver no CRM</a></p>
-            `
-          });
-          console.log('[ZuHaus] Email notification sent to:', recipientEmail);
-        }
-      } catch (emailError) {
-        console.warn('[ZuHaus] Failed to send email notification:', emailError);
-      }
+      const response = await base44.functions.invoke('submitPublicContact', {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: formData.message,
+        property_id: selectedProperty?.id,
+        property_title: selectedProperty?.title,
+        source_page: 'ZuHaus'
+      });
 
       toast.success("Mensagem enviada com sucesso!");
+      setContactDialogOpen(false);
+      setSelectedProperty(null);
       setIsSubmitting(false);
     } catch (error) {
       console.error('[ZuHaus] Error sending message:', error);
       setIsSubmitting(false);
-      toast.error("Erro ao enviar mensagem.");
-      throw error;
+      toast.error("Erro ao enviar mensagem. Por favor tente novamente.");
     }
   };
 
