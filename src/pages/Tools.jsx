@@ -340,7 +340,7 @@ export default function Tools() {
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
                 <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
                 <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" className="bg-green-100 border-green-400 hover:bg-green-200" />
-                <ToolButton toolId="auditLog" icon={FileBarChart} label="Logs de Atividade" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
+                <ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
               </div>
               </CardContent>
               </Card>
