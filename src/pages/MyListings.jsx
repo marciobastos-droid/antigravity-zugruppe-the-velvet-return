@@ -1364,6 +1364,7 @@ export default function MyListings() {
               }
             }}
             onBulkCreateDevelopment={() => setCreateDevelopmentDialogOpen(true)}
+            onBulkPhotoAssign={() => setBulkPhotoDialogOpen(true)}
             onBulkDelete={handleBulkDelete}
             onGenerateVisitRoute={() => setVisitRouteOpen(true)}
             agents={agents}

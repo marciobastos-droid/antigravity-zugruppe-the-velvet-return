@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   CheckSquare, Trash2, Star, Users, Tag, Eye, 
-  Building2, Navigation, X, Loader2, Plus
+  Building2, Navigation, X, Loader2, Plus, Image
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -23,6 +23,7 @@ export default function BulkActionsBar({
   onBulkDelete,
   onGenerateVisitRoute,
   onBulkCreateDevelopment,
+  onBulkPhotoAssign,
   agents = [],
   developments = [],
   propertyTags = [],
@@ -381,6 +382,19 @@ export default function BulkActionsBar({
               <Plus className="w-4 h-4 mr-1.5" />
               <span className="hidden sm:inline">Criar Empreendimento</span>
               <span className="sm:hidden">Criar</span>
+            </Button>
+
+            <Separator orientation="vertical" className="h-8 hidden sm:block" />
+
+            {/* Bulk Photo Assign */}
+            <Button 
+              size="sm" 
+              onClick={onBulkPhotoAssign}
+              className="bg-purple-600 hover:bg-purple-700 text-white border-0"
+              disabled={isProcessing}
+            >
+              <Image className="w-4 h-4 mr-1.5" />
+              <span className="hidden sm:inline">Fotos</span>
             </Button>
 
             {/* Visit Route */}
