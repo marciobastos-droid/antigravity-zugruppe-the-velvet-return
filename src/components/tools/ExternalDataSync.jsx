@@ -183,13 +183,21 @@ export default function ExternalDataSync() {
               items: {
                 type: "object",
                 properties: {
-                  full_name: { type: "string" },
-                  email: { type: "string" },
-                  phone: { type: "string" },
-                  company_name: { type: "string" },
-                  job_title: { type: "string" },
-                  city: { type: "string" },
-                  notes: { type: "string" }
+                  full_name: { type: "string", description: "Nome completo" },
+                  email: { type: "string", description: "Email válido" },
+                  phone: { type: "string", description: "Telefone com código do país se possível" },
+                  company_name: { type: "string", description: "Nome da empresa" },
+                  job_title: { type: "string", description: "Cargo/função" },
+                  address: { type: "string", description: "Morada completa" },
+                  city: { type: "string", description: "Cidade" },
+                  state: { type: "string", description: "Estado/Distrito" },
+                  zip_code: { type: "string", description: "Código postal" },
+                  country: { type: "string", description: "País" },
+                  linkedin_url: { type: "string", description: "URL do LinkedIn" },
+                  website: { type: "string", description: "Website pessoal ou da empresa" },
+                  interests: { type: "array", items: { type: "string" }, description: "Interesses imobiliários (compra, venda, locais, tipos de imóvel)" },
+                  budget_range: { type: "string", description: "Faixa de orçamento se mencionado" },
+                  notes: { type: "string", description: "Notas adicionais" }
                 }
               }
             },
@@ -206,14 +214,22 @@ export default function ExternalDataSync() {
               items: {
                 type: "object",
                 properties: {
-                  buyer_name: { type: "string" },
-                  buyer_email: { type: "string" },
-                  buyer_phone: { type: "string" },
-                  location: { type: "string" },
-                  budget: { type: "number" },
-                  property_type_interest: { type: "string" },
-                  message: { type: "string" },
-                  lead_source: { type: "string" }
+                  buyer_name: { type: "string", description: "Nome completo" },
+                  buyer_email: { type: "string", description: "Email válido" },
+                  buyer_phone: { type: "string", description: "Telefone" },
+                  location: { type: "string", description: "Localização de interesse" },
+                  preferred_cities: { type: "array", items: { type: "string" }, description: "Cidades preferidas" },
+                  budget: { type: "number", description: "Orçamento em euros" },
+                  budget_min: { type: "number", description: "Orçamento mínimo" },
+                  budget_max: { type: "number", description: "Orçamento máximo" },
+                  property_type_interest: { type: "string", description: "Tipo de imóvel de interesse" },
+                  bedrooms_min: { type: "number", description: "Mínimo de quartos desejado" },
+                  area_min: { type: "number", description: "Área mínima desejada em m²" },
+                  desired_amenities: { type: "array", items: { type: "string" }, description: "Características desejadas" },
+                  urgency: { type: "string", description: "Urgência (imediato, 1 mês, 3 meses, etc.)" },
+                  financing_needed: { type: "boolean", description: "Se precisa de financiamento" },
+                  message: { type: "string", description: "Mensagem ou comentários adicionais" },
+                  lead_source: { type: "string", description: "Fonte do lead" }
                 }
               }
             },
@@ -385,59 +401,103 @@ Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
               try {
                 console.log(`Enriching property from: ${item.source_url}`);
                 const detailResult = await base44.integrations.Core.InvokeLLM({
-                  prompt: `Analisa a página de detalhes deste imóvel e extrai TODOS os dados disponíveis.
+                  prompt: `Analisa DETALHADAMENTE a página deste imóvel e extrai TODOS os dados disponíveis.
 
 URL DO IMÓVEL: ${item.source_url}
 
-EXTRAI OS SEGUINTES DADOS (se disponíveis):
+EXTRAI OS SEGUINTES DADOS (se disponíveis na página):
 
-DESCRIÇÃO:
-- description: descrição completa do imóvel (texto integral do anúncio)
+📝 DESCRIÇÃO E TÍTULO:
+- description: descrição COMPLETA do imóvel (todo o texto do anúncio, sem resumir)
+- title: título melhorado se o atual for genérico
 
-CARACTERÍSTICAS PRINCIPAIS:
+🏠 CARACTERÍSTICAS PRINCIPAIS:
 - bedrooms: número de quartos (T1=1, T2=2, etc.)
 - bathrooms: número de casas de banho
 - useful_area: área útil em m²
-- gross_area: área bruta em m²
+- gross_area: área bruta de construção em m²
+- balcony_area: área da varanda/terraço em m²
+- storage_room: se tem arrecadação (boolean)
+- storage_area: área da arrecadação em m²
 
-DETALHES TÉCNICOS:
+🔧 DETALHES TÉCNICOS E ESTADO:
 - energy_certificate: certificado energético (A+, A, B, B-, C, D, E, F ou isento)
 - year_built: ano de construção (número)
-- floor: andar (ex: "3º", "R/C", "Cave", etc.)
+- year_renovated: ano da última renovação (se aplicável)
+- floor: andar (ex: "3º", "R/C", "Cave", "Cobertura")
+- total_floors: número total de andares do prédio
 - parking: estacionamento/garagem (ex: "1 lugar", "Box", "2 lugares", "Sem garagem")
-- condition: estado de conservação (ex: "Novo", "Usado", "Renovado", "Para recuperar")
+- condition: estado de conservação detalhado (ex: "Novo", "Muito Bom", "Bom", "Para Renovar")
+- orientation: orientação solar (Norte, Sul, Nascente, Poente, etc.)
+- elevator: se tem elevador (boolean)
 
-IMAGENS:
-- images: array com URLs de TODAS as fotos do imóvel (em alta resolução se possível)
+💰 INFORMAÇÕES FINANCEIRAS:
+- condominium_fee: valor mensal do condomínio em euros (número)
+- imt_tax: IMT estimado (se mencionado)
+- property_tax: IMI anual (se mencionado)
 
-COMODIDADES:
-- amenities: array com todas as características (ex: ["Varanda", "Elevador", "Ar condicionado", "Arrecadação"])
+🎨 ACABAMENTOS E DETALHES:
+- amenities: array DETALHADO com TODAS as características mencionadas (ex: ["Varanda", "Elevador", "Ar condicionado central", "Cozinha equipada", "Arrecadação", "Vidros duplos", "Porta blindada", "Vídeo porteiro", "Piscina", "Jardim", "Ginásio", "Sauna", "Garagem Box", "Terraço", "Suite", "Closet", "Lareira", "Aquecimento central", "Painéis solares", "Alarme", "Condomínio fechado"])
+- kitchen_equipped: se cozinha está equipada (boolean)
+- furnished: se está mobilado (boolean)
+- heating_type: tipo de aquecimento (ex: "Central", "AC", "Radiadores", "Piso radiante")
+- window_type: tipo de janelas (ex: "Vidros duplos", "Alumínio", "PVC")
+- flooring: tipo de pavimento (ex: "Madeira", "Cerâmico", "Mármore", "Flutuante")
 
-LOCALIZAÇÃO:
-- address: morada completa
+📸 MULTIMÉDIA:
+- images: array com URLs de TODAS as fotos do imóvel (máximo qualidade)
+- virtual_tour_url: URL do tour virtual 360º (se disponível)
+- video_url: URL de vídeo do imóvel (se disponível)
+
+📍 LOCALIZAÇÃO COMPLETA:
+- address: morada completa e detalhada
 - city: cidade/concelho
 - state: distrito
+- zip_code: código postal
+- neighborhood: bairro/freguesia
+- proximity_features: array com pontos de interesse próximos (ex: ["Metro 5min", "Escola", "Supermercado", "Parque"])
 
-Extrai o máximo de informação possível da página.`,
+Extrai o MÁXIMO de informação possível. Não inventes - apenas extrai o que está explicitamente na página.`,
                   add_context_from_internet: true,
                   response_json_schema: {
                     type: "object",
                     properties: {
                       description: { type: "string" },
+                      title: { type: "string" },
                       images: { type: "array", items: { type: "string" } },
                       amenities: { type: "array", items: { type: "string" } },
                       energy_certificate: { type: "string" },
                       year_built: { type: "number" },
+                      year_renovated: { type: "number" },
                       floor: { type: "string" },
+                      total_floors: { type: "number" },
                       parking: { type: "string" },
                       condition: { type: "string" },
+                      orientation: { type: "string" },
+                      elevator: { type: "boolean" },
                       gross_area: { type: "number" },
                       useful_area: { type: "number" },
+                      balcony_area: { type: "number" },
+                      storage_room: { type: "boolean" },
+                      storage_area: { type: "number" },
                       bedrooms: { type: "number" },
                       bathrooms: { type: "number" },
+                      condominium_fee: { type: "number" },
+                      imt_tax: { type: "number" },
+                      property_tax: { type: "number" },
+                      kitchen_equipped: { type: "boolean" },
+                      furnished: { type: "boolean" },
+                      heating_type: { type: "string" },
+                      window_type: { type: "string" },
+                      flooring: { type: "string" },
+                      virtual_tour_url: { type: "string" },
+                      video_url: { type: "string" },
                       address: { type: "string" },
                       city: { type: "string" },
-                      state: { type: "string" }
+                      state: { type: "string" },
+                      zip_code: { type: "string" },
+                      neighborhood: { type: "string" },
+                      proximity_features: { type: "array", items: { type: "string" } }
                     }
                   }
                 });
@@ -458,22 +518,63 @@ Extrai o máximo de informação possível da página.`,
               return undefined;
             };
 
-            // Combinar e normalizar amenities
-            const combinedAmenities = [...new Set([
+            // Normalizar e enriquecer amenities
+            const rawAmenities = [
               ...(item.amenities || []), 
-              ...(enrichedData.amenities || [])
-            ])].filter(a => a && a.length > 2); // Filtrar amenities vazios ou muito curtos
+              ...(enrichedData.amenities || []),
+              ...(enrichedData.proximity_features || [])
+            ];
+            
+            const normalizedAmenities = [...new Set(rawAmenities)]
+              .filter(a => a && a.length > 2)
+              .map(a => a.trim());
+
+            // Adicionar amenities derivados de outros campos
+            if (enrichedData.elevator) normalizedAmenities.push("Elevador");
+            if (enrichedData.storage_room) normalizedAmenities.push("Arrecadação");
+            if (enrichedData.kitchen_equipped) normalizedAmenities.push("Cozinha Equipada");
+            if (enrichedData.furnished) normalizedAmenities.push("Mobilado");
+            if (enrichedData.balcony_area && enrichedData.balcony_area > 0) normalizedAmenities.push("Varanda");
+            if (enrichedData.heating_type) normalizedAmenities.push(enrichedData.heating_type);
+            if (enrichedData.window_type) normalizedAmenities.push(enrichedData.window_type);
+            
+            const uniqueAmenities = [...new Set(normalizedAmenities)];
 
             // Combinar e validar imagens
             const combinedImages = [
               ...(enrichedData.images || []),
               ...(item.images || [])
-            ].filter(img => img && img.startsWith('http')).slice(0, 20); // Max 20 imagens
+            ].filter(img => img && img.startsWith('http')).slice(0, 30); // Max 30 imagens
+
+            // Combinar vídeos se houver
+            const videos = [];
+            if (enrichedData.video_url) videos.push(enrichedData.video_url);
+            if (enrichedData.virtual_tour_url) videos.push(enrichedData.virtual_tour_url);
+
+            // Construir notas internas detalhadas
+            const internalNotesArray = [];
+            if (enrichedData.floor) internalNotesArray.push(`Andar: ${enrichedData.floor}`);
+            if (enrichedData.total_floors) internalNotesArray.push(`Total andares edifício: ${enrichedData.total_floors}`);
+            if (enrichedData.condominium_fee) internalNotesArray.push(`Condomínio: €${enrichedData.condominium_fee}/mês`);
+            if (enrichedData.imt_tax) internalNotesArray.push(`IMT estimado: €${enrichedData.imt_tax}`);
+            if (enrichedData.property_tax) internalNotesArray.push(`IMI anual: €${enrichedData.property_tax}`);
+            if (enrichedData.balcony_area) internalNotesArray.push(`Área varanda: ${enrichedData.balcony_area}m²`);
+            if (enrichedData.storage_area) internalNotesArray.push(`Área arrecadação: ${enrichedData.storage_area}m²`);
+            if (enrichedData.flooring) internalNotesArray.push(`Pavimento: ${enrichedData.flooring}`);
+            if (enrichedData.neighborhood) internalNotesArray.push(`Bairro: ${enrichedData.neighborhood}`);
+            
+            const internalNotes = internalNotesArray.join(' | ');
+
+            // Construir descrição enriquecida se a original for curta
+            let finalDescription = enrichedData.description || item.description || "";
+            if (finalDescription.length < 100 && enrichedData.condition) {
+              finalDescription = `${finalDescription}\n\nEstado: ${enrichedData.condition}`.trim();
+            }
 
             const propertyData = {
               ref_id: refData.ref_id,
-              title: item.title.trim(),
-              description: (enrichedData.description || item.description || "").trim(),
+              title: (enrichedData.title || item.title).trim(),
+              description: finalDescription.trim(),
               price: Number(item.price),
               property_type: mapPropertyType(item.property_type),
               listing_type: item.listing_type?.toLowerCase()?.includes("arrend") ? "rent" : "sale",
@@ -485,16 +586,20 @@ Extrai o máximo de informação possível da página.`,
               address: (enrichedData.address || item.address || "").trim(),
               city: (enrichedData.city || item.city || "").trim(),
               state: (enrichedData.state || item.state || "").trim(),
+              zip_code: enrichedData.zip_code?.trim() || undefined,
               country: "Portugal",
               images: combinedImages,
-              amenities: combinedAmenities,
+              videos: videos.length > 0 ? videos : undefined,
+              amenities: uniqueAmenities,
               external_id: (item.external_id || "").trim(),
               source_url: finalSourceUrl,
               energy_certificate: mapEnergyCert(enrichedData.energy_certificate || item.energy_certificate),
               year_built: enrichedData.year_built || item.year_built || undefined,
+              year_renovated: enrichedData.year_renovated || undefined,
               finishes: (enrichedData.condition || item.condition || "").trim() || undefined,
               garage: mapGarage(enrichedData.parking || item.parking),
-              internal_notes: enrichedData.floor ? `Andar: ${enrichedData.floor}` : undefined,
+              sun_exposure: mapSunExposure(enrichedData.orientation),
+              internal_notes: internalNotes || undefined,
               status: "active",
               availability_status: "available",
               tags: ["Importado", "Sync Externa"]
@@ -534,6 +639,15 @@ Extrai o máximo de informação possível da página.`,
 
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
             
+            // Construir notas enriquecidas
+            const contactNotesArray = [];
+            if (item.notes) contactNotesArray.push(item.notes);
+            if (item.interests?.length > 0) contactNotesArray.push(`Interesses: ${item.interests.join(', ')}`);
+            if (item.budget_range) contactNotesArray.push(`Orçamento: ${item.budget_range}`);
+            if (item.linkedin_url) contactNotesArray.push(`LinkedIn: ${item.linkedin_url}`);
+            if (item.website) contactNotesArray.push(`Website: ${item.website}`);
+            contactNotesArray.push(`Importado de: ${selectedConfig?.url || url}`);
+
             const contactData = {
               ref_id: refData.ref_id,
               full_name: item.full_name.trim(),
@@ -541,8 +655,12 @@ Extrai o máximo de informação possível da página.`,
               phone: item.phone?.trim() || "",
               company_name: item.company_name?.trim() || "",
               job_title: item.job_title?.trim() || "",
+              address: item.address?.trim() || "",
               city: item.city?.trim() || "",
-              notes: item.notes || `Importado de: ${selectedConfig?.url || url}`,
+              state: item.state?.trim() || "",
+              zip_code: item.zip_code?.trim() || "",
+              country: item.country?.trim() || "Portugal",
+              notes: contactNotesArray.join('\n'),
               source: "other",
               contact_type: "client"
             };
@@ -626,18 +744,32 @@ Extrai o máximo de informação possível da página.`,
 
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
             
+            // Construir mensagem enriquecida
+            const messageArray = [];
+            if (item.message) messageArray.push(item.message);
+            if (item.preferred_cities?.length > 0) messageArray.push(`Cidades: ${item.preferred_cities.join(', ')}`);
+            if (item.bedrooms_min) messageArray.push(`Mín. ${item.bedrooms_min} quartos`);
+            if (item.area_min) messageArray.push(`Mín. ${item.area_min}m²`);
+            if (item.desired_amenities?.length > 0) messageArray.push(`Deseja: ${item.desired_amenities.join(', ')}`);
+            if (item.urgency) messageArray.push(`Urgência: ${item.urgency}`);
+            if (item.financing_needed) messageArray.push(`Necessita financiamento`);
+            messageArray.push(`Importado de: ${selectedConfig?.url || url}`);
+
             const oppData = {
               ref_id: refData.ref_id,
               lead_type: "comprador",
               buyer_name: item.buyer_name.trim(),
               buyer_email: item.buyer_email?.trim() || "",
               buyer_phone: item.buyer_phone?.trim() || "",
-              location: item.location?.trim() || "",
-              budget: Number(item.budget || 0),
+              location: (item.preferred_cities?.join(', ') || item.location)?.trim() || "",
+              budget: Number(item.budget_max || item.budget || 0),
               property_type_interest: item.property_type_interest?.trim() || "",
-              message: item.message?.trim() || `Importado de: ${selectedConfig?.url || url}`,
+              message: messageArray.join('\n'),
               lead_source: "other",
               source_url: ensureValidUrl(selectedConfig?.url || url),
+              source_detail: item.lead_source?.trim() || undefined,
+              urgency: mapUrgency(item.urgency),
+              financing_status: item.financing_needed ? "pending" : "unknown",
               status: "new"
             };
 
@@ -739,6 +871,20 @@ Extrai o máximo de informação possível da página.`,
     return undefined;
   };
 
+  const mapSunExposure = (orientation) => {
+    if (!orientation) return undefined;
+    const lower = orientation.toLowerCase();
+    if (lower.includes("norte") && lower.includes("sul")) return "north_south";
+    if (lower.includes("nascente") && lower.includes("poente")) return "east_west";
+    if (lower.includes("este") && lower.includes("oeste")) return "east_west";
+    if (lower.includes("todas")) return "all";
+    if (lower.includes("norte") || lower.includes("north")) return "north";
+    if (lower.includes("sul") || lower.includes("south")) return "south";
+    if (lower.includes("nascente") || lower.includes("este") || lower.includes("east")) return "east";
+    if (lower.includes("poente") || lower.includes("oeste") || lower.includes("west")) return "west";
+    return undefined;
+  };
+
   const mapDevelopmentStatus = (status) => {
     if (!status) return "under_construction";
     const lower = status.toLowerCase();
@@ -747,6 +893,18 @@ Extrai o máximo de informação possível da página.`,
     if (lower.includes("constru") || lower.includes("obra") || lower.includes("building")) return "under_construction";
     if (lower.includes("vend") || lower.includes("sold")) return "sold_out";
     return "under_construction";
+  };
+
+  const mapUrgency = (urgency) => {
+    if (!urgency) return undefined;
+    const lower = urgency.toLowerCase();
+    if (lower.includes("imed") || lower.includes("urgent") || lower.includes("agora")) return "immediate";
+    if (lower.includes("1 m") || lower.includes("mês")) return "1_month";
+    if (lower.includes("3 m")) return "3_months";
+    if (lower.includes("6 m")) return "6_months";
+    if (lower.includes("1 ano") || lower.includes("year")) return "1_year";
+    if (lower.includes("explorar") || lower.includes("look")) return "just_looking";
+    return undefined;
   };
 
   const toggleItem = (idx) => {
