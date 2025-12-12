@@ -659,7 +659,7 @@ export default function ClientDatabase() {
   // Memoized filtered clients with optimized search
   const filteredClients = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const validContactTypes = ["client", "partner", "investor", "vendor", "promoter", "owner", "other"];
+    const validContactTypes = ["client", "partner", "investor", "vendor", "promoter", "owner", "colega", "other"];
     const tagFilterSet = new Set(tagFilter);
     const agentFilterSet = new Set(assignedAgentFilter);
     const hasNone = agentFilterSet.has("none");
@@ -722,6 +722,7 @@ export default function ClientDatabase() {
     vendor: "Fornecedor",
     promoter: "Promotor",
     owner: "Proprietário",
+    colega: "Colega",
     other: "Outro"
   }), []);
 
@@ -732,6 +733,7 @@ export default function ClientDatabase() {
     vendor: "bg-orange-100 text-orange-800",
     promoter: "bg-indigo-100 text-indigo-800",
     owner: "bg-amber-100 text-amber-800",
+    colega: "bg-cyan-100 text-cyan-800",
     other: "bg-slate-100 text-slate-800"
   }), []);
 
@@ -844,6 +846,7 @@ export default function ClientDatabase() {
                       <SelectItem value="vendor">Fornecedor</SelectItem>
                       <SelectItem value="promoter">Promotor</SelectItem>
                       <SelectItem value="owner">Proprietário</SelectItem>
+                      <SelectItem value="colega">Colega</SelectItem>
                       <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1046,6 +1049,8 @@ export default function ClientDatabase() {
                                         <SelectItem value="investor">Investidores</SelectItem>
                                         <SelectItem value="vendor">Fornecedores</SelectItem>
                                         <SelectItem value="promoter">Promotores</SelectItem>
+                                        <SelectItem value="owner">Proprietários</SelectItem>
+                                        <SelectItem value="colega">Colegas</SelectItem>
                                         <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>
@@ -2861,6 +2866,7 @@ export default function ClientDatabase() {
                     <SelectItem value="vendor">Fornecedor</SelectItem>
                     <SelectItem value="promoter">Promotor</SelectItem>
                     <SelectItem value="owner">Proprietário</SelectItem>
+                    <SelectItem value="colega">Colega</SelectItem>
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
