@@ -309,39 +309,96 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               page-break-inside: avoid;
             }
             .print-checkbox {
-              width: 12px;
-              height: 12px;
-              border: 1.5px solid #333;
+              width: 14px;
+              height: 14px;
+              border: 2px solid #000;
               display: inline-block;
-              margin-right: 6px;
+              margin-right: 8px;
               vertical-align: middle;
+              flex-shrink: 0;
             }
             .signature-line {
-              border-top: 1.5px solid #333;
-              margin-top: 100px;
-              padding-top: 8px;
+              border-top: 2px solid #000;
+              margin-top: 80px;
+              padding-top: 10px;
             }
             @page {
-              margin: 1cm 1.5cm;
+              margin: 15mm 20mm;
               size: A4;
             }
-            @media print {
-              html, body {
-                width: 210mm;
-                height: 297mm;
-              }
-              .print-content {
-                width: 100%;
-                max-width: none;
-                font-size: 11px;
-                transform: scale(0.95);
-                transform-origin: top left;
-              }
-              h1 { font-size: 20px !important; }
-              h2 { font-size: 16px !important; }
-              h4 { font-size: 13px !important; }
-              .text-xs { font-size: 9px !important; }
-              .text-sm { font-size: 10px !important; }
+            html, body {
+              width: 210mm;
+              height: 297mm;
+            }
+            .print-content {
+              width: 100%;
+              max-width: none;
+              font-size: 12px;
+              line-height: 1.5;
+            }
+            h1 { 
+              font-size: 22px !important; 
+              line-height: 1.3 !important;
+              margin-bottom: 10px !important;
+            }
+            h2 { 
+              font-size: 17px !important; 
+              line-height: 1.4 !important;
+              margin-bottom: 6px !important;
+            }
+            h4 { 
+              font-size: 14px !important; 
+              line-height: 1.4 !important;
+            }
+            .text-xs { 
+              font-size: 10px !important; 
+              line-height: 1.4 !important;
+            }
+            .text-sm { 
+              font-size: 11px !important; 
+              line-height: 1.5 !important;
+            }
+            .space-y-0\.5 > * + * {
+              margin-top: 0.25rem !important;
+            }
+            .space-y-1 > * + * {
+              margin-top: 0.5rem !important;
+            }
+            .space-y-2 > * + * {
+              margin-top: 0.75rem !important;
+            }
+            .gap-2 {
+              gap: 0.5rem !important;
+            }
+            .gap-4 {
+              gap: 1rem !important;
+            }
+            .gap-6 {
+              gap: 1.5rem !important;
+            }
+            .p-8 {
+              padding: 1.5rem !important;
+            }
+            .pb-4 {
+              padding-bottom: 1rem !important;
+            }
+            .mb-2 {
+              margin-bottom: 0.5rem !important;
+            }
+            .mb-3 {
+              margin-bottom: 0.75rem !important;
+            }
+            .mt-2 {
+              margin-top: 0.5rem !important;
+            }
+            .mt-4 {
+              margin-top: 1rem !important;
+            }
+            .mt-24 {
+              margin-top: 4rem !important;
+            }
+            .leading-relaxed {
+              line-height: 1.7 !important;
             }
           }
         `}
@@ -421,64 +478,64 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
 
                     {/* Property Details with Image */}
                     <div className="flex gap-4 pb-4 border-b-2 border-slate-200">
-                      {/* Property Image */}
-                      {property.images && property.images[0] && (
-                        <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-slate-200 flex-shrink-0">
-                          <img 
-                            src={property.images[0]} 
-                            alt={property.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
+                     {/* Property Image */}
+                     {property.images && property.images[0] && (
+                       <div className="w-36 h-36 rounded-lg overflow-hidden border-2 border-slate-200 flex-shrink-0">
+                         <img 
+                           src={property.images[0]} 
+                           alt={property.title}
+                           className="w-full h-full object-cover"
+                         />
+                       </div>
+                     )}
 
-                      {/* Property Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          {property.featured && (
-                            <Badge className="bg-amber-400 text-slate-900">
-                              <Star className="w-3 h-3 mr-1 fill-current" />
-                              Destaque
-                            </Badge>
-                          )}
-                        </div>
-                        <h2 className="text-lg font-bold text-slate-900 mb-1">
-                          {propertyTypeLabels[property.property_type] || property.property_type} {property.bedrooms && `T${property.bedrooms}`} {property.ref_id && `- ${property.ref_id}`}
-                        </h2>
-                        <div className="text-sm text-slate-600 space-y-0.5">
-                          {property.address && <div>{property.address}</div>}
-                          <div>{property.zip_code && `${property.zip_code}, `}{property.city}, {property.state}</div>
-                          {property.latitude && property.longitude && (
-                            <div className="text-xs">
-                              {property.latitude.toFixed(6)}° N {property.longitude.toFixed(6)}° W
-                            </div>
-                          )}
-                        </div>
-                        <div className="mt-2">
-                          <Badge className="bg-blue-100 text-blue-800 font-bold text-sm">
-                            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'} €{property.price?.toLocaleString()}
-                          </Badge>
-                        </div>
-                      </div>
+                     {/* Property Info */}
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center gap-2 mb-2">
+                         {property.featured && (
+                           <Badge className="bg-amber-400 text-slate-900 text-xs">
+                             <Star className="w-3 h-3 mr-1 fill-current" />
+                             Destaque
+                           </Badge>
+                         )}
+                       </div>
+                       <h2 className="text-lg font-bold text-slate-900 mb-2 leading-tight">
+                         {propertyTypeLabels[property.property_type] || property.property_type} {property.bedrooms && `T${property.bedrooms}`} {property.ref_id && `- ${property.ref_id}`}
+                       </h2>
+                       <div className="text-sm text-slate-700 space-y-1 leading-normal">
+                         {property.address && <div className="break-words">{property.address}</div>}
+                         <div className="break-words">{property.zip_code && `${property.zip_code}, `}{property.city}, {property.state}</div>
+                         {property.latitude && property.longitude && (
+                           <div className="text-xs text-slate-600 mt-1">
+                             {property.latitude.toFixed(6)}° N {property.longitude.toFixed(6)}° W
+                           </div>
+                         )}
+                       </div>
+                       <div className="mt-3">
+                         <Badge className="bg-blue-100 text-blue-800 font-bold text-sm px-3 py-1">
+                           {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'} €{property.price?.toLocaleString()}
+                         </Badge>
+                       </div>
+                     </div>
 
-                      {/* Owner Info */}
-                      <div className="text-right text-xs">
-                        <div className="font-semibold text-slate-900 mb-1">Proprietário</div>
-                        <div className="text-slate-600 space-y-0.5">
-                          <div>Nome: {property.owner_name || '-'}</div>
-                          <div>Email: {property.owner_email ? property.owner_email.replace(/(.{4}).*(@.*)/, '$1*******$2') : '-'}</div>
-                          <div>Telefone: {property.owner_phone ? property.owner_phone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2***') : '-'}</div>
-                        </div>
-                      </div>
+                     {/* Owner Info */}
+                     <div className="text-right text-xs flex-shrink-0 w-48">
+                       <div className="font-semibold text-slate-900 mb-2">Proprietário</div>
+                       <div className="text-slate-700 space-y-1.5 leading-normal">
+                         <div className="break-words"><span className="font-medium">Nome:</span> {property.owner_name || '-'}</div>
+                         <div className="break-words"><span className="font-medium">Email:</span> {property.owner_email ? property.owner_email.replace(/(.{4}).*(@.*)/, '$1***$2') : '-'}</div>
+                         <div className="break-words"><span className="font-medium">Tel:</span> {property.owner_phone ? property.owner_phone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2***') : '-'}</div>
+                       </div>
+                     </div>
                     </div>
 
                     {/* Client Info */}
                     <div className="pb-4 border-b border-slate-200">
-                      <div className="font-semibold text-slate-900 mb-2">Potencial cliente</div>
-                      <div className="flex gap-6 text-sm text-slate-600">
-                        <div><span className="font-medium">Nome:</span> {clientName || '_______________________'}</div>
-                        <div><span className="font-medium">Email:</span> {clientEmail ? clientEmail.replace(/(.{5}).*(@.*)/, '$1*******$2') : '_______________________'}</div>
-                        <div><span className="font-medium">Telefone:</span> {clientPhone ? clientPhone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2$3') : '_____________'}</div>
+                      <div className="font-semibold text-slate-900 mb-3">Potencial cliente</div>
+                      <div className="grid grid-cols-3 gap-4 text-sm text-slate-700 leading-normal">
+                        <div className="break-words"><span className="font-medium">Nome:</span> {clientName || '_______________________'}</div>
+                        <div className="break-words"><span className="font-medium">Email:</span> {clientEmail ? clientEmail.replace(/(.{5}).*(@.*)/, '$1***$2') : '_______________________'}</div>
+                        <div className="break-words"><span className="font-medium">Telefone:</span> {clientPhone ? clientPhone.replace(/(\d{3})(\d{3})(\d{3})/, '***$2$3') : '_____________'}</div>
                       </div>
                     </div>
 
@@ -545,68 +602,68 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                     </div>
 
                     {/* Negative and Positive Points */}
-                    <div className="grid grid-cols-2 gap-6 pb-4 border-b border-slate-200">
+                    <div className="grid grid-cols-2 gap-8 pb-4 border-b border-slate-200">
                       {/* Negative Points */}
                       <div>
-                        <div className="font-semibold text-slate-900 mb-2">Pontos negativos</div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
+                        <div className="font-semibold text-slate-900 mb-3">Pontos negativos</div>
+                        <div className="space-y-2.5 text-sm">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Má condição/estado do imóvel</span>
+                            <span className="leading-normal">Má condição/estado do imóvel</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Divisões Pequenas</span>
+                            <span className="leading-normal">Divisões Pequenas</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Não gosta da localização</span>
+                            <span className="leading-normal">Não gosta da localização</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Necessidade de obras</span>
+                            <span className="leading-normal">Necessidade de obras</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Ano de construção</span>
+                            <span className="leading-normal">Ano de construção</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Preço Alto</span>
+                            <span className="leading-normal">Preço Alto</span>
                           </div>
-                          <div className="mt-2 border border-slate-300 rounded p-2" style={{ minHeight: "40px" }}></div>
+                          <div className="mt-3 border border-slate-300 rounded p-2" style={{ minHeight: "45px" }}></div>
                         </div>
                       </div>
 
                       {/* Positive Points */}
                       <div>
-                        <div className="font-semibold text-slate-900 mb-2">Pontos positivos</div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
+                        <div className="font-semibold text-slate-900 mb-3">Pontos positivos</div>
+                        <div className="space-y-2.5 text-sm">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Boas áreas</span>
+                            <span className="leading-normal">Boas áreas</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Boa localização</span>
+                            <span className="leading-normal">Boa localização</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Qualidade de construção</span>
+                            <span className="leading-normal">Qualidade de construção</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Estado do imóvel</span>
+                            <span className="leading-normal">Estado do imóvel</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Mobilado</span>
+                            <span className="leading-normal">Mobilado</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-start gap-2">
                             <span className="print-checkbox"></span>
-                            <span>Cozinha equipada</span>
+                            <span className="leading-normal">Cozinha equipada</span>
                           </div>
-                          <div className="mt-2 border border-slate-300 rounded p-2" style={{ minHeight: "40px" }}></div>
+                          <div className="mt-3 border border-slate-300 rounded p-2" style={{ minHeight: "45px" }}></div>
                         </div>
                       </div>
                     </div>
@@ -639,14 +696,14 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                     </div>
 
                     {/* Signatures */}
-                    <div className="grid grid-cols-3 gap-12 mt-24 mb-6">
-                      <div className="signature-line text-center text-sm font-medium">
+                    <div className="grid grid-cols-3 gap-12 mt-20 mb-6">
+                      <div className="signature-line text-center text-sm font-semibold">
                         O(A) Cliente
                       </div>
-                      <div className="signature-line text-center text-sm font-medium">
+                      <div className="signature-line text-center text-sm font-semibold">
                         O(A) Proprietário(a)
                       </div>
-                      <div className="signature-line text-center text-sm font-medium">
+                      <div className="signature-line text-center text-sm font-semibold">
                         A Mediadora
                       </div>
                     </div>
