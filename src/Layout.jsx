@@ -71,7 +71,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     { name: "Relatórios", path: createPageUrl("Reports"), icon: BarChart3, id: "nav-reports", visibility: 'all', pagePermKey: 'reports' },
     
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor'], pagePermKey: 'tools' },
+    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
     { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
     ];
