@@ -7,7 +7,7 @@ export default function QuickFilterBadges({
   properties, 
   filters, 
   onFilterChange,
-  agents = [],
+  consultants = [],
   developments = []
 }) {
   const [expanded, setExpanded] = React.useState(false);
