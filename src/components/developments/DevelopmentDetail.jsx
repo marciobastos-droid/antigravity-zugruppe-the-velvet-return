@@ -14,19 +14,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Building2, MapPin, Euro, Calendar, Home, 
   Globe, Mail, Phone, Link2, Plus, X, TrendingUp, 
-  CheckCircle2, Clock, Ban, Edit, Save, Camera, Eye, Loader2
+  CheckCircle2, Clock, Ban, Edit, Save, Camera, Eye, Loader2, BarChart3
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import DevelopmentImageGallery from "./DevelopmentImageGallery";
+import UnitSalesMap from "./UnitSalesMap";
+import AddUnitsDialog from "./AddUnitsDialog";
+import EditUnitDialog from "./EditUnitDialog";
 
 export default function DevelopmentDetail({ development, open, onOpenChange, properties }) {
   const queryClient = useQueryClient();
   const [linkPropertyId, setLinkPropertyId] = React.useState("");
   const [editMode, setEditMode] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
+  const [addUnitsOpen, setAddUnitsOpen] = React.useState(false);
+  const [editingUnit, setEditingUnit] = React.useState(null);
   const [formData, setFormData] = React.useState({
     name: development.name || "",
     description: development.description || "",
@@ -288,9 +293,10 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
         )}
 
         <Tabs defaultValue="details" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="details">Detalhes</TabsTrigger>
-            <TabsTrigger value="properties">Imóveis ({linkedProperties.length})</TabsTrigger>
+            <TabsTrigger value="properties">Unidades ({linkedProperties.length})</TabsTrigger>
+            <TabsTrigger value="salesmap">Mapa de Vendas</TabsTrigger>
             <TabsTrigger value="gallery">Galeria</TabsTrigger>
           </TabsList>
 
@@ -659,41 +665,17 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
 
           <TabsContent value="properties" className="mt-4">
             <div className="space-y-4">
-              {/* Link Property */}
-              <Card className="border-blue-200 bg-blue-50">
-                <CardContent className="p-4">
-                  <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
-                    <Link2 className="w-4 h-4" />
-                    Vincular Imóvel ao Empreendimento
-                  </h4>
-                  <div className="flex gap-2">
-                    <Select value={linkPropertyId} onValueChange={setLinkPropertyId}>
-                      <SelectTrigger className="flex-1 bg-white">
-                        <SelectValue placeholder="Selecione um imóvel..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableProperties.length === 0 ? (
-                          <SelectItem value="none" disabled>Nenhum imóvel disponível</SelectItem>
-                        ) : (
-                          availableProperties.map((prop) => (
-                            <SelectItem key={prop.id} value={prop.id}>
-                              {prop.title?.substring(0, 50)}...
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <Button 
-                      onClick={handleLinkProperty}
-                      disabled={!linkPropertyId || linkMutation.isPending}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Vincular
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Quick Actions */}
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => setAddUnitsOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Unidades
+                </Button>
+              </div>
 
               {/* Linked Properties */}
               {linkedProperties.length === 0 ? (
@@ -762,7 +744,16 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                               <Badge className={propertyStatusColors[prop.status]}>
                                 {propertyStatusLabels[prop.status]}
                               </Badge>
-                              
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingUnit(prop)}
+                                title="Editar Unidade"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+
                               <Link to={`${createPageUrl("PropertyDetails")}?id=${prop.id}`} target="_blank">
                                 <Button variant="outline" size="sm">
                                   <Eye className="w-4 h-4" />
@@ -790,6 +781,10 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
             </div>
           </TabsContent>
 
+          <TabsContent value="salesmap" className="mt-4">
+            <UnitSalesMap properties={linkedProperties} development={development} />
+          </TabsContent>
+
           <TabsContent value="gallery" className="mt-4">
             <DevelopmentImageGallery
               images={development.images || []}
@@ -798,6 +793,21 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
             />
           </TabsContent>
         </Tabs>
+
+        {/* Add Units Dialog */}
+        <AddUnitsDialog
+          open={addUnitsOpen}
+          onOpenChange={setAddUnitsOpen}
+          development={development}
+        />
+
+        {/* Edit Unit Dialog */}
+        <EditUnitDialog
+          open={!!editingUnit}
+          onOpenChange={(open) => !open && setEditingUnit(null)}
+          unit={editingUnit}
+          development={development}
+        />
       </DialogContent>
     </Dialog>
   );

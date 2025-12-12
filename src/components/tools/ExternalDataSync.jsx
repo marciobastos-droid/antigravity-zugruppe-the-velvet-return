@@ -539,6 +539,35 @@ Extrai:
               finalDescription = `${finalDescription}\n\nEstado: ${enrichedData.condition}`.trim();
             }
 
+            // Tentar detectar empreendimento pela cidade/nome
+            let autoDetectedDevelopment = null;
+            const titleLower = item.title?.toLowerCase() || "";
+            const addressLower = (enrichedData.address || item.address || "").toLowerCase();
+            
+            if (titleLower || addressLower) {
+              const { data: allDevelopments } = await base44.functions.invoke('getAllDevelopments');
+              
+              if (allDevelopments?.length > 0) {
+                autoDetectedDevelopment = allDevelopments.find(dev => {
+                  const devNameLower = dev.name?.toLowerCase() || "";
+                  const devCityLower = dev.city?.toLowerCase() || "";
+                  const cityMatch = (enrichedData.city || item.city || "").toLowerCase();
+                  
+                  // Match por nome do empreendimento no título
+                  const nameInTitle = devNameLower && titleLower.includes(devNameLower);
+                  const nameInAddress = devNameLower && addressLower.includes(devNameLower);
+                  
+                  // Match por cidade + palavras-chave de empreendimento
+                  const isInSameCity = devCityLower && cityMatch && devCityLower === cityMatch;
+                  const hasDevKeywords = titleLower.includes('empreend') || 
+                                        titleLower.includes('residênc') ||
+                                        addressLower.includes('empreend');
+                  
+                  return (nameInTitle || nameInAddress) || (isInSameCity && hasDevKeywords);
+                });
+              }
+            }
+
             const propertyData = {
               ref_id: refData.ref_id,
               title: (enrichedData.title || item.title).trim(),
@@ -570,7 +599,11 @@ Extrai:
               internal_notes: internalNotes || undefined,
               status: "active",
               availability_status: "available",
-              tags: ["Importado", "Sync Externa"]
+              tags: ["Importado", "Sync Externa"],
+              // Auto-associar empreendimento se detectado
+              development_id: autoDetectedDevelopment?.id || undefined,
+              development_name: autoDetectedDevelopment?.name || undefined,
+              unit_number: item.unit_number || enrichedData.unit_number || undefined
             };
 
             console.log(`Creating property:`, propertyData);
