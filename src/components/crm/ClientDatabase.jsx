@@ -17,7 +17,7 @@ import {
   Tag as TagIcon, Clock, User, Filter, Home, Target,
   TrendingUp, Euro, Bed, Sparkles, ChevronDown, Globe, Facebook, Users2,
   Star, Zap, AlertCircle, CheckCircle2, Flame, Snowflake, ThermometerSun,
-  LayoutGrid, List, Link2
+  LayoutGrid, List, Link2, Plus
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
