@@ -12,6 +12,7 @@ import GmailSyncManager from "./GmailSyncManager";
 import CRMIntegrations from "../tools/CRMIntegrations";
 import PortalIntegrations from "../tools/PortalIntegrations";
 import ExternalDataSync from "../tools/ExternalDataSync";
+import CasafariSync from "../tools/CasafariSync";
 
 export default function IntegrationsHub() {
   const { data: user } = useQuery({
@@ -128,7 +129,7 @@ export default function IntegrationsHub() {
 
       {/* Main Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Visão Geral</span>
@@ -140,6 +141,10 @@ export default function IntegrationsHub() {
           <TabsTrigger value="portals" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
             <span className="hidden md:inline">Portais</span>
+          </TabsTrigger>
+          <TabsTrigger value="casafari" className="flex items-center gap-2">
+            <Building2 className="w-4 h-4" />
+            <span className="hidden md:inline">Casafari</span>
           </TabsTrigger>
           <TabsTrigger value="gmail" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
@@ -338,6 +343,11 @@ export default function IntegrationsHub() {
         {/* Portals Tab */}
         <TabsContent value="portals" className="mt-6">
           <PortalIntegrations />
+        </TabsContent>
+
+        {/* Casafari Tab */}
+        <TabsContent value="casafari" className="mt-6">
+          <CasafariSync />
         </TabsContent>
 
         {/* Gmail Tab */}
