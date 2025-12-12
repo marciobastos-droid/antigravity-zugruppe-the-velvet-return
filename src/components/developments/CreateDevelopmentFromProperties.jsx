@@ -56,25 +56,68 @@ export default function CreateDevelopmentFromProperties({
 
   const createMutation = useMutation({
     mutationFn: async () => {
+      // Coletar todas as imagens dos imóveis
+      const allImages = [];
+      selectedProps.forEach(prop => {
+        if (prop.images && prop.images.length > 0) {
+          allImages.push(...prop.images);
+        }
+      });
+      const uniqueImages = [...new Set(allImages)].slice(0, 20); // Máximo 20 imagens
+
+      // Calcular preços mínimo e máximo
+      const prices = selectedProps.map(p => p.price).filter(Boolean);
+      const priceFrom = prices.length > 0 ? Math.min(...prices) : 0;
+      const priceTo = prices.length > 0 ? Math.max(...prices) : 0;
+
+      // Coletar amenities únicas
+      const allAmenities = [];
+      selectedProps.forEach(prop => {
+        if (prop.amenities && prop.amenities.length > 0) {
+          allAmenities.push(...prop.amenities);
+        }
+      });
+      const uniqueAmenities = [...new Set(allAmenities)];
+
+      // Tipos de propriedades
+      const propertyTypes = [...new Set(selectedProps.map(p => {
+        if (p.bedrooms > 0) return `T${p.bedrooms}`;
+        return p.property_type;
+      }).filter(Boolean))];
+
       // Criar o empreendimento
       const development = await base44.entities.Development.create({
-        ...formData,
+        name: formData.name,
+        description: formData.description || `Empreendimento com ${selectedProps.length} frações`,
+        developer_name: formData.developer_name || "",
+        status: formData.status,
+        completion_date: formData.completion_date || undefined,
         total_units: selectedProps.length,
-        available_units: selectedProps.filter(p => p.status === 'active').length,
+        available_units: selectedProps.filter(p => p.availability_status === 'available' || p.status === 'active').length,
         city: selectedProps[0]?.city || "",
-        state: selectedProps[0]?.state || "",
-        images: selectedProps[0]?.images || []
+        district: selectedProps[0]?.state || "",
+        address: selectedProps[0]?.address || "",
+        images: uniqueImages,
+        amenities: uniqueAmenities,
+        property_types: propertyTypes,
+        price_from: priceFrom,
+        price_to: priceTo
       });
 
+      console.log('Development created:', development.id);
+
       // Atualizar os imóveis para associar ao empreendimento
-      await Promise.all(
-        selectedPropertyIds.map(propertyId =>
-          base44.entities.Property.update(propertyId, {
-            development_id: development.id,
-            development_name: formData.name
-          })
-        )
-      );
+      const updatePromises = selectedPropertyIds.map(async (propertyId, index) => {
+        const prop = selectedProps.find(p => p.id === propertyId);
+        return await base44.entities.Property.update(propertyId, {
+          development_id: development.id,
+          development_name: formData.name,
+          unit_number: prop?.ref_id || `${index + 1}`
+        });
+      });
+
+      await Promise.all(updatePromises);
+      console.log('All properties updated with development_id');
 
       return development;
     },
@@ -148,19 +191,25 @@ export default function CreateDevelopmentFromProperties({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-slate-500">Valor Total:</span>
-                <span className="ml-2 font-medium">€{stats.totalValue.toLocaleString()}</span>
+                <span className="ml-2 font-semibold text-slate-900">€{stats.totalValue.toLocaleString()}</span>
               </div>
               <div>
                 <span className="text-slate-500">Preço Médio:</span>
-                <span className="ml-2 font-medium">€{Math.round(stats.avgPrice).toLocaleString()}</span>
+                <span className="ml-2 font-semibold text-slate-900">€{Math.round(stats.avgPrice).toLocaleString()}</span>
               </div>
-              <div>
+              <div className="col-span-2">
                 <span className="text-slate-500">Localização:</span>
-                <span className="ml-2">{stats.cities.join(", ") || "N/A"}</span>
+                <span className="ml-2 font-medium">{stats.cities.join(", ") || "N/A"}</span>
               </div>
-              <div>
-                <span className="text-slate-500">Tipos:</span>
-                <span className="ml-2">{stats.types.map(t => propertyTypeLabels[t] || t).join(", ") || "N/A"}</span>
+              <div className="col-span-2">
+                <span className="text-slate-500">Tipologias:</span>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {stats.types.map((t, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {propertyTypeLabels[t] || t}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -217,9 +266,9 @@ export default function CreateDevelopmentFromProperties({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="planning">Em Planeamento</SelectItem>
+                  <SelectItem value="planned">Em Planeamento</SelectItem>
                   <SelectItem value="under_construction">Em Construção</SelectItem>
-                  <SelectItem value="ready">Pronto</SelectItem>
+                  <SelectItem value="completed">Concluído</SelectItem>
                   <SelectItem value="sold_out">Esgotado</SelectItem>
                 </SelectContent>
               </Select>
