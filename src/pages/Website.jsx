@@ -1350,9 +1350,20 @@ export default function Website() {
           </div>
           </footer>
         </div>
-      </HelmetProvider>
-    );
-  }
+
+        {/* Floating Home Button */}
+        <Link to={createPageUrl("Home")} className="fixed bottom-6 right-6 z-50 group">
+          <button className="w-14 h-14 bg-white shadow-lg rounded-full flex items-center justify-center hover:shadow-xl transition-all duration-200 hover:scale-110 border-2 border-slate-200">
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+              alt="Zugruppe"
+              className="w-10 h-10 object-contain"
+            />
+          </button>
+        </Link>
+        </HelmetProvider>
+        );
+        }
 
 // Compact Card for Grid View - Highly Optimized Memoization
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
