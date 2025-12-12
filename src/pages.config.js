@@ -29,6 +29,7 @@ import Subscriptions from './pages/Subscriptions';
 import Support from './pages/Support';
 import LandingPage from './pages/LandingPage';
 import Favorites from './pages/Favorites';
+import RGPDConsent from './pages/RGPDConsent';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "Support": Support,
     "LandingPage": LandingPage,
     "Favorites": Favorites,
+    "RGPDConsent": RGPDConsent,
 }
 
 export const pagesConfig = {
