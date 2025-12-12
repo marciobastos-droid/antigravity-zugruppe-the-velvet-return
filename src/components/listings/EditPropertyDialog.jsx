@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditLog();
   const [uploading, setUploading] = useState(false);
   const [improvingDescription, setImprovingDescription] = useState(false);
   const [improvingTitle, setImprovingTitle] = useState(false);
@@ -177,8 +178,14 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.Property.update(property.id, data),
-    onSuccess: () => {
+    onSuccess: async (result, variables) => {
       toast.success("Imóvel atualizado com sucesso!");
+      
+      // Log audit action
+      await logAction('update', 'Property', property.id, property.title, {
+        fields_changed: Object.keys(variables)
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['property', property.id] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       queryClient.invalidateQueries({ queryKey: ['myProperties'] });

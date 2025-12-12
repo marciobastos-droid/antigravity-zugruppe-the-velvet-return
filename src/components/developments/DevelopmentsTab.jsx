@@ -17,9 +17,11 @@ import {
 import { toast } from "sonner";
 import DevelopmentDetail from "@/components/developments/DevelopmentDetail";
 import AIDevelopmentDescriptionGenerator from "@/components/developments/AIDevelopmentDescriptionGenerator";
+import { useAuditLog } from "@/components/audit/useAuditLog";
 
 export default function DevelopmentsTab() {
   const queryClient = useQueryClient();
+  const { logAction } = useAuditLog();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("all");
   const [developerFilter, setDeveloperFilter] = React.useState("all");
@@ -94,7 +96,8 @@ export default function DevelopmentsTab() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Development.create(data),
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logAction('create', 'Development', result.id, result.name);
       toast.success("Empreendimento criado");
       queryClient.invalidateQueries({ queryKey: ['developments'] });
       resetForm();
@@ -103,7 +106,11 @@ export default function DevelopmentsTab() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Development.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
+      const dev = developments.find(d => d.id === variables.id);
+      await logAction('update', 'Development', variables.id, dev?.name, {
+        fields_changed: Object.keys(variables.data)
+      });
       toast.success("Empreendimento atualizado");
       queryClient.invalidateQueries({ queryKey: ['developments'] });
       resetForm();
@@ -112,7 +119,9 @@ export default function DevelopmentsTab() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Development.delete(id),
-    onSuccess: () => {
+    onSuccess: async (_, deletedId) => {
+      const deleted = developments.find(d => d.id === deletedId);
+      await logAction('delete', 'Development', deletedId, deleted?.name);
       toast.success("Empreendimento eliminado");
       queryClient.invalidateQueries({ queryKey: ['developments'] });
     }

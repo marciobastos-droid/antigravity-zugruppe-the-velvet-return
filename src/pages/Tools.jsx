@@ -57,6 +57,7 @@ import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
+import { FileBarChart } from "lucide-react";
 import NotificationsDashboard from "../components/notifications/NotificationsDashboard";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";

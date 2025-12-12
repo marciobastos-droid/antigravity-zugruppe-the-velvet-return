@@ -1,46 +1,39 @@
 import { base44 } from "@/api/base44Client";
 
 /**
- * Hook para registar ações no log de auditoria
- * Uso: const { logAction } = useAuditLog();
- *      await logAction('create', 'Property', propertyId, propertyTitle, { price: 250000 });
+ * Hook para registar ações de auditoria
  */
 export function useAuditLog() {
-  const logAction = async (action, entityType, entityId, entityName, details = {}, status = 'success', errorMessage = null) => {
+  const logAction = async (action, entity_type, entity_id, entity_name, details = {}) => {
     try {
       await base44.functions.invoke('logAuditAction', {
         action,
-        entity_type: entityType,
-        entity_id: entityId,
-        entity_name: entityName,
+        entity_type,
+        entity_id,
+        entity_name,
         details,
-        status,
-        error_message: errorMessage
+        status: 'success'
       });
     } catch (error) {
-      console.error('Failed to log audit action:', error);
-      // Don't throw - audit logging should not break the main flow
+      console.error('Audit log failed:', error);
+      // Não bloquear a operação principal se o log falhar
     }
   };
 
-  return { logAction };
-}
+  const logError = async (action, entity_type, entity_id, entity_name, error_message) => {
+    try {
+      await base44.functions.invoke('logAuditAction', {
+        action,
+        entity_type,
+        entity_id,
+        entity_name,
+        status: 'error',
+        error_message
+      });
+    } catch (err) {
+      console.error('Audit log failed:', err);
+    }
+  };
 
-/**
- * Função utilitária para logging direto sem hook
- */
-export async function logAuditAction(action, entityType, entityId, entityName, details = {}, status = 'success', errorMessage = null) {
-  try {
-    await base44.functions.invoke('logAuditAction', {
-      action,
-      entity_type: entityType,
-      entity_id: entityId,
-      entity_name: entityName,
-      details,
-      status,
-      error_message: errorMessage
-    });
-  } catch (error) {
-    console.error('Failed to log audit action:', error);
-  }
+  return { logAction, logError };
 }
