@@ -72,7 +72,10 @@ export default function WebsiteImageExtractor() {
 
   const downloadImage = async (imageUrl, filename) => {
     try {
-      const response = await fetch(imageUrl);
+      // Use proxy to avoid CORS issues
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      if (!response.ok) throw new Error('Falha ao descarregar');
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -84,7 +87,10 @@ export default function WebsiteImageExtractor() {
       a.remove();
       toast.success("Download iniciado");
     } catch (error) {
-      toast.error("Erro ao descarregar imagem");
+      console.error('Download error:', error);
+      // Fallback: open in new tab
+      window.open(imageUrl, '_blank');
+      toast.info("A abrir imagem em nova aba");
     }
   };
 
