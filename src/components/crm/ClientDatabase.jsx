@@ -659,7 +659,7 @@ export default function ClientDatabase() {
   // Memoized filtered clients with optimized search
   const filteredClients = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    const validContactTypes = ["client", "partner", "investor", "vendor", "promoter", "other"];
+    const validContactTypes = ["client", "partner", "investor", "vendor", "promoter", "owner", "other"];
     const tagFilterSet = new Set(tagFilter);
     const agentFilterSet = new Set(assignedAgentFilter);
     const hasNone = agentFilterSet.has("none");
@@ -721,6 +721,7 @@ export default function ClientDatabase() {
     investor: "Investidor",
     vendor: "Fornecedor",
     promoter: "Promotor",
+    owner: "Proprietário",
     other: "Outro"
   }), []);
 
@@ -730,6 +731,7 @@ export default function ClientDatabase() {
     investor: "bg-green-100 text-green-800",
     vendor: "bg-orange-100 text-orange-800",
     promoter: "bg-indigo-100 text-indigo-800",
+    owner: "bg-amber-100 text-amber-800",
     other: "bg-slate-100 text-slate-800"
   }), []);
 
@@ -841,6 +843,7 @@ export default function ClientDatabase() {
                       <SelectItem value="investor">Investidor</SelectItem>
                       <SelectItem value="vendor">Fornecedor</SelectItem>
                       <SelectItem value="promoter">Promotor</SelectItem>
+                      <SelectItem value="owner">Proprietário</SelectItem>
                       <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
@@ -2857,6 +2860,7 @@ export default function ClientDatabase() {
                     <SelectItem value="investor">Investidor</SelectItem>
                     <SelectItem value="vendor">Fornecedor</SelectItem>
                     <SelectItem value="promoter">Promotor</SelectItem>
+                    <SelectItem value="owner">Proprietário</SelectItem>
                     <SelectItem value="other">Outro</SelectItem>
                   </SelectContent>
                 </Select>
