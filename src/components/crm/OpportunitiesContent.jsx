@@ -21,12 +21,13 @@ import EmailHistoryPanel from "../email/EmailHistoryPanel";
 import OpportunityQuickFilters from "./OpportunityQuickFilters";
 import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/AILeadScoring";
 import { useAgentNames } from "@/components/common/useAgentNames";
-
+import { useAuditLog } from "../audit/useAuditLog";
 import OpportunitiesGrid from "./OpportunitiesGrid";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
   const { getAgentOptions, getAgentName } = useAgentNames();
+  const { logAction } = useAuditLog();
   const [viewMode, setViewMode] = React.useState(() => {
     // Default to kanban on mobile, kanban on desktop
     return "kanban";
@@ -186,7 +187,10 @@ export default function OpportunitiesContent() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Opportunity.delete(id),
-    onSuccess: () => {
+    onSuccess: async (_, deletedId) => {
+      const deleted = opportunities.find(o => o.id === deletedId);
+      await logAction('delete', 'Opportunity', deletedId, deleted?.buyer_name);
+      
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       setSelectedLeadId(null);
     },

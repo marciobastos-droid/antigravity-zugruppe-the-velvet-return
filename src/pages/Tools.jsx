@@ -57,7 +57,6 @@ import SocialMediaAdCreator from "../components/tools/SocialMediaAdCreator";
 import JSONProcessor from "../components/tools/JSONProcessor";
 import ExternalDataSync from "../components/tools/ExternalDataSync";
 import AuditLogViewer from "../components/audit/AuditLogViewer";
-import { FileBarChart } from "lucide-react";
 import NotificationsDashboard from "../components/notifications/NotificationsDashboard";
 import CasafariSync from "../components/tools/CasafariSync";
 import MarketingCampaignsHub from "../components/marketing/MarketingCampaignsHub";
@@ -71,6 +70,15 @@ import ExcelImportExport from "../components/tools/ExcelImportExport";
 import CRMIntegrations from "../components/tools/CRMIntegrations";
 
 export default function Tools() {
+  // Auth check - redirect to login if not authenticated
+  React.useEffect(() => {
+    base44.auth.isAuthenticated().then(isAuth => {
+      if (!isAuth) {
+        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      }
+    });
+  }, []);
+
   const [activeTab, setActiveTab] = useState("importProperties");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);
@@ -332,7 +340,7 @@ export default function Tools() {
                 <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
                 <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
                 <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" className="bg-green-100 border-green-400 hover:bg-green-200" />
-                <ToolButton toolId="auditLog" icon={FileText} label="Log de Auditoria" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
+                <ToolButton toolId="auditLog" icon={FileBarChart} label="Logs de Atividade" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
               </div>
               </CardContent>
               </Card>

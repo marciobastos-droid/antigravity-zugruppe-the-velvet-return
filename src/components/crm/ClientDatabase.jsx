@@ -28,6 +28,7 @@ import ClientsTable from "./ClientsTable";
 import TagSelector from "../tags/TagSelector";
 import QuickContactActions from "./QuickContactActions";
 import { useAgentNames } from "@/components/common/useAgentNames";
+import { useAuditLog } from "../audit/useAuditLog";
 
 // Lazy load heavy components
 const CommunicationHistory = lazy(() => import("./CommunicationHistory"));
@@ -174,6 +175,7 @@ const LoadingFallback = () => (
 export default function ClientDatabase() {
     const queryClient = useQueryClient();
     const { getAgentName, getAgentOptions } = useAgentNames();
+    const { logAction } = useAuditLog();
     const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -311,7 +313,8 @@ export default function ClientDatabase() {
       const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
       return base44.entities.ClientContact.create({ ...data, ref_id: refData.ref_id });
     },
-    onSuccess: () => {
+    onSuccess: async (result) => {
+      await logAction('create', 'ClientContact', result.id, result.full_name);
       toast.success("Contacto criado");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       resetForm();
@@ -326,6 +329,11 @@ export default function ClientDatabase() {
       return result;
     },
     onSuccess: async (_, variables) => {
+      const contact = clients.find(c => c.id === variables.id);
+      await logAction('update', 'ClientContact', variables.id, contact?.full_name, {
+        fields_changed: Object.keys(variables.data)
+      });
+      
       toast.success("Contacto atualizado");
       await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
 
@@ -346,7 +354,10 @@ export default function ClientDatabase() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.ClientContact.delete(id),
-    onSuccess: () => {
+    onSuccess: async (_, deletedId) => {
+      const deleted = clients.find(c => c.id === deletedId);
+      await logAction('delete', 'ClientContact', deletedId, deleted?.full_name);
+      
       toast.success("Contacto eliminado");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       setSelectedClient(null);

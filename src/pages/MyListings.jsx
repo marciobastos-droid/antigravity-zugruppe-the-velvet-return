@@ -30,6 +30,7 @@ import BulkActionsBar from "../components/listings/BulkActionsBar";
 import AdvancedFilters, { FILTER_TYPES } from "@/components/filters/AdvancedFilters";
 import { useAdvancedFilters } from "@/components/filters/useAdvancedFilters";
 import { useUndoAction } from "@/components/common/useUndoAction";
+import { useAuditLog } from "../components/audit/useAuditLog";
 import OptimizedImage from "../components/common/OptimizedImage";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { Home as HomeIcon } from "lucide-react";
@@ -257,8 +258,9 @@ export default function MyListings() {
   }, []);
 
   const queryClient = useQueryClient();
-      const { executeWithUndo } = useUndoAction();
-      const [selectedProperties, setSelectedProperties] = useState([]);
+  const { executeWithUndo } = useUndoAction();
+  const { logAction } = useAuditLog();
+  const [selectedProperties, setSelectedProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingNotes, setViewingNotes] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
@@ -457,7 +459,10 @@ export default function MyListings() {
 
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Property.delete(id),
-    onSuccess: () => {
+    onSuccess: async (_, deletedId) => {
+      const deleted = properties.find(p => p.id === deletedId);
+      await logAction('delete', 'Property', deletedId, deleted?.title);
+      
       toast.success("Anúncio eliminado");
       queryClient.invalidateQueries({ queryKey: ['myProperties', 'properties'] });
     },
@@ -467,7 +472,14 @@ export default function MyListings() {
     mutationFn: async (ids) => {
       await Promise.all(ids.map(id => base44.entities.Property.delete(id)));
     },
-    onSuccess: (_, ids) => {
+    onSuccess: async (_, ids) => {
+      const propertyTitles = ids.map(id => properties.find(p => p.id === id)?.title).filter(Boolean);
+      await logAction('bulk_action', 'Property', null, null, {
+        action: 'delete',
+        count: ids.length,
+        items: propertyTitles.slice(0, 10)
+      });
+      
       toast.success(`${ids.length} anúncios eliminados`);
       setSelectedProperties([]);
       queryClient.invalidateQueries({ queryKey: ['myProperties'] });
