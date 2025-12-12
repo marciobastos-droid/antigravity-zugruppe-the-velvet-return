@@ -73,14 +73,14 @@ export default function ImportLeads() {
         promptAddition = `- property_to_sell: Descrição do imóvel a vender`;
         schemaAddition = { property_to_sell: { type: "string" } };
       } else {
-        // Parceiro - também pode ter requisitos de imóvel que procura para clientes
+        // Colega - também pode ter requisitos de imóvel que procura para clientes
         promptAddition = `
 - company_name: Nome da empresa
-- partnership_type: Tipo de parceria (Angariador, Construtor, Investidor, Mediador, etc)
+- partnership_type: Tipo de relação (Colega, Parceiro, Angariador, Construtor, Investidor, Mediador, etc)
 - specialization: Especialização ou área de atuação
 - locations: Localizações onde atua ou procura imóveis
 
-SE O PARCEIRO MENCIONAR REQUISITOS DE IMÓVEIS QUE PROCURA:
+SE O COLEGA MENCIONAR REQUISITOS DE IMÓVEIS QUE PROCURA:
 - budget_min: Orçamento mínimo (número)
 - budget_max: Orçamento máximo (número)
 - property_types: Array de tipos de imóvel (house, apartment, townhouse, condo, land, commercial)
@@ -114,7 +114,7 @@ SE O PARCEIRO MENCIONAR REQUISITOS DE IMÓVEIS QUE PROCURA:
       const leadTypeLabels = {
         comprador: "comprador/cliente interessado em comprar imóvel",
         vendedor: "vendedor/proprietário que quer vender imóvel",
-        parceiro: "parceiro de negócio/empresa imobiliária"
+        colega: "colega/contacto profissional imobiliário"
       };
 
       const extracted = await base44.integrations.Core.InvokeLLM({
@@ -170,7 +170,7 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
       const contactTypeMap = {
         'comprador': 'client',
         'vendedor': 'client',
-        'parceiro': 'partner'
+        'colega': 'colega'
       };
 
       const contactData = {
@@ -224,24 +224,24 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         opportunityData.property_to_sell = extracted.property_to_sell || "";
         contactData.notes = `Imóvel a vender: ${extracted.property_to_sell || ""}\n\n${extracted.message || ""}`;
       } else {
-        // Parceiro
+        // Colega
         opportunityData.company_name = extracted.company_name || "";
         opportunityData.partnership_type = extracted.partnership_type || "";
         contactData.company_name = extracted.company_name || "";
         contactData.job_title = extracted.partnership_type || "";
         contactData.city = extracted.locations?.[0] || location || extracted.location || "";
         
-        // Build detailed notes for partner
-        const partnerNotes = [];
-        if (extracted.partnership_type) partnerNotes.push(`Tipo de Parceria: ${extracted.partnership_type}`);
-        if (extracted.company_name) partnerNotes.push(`Empresa: ${extracted.company_name}`);
-        if (extracted.specialization) partnerNotes.push(`Especialização: ${extracted.specialization}`);
-        if (extracted.locations?.length) partnerNotes.push(`Localizações de atuação: ${extracted.locations.join(", ")}`);
-        if (extracted.message) partnerNotes.push(`\nMensagem:\n${extracted.message}`);
+        // Build detailed notes for colega
+        const colegaNotes = [];
+        if (extracted.partnership_type) colegaNotes.push(`Tipo de Relação: ${extracted.partnership_type}`);
+        if (extracted.company_name) colegaNotes.push(`Empresa: ${extracted.company_name}`);
+        if (extracted.specialization) colegaNotes.push(`Especialização: ${extracted.specialization}`);
+        if (extracted.locations?.length) colegaNotes.push(`Localizações de atuação: ${extracted.locations.join(", ")}`);
+        if (extracted.message) colegaNotes.push(`\nMensagem:\n${extracted.message}`);
         
-        contactData.notes = partnerNotes.join("\n");
+        contactData.notes = colegaNotes.join("\n");
         
-        // Store partner requirements in property_requirements (including property search criteria if available)
+        // Store colega requirements in property_requirements (including property search criteria if available)
         const hasPropertyRequirements = extracted.budget_min || extracted.budget_max || 
           extracted.property_types?.length || extracted.bedrooms_min || extracted.area_min;
         
@@ -257,10 +257,10 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
           area_min: extracted.area_min || null,
           area_max: extracted.area_max || null,
           amenities: extracted.amenities || [],
-          additional_notes: `Tipo: ${extracted.partnership_type || "Parceiro"}\nEspecialização: ${extracted.specialization || ""}\n${extracted.additional_notes || ""}`
+          additional_notes: `Tipo: ${extracted.partnership_type || "Colega"}\nEspecialização: ${extracted.specialization || ""}\n${extracted.additional_notes || ""}`
         };
 
-        // Also set budget on opportunity for partner
+        // Also set budget on opportunity for colega
         if (extracted.budget_max || extracted.budget_min) {
           opportunityData.budget = extracted.budget_max || extracted.budget_min || 0;
         }
@@ -340,7 +340,7 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         extracted.property_types?.length || extracted.locations?.length ||
         extracted.bedrooms_min || extracted.area_min ||
         extracted.amenities?.length
-      ) || (leadType === "parceiro" && (
+      ) || (leadType === "colega" && (
         extracted.partnership_type || extracted.company_name || 
         extracted.specialization
       ));
@@ -365,8 +365,8 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
           ? `Oportunidade adicionada ao contacto existente "${existingContact.full_name}"${requirementsExtracted ? " com requisitos atualizados!" : "!"}`
           : leadType === "comprador" 
             ? `Lead e contacto criados${requirementsExtracted ? " com requisitos prontos para matching!" : "!"}`
-            : leadType === "parceiro"
-            ? "Lead e contacto de parceiro criados!"
+            : leadType === "colega"
+            ? "Lead e contacto de colega criados!"
             : "Lead e contacto criados!"
       });
 
@@ -389,7 +389,7 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
   const leadTypeConfig = {
     comprador: { icon: User, color: "from-blue-600 to-cyan-600", description: "Interessado em comprar" },
     vendedor: { icon: Building, color: "from-green-600 to-emerald-600", description: "Quer vender" },
-    parceiro: { icon: Users, color: "from-purple-600 to-pink-600", description: "Proposta de parceria" }
+    colega: { icon: Users, color: "from-cyan-600 to-teal-600", description: "Contacto profissional" }
   };
 
   const config = leadTypeConfig[leadType];
@@ -551,7 +551,7 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={`Cole aqui qualquer texto sobre o ${leadType}...`}
+            placeholder={`Cole aqui qualquer texto sobre ${leadType === "colega" ? "o colega" : leadType === "comprador" ? "o comprador" : "o vendedor"}...`}
             rows={10}
             className="text-sm"
           />
