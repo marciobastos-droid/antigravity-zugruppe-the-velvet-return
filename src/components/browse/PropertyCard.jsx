@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
 import OptimizedImage from "../common/OptimizedImage";
 
-export default function PropertyCard({ property }) {
+export default function PropertyCard({ property, hideMetadata = false }) {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
   // Reset image index when property changes
@@ -138,7 +138,7 @@ export default function PropertyCard({ property }) {
 
         {/* Property Type and Source Info */}
         <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2">
-          {property.ref_id && (
+          {!hideMetadata && property.ref_id && (
             <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
               {property.ref_id}
             </Badge>
@@ -154,14 +154,14 @@ export default function PropertyCard({ property }) {
              property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1)}
           </Badge>
 
-          {property.external_id && property.external_id !== 'N/A' && (
+          {!hideMetadata && property.external_id && property.external_id !== 'N/A' && (
             <Badge variant="secondary" className="text-xs">
               <Hash className="w-3 h-3 mr-1" />
               {property.external_id}
             </Badge>
           )}
 
-          {property.source_url && (
+          {!hideMetadata && property.source_url && (
             <Badge variant="secondary" className="text-xs">
               <ExternalLink className="w-3 h-3 mr-1" />
               Importado
