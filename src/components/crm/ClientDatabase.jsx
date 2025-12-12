@@ -426,6 +426,20 @@ export default function ClientDatabase() {
     }
   });
 
+  const bulkAssignAgentMutation = useMutation({
+    mutationFn: async ({ ids, agentEmail }) => {
+      await Promise.all(ids.map(id => 
+        base44.entities.ClientContact.update(id, { assigned_agent: agentEmail })
+      ));
+    },
+    onSuccess: (_, { ids, agentEmail }) => {
+      const agentName = getAgentName(agentEmail) || agentEmail;
+      toast.success(`${ids.length} contactos atribuídos a "${agentName}"`);
+      setSelectedContacts([]);
+      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+    }
+  });
+
   const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, isRunning: false });
 
       const bulkEditMutation = useMutation({
