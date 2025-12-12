@@ -8,14 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Sparkles, FileText, Tags, Globe, 
   Loader2, Copy, Check, RefreshCw, 
-  TrendingUp, ExternalLink, Home, DollarSign, Award
+  TrendingUp, ExternalLink, Home, DollarSign, Award, Type
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import AITitleGenerator from "../property/AITitleGenerator";
 
 export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
-  const [activeTab, setActiveTab] = React.useState("description");
+  const [activeTab, setActiveTab] = React.useState("title");
   const [generatedDescription, setGeneratedDescription] = React.useState("");
   const [suggestedTags, setSuggestedTags] = React.useState([]);
   const [publicationRecommendations, setPublicationRecommendations] = React.useState(null);
@@ -229,28 +230,40 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="description" className="gap-2">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
+            <TabsTrigger value="title" className="gap-1 sm:gap-2">
+              <Type className="w-4 h-4" />
+              <span className="hidden sm:inline">Título</span>
+            </TabsTrigger>
+            <TabsTrigger value="description" className="gap-1 sm:gap-2">
               <FileText className="w-4 h-4" />
-              Descrição
+              <span className="hidden sm:inline">Descrição</span>
             </TabsTrigger>
-            <TabsTrigger value="tags" className="gap-2">
+            <TabsTrigger value="tags" className="gap-1 sm:gap-2">
               <Tags className="w-4 h-4" />
-              Tags
+              <span className="hidden sm:inline">Tags</span>
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="gap-2">
+            <TabsTrigger value="pricing" className="gap-1 sm:gap-2">
               <DollarSign className="w-4 h-4" />
-              Pricing
+              <span className="hidden sm:inline">Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="score" className="gap-2">
+            <TabsTrigger value="score" className="gap-1 sm:gap-2">
               <Award className="w-4 h-4" />
-              Pontuação
+              <span className="hidden sm:inline">Pontuação</span>
             </TabsTrigger>
-            <TabsTrigger value="publication" className="gap-2">
+            <TabsTrigger value="publication" className="gap-1 sm:gap-2">
               <Globe className="w-4 h-4" />
-              Publicação
+              <span className="hidden sm:inline">Publicação</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* TAB: Título */}
+          <TabsContent value="title" className="space-y-4 mt-6">
+            <AITitleGenerator 
+              property={property} 
+              onUpdate={(id, updates) => updatePropertyMutation.mutate(updates)} 
+            />
+          </TabsContent>
 
           {/* TAB: Descrição */}
           <TabsContent value="description" className="space-y-4 mt-6">
