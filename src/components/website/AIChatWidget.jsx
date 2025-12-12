@@ -70,7 +70,7 @@ ${userMessage}
 INSTRUÇÕES:
 - Responde de forma profissional, simpática e prestável
 - Se perguntarem sobre imóveis específicos, recomenda que visitem o site ou agendem visita
-- Se pedirem contacto, indica: email: info@zugruppe.com, telefone: +351 XXX XXX XXX
+- Se pedirem contacto, indica: email: info@zugruppe.com
 - Usa emojis moderadamente para ser mais amigável
 - Mantém respostas concisas (máx 3 parágrafos)
 - Se detetares um email ou telefone na mensagem, agradece os dados de contacto
@@ -118,7 +118,7 @@ Responde APENAS com o texto da resposta, sem introduções.`,
       console.error('Error sending message:', error);
       setMessages(prev => [...prev, { 
         role: "assistant", 
-        content: "Desculpe, ocorreu um erro. Pode entrar em contacto diretamente através de info@zugruppe.com ou +351 XXX XXX XXX." 
+        content: "Desculpe, ocorreu um erro. Pode entrar em contacto diretamente através de info@zugruppe.com." 
       }]);
     }
 
