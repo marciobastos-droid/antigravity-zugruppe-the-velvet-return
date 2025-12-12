@@ -10,7 +10,7 @@ import {
   ArrowLeft, MapPin, Bed, Bath, Maximize, Calendar, 
   Home, Star, Heart, Edit, ExternalLink, Hash, MessageCircle,
   Phone, Mail, User, ChevronLeft, ChevronRight, X,
-  Building2, Ruler, Zap, Wrench, Send, Loader2, Check, Image as ImageIcon, FileDown
+  Building2, Ruler, Zap, Wrench, Send, Loader2, Check, Camera, FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -587,7 +587,7 @@ export default function PropertyDetails() {
                     onClick={() => setGalleryOpen(true)}
                     className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-slate-50 text-slate-900 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg shadow-lg font-semibold text-xs sm:text-sm transition-all hover:scale-105 border border-slate-200"
                   >
-                    <ImageIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">{t('common.viewAll')} {images.length} {t('common.photos')}</span>
                     <span className="sm:hidden">{images.length} {t('common.photos')}</span>
                   </button>
