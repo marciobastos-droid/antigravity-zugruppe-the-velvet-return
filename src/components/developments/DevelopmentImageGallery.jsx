@@ -2,7 +2,7 @@ import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, X, ZoomIn, GripVertical, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, GripVertical, Save, Image } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast } from "sonner";
@@ -78,7 +78,7 @@ export default function DevelopmentImageGallery({ images = [], developmentId, on
   if (!images || images.length === 0) {
     return (
       <div className="text-center py-12 text-slate-500">
-        <ImageIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
         <p>Nenhuma imagem disponível</p>
       </div>
     );
