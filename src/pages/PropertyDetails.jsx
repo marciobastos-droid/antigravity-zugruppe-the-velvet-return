@@ -159,15 +159,24 @@ export default function PropertyDetails() {
   });
 
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers'],
+    queryKey: ['allUsersForConsultant'],
     queryFn: async () => {
       try {
-        return await base44.entities.User.list();
-      } catch {
+        const users = await base44.entities.User.list();
+        console.log('[PropertyDetails] Loaded users for consultant dropdown:', users.length);
+        // Mostrar todos os utilizadores, ordenados por nome
+        return users.sort((a, b) => {
+          const nameA = a.display_name || a.full_name || a.email;
+          const nameB = b.display_name || b.full_name || b.email;
+          return nameA.localeCompare(nameB);
+        });
+      } catch (error) {
+        console.error('[PropertyDetails] Error loading users:', error);
         return [];
       }
     },
-    ...QUERY_CONFIG.user
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 60000 // Cache for 1 minute
   });
 
   const updatePropertyMutation = useMutation({
