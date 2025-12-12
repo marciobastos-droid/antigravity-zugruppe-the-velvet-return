@@ -2,7 +2,7 @@ import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Users, DollarSign, Loader2 } from "lucide-react";
+import { Award, TrendingUp, Users, DollarSign, Loader2 } from "lucide-react";
 
 export default function TopAgentsWidget({ config }) {
   const metric = config.metric || 'leads';
@@ -76,7 +76,7 @@ export default function TopAgentsWidget({ config }) {
           className={`flex items-center gap-3 p-2 rounded-lg border ${getRankColor(idx)}`}
         >
           <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center font-bold text-sm border">
-            {idx === 0 ? <Trophy className="w-4 h-4 text-yellow-600" /> : idx + 1}
+            {idx === 0 ? <Award className="w-4 h-4 text-yellow-600" /> : idx + 1}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{agent.name}</p>

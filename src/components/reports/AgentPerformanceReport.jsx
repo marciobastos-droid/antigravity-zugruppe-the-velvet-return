@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line } from "recharts";
-import { Download, FileText, Users, Target, Euro, Clock, Trophy, TrendingUp, Award, Star, Medal } from "lucide-react";
+import { Download, FileText, Users, Target, Euro, Clock, Award, TrendingUp, Star, Medal } from "lucide-react";
 import moment from "moment";
 import { useAgentNames } from "@/components/common/useAgentNames";
 
@@ -216,9 +216,9 @@ export default function AgentPerformanceReport() {
   };
 
   const getRankBadge = (rank) => {
-    if (rank === 1) return <Trophy className="w-5 h-5 text-amber-500" />;
+    if (rank === 1) return <Award className="w-5 h-5 text-amber-500" />;
     if (rank === 2) return <Medal className="w-5 h-5 text-slate-400" />;
-    if (rank === 3) return <Award className="w-5 h-5 text-orange-400" />;
+    if (rank === 3) return <Star className="w-5 h-5 text-orange-400" />;
     return <span className="text-sm font-bold text-slate-400">#{rank}</span>;
   };
 
@@ -316,7 +316,7 @@ export default function AgentPerformanceReport() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <Award className="w-5 h-5 text-amber-500" />
                   Top Performers (Score Geral)
                 </CardTitle>
               </CardHeader>

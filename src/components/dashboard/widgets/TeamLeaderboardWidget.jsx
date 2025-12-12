@@ -1,6 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Medal, TrendingUp, Target, Building2 } from "lucide-react";
+import { Award, Medal, TrendingUp, Target, Building2 } from "lucide-react";
 
 export default function TeamLeaderboardWidget({ data, config }) {
   const agentStats = data?.agentStats || [];
@@ -21,7 +21,7 @@ export default function TeamLeaderboardWidget({ data, config }) {
     .slice(0, limit);
 
   const getRankIcon = (index) => {
-    if (index === 0) return <Trophy className="w-4 h-4 text-amber-500" />;
+    if (index === 0) return <Award className="w-4 h-4 text-amber-500" />;
     if (index === 1) return <Medal className="w-4 h-4 text-slate-400" />;
     if (index === 2) return <Medal className="w-4 h-4 text-amber-700" />;
     return <span className="w-4 h-4 flex items-center justify-center text-xs font-bold text-slate-400">{index + 1}</span>;
