@@ -10,6 +10,7 @@ import AIPriceSuggestion from "./AIPriceSuggestion";
 import AIDescriptionGenerator from "./AIDescriptionGenerator";
 import AIBuyerMatcher from "./AIBuyerMatcher";
 import PropertyMediaUploader from "./PropertyMediaUploader";
+import AITitleGenerator from "./AITitleGenerator";
 
 export default function AIPropertyTools({ property, onUpdate }) {
   const [activeTab, setActiveTab] = React.useState("price");
@@ -24,19 +25,24 @@ export default function AIPropertyTools({ property, onUpdate }) {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="price">Preço</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="title">Título</TabsTrigger>
             <TabsTrigger value="description">Descrição</TabsTrigger>
+            <TabsTrigger value="price">Preço</TabsTrigger>
             <TabsTrigger value="buyers">Compradores</TabsTrigger>
             <TabsTrigger value="media">Média</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="price" className="mt-4">
-            <AIPriceSuggestion property={property} onUpdate={onUpdate} />
+          <TabsContent value="title" className="mt-4">
+            <AITitleGenerator property={property} onUpdate={onUpdate} />
           </TabsContent>
 
           <TabsContent value="description" className="mt-4">
             <AIDescriptionGenerator property={property} onUpdate={onUpdate} />
+          </TabsContent>
+
+          <TabsContent value="price" className="mt-4">
+            <AIPriceSuggestion property={property} onUpdate={onUpdate} />
           </TabsContent>
 
           <TabsContent value="buyers" className="mt-4">
