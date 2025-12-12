@@ -186,21 +186,21 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
 
           {/* Key Features Grid */}
           <div className="grid grid-cols-4 gap-4 mb-8 bg-slate-50 p-6 rounded-xl">
-            {property.bedrooms > 0 && (
+            {property.bedrooms && property.bedrooms > 0 && (
               <div className="text-center">
                 <Bed className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-slate-900">{property.bedrooms}</p>
                 <p className="text-sm text-slate-600">Quartos</p>
               </div>
             )}
-            {property.bathrooms > 0 && (
+            {property.bathrooms && property.bathrooms > 0 && (
               <div className="text-center">
                 <Bath className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-slate-900">{property.bathrooms}</p>
                 <p className="text-sm text-slate-600">WC</p>
               </div>
             )}
-            {(property.useful_area || property.gross_area) && (
+            {((property.useful_area && property.useful_area > 0) || (property.gross_area && property.gross_area > 0)) && (
               <div className="text-center">
                 <Maximize className="w-8 h-8 text-blue-600 mx-auto mb-2" />
                 <p className="text-2xl font-bold text-slate-900">{property.useful_area || property.gross_area}</p>
@@ -235,7 +235,7 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
             <div>
               <h3 className="text-xl font-bold text-slate-900 mb-4">Características</h3>
               <div className="space-y-2 text-slate-700">
-                {property.year_built && (
+                {property.year_built && property.year_built > 0 && (
                   <div className="flex justify-between">
                     <span>Ano de Construção:</span>
                     <span className="font-semibold">{property.year_built}</span>
@@ -253,17 +253,17 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
                     <span className="font-semibold capitalize">{property.sun_exposure.replace(/_/g, '/')}</span>
                   </div>
                 )}
-                {property.gross_area && property.useful_area && (
-                  <>
-                    <div className="flex justify-between">
-                      <span>Área Bruta:</span>
-                      <span className="font-semibold">{property.gross_area}m²</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Área Útil:</span>
-                      <span className="font-semibold">{property.useful_area}m²</span>
-                    </div>
-                  </>
+                {property.gross_area && property.gross_area > 0 && (
+                  <div className="flex justify-between">
+                    <span>Área Bruta:</span>
+                    <span className="font-semibold">{property.gross_area}m²</span>
+                  </div>
+                )}
+                {property.useful_area && property.useful_area > 0 && (
+                  <div className="flex justify-between">
+                    <span>Área Útil:</span>
+                    <span className="font-semibold">{property.useful_area}m²</span>
+                  </div>
                 )}
               </div>
             </div>
@@ -348,10 +348,9 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
                 />
               </div>
               <div className="text-right text-sm text-slate-600">
-                <p className="font-bold text-slate-900">AMI 11355 | Privileged Approach Unipessoal Lda</p>
+                <p className="font-bold text-slate-900">IMPIC 11355 | Privileged Approach Unipessoal Lda</p>
                 <p>📞 234 026 223 | ✉️ info@zugruppe.com</p>
                 <p>🌐 www.zugruppe.com</p>
-                <p>📍 Praça Marquês de Pombal 2, 3800-166 Glória e Vera Cruz</p>
               </div>
             </div>
             <div className="text-center mt-4 text-xs text-slate-500">
