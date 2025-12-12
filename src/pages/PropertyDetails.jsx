@@ -25,6 +25,7 @@ import PropertyCard from "../components/browse/PropertyCard";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import QuickAppointmentButton from "../components/crm/QuickAppointmentButton";
 import { usePropertyEngagement } from "../components/website/PropertyEngagementTracker";
+import { useTrackView } from "../components/portal/useTrackView";
 
 // Import Leaflet components normally (lazy loading causes initialization issues)
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
