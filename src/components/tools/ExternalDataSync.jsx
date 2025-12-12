@@ -284,9 +284,11 @@ PARA IMÓVEIS - EXTRAI DE CADA CARD:
 - city: cidade/concelho
 - state: distrito
 - address: morada se disponível
-- images: array com URLs das fotos
-- source_url: link COMPLETO para a página de detalhes deste imóvel
+- images: array com URLs de TODAS as fotos/imagens visíveis do imóvel (OBRIGATÓRIO - extrair sempre, mínimo 1 imagem)
+- source_url: link COMPLETO para a página de detalhes deste imóvel (OBRIGATÓRIO)
 - external_id: referência/ID do anúncio
+- amenities: características visíveis (varanda, garagem, etc.)
+- energy_certificate: certificado energético se visível
 
 PARA EMPREENDIMENTOS:
 - name: nome do empreendimento
@@ -297,13 +299,25 @@ PARA EMPREENDIMENTOS:
 - price_to: preço máximo
 - status: em construção, concluído, em planta
 - property_types: tipologias disponíveis (T1, T2, T3, etc.)
-- images: fotos
-- source_url: link para página do empreendimento
+- images: array com URLs de TODAS as fotos/renders do empreendimento (OBRIGATÓRIO - extrair sempre)
+- amenities: comodidades do empreendimento
+- source_url: link para página do empreendimento (OBRIGATÓRIO)
+
+PARA CONTACTOS:
+- images podem incluir foto de perfil se disponível
+
+🚨 CRÍTICO - EXTRAÇÃO DE IMAGENS:
+- SEMPRE extrair URLs de TODAS as imagens visíveis nos cards/listagens
+- Procurar por tags <img>, background-image, data-src, srcset
+- URLs devem ser completas (começar com https://)
+- Incluir foto principal + galeria se disponível
+- Mínimo 1 imagem por item sempre que possível
 
 IMPORTANTE:
 - Retorna TODOS os itens encontrados, não apenas alguns
 - Se um dado não estiver disponível, omite o campo
 - URLs devem ser completos (começar com https://)
+- IMAGES é campo prioritário - SEMPRE extrair
 
 Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
         add_context_from_internet: true,
@@ -404,19 +418,24 @@ Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
                 // Tentar enriquecer dados - dividido em chamadas menores para evitar JSON inválido
                 let detailResult = {};
                 
-                // Primeira chamada: dados básicos e descrição
+                // Primeira chamada: dados básicos e IMAGENS (prioritário)
                 try {
                   const basicData = await base44.integrations.Core.InvokeLLM({
-                    prompt: `Extrai dados BÁSICOS desta página de imóvel.
+                    prompt: `Extrai dados BÁSICOS desta página de imóvel, com FOCO ESPECIAL nas IMAGENS.
 URL: ${item.source_url}
 
-Extrai apenas:
+🚨 CRÍTICO - IMAGENS (prioridade máxima):
+- images: array com URLs de TODAS as fotos/imagens do imóvel disponíveis na página
+- Procurar em galeria, carrossel, thumbnails, imagens em alta resolução
+- Incluir URLs completas (https://...)
+- Mínimo 1 imagem, idealmente todas as disponíveis (até 15 imagens)
+
+Outros dados:
 - description: descrição completa
 - bedrooms: número de quartos
 - bathrooms: número de casas de banho
 - useful_area: área útil em m²
 - gross_area: área bruta em m²
-- images: array com URLs de fotos (máximo 10)
 - address: morada completa
 - city: cidade
 - state: distrito`,
