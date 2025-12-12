@@ -10,7 +10,7 @@ import {
   ArrowLeft, MapPin, Bed, Bath, Maximize, Calendar, 
   Home, Star, Heart, Edit, ExternalLink, Hash, MessageCircle,
   Phone, Mail, User, ChevronLeft, ChevronRight, X,
-  Building2, Ruler, Zap, Wrench, Send, Loader2, Check, Image as ImageIcon
+  Building2, Ruler, Zap, Wrench, Send, Loader2, Check, Image as ImageIcon, FileDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,7 @@ const PublicationStatus = React.lazy(() => import("../components/property/Public
 const PropertyQualityScore = React.lazy(() => import("../components/property/PropertyQualityScore"));
 const AIPricingAnalysis = React.lazy(() => import("../components/property/AIPricingAnalysis"));
 const PremiumAnalytics = React.lazy(() => import("../components/subscription/PremiumAnalytics"));
+const PropertyBrochureGenerator = React.lazy(() => import("../components/property/PropertyBrochureGenerator"));
 import { 
   generatePropertyMetaDescription, 
   generatePropertyKeywords, 
@@ -73,6 +74,7 @@ export default function PropertyDetails() {
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
+  const [brochureOpen, setBrochureOpen] = React.useState(false);
   const [contactForm, setContactForm] = React.useState({
     name: '',
     email: '',
@@ -526,6 +528,15 @@ export default function PropertyDetails() {
             >
               <MessageCircle className="w-4 h-4 mr-2" />
               {t('contact.shareProperty')}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setBrochureOpen(true)}
+              className="bg-blue-500 hover:bg-blue-600 text-white border-0"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Brochura PDF
             </Button>
           </div>
         </div>
@@ -1228,6 +1239,16 @@ export default function PropertyDetails() {
               property={editingProperty}
               open={!!editingProperty}
               onOpenChange={(open) => !open && setEditingProperty(null)}
+            />
+          </React.Suspense>
+        )}
+
+        {brochureOpen && (
+          <React.Suspense fallback={null}>
+            <PropertyBrochureGenerator
+              property={property}
+              open={brochureOpen}
+              onOpenChange={setBrochureOpen}
             />
           </React.Suspense>
         )}

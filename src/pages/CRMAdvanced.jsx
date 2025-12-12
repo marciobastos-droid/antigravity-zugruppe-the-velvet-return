@@ -36,59 +36,43 @@ export default function CRMAdvanced() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex w-full overflow-x-auto mb-4 sm:mb-8 gap-1">
-            <TabsTrigger value="metrics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
-              <PieChart className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Métricas</span>
-            </TabsTrigger>
-            <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
-              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Dashboard</span>
+          <TabsList className="flex w-full overflow-x-auto mb-4 sm:mb-8 gap-1 bg-white p-1 rounded-lg border">
+            <TabsTrigger value="opportunities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Oportunidades</span>
             </TabsTrigger>
             <TabsTrigger value="clients" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Contactos</span>
-            </TabsTrigger>
-            <TabsTrigger value="opportunities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
-              <Target className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Oportunidades</span>
+              <span>Contactos</span>
             </TabsTrigger>
             <TabsTrigger value="segments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Target className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Segmentos</span>
+              <span>Segmentos</span>
             </TabsTrigger>
             <TabsTrigger value="followups" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Follow-ups</span>
+              <span>Follow-ups</span>
             </TabsTrigger>
             <TabsTrigger value="campaigns" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Campanhas</span>
+              <span>Campanhas</span>
             </TabsTrigger>
             <TabsTrigger value="matching" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Matching</span>
+              <span>Matching</span>
             </TabsTrigger>
             <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline sm:inline">Agenda</span>
+              <span>Agenda</span>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="metrics">
-            <CRMMetricsDashboard />
-          </TabsContent>
-
-          <TabsContent value="dashboard">
-            <CRMDashboard />
+          <TabsContent value="opportunities">
+            <OpportunitiesContent />
           </TabsContent>
 
           <TabsContent value="clients">
             <ClientDatabase />
-          </TabsContent>
-
-          <TabsContent value="opportunities">
-            <OpportunitiesContent />
           </TabsContent>
 
           <TabsContent value="segments">
