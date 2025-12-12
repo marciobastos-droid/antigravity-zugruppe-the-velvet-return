@@ -241,11 +241,10 @@ export default function PropertyDetails() {
     return user && (property?.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
   }, [user, property?.created_by]);
 
-  const assignedAgent = React.useMemo(() => {
-    return agents.find(a => a.id === property?.agent_id || a.email === property?.agent_id) 
-      || allUsers.find(u => u.id === property?.agent_id || u.email === property?.agent_id)
-      || allUsers.find(u => u.email === property?.assigned_consultant);
-  }, [agents, allUsers, property?.agent_id, property?.assigned_consultant]);
+  const assignedConsultant = React.useMemo(() => {
+    return allUsers.find(u => u.email === property?.assigned_consultant)
+      || agents.find(a => a.email === property?.assigned_consultant);
+  }, [agents, allUsers, property?.assigned_consultant]);
 
   // SEO data
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
@@ -350,11 +349,13 @@ export default function PropertyDetails() {
     }
   }, [property?.images]);
 
-  const handleAgentChange = React.useCallback((agentId) => {
-    const agent = allUsers.find(u => u.id === agentId) || agents.find(a => a.id === agentId);
+  const handleConsultantChange = React.useCallback((email) => {
+    const consultant = allUsers.find(u => u.email === email) || agents.find(a => a.email === email);
     updatePropertyMutation.mutate({
-      agent_id: agentId || null,
-      agent_name: agent?.full_name || null
+      assigned_consultant: email || null,
+      assigned_consultant_name: consultant?.display_name || consultant?.full_name || null,
+      assigned_consultant_phone: consultant?.phone || null,
+      assigned_consultant_photo: consultant?.photo_url || null
     });
   }, [allUsers, agents, updatePropertyMutation]);
 
@@ -919,25 +920,25 @@ export default function PropertyDetails() {
             {/* Agent Card */}
             <Card className="lg:sticky lg:top-24">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg">{t('property.details.assignedAgent')}</CardTitle>
+                <CardTitle className="text-lg">Consultor Responsável</CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Agent Assignment (only for owners/admins) */}
+                {/* Consultant Assignment (only for owners/admins) */}
                 {isOwner && (
                   <div className="mb-4 pb-4 border-b">
-                    <Label className="text-xs text-slate-500 mb-1 block">Atribuir Agente</Label>
+                    <Label className="text-xs text-slate-500 mb-1 block">Atribuir Consultor</Label>
                     <Select 
-                      value={property.agent_id || ""} 
-                      onValueChange={handleAgentChange}
+                      value={property.assigned_consultant || ""} 
+                      onValueChange={handleConsultantChange}
                       disabled={updatePropertyMutation.isPending}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecionar agente..." />
+                        <SelectValue placeholder="Selecionar consultor..." />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={null}>Nenhum</SelectItem>
                         {allUsers.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
+                          <SelectItem key={u.id} value={u.email}>
                             {u.display_name || u.full_name || u.email}
                           </SelectItem>
                         ))}
@@ -962,13 +963,13 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {assignedAgent ? (
+                {assignedConsultant ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      {assignedAgent.photo_url ? (
+                      {assignedConsultant.photo_url ? (
                         <OptimizedImage
-                          src={assignedAgent.photo_url}
-                          alt={assignedAgent.display_name || assignedAgent.full_name}
+                          src={assignedConsultant.photo_url}
+                          alt={assignedConsultant.display_name || assignedConsultant.full_name}
                           className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
                           fallbackIcon={User}
                         />
@@ -978,49 +979,37 @@ export default function PropertyDetails() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900 truncate">{assignedAgent.display_name || assignedAgent.full_name}</h4>
-                        {assignedAgent.specialization && (
-                          <p className="text-sm text-slate-600 truncate">{assignedAgent.specialization}</p>
+                        <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
+                        {assignedConsultant.specialization && (
+                          <p className="text-sm text-slate-600 truncate">{assignedConsultant.specialization}</p>
                         )}
                       </div>
                     </div>
                     
                     <div className="space-y-2">
-                      {assignedAgent.phone && (
+                      {assignedConsultant.phone && (
                         <a 
-                          href={`tel:${assignedAgent.phone}`}
+                          href={`tel:${assignedConsultant.phone}`}
                           className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
                           <Phone className="w-4 h-4" />
-                          {assignedAgent.phone}
+                          {assignedConsultant.phone}
                         </a>
                       )}
-                      {assignedAgent.email && (
+                      {assignedConsultant.email && (
                         <a 
-                          href={`mailto:${assignedAgent.email}`}
+                          href={`mailto:${assignedConsultant.email}`}
                           className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
                           <Mail className="w-4 h-4" />
-                          {assignedAgent.email}
+                          {assignedConsultant.email}
                         </a>
                       )}
                     </div>
                     
-                    {assignedAgent.bio && (
-                      <p className="text-sm text-slate-600 pt-2 border-t">{assignedAgent.bio}</p>
+                    {assignedConsultant.bio && (
+                      <p className="text-sm text-slate-600 pt-2 border-t">{assignedConsultant.bio}</p>
                     )}
-                  </div>
-                ) : property.agent_name ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300">
-                        <User className="w-8 h-8 text-slate-500" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-slate-900">{property.agent_name}</h4>
-                        <p className="text-sm text-slate-600">Agente Imobiliário</p>
-                      </div>
-                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-4">
