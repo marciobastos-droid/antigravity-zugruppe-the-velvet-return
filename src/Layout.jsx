@@ -11,6 +11,8 @@ import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import { useGuestFeatures } from "./components/visitors/useGuestFeatures";
 import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
+import PWAProvider from "./components/pwa/PWAProvider";
+import PWAInstaller from "./components/pwa/PWAInstaller";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails"];
 
@@ -43,10 +45,13 @@ export default function Layout({ children, currentPageName }) {
   // Render minimal layout for Home page
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
     return (
-      <LocalizationProvider>
-        <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-        {children}
-      </LocalizationProvider>
+      <PWAProvider>
+        <LocalizationProvider>
+          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
+          <PWAInstaller />
+          {children}
+        </LocalizationProvider>
+      </PWAProvider>
     );
   }
 
@@ -105,10 +110,12 @@ export default function Layout({ children, currentPageName }) {
   });
 
   return (
-    <LocalizationProvider>
-      <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-      <div className="min-h-screen bg-slate-50">
-        <Toaster position="top-right" richColors />
+    <PWAProvider>
+      <LocalizationProvider>
+        <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
+        <PWAInstaller />
+        <div className="min-h-screen bg-slate-50">
+          <Toaster position="top-right" richColors />
       <style>{`
         :root {
           --color-primary: #0f172a;
@@ -286,6 +293,7 @@ export default function Layout({ children, currentPageName }) {
 
       <main className="pb-8">{children}</main>
       </div>
-    </LocalizationProvider>
-  );
-}
+      </LocalizationProvider>
+      </PWAProvider>
+      );
+      }
