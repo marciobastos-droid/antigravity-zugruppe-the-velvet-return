@@ -11,20 +11,26 @@ import { Wrench, User, Save, CheckCircle2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-// Tool categories and their tools
+// Tool categories and their tools - MUST match Tools page exactly
 const TOOL_CATEGORIES = {
   marketing: {
     name: "Marketing Digital",
     tools: [
+      { id: "marketingHub", name: "Hub de Marketing" },
+      { id: "marketingCampaigns", name: "Campanhas Marketing" },
+      { id: "facebookCampaigns", name: "Facebook Ads" },
       { id: "facebookLeads", name: "Leads Facebook" },
-      { id: "facebookCampaigns", name: "Campanhas FB" },
-      { id: "facebookForms", name: "Formulários FB" },
+      { id: "facebookForms", name: "Formulários Facebook" },
       { id: "socialMedia", name: "Posts Sociais" },
+      { id: "socialAdCreator", name: "Criador de Anúncios" },
       { id: "apiPublish", name: "Publicação API" },
       { id: "apiIntegrations", name: "Integrações API" },
       { id: "portalIntegrations", name: "Portais Imobiliários" },
       { id: "whatsapp", name: "WhatsApp Business" },
-      { id: "integrations", name: "Integrações Externas" }
+      { id: "integrations", name: "Integrações Externas" },
+      { id: "imageExtractor", name: "Extrator de Imagens Web" },
+      { id: "excelImport", name: "Excel & JSON" },
+      { id: "crmIntegrations", name: "CRM Externo" }
     ]
   },
   leads: {
@@ -41,20 +47,33 @@ const TOOL_CATEGORIES = {
       { id: "importLeads", name: "Importar Leads" },
       { id: "importContacts", name: "Importar Contactos" },
       { id: "importOpportunities", name: "Importar Oportunidades" },
+      { id: "importInvoices", name: "Importar Faturas" },
       { id: "exportProperties", name: "Exportar Ficheiros" },
-      { id: "reportsExporter", name: "Relatórios" }
+      { id: "reportsExporter", name: "Relatórios" },
+      { id: "jsonProcessor", name: "Processador JSON (IA)" },
+      { id: "propertyFeeds", name: "Feeds de Imóveis" },
+      { id: "externalSync", name: "Sincronização Externa" },
+      { id: "casafariSync", name: "Casafari Sync" }
     ]
   },
   utilities: {
     name: "Utilitários",
     tools: [
+      { id: "bulkScore", name: "Pontuações em Massa" },
+      { id: "crmSync", name: "Sincronização CRM" },
       { id: "duplicateChecker", name: "Verificar Duplicados" },
+      { id: "duplicateClients", name: "Clientes Duplicados" },
       { id: "inconsistencyChecker", name: "Verificar Inconsistências" },
+      { id: "orphanCleaner", name: "Limpar Dados Órfãos" },
+      { id: "linkContacts", name: "Vincular Contactos" },
+      { id: "imageValidator", name: "Validador de Imagens" },
       { id: "emailHub", name: "Centro de Email" },
+      { id: "gmailSync", name: "Sincronizar Gmail" },
+      { id: "gmailLinker", name: "Gmail Linker" },
       { id: "video", name: "Criador de Vídeos" },
       { id: "description", name: "Gerador de Descrições" },
       { id: "listingOptimizer", name: "Otimizador de Anúncios" },
-      { id: "calendar", name: "Calendário de Visitas" }
+      { id: "calendar", name: "Calendário Unificado" }
     ]
   },
   matching: {
@@ -69,8 +88,10 @@ const TOOL_CATEGORIES = {
     name: "Mercado",
     tools: [
       { id: "marketIntelligence", name: "Inteligência de Mercado" },
+      { id: "propertyPerformance", name: "Performance de Imóveis" },
       { id: "pricing", name: "Sugestor de Preços" },
-      { id: "creditSimulator", name: "Simulador de Crédito" }
+      { id: "creditSimulator", name: "Simulador de Crédito" },
+      { id: "deedCosts", name: "Custos de Escritura" }
     ]
   },
   finance: {
@@ -80,13 +101,24 @@ const TOOL_CATEGORIES = {
       { id: "invoices", name: "Gestão de Faturas" }
     ]
   },
+  investor: {
+    name: "Secção de Investidores",
+    tools: [
+      { id: "investorKeys", name: "Chaves de Acesso" },
+      { id: "investorProperties", name: "Imóveis Publicados" }
+    ]
+  },
   settings: {
     name: "Definições e Conteúdos",
     tools: [
+      { id: "contractAutomation", name: "Automação de Contratos" },
       { id: "documents", name: "Documentos e Contratos" },
+      { id: "notificationsDashboard", name: "Central de Notificações" },
       { id: "smtpConfig", name: "Config. Email" },
       { id: "devNotes", name: "Notas & Sugestões" },
-      { id: "tagManager", name: "Etiquetas" }
+      { id: "tagManager", name: "Etiquetas" },
+      { id: "backupManager", name: "Gestor de Backups" },
+      { id: "auditLog", name: "Logs de Atividade" }
     ]
   }
 };
