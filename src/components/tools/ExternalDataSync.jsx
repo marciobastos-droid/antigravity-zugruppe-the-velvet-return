@@ -762,8 +762,9 @@ Extrai:
             }
           }
         } catch (error) {
-          results.errors.push({ item: item.title || item.full_name || item.buyer_name, error: error.message });
-          results.items.push({ name: item.title || item.full_name || item.buyer_name, status: "error" });
+          const itemName = item.title || item.name || item.full_name || item.buyer_name || "Item desconhecido";
+          results.errors.push({ item: itemName, error: error.message });
+          results.items.push({ name: itemName, status: "error" });
         }
       }
 
@@ -878,6 +879,130 @@ Extrai:
     if (lower.includes("1 ano") || lower.includes("year")) return "1_year";
     if (lower.includes("explorar") || lower.includes("look")) return "just_looking";
     return undefined;
+  };
+
+  const renderItemDetails = (item, dataType) => {
+    if (dataType === "properties") {
+      return (
+        <>
+          {item.price > 0 && <p>💰 Preço: €{item.price.toLocaleString()}</p>}
+          {item.property_type && <p>🏠 Tipo: {item.property_type}</p>}
+          {item.bedrooms > 0 && <p>🛏️ Quartos: {item.bedrooms}</p>}
+          {item.bathrooms > 0 && <p>🚿 WC: {item.bathrooms}</p>}
+          {item.area > 0 && <p>📏 Área: {item.area}m²</p>}
+          {item.city && <p>📍 Local: {item.city}{item.state ? `, ${item.state}` : ''}</p>}
+          {item.address && <p>🏘️ Morada: {item.address}</p>}
+          {item.energy_certificate && <p>⚡ Cert. Energético: {item.energy_certificate}</p>}
+          {item.amenities?.length > 0 && (
+            <p>✨ Comodidades: {item.amenities.slice(0, 5).join(', ')}{item.amenities.length > 5 ? '...' : ''}</p>
+          )}
+          {item.source_url && <p>🔗 URL: <a href={item.source_url} target="_blank" className="text-indigo-600 hover:underline truncate max-w-xs inline-block align-bottom">{item.source_url}</a></p>}
+        </>
+      );
+    } else if (dataType === "contacts") {
+      return (
+        <>
+          {item.email && <p>📧 Email: {item.email}</p>}
+          {item.phone && <p>📞 Telefone: {item.phone}</p>}
+          {item.company_name && <p>🏢 Empresa: {item.company_name}</p>}
+          {item.job_title && <p>💼 Cargo: {item.job_title}</p>}
+          {item.city && <p>📍 Local: {item.city}{item.state ? `, ${item.state}` : ''}</p>}
+          {item.address && <p>🏘️ Morada: {item.address}</p>}
+          {item.interests?.length > 0 && <p>⭐ Interesses: {item.interests.join(', ')}</p>}
+          {item.budget_range && <p>💰 Orçamento: {item.budget_range}</p>}
+        </>
+      );
+    } else if (dataType === "developments") {
+      return (
+        <>
+          {item.developer_name && <p>🏗️ Promotor: {item.developer_name}</p>}
+          {item.city && <p>📍 Local: {item.city}{item.state ? `, ${item.state}` : ''}</p>}
+          {item.total_units > 0 && <p>🏢 Frações: {item.total_units}</p>}
+          {item.available_units > 0 && <p>✅ Disponíveis: {item.available_units}</p>}
+          {item.price_from > 0 && <p>💰 Desde: €{item.price_from.toLocaleString()}</p>}
+          {item.price_to > 0 && <p>💰 Até: €{item.price_to.toLocaleString()}</p>}
+          {item.status && <p>📊 Estado: {item.status}</p>}
+          {item.completion_date && <p>📅 Conclusão: {item.completion_date}</p>}
+          {item.property_types?.length > 0 && <p>🏘️ Tipologias: {item.property_types.join(', ')}</p>}
+          {item.amenities?.length > 0 && <p>✨ Comodidades: {item.amenities.slice(0, 5).join(', ')}</p>}
+          {item.source_url && <p>🔗 URL: <a href={item.source_url} target="_blank" className="text-indigo-600 hover:underline truncate max-w-xs inline-block align-bottom">{item.source_url}</a></p>}
+        </>
+      );
+    } else {
+      return (
+        <>
+          {item.buyer_email && <p>📧 Email: {item.buyer_email}</p>}
+          {item.buyer_phone && <p>📞 Telefone: {item.buyer_phone}</p>}
+          {item.location && <p>📍 Local interesse: {item.location}</p>}
+          {item.budget > 0 && <p>💰 Orçamento: €{item.budget.toLocaleString()}</p>}
+          {item.property_type_interest && <p>🏠 Tipo interesse: {item.property_type_interest}</p>}
+          {item.preferred_cities?.length > 0 && <p>🏙️ Cidades: {item.preferred_cities.join(', ')}</p>}
+          {item.urgency && <p>⏱️ Urgência: {item.urgency}</p>}
+        </>
+      );
+    }
+  };
+
+  const generateCSVReport = (results, dataType, extractedData) => {
+    const headers = ['Nome', 'Status', 'Motivo Erro', 'Detalhes'];
+    const rows = [];
+
+    results.items?.forEach(item => {
+      const originalData = extractedData?.items?.find(ei => 
+        (ei.title || ei.name || ei.full_name || ei.buyer_name) === item.name
+      );
+      
+      const errorInfo = results.errors?.find(e => e.item === item.name);
+      const details = originalData ? formatItemDetailsForCSV(originalData, dataType) : '';
+      
+      rows.push([
+        item.name || '',
+        item.status === "success" ? "Importado" : item.status === "duplicate" ? "Duplicado" : "Erro",
+        errorInfo?.error || '',
+        details
+      ]);
+    });
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map(row => row.map(cell => `"${(cell || '').toString().replace(/"/g, '""')}"`).join(';'))
+    ].join('\n');
+
+    return '\uFEFF' + csvContent; // UTF-8 BOM
+  };
+
+  const formatItemDetailsForCSV = (item, dataType) => {
+    if (dataType === "properties") {
+      return [
+        item.price ? `Preço: €${item.price}` : '',
+        item.property_type ? `Tipo: ${item.property_type}` : '',
+        item.bedrooms ? `T${item.bedrooms}` : '',
+        item.area ? `${item.area}m²` : '',
+        item.city ? `Local: ${item.city}` : '',
+        item.energy_certificate ? `Cert: ${item.energy_certificate}` : '',
+        item.source_url ? `URL: ${item.source_url}` : ''
+      ].filter(Boolean).join(' | ');
+    } else if (dataType === "contacts") {
+      return [
+        item.email || '',
+        item.phone || '',
+        item.company_name || '',
+        item.city || ''
+      ].filter(Boolean).join(' | ');
+    } else if (dataType === "developments") {
+      return [
+        item.city || '',
+        item.total_units ? `${item.total_units} frações` : '',
+        item.price_from ? `€${item.price_from}` : '',
+        item.developer_name || ''
+      ].filter(Boolean).join(' | ');
+    } else {
+      return [
+        item.buyer_email || '',
+        item.location || '',
+        item.budget ? `€${item.budget}` : ''
+      ].filter(Boolean).join(' | ');
+    }
   };
 
   const toggleItem = (idx) => {
@@ -1337,44 +1462,199 @@ Extrai:
           {/* Result Tab */}
           <TabsContent value="result" className="mt-6">
             {importResult && (
-              <div className="space-y-4">
-                <div className="text-center py-6 bg-green-50 rounded-lg border border-green-200">
-                  <Check className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                  <h3 className="text-xl font-bold text-green-900">Importação Concluída</h3>
-                  <p className="text-green-700">{importResult.created} registos importados</p>
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-3 gap-4">
+                  <Card className="bg-green-50 border-green-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-green-700">Importados</p>
+                          <p className="text-2xl font-bold text-green-900">{importResult.created}</p>
+                        </div>
+                        <Check className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-yellow-50 border-yellow-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-yellow-700">Duplicados</p>
+                          <p className="text-2xl font-bold text-yellow-900">
+                            {importResult.items?.filter(i => i.status === "duplicate").length || 0}
+                          </p>
+                        </div>
+                        <AlertTriangle className="w-8 h-8 text-yellow-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-red-50 border-red-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-red-700">Erros</p>
+                          <p className="text-2xl font-bold text-red-900">{importResult.errors?.length || 0}</p>
+                        </div>
+                        <AlertTriangle className="w-8 h-8 text-red-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                <div className="max-h-64 overflow-y-auto space-y-2">
-                  {importResult.items?.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded">
-                      <span className="truncate">{item.name}</span>
-                      <Badge className={
-                        item.status === "success" ? "bg-green-100 text-green-800" :
-                        item.status === "duplicate" ? "bg-yellow-100 text-yellow-800" :
-                        "bg-red-100 text-red-800"
-                      }>
-                        {item.status === "success" ? "Importado" :
-                         item.status === "duplicate" ? "Duplicado" : "Erro"}
-                      </Badge>
+                {/* Download Report Button */}
+                <Button 
+                  onClick={() => {
+                    const csv = generateCSVReport(importResult, selectedConfig?.data_type || dataType, extractedData);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute('href', url);
+                    link.setAttribute('download', `relatorio_importacao_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`);
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    toast.success("Relatório CSV descarregado");
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descarregar Relatório CSV Completo
+                </Button>
+
+                {/* Detailed Results Tabs */}
+                <Tabs defaultValue="success" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="success">
+                      Importados ({importResult.items?.filter(i => i.status === "success").length || 0})
+                    </TabsTrigger>
+                    <TabsTrigger value="duplicates">
+                      Duplicados ({importResult.items?.filter(i => i.status === "duplicate").length || 0})
+                    </TabsTrigger>
+                    <TabsTrigger value="errors">
+                      Erros ({importResult.errors?.length || 0})
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Success Items */}
+                  <TabsContent value="success" className="mt-4">
+                    <div className="max-h-96 overflow-y-auto space-y-2">
+                      {importResult.items?.filter(i => i.status === "success").map((item, idx) => {
+                        const originalData = extractedData?.items?.find(ei => 
+                          (ei.title || ei.name || ei.full_name || ei.buyer_name) === item.name
+                        );
+                        return (
+                          <Card key={idx} className="border-green-200">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Check className="w-4 h-4 text-green-600" />
+                                    <span className="font-medium text-slate-900">{item.name}</span>
+                                  </div>
+                                  {originalData && (
+                                    <div className="text-xs text-slate-600 space-y-1 ml-6">
+                                      {renderItemDetails(originalData, selectedConfig?.data_type || dataType)}
+                                    </div>
+                                  )}
+                                </div>
+                                <Badge className="bg-green-100 text-green-800">Sucesso</Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                      {importResult.items?.filter(i => i.status === "success").length === 0 && (
+                        <div className="text-center py-8 text-slate-500">
+                          Nenhum registo importado com sucesso
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  </TabsContent>
 
-                {importResult.errors?.length > 0 && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="w-4 h-4" />
-                    <AlertDescription>
-                      <strong className="block mb-2">{importResult.errors.length} erros durante a importação:</strong>
-                      <ul className="list-disc ml-4 text-sm space-y-1 max-h-32 overflow-auto">
-                        {importResult.errors.map((err, idx) => (
-                          <li key={idx}>
-                            <span className="font-medium">{err.item}:</span> {err.error}
-                          </li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                  {/* Duplicate Items */}
+                  <TabsContent value="duplicates" className="mt-4">
+                    <div className="max-h-96 overflow-y-auto space-y-2">
+                      {importResult.items?.filter(i => i.status === "duplicate").map((item, idx) => {
+                        const originalData = extractedData?.items?.find(ei => 
+                          (ei.title || ei.name || ei.full_name || ei.buyer_name) === item.name
+                        );
+                        return (
+                          <Card key={idx} className="border-yellow-200">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                                    <span className="font-medium text-slate-900">{item.name}</span>
+                                  </div>
+                                  <p className="text-xs text-yellow-700 ml-6 mb-2">
+                                    Já existe um registo com os mesmos dados
+                                  </p>
+                                  {originalData && (
+                                    <div className="text-xs text-slate-600 space-y-1 ml-6">
+                                      {renderItemDetails(originalData, selectedConfig?.data_type || dataType)}
+                                    </div>
+                                  )}
+                                </div>
+                                <Badge className="bg-yellow-100 text-yellow-800">Duplicado</Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                      {importResult.items?.filter(i => i.status === "duplicate").length === 0 && (
+                        <div className="text-center py-8 text-slate-500">
+                          Nenhum registo duplicado encontrado
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Error Items */}
+                  <TabsContent value="errors" className="mt-4">
+                    <div className="max-h-96 overflow-y-auto space-y-2">
+                      {importResult.errors?.map((error, idx) => {
+                        const originalData = extractedData?.items?.find(ei => 
+                          (ei.title || ei.name || ei.full_name || ei.buyer_name) === error.item
+                        );
+                        return (
+                          <Card key={idx} className="border-red-200">
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <AlertTriangle className="w-4 h-4 text-red-600" />
+                                    <span className="font-medium text-slate-900">{error.item}</span>
+                                  </div>
+                                  <div className="ml-6 space-y-2">
+                                    <p className="text-xs font-semibold text-red-700">
+                                      Motivo: {error.error}
+                                    </p>
+                                    {originalData && (
+                                      <div className="text-xs text-slate-600 space-y-1 pt-2 border-t border-red-100">
+                                        <p className="font-semibold text-slate-700">Dados Extraídos:</p>
+                                        {renderItemDetails(originalData, selectedConfig?.data_type || dataType)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <Badge className="bg-red-100 text-red-800">Erro</Badge>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                      {importResult.errors?.length === 0 && (
+                        <div className="text-center py-8 text-slate-500">
+                          Nenhum erro durante a importação
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
 
                 <Button onClick={resetForm} className="w-full">
                   <RefreshCw className="w-4 h-4 mr-2" />
