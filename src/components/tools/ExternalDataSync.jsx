@@ -255,71 +255,43 @@ export default function ExternalDataSync() {
       }
 
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analisa CUIDADOSAMENTE o conteúdo desta página web e extrai TODOS os ${typeConfig.label.toLowerCase()} listados.
-
+        prompt: `Extrai dados dos ${typeConfig.label.toLowerCase()} desta página.
 URL: ${targetUrl}
 
-${pageContent ? `CONTEÚDO DA PÁGINA:
-${pageContent}
+REGRAS:
+- NÃO incluir vendidos/reservados
+- Extrair TODOS os itens da listagem
+- Para cada item, extrair título, preço, local, link individual, e IMAGENS
 
-` : ""}FILTROS IMPORTANTES:
-- NÃO incluir imóveis/empreendimentos com status "Vendido", "Sold", "Reservado", "Reserved" ou similares
-- Apenas extrair imóveis DISPONÍVEIS para venda ou arrendamento
+${targetType === "properties" ? `IMÓVEIS - extrair de cada card:
+- title (texto do anúncio)
+- price (número sem símbolos)
+- property_type (apartamento/moradia/terreno/loja)
+- listing_type (sale/rent)
+- bedrooms (T2=2, T3=3)
+- area (m²)
+- city e state
+- images (array com URLs das fotos - OBRIGATÓRIO)
+- source_url (link completo para página do imóvel - OBRIGATÓRIO)` : ''}
 
-INSTRUÇÕES CRÍTICAS:
-1. Procura por TODOS os cards/itens de listagem na página
-2. Cada card representa um imóvel ou empreendimento diferente
-3. Extrai os dados de CADA UM separadamente
-4. Se houver 10 imóveis na página, deves retornar 10 itens no array
-5. Não inventes dados - extrai apenas o que está visível
+${targetType === "developments" ? `EMPREENDIMENTOS:
+- name, developer_name
+- city, state
+- total_units, price_from, price_to
+- images (array URLs - OBRIGATÓRIO)
+- source_url (link completo - OBRIGATÓRIO)` : ''}
 
-PARA IMÓVEIS - EXTRAI DE CADA CARD:
-- title: título/nome do anúncio
-- price: preço em número (remove € e pontos)
-- property_type: apartamento, moradia, terreno, loja, etc.
-- listing_type: "sale" ou "rent"
-- bedrooms: número de quartos (T2=2, T3=3)
-- bathrooms: casas de banho
-- area: área em m²
-- city: cidade/concelho
-- state: distrito
-- address: morada se disponível
-- images: array com URLs de TODAS as fotos/imagens visíveis do imóvel (OBRIGATÓRIO - extrair sempre, mínimo 1 imagem)
-- source_url: link COMPLETO para a página de detalhes deste imóvel (OBRIGATÓRIO)
-- external_id: referência/ID do anúncio
-- amenities: características visíveis (varanda, garagem, etc.)
-- energy_certificate: certificado energético se visível
+${targetType === "contacts" ? `CONTACTOS:
+- full_name, email, phone
+- company_name, job_title
+- city, state` : ''}
 
-PARA EMPREENDIMENTOS:
-- name: nome do empreendimento
-- developer_name: promotor/construtor
-- city, state: localização
-- total_units: número de frações
-- price_from: preço mínimo
-- price_to: preço máximo
-- status: em construção, concluído, em planta
-- property_types: tipologias disponíveis (T1, T2, T3, etc.)
-- images: array com URLs de TODAS as fotos/renders do empreendimento (OBRIGATÓRIO - extrair sempre)
-- amenities: comodidades do empreendimento
-- source_url: link para página do empreendimento (OBRIGATÓRIO)
+${targetType === "opportunities" ? `OPORTUNIDADES:
+- buyer_name, buyer_email, buyer_phone
+- location, budget
+- property_type_interest` : ''}
 
-PARA CONTACTOS:
-- images podem incluir foto de perfil se disponível
-
-🚨 CRÍTICO - EXTRAÇÃO DE IMAGENS:
-- SEMPRE extrair URLs de TODAS as imagens visíveis nos cards/listagens
-- Procurar por tags <img>, background-image, data-src, srcset
-- URLs devem ser completas (começar com https://)
-- Incluir foto principal + galeria se disponível
-- Mínimo 1 imagem por item sempre que possível
-
-IMPORTANTE:
-- Retorna TODOS os itens encontrados, não apenas alguns
-- Se um dado não estiver disponível, omite o campo
-- URLs devem ser completos (começar com https://)
-- IMAGES é campo prioritário - SEMPRE extrair
-
-Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
+IMPORTANTE: URLs completos (https://), images sempre que possível.`,
         add_context_from_internet: true,
         response_json_schema: schema
       });
