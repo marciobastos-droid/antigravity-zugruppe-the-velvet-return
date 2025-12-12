@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import ClientsTable from "./ClientsTable";
+import ClientsListView from "./ClientsListView";
 import TagSelector from "../tags/TagSelector";
 import QuickContactActions from "./QuickContactActions";
 import { useAgentNames } from "@/components/common/useAgentNames";
@@ -1334,14 +1335,25 @@ export default function ClientDatabase() {
             size="sm"
             onClick={() => setViewMode("table")}
             className="rounded-none"
+            title="Vista Tabela"
           >
             <List className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className="rounded-none"
+            title="Vista Lista"
+          >
+            <LayoutGrid className="w-4 h-4 rotate-90" />
           </Button>
           <Button
             variant={viewMode === "cards" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("cards")}
             className="rounded-none"
+            title="Vista Cards"
           >
             <LayoutGrid className="w-4 h-4" />
           </Button>
@@ -1359,6 +1371,17 @@ export default function ClientDatabase() {
           onDelete={handleDelete}
           selectedContacts={selectedContacts}
           onSelectionChange={setSelectedContacts}
+        />
+      ) : viewMode === "list" ? (
+        <ClientsListView
+          clients={filteredClients}
+          communications={communications}
+          opportunities={opportunities}
+          onClientClick={(client) => { setActiveTab("details"); setSelectedClient(client); }}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          selectedContacts={selectedContacts}
+          onToggleSelect={toggleSelectContact}
         />
       ) : (
       <div className="grid gap-4">
