@@ -962,13 +962,13 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {property.assigned_consultant_name || property.assigned_consultant ? (
+                {assignedAgent ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      {property.assigned_consultant_photo ? (
+                      {assignedAgent.photo_url ? (
                         <OptimizedImage
-                          src={property.assigned_consultant_photo}
-                          alt={property.assigned_consultant_name || property.assigned_consultant}
+                          src={assignedAgent.photo_url}
+                          alt={assignedAgent.display_name || assignedAgent.full_name}
                           className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
                           fallbackIcon={User}
                         />
@@ -978,30 +978,36 @@ export default function PropertyDetails() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900 truncate">
-                          {property.assigned_consultant_name || property.assigned_consultant}
-                        </h4>
-                        <p className="text-sm text-slate-600">Consultor Responsável</p>
+                        <h4 className="font-semibold text-slate-900 truncate">{assignedAgent.display_name || assignedAgent.full_name}</h4>
+                        {assignedAgent.specialization && (
+                          <p className="text-sm text-slate-600 truncate">{assignedAgent.specialization}</p>
+                        )}
                       </div>
                     </div>
                     
-                    {property.assigned_consultant_phone && (
-                      <a 
-                        href={`tel:${property.assigned_consultant_phone}`}
-                        className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                      >
-                        <Phone className="w-4 h-4" />
-                        {property.assigned_consultant_phone}
-                      </a>
-                    )}
-                    {property.assigned_consultant && (
-                      <a 
-                        href={`mailto:${property.assigned_consultant}`}
-                        className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                      >
-                        <Mail className="w-4 h-4" />
-                        {property.assigned_consultant}
-                      </a>
+                    <div className="space-y-2">
+                      {assignedAgent.phone && (
+                        <a 
+                          href={`tel:${assignedAgent.phone}`}
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                        >
+                          <Phone className="w-4 h-4" />
+                          {assignedAgent.phone}
+                        </a>
+                      )}
+                      {assignedAgent.email && (
+                        <a 
+                          href={`mailto:${assignedAgent.email}`}
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {assignedAgent.email}
+                        </a>
+                      )}
+                    </div>
+                    
+                    {assignedAgent.bio && (
+                      <p className="text-sm text-slate-600 pt-2 border-t">{assignedAgent.bio}</p>
                     )}
                   </div>
                 ) : property.agent_name ? (
