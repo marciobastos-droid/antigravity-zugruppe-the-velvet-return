@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
@@ -104,15 +104,43 @@ export default function Tools() {
   
   // Helper to check if tool is allowed
   const isToolAllowed = (toolId) => {
+    // Admin/Gestor tem acesso total
     if (isAdmin) return true;
-    // Se tem acesso à página tools mas sem permissões específicas de ferramentas, permitir todas
-    if (hasToolsPageAccess && Object.keys(userToolPermissions).length === 0) return true;
-    // Se tem permissões específicas de ferramentas
+    
+    // Se tem permissões específicas de ferramentas, verificar
     if (Object.keys(userToolPermissions).length > 0) {
       return userToolPermissions[toolId] === true;
     }
+    
+    // Se tem acesso à página tools mas sem permissões específicas, permitir todas
+    if (hasToolsPageAccess) return true;
+    
     return false;
   };
+
+  // Contar ferramentas permitidas
+  const getAllToolIds = () => {
+    const toolIds = [];
+    const groups = [
+      { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations'] },
+      { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
+      { tools: ['leadManagement', 'leadNurturing'] },
+      { tools: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 'exportProperties', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 'externalSync', 'casafariSync'] },
+      { tools: ['bulkScore', 'crmSync', 'duplicateChecker', 'duplicateClients', 'inconsistencyChecker', 'orphanCleaner', 'linkContacts', 'imageValidator', 'emailHub', 'gmailSync', 'gmailLinker', 'video', 'description', 'listingOptimizer', 'calendar'] },
+      { tools: ['aiMatching', 'autoMatching', 'autoMatchingDashboard'] },
+      { tools: ['marketIntelligence', 'propertyPerformance', 'pricing', 'creditSimulator', 'deedCosts'] },
+      { tools: ['commissions', 'invoices'] },
+      { tools: ['investorKeys', 'investorProperties'] },
+      { tools: ['contractAutomation', 'documents', 'notificationsDashboard', 'smtpConfig', 'devNotes', 'tagManager', 'backupManager', 'auditLog'] }
+    ];
+    groups.forEach(g => toolIds.push(...g.tools));
+    return toolIds;
+  };
+
+  const allToolIds = getAllToolIds();
+  const allowedTools = allToolIds.filter(isToolAllowed);
+  const totalTools = allToolIds.length;
+  const allowedCount = allowedTools.length;
 
   // Helper to render tool button with permission check - oculta se não permitido
   const ToolButton = ({ toolId, icon: Icon, label, variant, className }) => {
@@ -135,11 +163,49 @@ export default function Tools() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-            <Wrench className="w-10 h-10 text-blue-600" />
-            Ferramentas
-          </h1>
-          <p className="text-slate-600">Ferramentas inteligentes para gestão de imóveis</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+                <Wrench className="w-10 h-10 text-blue-600" />
+                Ferramentas
+              </h1>
+              <p className="text-slate-600">Ferramentas inteligentes para gestão de imóveis</p>
+            </div>
+            
+            {/* Totalizador de Ferramentas - Apenas Admin */}
+            {isAdmin && (
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                      <Wrench className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-600 font-medium">Total de Ferramentas</p>
+                      <p className="text-3xl font-bold text-slate-900">{totalTools}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Indicador de Permissões para Utilizador */}
+          {!isAdmin && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Tem acesso a {allowedCount} de {totalTools} ferramentas
+                  </p>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    As ferramentas disponíveis são configuradas pelo administrador
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4 mb-6">
