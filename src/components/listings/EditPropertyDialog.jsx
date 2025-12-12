@@ -66,6 +66,10 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     development_id: "",
     development_name: "",
     unit_number: "",
+    owner_name: "",
+    owner_email: "",
+    owner_phone: "",
+    owner_nif: "",
     published_portals: [],
     published_pages: ["zugruppe"],
     publication_config: {
@@ -181,6 +185,10 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         development_id: property.development_id || "",
         development_name: property.development_name || "",
         unit_number: property.unit_number || "",
+        owner_name: property.owner_name || "",
+        owner_email: property.owner_email || "",
+        owner_phone: property.owner_phone || "",
+        owner_nif: property.owner_nif || "",
         published_portals: property.published_portals || [],
         published_pages: property.published_pages || ["zugruppe"],
         publication_config: property.publication_config || {
@@ -436,6 +444,10 @@ Retorna APENAS o título melhorado, nada mais.`,
       development_id: formData.development_id || undefined,
       development_name: formData.development_name || undefined,
       unit_number: formData.unit_number || undefined,
+      owner_name: formData.owner_name || undefined,
+      owner_email: formData.owner_email || undefined,
+      owner_phone: formData.owner_phone || undefined,
+      owner_nif: formData.owner_nif || undefined,
       published_portals: formData.published_portals || [],
       published_pages: formData.published_pages || [],
       publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false }
@@ -1064,6 +1076,46 @@ Retorna APENAS o título melhorado, nada mais.`,
                 />
               </div>
 
+              {/* Owner Information */}
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="font-semibold text-slate-900">Dados do Proprietário</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Nome do Proprietário</Label>
+                    <Input
+                      value={formData.owner_name}
+                      onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
+                      placeholder="Nome completo"
+                    />
+                  </div>
+                  <div>
+                    <Label>Email do Proprietário</Label>
+                    <Input
+                      type="email"
+                      value={formData.owner_email}
+                      onChange={(e) => setFormData({...formData, owner_email: e.target.value})}
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                  <div>
+                    <Label>Telefone do Proprietário</Label>
+                    <Input
+                      value={formData.owner_phone}
+                      onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
+                      placeholder="+351 912 345 678"
+                    />
+                  </div>
+                  <div>
+                    <Label>NIF do Proprietário</Label>
+                    <Input
+                      value={formData.owner_nif}
+                      onChange={(e) => setFormData({...formData, owner_nif: e.target.value})}
+                      placeholder="123456789"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Internal Notes */}
               <div>
                 <Label>Notas Internas (privadas)</Label>
@@ -1074,8 +1126,8 @@ Retorna APENAS o título melhorado, nada mais.`,
                   rows={3}
                 />
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+              </CollapsibleContent>
+              </Collapsible>
 
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
