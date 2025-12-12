@@ -1386,22 +1386,30 @@ export default function ClientDatabase() {
                 <CardContent className="p-4 md:p-6">
                   {/* Mobile Header with Avatar and Actions */}
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      {/* Checkbox for selection */}
-                      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedContactsSet.has(client.id)}
-                          onChange={() => toggleSelectContact(client.id)}
-                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                      </div>
-                      {/* Avatar */}
-                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold text-sm md:text-base">
-                          {client.full_name?.[0]?.toUpperCase() || '?'}
-                        </span>
-                      </div>
+                   <div className="flex items-center gap-3 min-w-0 flex-1">
+                     {/* Checkbox for selection - More Prominent */}
+                     <div 
+                       className="flex-shrink-0 p-2 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer" 
+                       onClick={(e) => { e.stopPropagation(); toggleSelectContact(client.id); }}
+                     >
+                       <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                         selectedContactsSet.has(client.id) 
+                           ? 'bg-blue-600 border-blue-600' 
+                           : 'border-slate-300 bg-white hover:border-blue-400'
+                       }`}>
+                         {selectedContactsSet.has(client.id) && (
+                           <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                           </svg>
+                         )}
+                       </div>
+                     </div>
+                     {/* Avatar */}
+                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
+                       <span className="text-white font-bold text-sm md:text-base">
+                         {client.full_name?.[0]?.toUpperCase() || '?'}
+                       </span>
+                     </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="text-base md:text-xl font-bold text-slate-900 truncate">{client.full_name}</h3>
                         <div className="flex items-center gap-1.5 flex-wrap mt-1">
