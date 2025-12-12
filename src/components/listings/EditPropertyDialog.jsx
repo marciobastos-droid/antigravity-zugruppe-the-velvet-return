@@ -18,6 +18,7 @@ import PublicationManager from "../property/PublicationManager";
 import ImageManager from "../property/ImageManager";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuditLog } from "../audit/useAuditLog";
 
 export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const queryClient = useQueryClient();
