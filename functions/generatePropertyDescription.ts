@@ -57,13 +57,16 @@ ${propertyContext}
 
 Gera apenas a descrição, sem títulos ou formatação adicional.`;
 
-        // Chamar a integração InvokeLLM
+        // Chamar a integração InvokeLLM (sem imagens para evitar erros)
         const result = await base44.integrations.Core.InvokeLLM({
-            prompt: prompt,
-            file_urls: property.images?.slice(0, 3) // Enviar até 3 imagens para contexto visual
+            prompt: prompt
         });
 
-        const description = typeof result === 'string' ? result : result.content || result.message;
+        const description = typeof result === 'string' ? result : result.content || result.message || result.description;
+
+        if (!description) {
+            throw new Error('LLM não retornou uma descrição válida');
+        }
 
         return Response.json({
             success: true,
