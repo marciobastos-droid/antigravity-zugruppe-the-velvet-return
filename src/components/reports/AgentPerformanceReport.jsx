@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line } from "recharts";
-import { Download, FileText, Users, Target, Euro, Clock, Award, TrendingUp, Star, Medal } from "lucide-react";
+import { Download, FileText, Users, Target, Euro, Clock, Award, TrendingUp, Star, Medal, Trophy } from "lucide-react";
 import moment from "moment";
 import { useAgentNames } from "@/components/common/useAgentNames";
 
