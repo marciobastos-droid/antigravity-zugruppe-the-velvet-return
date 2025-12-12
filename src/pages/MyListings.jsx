@@ -1337,7 +1337,6 @@ export default function MyListings() {
               bulkStatusChangeMutation.isPending ||
               bulkVisibilityChangeMutation.isPending ||
               bulkToggleFeaturedMutation.isPending ||
-              bulkAssignAgentMutation.isPending ||
               bulkAssignConsultantMutation.isPending ||
               bulkAddTagMutation.isPending ||
               bulkAssignDevelopmentMutation.isPending ||
