@@ -145,11 +145,12 @@ export default function PropertyDetails() {
     ...QUERY_CONFIG.properties
   });
 
-  const { data: agents = [] } = useQuery({
-    queryKey: ['agents'],
+  const { data: consultants = [] } = useQuery({
+    queryKey: ['consultants'],
     queryFn: async () => {
       try {
-        return await base44.entities.Agent.list();
+        const users = await base44.entities.User.list();
+        return users.filter(u => u.user_type === 'consultant' || u.user_type === 'gestor' || u.user_type === 'admin');
       } catch {
         return [];
       }
@@ -243,8 +244,8 @@ export default function PropertyDetails() {
 
   const assignedConsultant = React.useMemo(() => {
     return allUsers.find(u => u.email === property?.assigned_consultant)
-      || agents.find(a => a.email === property?.assigned_consultant);
-  }, [agents, allUsers, property?.assigned_consultant]);
+      || consultants.find(c => c.email === property?.assigned_consultant);
+  }, [consultants, allUsers, property?.assigned_consultant]);
 
   // SEO data
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);

@@ -78,7 +78,10 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list()
+    queryFn: async () => {
+      const allUsers = await base44.entities.User.list();
+      return allUsers.filter(u => u.user_type === 'consultant' || u.user_type === 'gestor' || u.user_type === 'admin');
+    }
   });
 
   // Fetch existing properties for autocomplete
@@ -618,11 +621,11 @@ Retorna APENAS o título melhorado, nada mais.`,
               <Select 
                 value={formData.assigned_consultant} 
                 onValueChange={(v) => {
-                  const user = users.find(u => u.email === v);
+                  const consultant = users.find(u => u.email === v);
                   setFormData({
                     ...formData, 
                     assigned_consultant: v,
-                    assigned_consultant_name: user?.display_name || user?.full_name || ""
+                    assigned_consultant_name: consultant?.display_name || consultant?.full_name || ""
                   });
                 }}
               >
@@ -631,9 +634,9 @@ Retorna APENAS o título melhorado, nada mais.`,
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={null}>Nenhum</SelectItem>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.email}>
-                      {user.display_name || user.full_name} ({user.email})
+                  {users.map((consultant) => (
+                    <SelectItem key={consultant.id} value={consultant.email}>
+                      {consultant.display_name || consultant.full_name} ({consultant.email})
                     </SelectItem>
                   ))}
                 </SelectContent>

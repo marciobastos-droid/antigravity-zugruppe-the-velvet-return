@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
   const userTypeNormalized = user?.user_type?.toLowerCase() || '';
   const isAdmin = user && (user.role === 'admin' || userTypeNormalized === 'admin' || userTypeNormalized === 'gestor');
   const isGestor = user && userTypeNormalized === 'gestor';
-  const isAgente = user && userTypeNormalized === 'agente';
+  const isConsultant = user && userTypeNormalized === 'consultant';
   const userType = userTypeNormalized || user?.role || 'user';
 
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
@@ -185,7 +185,7 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-slate-500">
                         {user.user_type === 'admin' ? 'Administrador' : 
                          user.user_type === 'gestor' ? 'Gestor' : 
-                         user.user_type === 'agente' ? 'Agente' : user.email}
+                         user.user_type === 'consultant' ? 'Consultor' : user.email}
                       </p>
                     </div>
                     {user.photo_url ? (
@@ -268,7 +268,7 @@ export default function Layout({ children, currentPageName }) {
                         <p className="text-xs text-slate-500">
                           {user.user_type === 'admin' ? 'Admin' : 
                            user.user_type === 'gestor' ? 'Gestor' : 
-                           user.user_type === 'agente' ? 'Agente' : 'Utilizador'}
+                           user.user_type === 'consultant' ? 'Consultor' : 'Utilizador'}
                         </p>
                       </div>
                     </div>

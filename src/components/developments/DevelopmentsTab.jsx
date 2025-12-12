@@ -71,6 +71,14 @@ export default function DevelopmentsTab() {
     queryFn: () => base44.entities.ClientContact.list()
   });
 
+  const { data: consultants = [] } = useQuery({
+    queryKey: ['consultants'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users.filter(u => u.user_type === 'consultant' || u.user_type === 'gestor' || u.user_type === 'admin');
+    }
+  });
+
   // Imóveis com tipo "development" que não estão vinculados a um empreendimento existente
   const propertyDevelopments = properties.filter(p => 
     p.property_type === 'development' && !p.development_id
