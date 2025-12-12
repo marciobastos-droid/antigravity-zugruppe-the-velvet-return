@@ -430,6 +430,11 @@ Extrai o máximo de informação possível da página.`,
               return undefined;
             };
 
+            // Determinar URL de origem - sempre incluir
+            const finalSourceUrl = hasValidSourceUrl 
+              ? item.source_url 
+              : (selectedConfig?.url || url);
+
             const propertyData = {
               ref_id: refData.ref_id,
               title: item.title || "Imóvel importado",
@@ -448,14 +453,15 @@ Extrai o máximo de informação possível da página.`,
               images: (enrichedData.images?.length > 0 ? enrichedData.images : item.images) || [],
               amenities: [...new Set([...(item.amenities || []), ...(enrichedData.amenities || [])])],
               external_id: item.external_id || "",
-              source_url: hasValidSourceUrl ? item.source_url : (selectedConfig?.url || url),
+              source_url: finalSourceUrl,
               energy_certificate: mapEnergyCert(enrichedData.energy_certificate || item.energy_certificate),
               year_built: enrichedData.year_built || item.year_built || undefined,
               finishes: enrichedData.condition || item.condition || undefined,
               garage: mapGarage(enrichedData.parking || item.parking),
               internal_notes: enrichedData.floor ? `Andar: ${enrichedData.floor}` : undefined,
               status: "active",
-              availability_status: "available"
+              availability_status: "available",
+              tags: ["Importado", "Sync Externa"]
             };
 
             await base44.entities.Property.create(propertyData);
