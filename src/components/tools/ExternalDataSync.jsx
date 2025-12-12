@@ -343,15 +343,43 @@ Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
       for (const item of itemsToImport) {
         try {
           if (targetType === "properties") {
+            // Validação de dados essenciais
+            if (!item.title || item.title.length < 5) {
+              results.errors.push({ item: item.title || "Sem título", error: "Título inválido ou muito curto" });
+              results.items.push({ name: item.title || "Sem título", status: "error" });
+              continue;
+            }
+
+            if (!validatePrice(item.price)) {
+              results.errors.push({ item: item.title, error: "Preço inválido" });
+              results.items.push({ name: item.title, status: "error" });
+              continue;
+            }
+
+            if (!item.city || item.city.length < 2) {
+              results.errors.push({ item: item.title, error: "Localização inválida" });
+              results.items.push({ name: item.title, status: "error" });
+              continue;
+            }
+
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
             
-            // Se o imóvel tem URL próprio, tentar obter mais detalhes
-            let enrichedData = {};
+            // Determinar URL de origem - garantir sempre presente
+            let finalSourceUrl = selectedConfig?.url || url; // URL base como fallback
+            
+            // Se o imóvel tem URL próprio válido, usar esse
             const hasValidSourceUrl = item.source_url && 
               item.source_url.startsWith('http') && 
               item.source_url !== selectedConfig?.url && 
               item.source_url !== url &&
               !item.source_url.includes('undefined');
+            
+            if (hasValidSourceUrl) {
+              finalSourceUrl = ensureValidUrl(item.source_url);
+            }
+            
+            // Se o imóvel tem URL próprio, tentar obter mais detalhes
+            let enrichedData = {};
               
             if (hasValidSourceUrl) {
               try {
@@ -430,33 +458,41 @@ Extrai o máximo de informação possível da página.`,
               return undefined;
             };
 
-            // Determinar URL de origem - sempre incluir
-            const finalSourceUrl = hasValidSourceUrl 
-              ? item.source_url 
-              : (selectedConfig?.url || url);
+            // Combinar e normalizar amenities
+            const combinedAmenities = [...new Set([
+              ...(item.amenities || []), 
+              ...(enrichedData.amenities || [])
+            ])].filter(a => a && a.length > 2); // Filtrar amenities vazios ou muito curtos
+
+            // Combinar e validar imagens
+            const combinedImages = [
+              ...(enrichedData.images || []),
+              ...(item.images || [])
+            ].filter(img => img && img.startsWith('http')).slice(0, 20); // Max 20 imagens
 
             const propertyData = {
               ref_id: refData.ref_id,
-              title: item.title || "Imóvel importado",
-              description: enrichedData.description || item.description || "",
-              price: item.price || 0,
+              title: item.title.trim(),
+              description: (enrichedData.description || item.description || "").trim(),
+              price: Number(item.price),
               property_type: mapPropertyType(item.property_type),
               listing_type: item.listing_type?.toLowerCase()?.includes("arrend") ? "rent" : "sale",
-              bedrooms: enrichedData.bedrooms || item.bedrooms || 0,
-              bathrooms: enrichedData.bathrooms || item.bathrooms || 0,
-              useful_area: enrichedData.useful_area || item.area || 0,
-              gross_area: enrichedData.gross_area || 0,
-              square_feet: enrichedData.useful_area || item.area || 0,
-              address: enrichedData.address || item.address || "",
-              city: enrichedData.city || item.city || "",
-              state: enrichedData.state || item.state || "",
-              images: (enrichedData.images?.length > 0 ? enrichedData.images : item.images) || [],
-              amenities: [...new Set([...(item.amenities || []), ...(enrichedData.amenities || [])])],
-              external_id: item.external_id || "",
+              bedrooms: Number(enrichedData.bedrooms || item.bedrooms || 0),
+              bathrooms: Number(enrichedData.bathrooms || item.bathrooms || 0),
+              useful_area: Number(enrichedData.useful_area || item.area || 0),
+              gross_area: Number(enrichedData.gross_area || 0),
+              square_feet: Number(enrichedData.useful_area || item.area || 0),
+              address: (enrichedData.address || item.address || "").trim(),
+              city: (enrichedData.city || item.city || "").trim(),
+              state: (enrichedData.state || item.state || "").trim(),
+              country: "Portugal",
+              images: combinedImages,
+              amenities: combinedAmenities,
+              external_id: (item.external_id || "").trim(),
               source_url: finalSourceUrl,
               energy_certificate: mapEnergyCert(enrichedData.energy_certificate || item.energy_certificate),
               year_built: enrichedData.year_built || item.year_built || undefined,
-              finishes: enrichedData.condition || item.condition || undefined,
+              finishes: (enrichedData.condition || item.condition || "").trim() || undefined,
               garage: mapGarage(enrichedData.parking || item.parking),
               internal_notes: enrichedData.floor ? `Andar: ${enrichedData.floor}` : undefined,
               status: "active",
@@ -469,6 +505,25 @@ Extrai o máximo de informação possível da página.`,
             results.items.push({ name: item.title, status: "success" });
 
           } else if (targetType === "contacts") {
+            // Validação de contactos
+            if (!item.full_name || item.full_name.length < 2) {
+              results.errors.push({ item: item.full_name || "Sem nome", error: "Nome inválido" });
+              results.items.push({ name: item.full_name || "Sem nome", status: "error" });
+              continue;
+            }
+
+            if (item.email && !validateEmail(item.email)) {
+              results.errors.push({ item: item.full_name, error: "Email inválido" });
+              results.items.push({ name: item.full_name, status: "error" });
+              continue;
+            }
+
+            if (item.phone && !validatePhone(item.phone)) {
+              results.errors.push({ item: item.full_name, error: "Telefone inválido" });
+              results.items.push({ name: item.full_name, status: "error" });
+              continue;
+            }
+
             if (item.email) {
               const existing = await base44.entities.ClientContact.filter({ email: item.email });
               if (existing.length > 0) {
@@ -481,12 +536,12 @@ Extrai o máximo de informação possível da página.`,
             
             const contactData = {
               ref_id: refData.ref_id,
-              full_name: item.full_name || "Contacto importado",
-              email: item.email || "",
-              phone: item.phone || "",
-              company_name: item.company_name || "",
-              job_title: item.job_title || "",
-              city: item.city || "",
+              full_name: item.full_name.trim(),
+              email: item.email?.trim() || "",
+              phone: item.phone?.trim() || "",
+              company_name: item.company_name?.trim() || "",
+              job_title: item.job_title?.trim() || "",
+              city: item.city?.trim() || "",
               notes: item.notes || `Importado de: ${selectedConfig?.url || url}`,
               source: "other",
               contact_type: "client"
@@ -497,25 +552,52 @@ Extrai o máximo de informação possível da página.`,
             results.items.push({ name: item.full_name, status: "success" });
 
           } else if (targetType === "developments") {
-            // Create Development
+            // Validação de empreendimentos
+            if (!item.name || item.name.length < 3) {
+              results.errors.push({ item: item.name || "Sem nome", error: "Nome inválido" });
+              results.items.push({ name: item.name || "Sem nome", status: "error" });
+              continue;
+            }
+
+            if (!item.city) {
+              results.errors.push({ item: item.name, error: "Localização inválida" });
+              results.items.push({ name: item.name, status: "error" });
+              continue;
+            }
+
+            // Determinar URL de origem para empreendimentos
+            const developmentSourceUrl = item.source_url && item.source_url.startsWith('http')
+              ? ensureValidUrl(item.source_url)
+              : ensureValidUrl(selectedConfig?.url || url);
+
+            // Validar e normalizar imagens
+            const validImages = (item.images || [])
+              .filter(img => img && img.startsWith('http'))
+              .slice(0, 30);
+
+            // Normalizar amenities
+            const validAmenities = (item.amenities || [])
+              .filter(a => a && a.length > 2)
+              .map(a => a.trim());
+
             const developmentData = {
-              name: item.name || "Empreendimento importado",
-              description: item.description || "",
-              developer_name: item.developer_name || "",
-              address: item.address || "",
-              city: item.city || "",
-              district: item.state || "",
-              total_units: item.total_units || 0,
-              available_units: item.available_units || item.total_units || 0,
-              price_from: item.price_from || 0,
-              price_to: item.price_to || 0,
+              name: item.name.trim(),
+              description: (item.description || "").trim(),
+              developer_name: (item.developer_name || "").trim(),
+              address: (item.address || "").trim(),
+              city: item.city.trim(),
+              district: (item.state || "").trim(),
+              total_units: Number(item.total_units || 0),
+              available_units: Number(item.available_units || item.total_units || 0),
+              price_from: Number(item.price_from || 0),
+              price_to: Number(item.price_to || 0),
               completion_date: item.completion_date || undefined,
               status: mapDevelopmentStatus(item.status),
               property_types: item.property_types || [],
-              amenities: item.amenities || [],
-              images: item.images || [],
-              source_url: item.source_url || selectedConfig?.url || url,
-              external_id: item.external_id || ""
+              amenities: validAmenities,
+              images: validImages,
+              source_url: developmentSourceUrl,
+              external_id: (item.external_id || "").trim()
             };
 
             await base44.entities.Development.create(developmentData);
@@ -523,20 +605,39 @@ Extrai o máximo de informação possível da página.`,
             results.items.push({ name: item.name, status: "success" });
 
           } else if (targetType === "opportunities") {
+            // Validação de oportunidades
+            if (!item.buyer_name || item.buyer_name.length < 2) {
+              results.errors.push({ item: item.buyer_name || "Sem nome", error: "Nome inválido" });
+              results.items.push({ name: item.buyer_name || "Sem nome", status: "error" });
+              continue;
+            }
+
+            if (item.buyer_email && !validateEmail(item.buyer_email)) {
+              results.errors.push({ item: item.buyer_name, error: "Email inválido" });
+              results.items.push({ name: item.buyer_name, status: "error" });
+              continue;
+            }
+
+            if (item.buyer_phone && !validatePhone(item.buyer_phone)) {
+              results.errors.push({ item: item.buyer_name, error: "Telefone inválido" });
+              results.items.push({ name: item.buyer_name, status: "error" });
+              continue;
+            }
+
             const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'Opportunity' });
             
             const oppData = {
               ref_id: refData.ref_id,
               lead_type: "comprador",
-              buyer_name: item.buyer_name || "Lead importado",
-              buyer_email: item.buyer_email || "",
-              buyer_phone: item.buyer_phone || "",
-              location: item.location || "",
-              budget: item.budget || 0,
-              property_type_interest: item.property_type_interest || "",
-              message: item.message || `Importado de: ${selectedConfig?.url || url}`,
+              buyer_name: item.buyer_name.trim(),
+              buyer_email: item.buyer_email?.trim() || "",
+              buyer_phone: item.buyer_phone?.trim() || "",
+              location: item.location?.trim() || "",
+              budget: Number(item.budget || 0),
+              property_type_interest: item.property_type_interest?.trim() || "",
+              message: item.message?.trim() || `Importado de: ${selectedConfig?.url || url}`,
               lead_source: "other",
-              source_url: selectedConfig?.url || url,
+              source_url: ensureValidUrl(selectedConfig?.url || url),
               status: "new"
             };
 
@@ -586,6 +687,30 @@ Extrai o máximo de informação possível da página.`,
       toast.error(error.message || "Erro na importação");
     }
   });
+
+  // Validation helpers
+  const validateEmail = (email) => {
+    if (!email) return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePrice = (price) => {
+    const num = Number(price);
+    return !isNaN(num) && num > 0 && num < 1000000000;
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone) return true; // Optional field
+    const cleaned = phone.replace(/\D/g, '');
+    return cleaned.length >= 9 && cleaned.length <= 15;
+  };
+
+  const ensureValidUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
 
   const mapPropertyType = (type) => {
     if (!type) return "apartment";
