@@ -16,7 +16,6 @@ export default function BulkActionsBar({
   onBulkStatusChange,
   onBulkVisibilityChange,
   onBulkFeaturedToggle,
-  onBulkAssignAgent,
   onBulkAssignConsultant,
   onBulkAddTag,
   onBulkAssignDevelopment,
@@ -24,20 +23,18 @@ export default function BulkActionsBar({
   onGenerateVisitRoute,
   onBulkCreateDevelopment,
   onBulkPhotoAssign,
-  agents = [],
+  consultants = [],
   developments = [],
   propertyTags = [],
   isProcessing = false
 }) {
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
   const [visibilityPopoverOpen, setVisibilityPopoverOpen] = useState(false);
-  const [agentPopoverOpen, setAgentPopoverOpen] = useState(false);
   const [consultantPopoverOpen, setConsultantPopoverOpen] = useState(false);
   const [developmentPopoverOpen, setDevelopmentPopoverOpen] = useState(false);
 
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedVisibility, setSelectedVisibility] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState("");
   const [selectedConsultant, setSelectedConsultant] = useState("");
   const [selectedDevelopment, setSelectedDevelopment] = useState("");
 
@@ -192,9 +189,9 @@ export default function BulkActionsBar({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Nenhum</SelectItem>
-                      {agents.filter(a => a.is_active !== false).map((agent) => (
-                        <SelectItem key={agent.id} value={agent.email}>
-                          {agent.display_name || agent.full_name}
+                      {consultants.filter(c => c.is_active !== false).map((consultant) => (
+                        <SelectItem key={consultant.id} value={consultant.email}>
+                          {consultant.display_name || consultant.full_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -228,57 +225,7 @@ export default function BulkActionsBar({
               </PopoverContent>
             </Popover>
 
-            {/* Assign Agent */}
-            <Popover open={agentPopoverOpen} onOpenChange={setAgentPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button size="sm" className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300">
-                  <Users className="w-4 h-4 mr-1.5" />
-                  Agente
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-3" align="end">
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-slate-900">Atribuir agente:</p>
-                  <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Escolher..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {agents.filter(a => a.is_active !== false).map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id}>
-                          {agent.display_name || agent.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => {
-                        setAgentPopoverOpen(false);
-                        setSelectedAgent("");
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      disabled={!selectedAgent || isProcessing}
-                      onClick={() => {
-                        onBulkAssignAgent(selectedAgent);
-                        setAgentPopoverOpen(false);
-                        setSelectedAgent("");
-                      }}
-                    >
-                      Atribuir
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+
 
             {/* Add Tag */}
             <Popover>
