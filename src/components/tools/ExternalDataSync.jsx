@@ -342,8 +342,12 @@ IMPORTANTE: URLs completos (https://), images sempre que possível.`,
       const results = { created: 0, errors: [], items: [] };
       const targetType = selectedConfig?.data_type || dataType;
 
+      console.log(`Starting import of ${itemsToImport.length} items of type: ${targetType}`);
+
       for (const item of itemsToImport) {
         try {
+          console.log(`Processing item:`, item);
+          
           if (targetType === "properties") {
             // Validação de dados essenciais
             if (!item.title || item.title.length < 5) {
@@ -538,7 +542,7 @@ Extrai:
             const propertyData = {
               ref_id: refData.ref_id,
               title: (enrichedData.title || item.title).trim(),
-              description: finalDescription.trim(),
+              description: finalDescription.trim() || "Sem descrição",
               price: Number(item.price),
               property_type: mapPropertyType(item.property_type),
               listing_type: item.listing_type?.toLowerCase()?.includes("arrend") ? "rent" : "sale",
@@ -552,10 +556,10 @@ Extrai:
               state: (enrichedData.state || item.state || "").trim(),
               zip_code: enrichedData.zip_code?.trim() || undefined,
               country: "Portugal",
-              images: combinedImages,
+              images: combinedImages.length > 0 ? combinedImages : undefined,
               videos: videos.length > 0 ? videos : undefined,
-              amenities: uniqueAmenities,
-              external_id: (item.external_id || "").trim(),
+              amenities: uniqueAmenities.length > 0 ? uniqueAmenities : undefined,
+              external_id: (item.external_id || "").trim() || undefined,
               source_url: finalSourceUrl,
               energy_certificate: mapEnergyCert(enrichedData.energy_certificate || item.energy_certificate),
               year_built: enrichedData.year_built || item.year_built || undefined,
@@ -569,7 +573,10 @@ Extrai:
               tags: ["Importado", "Sync Externa"]
             };
 
-            await base44.entities.Property.create(propertyData);
+            console.log(`Creating property:`, propertyData);
+            const createdProperty = await base44.entities.Property.create(propertyData);
+            console.log(`Property created successfully:`, createdProperty.id);
+            
             results.created++;
             results.items.push({ name: item.title, status: "success" });
 
@@ -754,10 +761,14 @@ Extrai:
           }
         } catch (error) {
           const itemName = item.title || item.name || item.full_name || item.buyer_name || "Item desconhecido";
-          results.errors.push({ item: itemName, error: error.message });
+          console.error(`Error importing item "${itemName}":`, error);
+          console.error('Error details:', error.message, error.stack);
+          results.errors.push({ item: itemName, error: error.message || "Erro desconhecido" });
           results.items.push({ name: itemName, status: "error" });
         }
       }
+
+      console.log(`Import completed: ${results.created} created, ${results.errors.length} errors`);
 
       // Update config with sync stats if using saved config
       if (selectedConfig) {
@@ -773,15 +784,32 @@ Extrai:
       return results;
     },
     onSuccess: (results) => {
+      console.log('Import results:', results);
       setImportResult(results);
       setActiveTab("result");
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      toast.success(`${results.created} registos importados com sucesso`);
+      
+      if (results.created > 0) {
+        toast.success(`${results.created} registos importados com sucesso`);
+      } else if (results.errors.length > 0) {
+        toast.error(`Importação falhou: ${results.errors.length} erros`);
+      } else {
+        toast.warning("Nenhum registo foi importado");
+      }
     },
     onError: (error) => {
-      toast.error(error.message || "Erro na importação");
+      console.error('Import mutation error:', error);
+      toast.error(error.message || "Erro na importação", { duration: 10000 });
+      
+      // Set error result even on mutation failure
+      setImportResult({ 
+        created: 0, 
+        errors: [{ item: "Sistema", error: error.message }], 
+        items: [] 
+      });
+      setActiveTab("result");
     }
   });
 
