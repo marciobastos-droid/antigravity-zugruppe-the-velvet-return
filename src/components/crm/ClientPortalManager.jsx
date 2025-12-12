@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Link2, Copy, Send, Plus, Trash2, Building2, 
   Eye, Clock, MessageSquare, Star, Check, X,
-  ExternalLink, Mail, RefreshCw
+  ExternalLink, Mail, RefreshCw, Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -23,6 +23,7 @@ export default function ClientPortalManager({ client, onClose }) {
   const queryClient = useQueryClient();
   const [addPropertyDialogOpen, setAddPropertyDialogOpen] = useState(false);
   const [selectedPropertyId, setSelectedPropertyId] = useState("");
+  const [propertySearchId, setPropertySearchId] = useState("");
   const [agentNotes, setAgentNotes] = useState("");
   const [replyMessage, setReplyMessage] = useState("");
 
@@ -276,7 +277,49 @@ Zugruppe
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div>
-                    <Label>Imóvel</Label>
+                    <Label>Procurar Imóvel por ID</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={propertySearchId}
+                        onChange={(e) => setPropertySearchId(e.target.value)}
+                        placeholder="Cole o ID do imóvel..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          const property = properties.find(p => p.id === propertySearchId.trim());
+                          if (property) {
+                            if (interests.some(i => i.property_id === property.id)) {
+                              toast.error("Este imóvel já foi adicionado");
+                            } else {
+                              setSelectedPropertyId(property.id);
+                              toast.success(`Imóvel selecionado: ${property.title}`);
+                            }
+                          } else {
+                            toast.error("Imóvel não encontrado");
+                          }
+                        }}
+                        disabled={!propertySearchId.trim()}
+                      >
+                        <Search className="w-4 h-4 mr-2" />
+                        Procurar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-white px-2 text-slate-500">ou</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Selecionar da Lista</Label>
                     <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um imóvel..." />
@@ -284,9 +327,10 @@ Zugruppe
                       <SelectContent>
                         {properties
                           .filter(p => !interests.some(i => i.property_id === p.id))
+                          .slice(0, 50)
                           .map((property) => (
                             <SelectItem key={property.id} value={property.id}>
-                              {property.title} - €{property.price?.toLocaleString()}
+                              {property.ref_id || property.id.slice(0, 8)} - {property.title} - €{property.price?.toLocaleString()}
                             </SelectItem>
                           ))}
                       </SelectContent>

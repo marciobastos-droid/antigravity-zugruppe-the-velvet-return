@@ -194,6 +194,9 @@ export default function PropertyDetails() {
 
   // Track engagement - must be called before any conditional returns
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
+  
+  // Track property view duration and history
+  useTrackView(propertyId, property, 'website');
 
   const saveMutation = useMutation({
     mutationFn: async () => {

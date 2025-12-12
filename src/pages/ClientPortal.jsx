@@ -19,6 +19,8 @@ import { createPageUrl } from "@/utils";
 import PropertyCard from "../components/browse/PropertyCard";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ViewingHistory from "../components/portal/ViewingHistory";
+import ClientPropertyInterests from "../components/portal/ClientPropertyInterests";
 
 // Status colors and labels
 const statusColors = {
@@ -387,10 +389,18 @@ export default function ClientPortal() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-white shadow-lg rounded-lg">
+          <TabsList className="grid w-full grid-cols-6 bg-white shadow-lg rounded-lg">
             <TabsTrigger value="saved" className="relative">
               <Heart className="w-4 h-4 mr-2" />
               Guardados
+            </TabsTrigger>
+            <TabsTrigger value="recommended" className="relative">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Selecionados
+            </TabsTrigger>
+            <TabsTrigger value="history" className="relative">
+              <Eye className="w-4 h-4 mr-2" />
+              Histórico
             </TabsTrigger>
             <TabsTrigger value="inquiries" className="relative">
               <Search className="w-4 h-4 mr-2" />
@@ -400,10 +410,6 @@ export default function ClientPortal() {
                   {opportunities.filter(o => !['won', 'lost'].includes(o.status)).length}
                 </Badge>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="recommendations">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Recomendações
             </TabsTrigger>
             <TabsTrigger value="messages" className="relative">
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -716,106 +722,14 @@ export default function ClientPortal() {
             </Card>
           </TabsContent>
 
-          {/* Recommendations */}
-          <TabsContent value="recommendations" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recomendações Personalizadas</CardTitle>
-                <CardDescription>
-                  Imóveis selecionados com base nas suas preferências
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!buyerProfile ? (
-                  <div className="text-center py-12">
-                    <TrendingUp className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600 mb-4">
-                      Configure as suas preferências para receber recomendações personalizadas
-                    </p>
-                    <Button>
-                      <Filter className="w-4 h-4 mr-2" />
-                      Definir Preferências
-                    </Button>
-                  </div>
-                ) : recommendations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Home className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-600">
-                      Não encontrámos imóveis que correspondam às suas preferências no momento
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {recommendations.map(property => {
-                      const isSaved = savedPropertyRecords.some(sp => sp.property_id === property.id);
-                      return (
-                        <div key={property.id} className="relative">
-                          <Link to={`${createPageUrl("PropertyDetails")}?id=${property.id}`} className="block">
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-                              <div className="relative h-48 overflow-hidden bg-slate-100">
-                                <img
-                                  src={property.images?.[0] || "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400"}
-                                  alt={property.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                />
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleSavePropertyMutation.mutate({ propertyId: property.id, isSaved });
-                                  }}
-                                  className="absolute top-3 right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-colors z-10"
-                                  disabled={toggleSavePropertyMutation.isPending}
-                                >
-                                  <Heart className={`w-5 h-5 ${isSaved ? 'text-red-500 fill-red-500' : 'text-slate-400'}`} />
-                                </button>
-                              </div>
-                              <CardContent className="p-4">
-                                <h3 className="font-semibold text-lg mb-2 line-clamp-1">{property.title}</h3>
-                                <p className="text-sm text-slate-600 flex items-center gap-1 mb-3">
-                                  <MapPin className="w-4 h-4" />
-                                  {property.city}, {property.state}
-                                </p>
-                                
-                                <div className="flex items-center gap-4 text-sm text-slate-600 mb-3">
-                                  {property.bedrooms > 0 && (
-                                    <span className="flex items-center gap-1">
-                                      <Bed className="w-4 h-4" />
-                                      {property.bedrooms}
-                                    </span>
-                                  )}
-                                  {property.bathrooms > 0 && (
-                                    <span className="flex items-center gap-1">
-                                      <Bath className="w-4 h-4" />
-                                      {property.bathrooms}
-                                    </span>
-                                  )}
-                                  {(property.useful_area || property.square_feet) > 0 && (
-                                    <span className="flex items-center gap-1">
-                                      <Maximize className="w-4 h-4" />
-                                      {property.useful_area || property.square_feet}m²
-                                    </span>
-                                  )}
-                                </div>
+          {/* Agent-Selected Properties */}
+          <TabsContent value="recommended" className="mt-6">
+            <ClientPropertyInterests userEmail={user?.email} />
+          </TabsContent>
 
-                                <div className="flex items-center justify-between pt-3 border-t">
-                                  <div className="font-bold text-lg text-blue-600">
-                                    €{property.price?.toLocaleString()}
-                                  </div>
-                                  <Badge variant="outline">
-                                    {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
-                                  </Badge>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </Link>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {/* Viewing History */}
+          <TabsContent value="history" className="mt-6">
+            <ViewingHistory userEmail={user?.email} />
           </TabsContent>
 
           {/* Messages */}
