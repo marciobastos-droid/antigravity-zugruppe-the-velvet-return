@@ -39,6 +39,9 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     square_feet: "",
     gross_area: "",
     useful_area: "",
+    balcony_area: "",
+    garage_area: "",
+    floor: "",
     front_count: "",
     finishes: "",
     energy_certificate: "",
@@ -151,6 +154,9 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         square_feet: property.square_feet || "",
         gross_area: property.gross_area || "",
         useful_area: property.useful_area || "",
+        balcony_area: property.balcony_area || "",
+        garage_area: property.garage_area || "",
+        floor: property.floor || "",
         front_count: property.front_count || "",
         finishes: property.finishes || "",
         energy_certificate: property.energy_certificate || "",
@@ -417,6 +423,9 @@ Retorna APENAS o título melhorado, nada mais.`,
       square_feet: formData.square_feet ? Number(formData.square_feet) : 0,
       gross_area: formData.gross_area ? Number(formData.gross_area) : 0,
       useful_area: formData.useful_area ? Number(formData.useful_area) : 0,
+      balcony_area: formData.balcony_area ? Number(formData.balcony_area) : 0,
+      garage_area: formData.garage_area ? Number(formData.garage_area) : 0,
+      floor: formData.floor || undefined,
       front_count: formData.front_count ? Number(formData.front_count) : 0,
       year_built: formData.year_built ? Number(formData.year_built) : undefined,
       year_renovated: formData.year_renovated ? Number(formData.year_renovated) : undefined,
@@ -762,6 +771,35 @@ Retorna APENAS o título melhorado, nada mais.`,
                   onChange={(e) => setFormData({...formData, front_count: e.target.value})}
                   placeholder="2"
                   validator="integer"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Piso</Label>
+                  <Input
+                    value={formData.floor}
+                    onChange={(e) => setFormData({...formData, floor: e.target.value})}
+                    placeholder="Ex: 1, 2, RC, Cave"
+                  />
+                </div>
+                <ValidatedInput
+                  id="edit-balcony_area"
+                  label="Área Varanda (m²)"
+                  type="number"
+                  value={formData.balcony_area}
+                  onChange={(e) => setFormData({...formData, balcony_area: e.target.value})}
+                  placeholder="10"
+                  validator="positiveNumber"
+                />
+                <ValidatedInput
+                  id="edit-garage_area"
+                  label="Área Garagem (m²)"
+                  type="number"
+                  value={formData.garage_area}
+                  onChange={(e) => setFormData({...formData, garage_area: e.target.value})}
+                  placeholder="20"
+                  validator="positiveNumber"
                 />
               </div>
 

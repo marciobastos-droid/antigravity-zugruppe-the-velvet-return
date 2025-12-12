@@ -30,6 +30,9 @@ export default function AddListing() {
     square_feet: "",
     gross_area: "",
     useful_area: "",
+    balcony_area: "",
+    garage_area: "",
+    floor: "",
     front_count: "",
     finishes: "",
     energy_certificate: "",
@@ -132,6 +135,9 @@ export default function AddListing() {
       square_feet: parseInt(formData.square_feet) || 0,
       gross_area: parseInt(formData.gross_area) || 0,
       useful_area: parseInt(formData.useful_area) || 0,
+      balcony_area: parseInt(formData.balcony_area) || 0,
+      garage_area: parseInt(formData.garage_area) || 0,
+      floor: formData.floor || null,
       front_count: parseInt(formData.front_count) || 0,
       year_built: parseInt(formData.year_built) || null,
       year_renovated: parseInt(formData.year_renovated) || null,
@@ -324,6 +330,38 @@ export default function AddListing() {
                 onChange={(e) => setFormData({...formData, year_renovated: e.target.value})}
                 placeholder="2024"
                 validator="year"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="floor">Piso</Label>
+                <Input
+                  id="floor"
+                  value={formData.floor}
+                  onChange={(e) => setFormData({...formData, floor: e.target.value})}
+                  placeholder="Ex: 1, 2, RC, Cave"
+                />
+              </div>
+
+              <ValidatedInput
+                id="balcony_area"
+                label="Área Varanda (m²)"
+                type="number"
+                value={formData.balcony_area}
+                onChange={(e) => setFormData({...formData, balcony_area: e.target.value})}
+                placeholder="10"
+                validator="positiveNumber"
+              />
+
+              <ValidatedInput
+                id="garage_area"
+                label="Área Garagem (m²)"
+                type="number"
+                value={formData.garage_area}
+                onChange={(e) => setFormData({...formData, garage_area: e.target.value})}
+                placeholder="20"
+                validator="positiveNumber"
               />
             </div>
 
