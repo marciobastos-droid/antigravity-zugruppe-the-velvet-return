@@ -133,7 +133,7 @@ export default function Tools() {
 
   // Calculate total tools and available tools for current user
   const totalTools = 60;
-  const availableToolsCount = isAdmin ? totalTools : Object.values(toolPermissions).filter(Boolean).length;
+  const availableToolsCount = isAdmin ? totalTools : Object.values(userToolPermissions).filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
