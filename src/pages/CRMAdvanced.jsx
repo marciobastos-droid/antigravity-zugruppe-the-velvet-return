@@ -1,13 +1,16 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, BarChart3, Brain, PieChart, Target } from "lucide-react";
+import { Users, Calendar, BarChart3, Brain, PieChart, Target, Clock, Mail } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";
 import MatchingTab from "@/components/crm/MatchingTab";
 import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
 import OpportunitiesContent from "../components/crm/OpportunitiesContent";
+import ClientSegmentation from "../components/crm/ClientSegmentation";
+import FollowUpAutomation from "../components/crm/FollowUpAutomation";
+import EmailCampaigns from "../components/crm/EmailCampaigns";
 
 export default function CRMAdvanced() {
   // Auth check - redirect to login if not authenticated
@@ -33,7 +36,7 @@ export default function CRMAdvanced() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex w-full overflow-x-auto mb-4 sm:mb-8 gap-1 sm:grid sm:grid-cols-6">
+          <TabsList className="flex w-full overflow-x-auto mb-4 sm:mb-8 gap-1">
             <TabsTrigger value="metrics" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <PieChart className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline sm:inline">Métricas</span>
@@ -49,6 +52,18 @@ export default function CRMAdvanced() {
             <TabsTrigger value="opportunities" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Target className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden xs:inline sm:inline">Oportunidades</span>
+            </TabsTrigger>
+            <TabsTrigger value="segments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Segmentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="followups" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Follow-ups</span>
+            </TabsTrigger>
+            <TabsTrigger value="campaigns" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline sm:inline">Campanhas</span>
             </TabsTrigger>
             <TabsTrigger value="matching" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -74,6 +89,18 @@ export default function CRMAdvanced() {
 
           <TabsContent value="opportunities">
             <OpportunitiesContent />
+          </TabsContent>
+
+          <TabsContent value="segments">
+            <ClientSegmentation />
+          </TabsContent>
+
+          <TabsContent value="followups">
+            <FollowUpAutomation />
+          </TabsContent>
+
+          <TabsContent value="campaigns">
+            <EmailCampaigns />
           </TabsContent>
 
           <TabsContent value="matching">
