@@ -93,6 +93,26 @@ export default function CRMSyncPanel() {
     }
   };
 
+  const handleExportProperties = async () => {
+    try {
+      const response = await base44.functions.invoke('syncCRMData', {
+        action: 'sync_to_external',
+        data: { entity_type: 'properties' }
+      });
+
+      const exportData = JSON.stringify(response.data.entities, null, 2);
+      const blob = new Blob([exportData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `properties_export_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      toast.success("Imóveis exportados!");
+    } catch (error) {
+      toast.error("Erro ao exportar");
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -176,14 +196,18 @@ export default function CRMSyncPanel() {
               <p className="text-sm text-blue-900 mb-3">
                 Exporte os seus dados para integração com CRMs externos
               </p>
-              <div className="flex gap-2">
-                <Button onClick={handleExportContacts} variant="outline" className="flex-1">
+              <div className="grid grid-cols-3 gap-2">
+                <Button onClick={handleExportContacts} variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Exportar Contactos
                 </Button>
-                <Button onClick={handleExportOpportunities} variant="outline" className="flex-1">
+                <Button onClick={handleExportOpportunities} variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Exportar Oportunidades
+                </Button>
+                <Button onClick={handleExportProperties} variant="outline">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar Imóveis
                 </Button>
               </div>
             </div>
@@ -218,6 +242,8 @@ export default function CRMSyncPanel() {
                   {results.contacts?.length || 0} contactos processados
                   <br />
                   {results.opportunities?.length || 0} oportunidades processadas
+                  <br />
+                  {results.properties?.length || 0} imóveis processados
                 </p>
               </div>
             </div>
