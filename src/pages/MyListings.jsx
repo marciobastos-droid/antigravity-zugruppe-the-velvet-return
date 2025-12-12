@@ -275,8 +275,7 @@ export default function MyListings() {
   const [bulkPhotoDialogOpen, setBulkPhotoDialogOpen] = useState(false);
   const [bulkPublicationDialogOpen, setBulkPublicationDialogOpen] = useState(false);
   const [createDevelopmentDialogOpen, setCreateDevelopmentDialogOpen] = useState(false);
-  const [assignAgentOpen, setAssignAgentOpen] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState("");
+
   const [aiEnhancerOpen, setAiEnhancerOpen] = useState(false);
   const [selectedPropertyForAI, setSelectedPropertyForAI] = useState(null);
   const [publicationHubOpen, setPublicationHubOpen] = useState(false);
@@ -355,43 +354,22 @@ export default function MyListings() {
     ...QUERY_CONFIG.properties
   });
 
-  // Buscar agentes (combinar Users com entidade Agent)
-  const { data: agents = [] } = useQuery({
-    queryKey: ['allUsersForAssignment'],
+  // Buscar consultores
+  const { data: consultants = [] } = useQuery({
+    queryKey: ['allConsultantsForAssignment'],
     queryFn: async () => {
-      // Buscar todos os Users primeiro
+      // Buscar todos os Users
       const users = await base44.entities.User.list();
-      const usersList = users.map(u => ({
+      return users.map(u => ({
         id: u.id,
         full_name: u.display_name || u.full_name || u.email,
+        display_name: u.display_name || u.full_name,
         email: u.email,
-        is_active: true,
-        source: 'user'
+        phone: u.phone,
+        photo_url: u.photo_url,
+        is_active: u.is_active !== false,
+        user_type: u.user_type
       }));
-      
-      // Tentar buscar também da entidade Agent (pode falhar por RLS)
-      try {
-        const agentsList = await base44.entities.Agent.list('full_name');
-        if (agentsList.length > 0) {
-          // Combinar, evitando duplicados por email
-          const userEmails = new Set(usersList.map(u => u.email));
-          const uniqueAgents = agentsList
-            .filter(a => !userEmails.has(a.email))
-            .map(a => ({
-              id: a.id,
-              full_name: a.full_name,
-              display_name: a.display_name || a.full_name,
-              email: a.email,
-              is_active: a.is_active !== false,
-              source: 'agent'
-            }));
-          return [...usersList, ...uniqueAgents];
-        }
-      } catch (e) {
-        // RLS pode bloquear - ignorar
-      }
-      
-      return usersList;
     },
     ...QUERY_CONFIG.agents
   });
@@ -446,11 +424,10 @@ export default function MyListings() {
         return allProperties;
       }
       
-      // Agentes vêem imóveis que criaram OU que lhes estão atribuídos OU onde são agente
+      // Consultores vêem imóveis que criaram OU que lhes estão atribuídos
       return allProperties.filter(p => 
         p.created_by === user.email || 
-        p.assigned_consultant === user.email ||
-        p.agent_id === user.id
+        p.assigned_consultant === user.email
       );
     },
     enabled: !!user,
@@ -535,23 +512,7 @@ export default function MyListings() {
     },
   });
 
-  const bulkAssignAgentMutation = useMutation({
-    mutationFn: async ({ ids, agentId, agentName }) => {
-      await Promise.all(ids.map(id => 
-        base44.entities.Property.update(id, { 
-          agent_id: agentId,
-          agent_name: agentName
-        })
-      ));
-    },
-    onSuccess: (_, { ids, agentName }) => {
-      toast.success(`${ids.length} imóveis atribuídos a "${agentName}"`);
-      setSelectedProperties([]);
-      setAssignAgentOpen(false);
-      setSelectedAgent("");
-      queryClient.invalidateQueries({ queryKey: ['myProperties'] });
-    },
-  });
+
 
   const bulkAssignConsultantMutation = useMutation({
     mutationFn: async ({ ids, consultantEmail, consultantName }) => {
@@ -923,8 +884,8 @@ export default function MyListings() {
       options: [
         { value: "unassigned", label: "Sem consultor" },
         ...uniqueConsultants.map(c => {
-          const agent = agents.find(a => a.email === c);
-          return { value: c, label: agent?.full_name || c };
+          const consultant = consultants.find(cons => cons.email === c);
+          return { value: c, label: consultant?.full_name || c };
         })
       ],
       advanced: true,
@@ -1041,7 +1002,7 @@ export default function MyListings() {
       field: "created_by",
       advanced: true
     }
-  }), [allStates, allCities, propertyTags, uniqueConsultants, uniqueDevelopments, uniquePortals, uniquePages, agents]);
+  }), [allStates, allCities, propertyTags, uniqueConsultants, uniqueDevelopments, uniquePortals, uniquePages, consultants]);
   
   // Calcular data/hora da última importação (imóveis com source_url)
   const lastImportTimestamp = useMemo(() => {
@@ -1295,9 +1256,9 @@ export default function MyListings() {
               <span>Empreendimentos</span>
             </TabsTrigger>
             {(user?.role === 'admin' || user?.user_type?.toLowerCase() === 'admin' || user?.user_type?.toLowerCase() === 'gestor') && (
-              <TabsTrigger value="byAgent" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
+              <TabsTrigger value="byConsultant" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-initial">
                 <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Por Agente</span>
+                <span>Por Consultor</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -1305,7 +1266,7 @@ export default function MyListings() {
 
         {activeTab === "developments" ? (
           <DevelopmentsTab />
-        ) : activeTab === "byAgent" ? (
+        ) : activeTab === "byConsultant" ? (
           <PropertiesByAgentView />
         ) : (
         <>
@@ -1344,18 +1305,8 @@ export default function MyListings() {
             onBulkFeaturedToggle={(featured) => {
               bulkToggleFeaturedMutation.mutate({ ids: selectedProperties, featured });
             }}
-            onBulkAssignAgent={(agentId) => {
-              const agent = agents.find(a => a.id === agentId);
-              if (agent) {
-                bulkAssignAgentMutation.mutate({
-                  ids: selectedProperties,
-                  agentId: agent.id,
-                  agentName: agent.full_name
-                });
-              }
-            }}
             onBulkAssignConsultant={(consultantEmail) => {
-              const consultant = agents.find(a => a.email === consultantEmail);
+              const consultant = consultants.find(c => c.email === consultantEmail);
               bulkAssignConsultantMutation.mutate({
                 ids: selectedProperties,
                 consultantEmail: consultantEmail === "none" ? null : consultantEmail,
@@ -1379,7 +1330,7 @@ export default function MyListings() {
             onBulkPhotoAssign={() => setBulkPhotoDialogOpen(true)}
             onBulkDelete={handleBulkDelete}
             onGenerateVisitRoute={() => setVisitRouteOpen(true)}
-            agents={agents}
+            consultants={consultants}
             developments={developments}
             propertyTags={propertyTags}
             isProcessing={
