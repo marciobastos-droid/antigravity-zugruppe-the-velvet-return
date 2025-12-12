@@ -1275,7 +1275,7 @@ export default function MyListings() {
           properties={properties}
           filters={filters}
           onFilterChange={setFilters}
-          agents={agents}
+          consultants={consultants}
           developments={developments}
         />
 
