@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Bell, Mail, Plug, RefreshCw, Globe, Users, Database, BarChart3, Zap, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Calendar, Bell, Mail, Plug, RefreshCw, Globe, Users, Database, BarChart3, Zap, CheckCircle, AlertCircle, Clock, Building2 } from "lucide-react";
 import GoogleCalendarIntegration from "./GoogleCalendarIntegration";
 import PushNotificationManager from "./PushNotificationManager";
 import EmailSyncStatus from "./EmailSyncStatus";
