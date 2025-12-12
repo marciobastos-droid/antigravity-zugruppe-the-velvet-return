@@ -41,7 +41,7 @@ export default function BulkPhotoAssign({ open, onOpenChange, selectedPropertyId
   });
 
   const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     setUploading(true);
@@ -53,10 +53,13 @@ export default function BulkPhotoAssign({ open, onOpenChange, selectedPropertyId
       const uploadedUrls = await Promise.all(uploadPromises);
       setNewImages(prev => [...prev, ...uploadedUrls]);
       toast.success(`${uploadedUrls.length} foto(s) carregada(s)`);
+      e.target.value = null;
     } catch (error) {
-      toast.error("Erro ao carregar fotos");
+      console.error("Upload error:", error);
+      toast.error("Erro ao carregar fotos: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const removeImage = (index) => {
