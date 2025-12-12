@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   MapPin, Calendar, Clock, User, Phone, Mail, Printer, 
   FileText, CheckSquare, Home, Bed, Bath, Maximize, Star,
-  Navigation, Download, Send, Loader2, FileDown
+  Navigation, Download, Send, Loader2, FileDown, Map as MapIcon, Route
 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
@@ -19,6 +19,60 @@ import { pt } from "date-fns/locale";
 import { useQuery } from "@tanstack/react-query";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix Leaflet default icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+// Custom numbered markers
+const createNumberedIcon = (number, isActive = false) => {
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background: ${isActive ? '#3b82f6' : '#ef4444'};
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    ">${number}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -18]
+  });
+};
+
+// Map bounds component
+function MapBounds({ properties }) {
+  const map = useMap();
+  
+  React.useEffect(() => {
+    if (properties.length > 0) {
+      const validProperties = properties.filter(p => p.latitude && p.longitude);
+      if (validProperties.length > 0) {
+        const bounds = L.latLngBounds(
+          validProperties.map(p => [p.latitude, p.longitude])
+        );
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
+  }, [properties, map]);
+  
+  return null;
+}
 
 export default function VisitRouteGenerator({ properties, opportunityId, open, onOpenChange }) {
   const printRef = useRef();
@@ -30,6 +84,8 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
   const [agentName, setAgentName] = useState("");
   const [notes, setNotes] = useState("");
   const [creating, setCreating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [selectedPropertyIndex, setSelectedPropertyIndex] = useState(0);
 
   // Buscar dados da oportunidade se fornecido
   const { data: opportunity } = useQuery({
@@ -173,6 +229,38 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
     office: "Escritório"
   };
 
+  // Filter properties with valid coordinates
+  const propertiesWithCoords = properties.filter(p => p.latitude && p.longitude);
+  
+  // Calculate route coordinates
+  const routeCoordinates = propertiesWithCoords.map(p => [p.latitude, p.longitude]);
+
+  // Calculate total distance (rough estimation)
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const totalDistance = propertiesWithCoords.reduce((acc, prop, idx) => {
+    if (idx === 0) return 0;
+    const prev = propertiesWithCoords[idx - 1];
+    return acc + calculateDistance(prev.latitude, prev.longitude, prop.latitude, prop.longitude);
+  }, 0);
+
+  const navigateToProperty = (index) => {
+    const property = propertiesWithCoords[index];
+    if (property && property.latitude && property.longitude) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${property.latitude},${property.longitude}`;
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
@@ -271,18 +359,171 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
                 </>
               )}
             </Button>
-            <Button onClick={handlePrint} variant="outline" className="flex-1">
+            <Button 
+              onClick={() => setShowMap(!showMap)} 
+              variant={showMap ? "default" : "outline"}
+              className={showMap ? "flex-1 bg-blue-600 hover:bg-blue-700" : "flex-1"}
+            >
+              <MapIcon className="w-4 h-4 mr-2" />
+              {showMap ? 'Ocultar' : 'Ver'} Mapa
+            </Button>
+            <Button onClick={handlePrint} variant="outline">
               <Printer className="w-4 h-4 mr-2" />
               Imprimir
             </Button>
-            <Button onClick={handleDownloadPDF} variant="outline" className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700">
+            <Button onClick={handleDownloadPDF} variant="outline" className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700">
               <Download className="w-4 h-4 mr-2" />
-              Download PDF
+              PDF
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
           </div>
+
+          {/* Interactive Map */}
+          {showMap && propertiesWithCoords.length > 0 && (
+            <Card className="mt-6 overflow-hidden">
+              <CardContent className="p-0">
+                <div className="h-[500px] relative">
+                  <MapContainer
+                    center={[propertiesWithCoords[0].latitude, propertiesWithCoords[0].longitude]}
+                    zoom={12}
+                    style={{ height: '100%', width: '100%' }}
+                    key={propertiesWithCoords.map(p => p.id).join('-')}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    />
+                    
+                    {/* Property Markers */}
+                    {propertiesWithCoords.map((property, index) => (
+                      <Marker
+                        key={property.id}
+                        position={[property.latitude, property.longitude]}
+                        icon={createNumberedIcon(index + 1, index === selectedPropertyIndex)}
+                      >
+                        <Popup maxWidth={300}>
+                          <div className="p-2">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge className="bg-blue-600 text-white">
+                                Visita #{index + 1}
+                              </Badge>
+                              {property.featured && (
+                                <Badge className="bg-amber-400 text-slate-900">
+                                  <Star className="w-3 h-3 mr-1 fill-current" />
+                                  Destaque
+                                </Badge>
+                              )}
+                            </div>
+                            <h4 className="font-bold text-slate-900 mb-1">
+                              {propertyTypeLabels[property.property_type]} {property.bedrooms && `T${property.bedrooms}`}
+                            </h4>
+                            <p className="text-sm text-slate-600 mb-2">
+                              {property.address}, {property.city}
+                            </p>
+                            <div className="text-sm font-bold text-blue-600 mb-3">
+                              €{property.price?.toLocaleString()}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedPropertyIndex(index);
+                                  navigateToProperty(index);
+                                }}
+                                className="flex-1 bg-green-600 hover:bg-green-700"
+                              >
+                                <Navigation className="w-3 h-3 mr-1" />
+                                Navegar
+                              </Button>
+                              {index < propertiesWithCoords.length - 1 && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedPropertyIndex(index + 1);
+                                  }}
+                                  variant="outline"
+                                  className="flex-1"
+                                >
+                                  Próximo
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+
+                    {/* Route Line */}
+                    {routeCoordinates.length > 1 && (
+                      <Polyline
+                        positions={routeCoordinates}
+                        color="#3b82f6"
+                        weight={3}
+                        opacity={0.7}
+                        dashArray="10, 10"
+                      />
+                    )}
+
+                    <MapBounds properties={propertiesWithCoords} />
+                  </MapContainer>
+
+                  {/* Map Overlay Stats */}
+                  <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 z-[1000]">
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center gap-2 font-semibold text-slate-900">
+                        <Route className="w-4 h-4 text-blue-600" />
+                        Rota da Visita
+                      </div>
+                      <div className="text-slate-600">
+                        <span className="font-medium">{propertiesWithCoords.length}</span> imóveis
+                      </div>
+                      {totalDistance > 0 && (
+                        <div className="text-slate-600">
+                          <span className="font-medium">{totalDistance.toFixed(1)} km</span> total
+                        </div>
+                      )}
+                      <div className="text-slate-600">
+                        ~{Math.ceil(propertiesWithCoords.length * 1.5)} horas
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Stop Indicator */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-3 z-[1000]">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="text-xs text-slate-500 mb-1">Próxima Visita</div>
+                        <div className="font-semibold text-slate-900">
+                          #{selectedPropertyIndex + 1} - {propertiesWithCoords[selectedPropertyIndex]?.title || propertiesWithCoords[selectedPropertyIndex]?.address}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => navigateToProperty(selectedPropertyIndex)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Navigation className="w-4 h-4 mr-1" />
+                        Ir
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {showMap && propertiesWithCoords.length === 0 && (
+            <Card className="mt-6">
+              <CardContent className="p-6 text-center">
+                <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-600">
+                  Nenhum imóvel com coordenadas GPS disponível para mostrar no mapa.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Printable Content */}
