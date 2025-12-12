@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
+import GlobalSearch from "./components/search/GlobalSearch";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import { useGuestFeatures } from "./components/visitors/useGuestFeatures";
 import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
@@ -159,6 +160,9 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              {/* Global Search */}
+              <GlobalSearch />
+
               <LanguageCurrencySelector variant="compact" />
 
               {/* Favorites Icon with Badge */}
