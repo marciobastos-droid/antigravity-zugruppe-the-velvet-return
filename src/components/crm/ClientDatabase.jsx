@@ -1334,6 +1334,7 @@ export default function ClientDatabase() {
             size="sm"
             onClick={() => setViewMode("table")}
             className="rounded-none"
+            title="Vista Tabela"
           >
             <List className="w-4 h-4" />
           </Button>
@@ -1342,8 +1343,18 @@ export default function ClientDatabase() {
             size="sm"
             onClick={() => setViewMode("cards")}
             className="rounded-none"
+            title="Vista Cards"
           >
             <LayoutGrid className="w-4 h-4" />
+          </Button>
+          <Button
+            variant={viewMode === "sidebar" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("sidebar")}
+            className="rounded-none"
+            title="Vista Painel Lateral"
+          >
+            <Users2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -1360,6 +1371,377 @@ export default function ClientDatabase() {
           selectedContacts={selectedContacts}
           onSelectionChange={setSelectedContacts}
         />
+      ) : viewMode === "sidebar" ? (
+        <div className="grid lg:grid-cols-3 gap-4">
+          {/* Sidebar - Contact List */}
+          <Card className="lg:col-span-1 max-h-[calc(100vh-300px)] overflow-y-auto">
+            <CardContent className="p-3 space-y-2">
+              {filteredClients.length === 0 ? (
+                <div className="text-center py-12">
+                  <User className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                  <p className="text-slate-600">Nenhum contacto encontrado</p>
+                </div>
+              ) : (
+                filteredClients.map((client) => {
+                  const clientOpps = getClientOpportunities(client);
+                  const isSelected = selectedClient?.id === client.id;
+                  const isChecked = selectedContactsSet.has(client.id);
+                  
+                  return (
+                    <div
+                      key={client.id}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'bg-blue-50 border-blue-300 shadow-sm' 
+                          : 'hover:bg-slate-50 border-slate-200'
+                      } ${isChecked ? 'ring-2 ring-blue-400' : ''}`}
+                      onClick={() => { setActiveTab("details"); setSelectedClient(client); }}
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        {/* Checkbox */}
+                        <div 
+                          className="flex-shrink-0 pt-1" 
+                          onClick={(e) => { e.stopPropagation(); toggleSelectContact(client.id); }}
+                        >
+                          <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                            isChecked 
+                              ? 'bg-blue-600 border-blue-600' 
+                              : 'border-slate-300 bg-white hover:border-blue-400'
+                          }`}>
+                            {isChecked && (
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Avatar */}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-sm">
+                            {client.full_name?.[0]?.toUpperCase() || '?'}
+                          </span>
+                        </div>
+                        
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-sm text-slate-900 truncate">
+                            {client.full_name}
+                          </h4>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Badge className={`${typeColors[client.contact_type]} text-[10px] px-1.5 py-0`}>
+                              {typeLabels[client.contact_type]}
+                            </Badge>
+                            {clientOpps.length > 0 && (
+                              <Badge className="bg-green-100 text-green-700 text-[10px] px-1.5 py-0">
+                                {clientOpps.length} oport.
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Quick Contact Info */}
+                      <div className="space-y-1 text-xs text-slate-600">
+                        {client.email && (
+                          <div className="flex items-center gap-1 truncate">
+                            <Mail className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{client.email}</span>
+                          </div>
+                        )}
+                        {client.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-3 h-3 flex-shrink-0" />
+                            {client.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+          
+          {/* Main Panel - Contact Details */}
+          <div className="lg:col-span-2">
+            {selectedClient ? (
+              <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center">
+                        <span className="text-white font-bold text-xl">
+                          {selectedClient.full_name?.[0]?.toUpperCase() || '?'}
+                        </span>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900">{selectedClient.full_name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge className={typeColors[selectedClient.contact_type]}>
+                            {typeLabels[selectedClient.contact_type]}
+                          </Badge>
+                          <Badge className={statusColors[selectedClient.status]}>
+                            {selectedClient.status === 'active' ? 'Ativo' : selectedClient.status === 'inactive' ? 'Inativo' : 'Prospect'}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedClient(null)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid w-full grid-cols-6">
+                      <TabsTrigger value="details">Detalhes</TabsTrigger>
+                      <TabsTrigger value="opportunities">Oportunidades</TabsTrigger>
+                      <TabsTrigger value="emails">Emails</TabsTrigger>
+                      <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+                      <TabsTrigger value="communications">Comunicações</TabsTrigger>
+                      <TabsTrigger value="portal">Portal</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="details" className="mt-4">
+                      {/* Contact Information */}
+                      <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-green-600" />
+                                Informação de Contacto
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              {selectedClient.email && (
+                                <a href={`mailto:${selectedClient.email}`} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-sm">
+                                  <Mail className="w-4 h-4 text-blue-600" />
+                                  <span className="truncate">{selectedClient.email}</span>
+                                </a>
+                              )}
+                              {selectedClient.phone && (
+                                <a href={`tel:${selectedClient.phone}`} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-sm">
+                                  <Phone className="w-4 h-4 text-green-600" />
+                                  {selectedClient.phone}
+                                </a>
+                              )}
+                              {selectedClient.secondary_phone && (
+                                <a href={`tel:${selectedClient.secondary_phone}`} className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 text-sm">
+                                  <Phone className="w-4 h-4 text-green-500" />
+                                  {selectedClient.secondary_phone}
+                                </a>
+                              )}
+                              {selectedClient.city && (
+                                <div className="flex items-center gap-2 p-2 text-sm">
+                                  <MapPin className="w-4 h-4 text-red-500" />
+                                  {selectedClient.city}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-purple-600" />
+                                Informação Adicional
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2 text-sm">
+                              {selectedClient.company_name && (
+                                <div className="flex items-center gap-2 p-2">
+                                  <Building2 className="w-4 h-4 text-purple-600" />
+                                  <span className="truncate">{selectedClient.company_name}</span>
+                                </div>
+                              )}
+                              {selectedClient.nif && (
+                                <div className="flex items-center gap-2 p-2">
+                                  <TagIcon className="w-4 h-4 text-slate-600" />
+                                  <span>NIF: {selectedClient.nif}</span>
+                                </div>
+                              )}
+                              {selectedClient.assigned_agent && (
+                                <div className="flex items-center gap-2 p-2 bg-indigo-50 rounded-lg">
+                                  <User className="w-4 h-4 text-indigo-600" />
+                                  <span className="text-indigo-800">{getAgentName(selectedClient.assigned_agent)}</span>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
+
+                        {/* Requirements */}
+                        {(() => {
+                          const req = selectedClient.property_requirements;
+                          const hasReqs = req && (req.budget_min || req.budget_max || req.locations?.length || req.property_types?.length);
+                          return hasReqs ? (
+                            <Card className="border-purple-200 bg-purple-50/30">
+                              <CardHeader className="pb-3">
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                  <Target className="w-4 h-4 text-purple-600" />
+                                  Requisitos de Imóvel
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="grid md:grid-cols-2 gap-3 text-sm">
+                                {(req.budget_min || req.budget_max) && (
+                                  <div className="flex items-center gap-2">
+                                    <Euro className="w-4 h-4 text-green-600" />
+                                    <span>
+                                      {req.budget_min ? `€${(req.budget_min/1000).toFixed(0)}k` : '€0'} - 
+                                      {req.budget_max ? ` €${(req.budget_max/1000).toFixed(0)}k` : ' ∞'}
+                                    </span>
+                                  </div>
+                                )}
+                                {req.bedrooms_min > 0 && (
+                                  <div className="flex items-center gap-2">
+                                    <Bed className="w-4 h-4 text-purple-600" />
+                                    <span>T{req.bedrooms_min}+</span>
+                                  </div>
+                                )}
+                                {req.locations?.length > 0 && (
+                                  <div className="flex items-center gap-2 md:col-span-2">
+                                    <MapPin className="w-4 h-4 text-red-500" />
+                                    <span className="truncate">{req.locations.join(', ')}</span>
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ) : null;
+                        })()}
+
+                        {/* Notes */}
+                        {selectedClient.notes && (
+                          <Card>
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4 text-slate-600" />
+                                Notas
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-slate-600 whitespace-pre-wrap bg-slate-50 p-3 rounded-lg border">
+                                {selectedClient.notes}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        )}
+
+                        {/* Quick Actions */}
+                        <div className="flex flex-wrap gap-2 pt-4">
+                          <QuickContactActions 
+                            contact={selectedClient} 
+                            onCommunicationLogged={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
+                          />
+                          <Button variant="outline" onClick={() => handleEdit(selectedClient)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </Button>
+                          <Button 
+                            onClick={() => setOpportunityDialogOpen(true)}
+                            className="bg-amber-600 hover:bg-amber-700"
+                          >
+                            <Target className="w-4 h-4 mr-2" />
+                            Nova Oportunidade
+                          </Button>
+                        </div>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="opportunities" className="mt-4">
+                      <div className="space-y-3">
+                        {getClientOpportunities(selectedClient).length === 0 ? (
+                          <div className="text-center py-8">
+                            <Target className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                            <p className="text-slate-600 mb-3">Sem oportunidades</p>
+                            <Button onClick={() => setOpportunityDialogOpen(true)} size="sm">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Criar Oportunidade
+                            </Button>
+                          </div>
+                        ) : (
+                          getClientOpportunities(selectedClient).map(opp => (
+                            <Card key={opp.id}>
+                              <CardContent className="p-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1 mb-1 flex-wrap">
+                                      {opp.ref_id && (
+                                        <Badge variant="outline" className="text-xs font-mono">{opp.ref_id}</Badge>
+                                      )}
+                                      <Badge className="text-xs">
+                                        {opp.lead_type === 'comprador' ? '🏠' : '🏷️'} {opp.lead_type}
+                                      </Badge>
+                                    </div>
+                                    {opp.property_title && (
+                                      <p className="text-sm font-medium text-slate-900 truncate">{opp.property_title}</p>
+                                    )}
+                                    {opp.budget && (
+                                      <p className="text-xs text-green-600 mt-1">€{opp.budget.toLocaleString()}</p>
+                                    )}
+                                  </div>
+                                  <Button size="sm" variant="ghost" asChild>
+                                    <a href={`${createPageUrl("CRMAdvanced")}?tab=opportunities&oppId=${opp.id}`} target="_blank">
+                                      <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="emails" className="mt-4">
+                      <Suspense fallback={<LoadingFallback />}>
+                        <EmailHistoryPanel 
+                          recipientId={selectedClient.id}
+                          recipientType="client"
+                        />
+                      </Suspense>
+                    </TabsContent>
+
+                    <TabsContent value="whatsapp" className="mt-4">
+                      <Suspense fallback={<LoadingFallback />}>
+                        <WhatsAppConversation 
+                          contact={selectedClient} 
+                          onMessageSent={() => queryClient.invalidateQueries({ queryKey: ['communicationLogs'] })}
+                        />
+                      </Suspense>
+                    </TabsContent>
+
+                    <TabsContent value="communications" className="mt-4">
+                      <Suspense fallback={<LoadingFallback />}>
+                        <CommunicationHistory contactId={selectedClient.id} />
+                      </Suspense>
+                    </TabsContent>
+
+                    <TabsContent value="portal" className="mt-4">
+                      <Suspense fallback={<LoadingFallback />}>
+                        <ClientPortalManager client={selectedClient} />
+                      </Suspense>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="h-full">
+                <CardContent className="p-12 text-center flex flex-col items-center justify-center min-h-[400px]">
+                  <User className="w-16 h-16 text-slate-300 mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                    Selecione um contacto
+                  </h3>
+                  <p className="text-slate-600">
+                    Escolha um contacto da lista para ver os detalhes
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       ) : (
       <div className="grid gap-4">
         {filteredClients.length === 0 ? (
