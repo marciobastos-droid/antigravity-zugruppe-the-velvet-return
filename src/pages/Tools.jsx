@@ -131,6 +131,10 @@ export default function Tools() {
     );
   };
 
+  // Calculate total tools and available tools for current user
+  const totalTools = 60;
+  const availableToolsCount = isAdmin ? totalTools : Object.values(toolPermissions).filter(Boolean).length;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,6 +145,61 @@ export default function Tools() {
           </h1>
           <p className="text-slate-600">Ferramentas inteligentes para gestão de imóveis</p>
         </div>
+
+        {/* Tools Summary Card */}
+        <Card className="mb-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Wrench className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-4xl font-bold text-blue-900">
+                      {isAdmin ? totalTools : availableToolsCount}
+                    </div>
+                    <div className="text-sm text-slate-600">
+                      {isAdmin ? 'Todas as ferramentas' : 'Ferramentas disponíveis'}
+                    </div>
+                  </div>
+                </div>
+                {!isAdmin && (
+                  <>
+                    <div className="h-12 w-px bg-slate-300" />
+                    <div className="flex items-center gap-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-slate-700">{totalTools}</div>
+                        <div className="text-xs text-slate-500">Total</div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {isAdmin ? (
+                <Badge className="bg-green-600 text-white text-lg px-4 py-2">
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  Acesso Total
+                </Badge>
+              ) : (
+                <div className="text-right">
+                  <div className="text-sm text-slate-600 mb-1">Percentagem de acesso</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 h-3 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all duration-500"
+                        style={{ width: `${(availableToolsCount / totalTools) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-lg font-bold text-blue-600">
+                      {Math.round((availableToolsCount / totalTools) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="space-y-4 mb-6">
 
