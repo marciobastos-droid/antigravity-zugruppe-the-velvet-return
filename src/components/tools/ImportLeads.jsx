@@ -438,20 +438,25 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
         <CardContent className="space-y-4">
           <div>
             <label className="text-sm font-medium text-slate-700 mb-2 block">
-              Procurar por ID do Imóvel
+              Procurar por REF ou ID do Imóvel
             </label>
             <div className="flex gap-2">
               <Input
                 value={propertySearchId}
                 onChange={(e) => setPropertySearchId(e.target.value)}
-                placeholder="Cole o ID do imóvel..."
+                placeholder="Cole o REF ou ID do imóvel..."
                 className="flex-1"
               />
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  const property = properties.find(p => p.id === propertySearchId.trim());
+                  const searchTerm = propertySearchId.trim();
+                  // Procura por REF ou ID
+                  const property = properties.find(p => 
+                    p.ref_id?.toLowerCase() === searchTerm.toLowerCase() || 
+                    p.id === searchTerm
+                  );
                   if (property) {
                     setPropertyId(property.id);
                     toast.success(`Imóvel selecionado: ${property.title}`);
