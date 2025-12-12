@@ -62,6 +62,22 @@ export default function Layout({ children, currentPageName }) {
   const isConsultant = user && userTypeNormalized === 'consultant';
   const userType = userTypeNormalized || user?.role || 'user';
 
+  // Debug: log user type info
+  React.useEffect(() => {
+    if (user) {
+      console.log('[Layout Debug]', {
+        email: user.email,
+        userType,
+        userTypeNormalized,
+        role: user.role,
+        isAdmin,
+        isGestor,
+        isConsultant,
+        rawUserType: user.user_type
+      });
+    }
+  }, [user, userType]);
+
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
   // pagePermKey é usado para verificar permissões granulares
   const allNavItems = [
@@ -101,6 +117,18 @@ export default function Layout({ children, currentPageName }) {
     // Para páginas restritas, verificar tipo de utilizador primeiro
     if (Array.isArray(item.visibility)) {
       const hasTypeAccess = item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
+      
+      // Debug log para Tools
+      if (item.name === 'Tools') {
+        console.log('[Tools Debug]', {
+          userType,
+          visibility: item.visibility,
+          hasTypeAccess,
+          isAdmin,
+          userPermissions
+        });
+      }
+      
       if (hasTypeAccess) return true;
     } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
       return true;
