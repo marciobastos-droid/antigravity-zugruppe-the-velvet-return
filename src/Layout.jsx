@@ -98,16 +98,20 @@ export default function Layout({ children, currentPageName }) {
     // Se é página com visibilidade 'all', sempre mostrar
     if (item.visibility === 'all') return true;
 
-    // Para páginas restritas, verificar permissões granulares primeiro
+    // Para páginas restritas, verificar tipo de utilizador primeiro
+    if (Array.isArray(item.visibility)) {
+      const hasTypeAccess = item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
+      if (hasTypeAccess) return true;
+    } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
+      return true;
+    }
+
+    // Verificar permissões granulares como fallback
     if (item.pagePermKey && hasPagePermission(item.pagePermKey)) {
       return true;
     }
 
-    // Fallback para verificação por tipo de utilizador
-    if (Array.isArray(item.visibility)) {
-      return item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
-    }
-    return item.visibility === userType || (isAdmin && item.visibility === 'admin');
+    return false;
   });
 
   return (
