@@ -102,15 +102,37 @@ export default function Tools() {
   const userToolPermissions = userPerm?.permissions?.tools || {};
   const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true;
   
+  // Debug logs
+  React.useEffect(() => {
+    if (currentUser) {
+      console.log('[Tools] User:', currentUser.email);
+      console.log('[Tools] isAdmin:', isAdmin);
+      console.log('[Tools] hasToolsPageAccess:', hasToolsPageAccess);
+      console.log('[Tools] userToolPermissions:', userToolPermissions);
+      console.log('[Tools] Available tools:', Object.keys(userToolPermissions).filter(k => userToolPermissions[k]));
+    }
+  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions]);
+  
   // Helper to check if tool is allowed
   const isToolAllowed = (toolId) => {
     if (isAdmin) return true;
-    // Se tem acesso à página tools mas sem permissões específicas de ferramentas, permitir todas
-    if (hasToolsPageAccess && Object.keys(userToolPermissions).length === 0) return true;
-    // Se tem permissões específicas de ferramentas
+    
+    // Se tem permissões específicas de ferramentas, verificar
     if (Object.keys(userToolPermissions).length > 0) {
-      return userToolPermissions[toolId] === true;
+      const allowed = userToolPermissions[toolId] === true;
+      if (!allowed) {
+        console.log(`[Tools] Tool ${toolId} not allowed. Permission value:`, userToolPermissions[toolId]);
+      }
+      return allowed;
     }
+    
+    // Se tem acesso à página tools mas sem permissões específicas, permitir todas
+    if (hasToolsPageAccess) {
+      console.log(`[Tools] Tool ${toolId} allowed via page access`);
+      return true;
+    }
+    
+    console.log(`[Tools] Tool ${toolId} denied - no permissions found`);
     return false;
   };
 
