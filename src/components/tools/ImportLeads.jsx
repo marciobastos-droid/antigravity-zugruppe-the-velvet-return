@@ -14,6 +14,7 @@ export default function ImportLeads() {
   const [leadType, setLeadType] = React.useState("comprador");
   const [text, setText] = React.useState("");
   const [propertyId, setPropertyId] = React.useState("");
+  const [propertySearchId, setPropertySearchId] = React.useState("");
   const [location, setLocation] = React.useState("");
   const [processing, setProcessing] = React.useState(false);
   const [result, setResult] = React.useState(null);
@@ -434,21 +435,88 @@ Sê minucioso na extração, mesmo que os dados estejam implícitos no texto.`,
             Imóvel (Opcional)
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <Select value={propertyId} onValueChange={setPropertyId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sem imóvel associado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>Sem imóvel</SelectItem>
-              {properties.filter(p => p.status === 'active').map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.title} - {p.city} - €{p.price?.toLocaleString()}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-slate-600 mt-2">
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">
+              Procurar por ID do Imóvel
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={propertySearchId}
+                onChange={(e) => setPropertySearchId(e.target.value)}
+                placeholder="Cole o ID do imóvel..."
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const property = properties.find(p => p.id === propertySearchId.trim());
+                  if (property) {
+                    setPropertyId(property.id);
+                    toast.success(`Imóvel selecionado: ${property.title}`);
+                  } else {
+                    toast.error("Imóvel não encontrado");
+                  }
+                }}
+                disabled={!propertySearchId.trim()}
+              >
+                Procurar
+              </Button>
+            </div>
+            {propertyId && properties.find(p => p.id === propertyId) && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm font-medium text-blue-900">
+                  ✓ {properties.find(p => p.id === propertyId)?.title}
+                </p>
+                <p className="text-xs text-blue-700">
+                  {properties.find(p => p.id === propertyId)?.city} - €{properties.find(p => p.id === propertyId)?.price?.toLocaleString()}
+                </p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPropertyId("");
+                    setPropertySearchId("");
+                  }}
+                  className="mt-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  Remover
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-slate-500">ou</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-2 block">
+              Selecionar da Lista
+            </label>
+            <Select value={propertyId} onValueChange={setPropertyId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem imóvel associado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>Sem imóvel</SelectItem>
+                {properties.filter(p => p.status === 'active').slice(0, 50).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.ref_id || p.id.slice(0, 8)} - {p.title} - {p.city} - €{p.price?.toLocaleString()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <p className="text-xs text-slate-600">
             Associe um imóvel específico a este lead (opcional)
           </p>
         </CardContent>
