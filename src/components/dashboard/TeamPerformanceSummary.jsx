@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, TrendingDown, Users, Target, Building2, Star } from "lucide-react";
+import { Award, TrendingUp, TrendingDown, Users, Target, Building2, Star } from "lucide-react";
 import { useAgentNames } from "../common/useAgentNames";
 
 export default function TeamPerformanceSummary({ 
@@ -83,7 +83,7 @@ export default function TeamPerformanceSummary({
         {topPerformer && (
           <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-amber-200">
             <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-white" />
+              <Award className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-slate-900 truncate">{topPerformer.name}</p>
