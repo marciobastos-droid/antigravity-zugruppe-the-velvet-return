@@ -351,14 +351,14 @@ export default function PropertyDetails() {
   }, [property?.images]);
 
   const handleConsultantChange = React.useCallback((email) => {
-    const consultant = allUsers.find(u => u.email === email) || agents.find(a => a.email === email);
+    const consultant = allUsers.find(u => u.email === email) || consultants.find(c => c.email === email);
     updatePropertyMutation.mutate({
       assigned_consultant: email || null,
       assigned_consultant_name: consultant?.display_name || consultant?.full_name || null,
       assigned_consultant_phone: consultant?.phone || null,
       assigned_consultant_photo: consultant?.photo_url || null
     });
-  }, [allUsers, agents, updatePropertyMutation]);
+  }, [allUsers, consultants, updatePropertyMutation]);
 
   const handleVisibilityChange = React.useCallback((visibility) => {
     updatePropertyMutation.mutate({ visibility });
