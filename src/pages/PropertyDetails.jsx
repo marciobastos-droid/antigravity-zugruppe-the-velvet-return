@@ -530,14 +530,16 @@ export default function PropertyDetails() {
               {t('contact.shareProperty')}
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={() => setBrochureOpen(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white border-0"
-            >
-              <FileDown className="w-4 h-4 mr-2" />
-              Brochura PDF
-            </Button>
+            {isAuthenticated && (
+              <Button
+                variant="outline"
+                onClick={() => setBrochureOpen(true)}
+                className="bg-blue-500 hover:bg-blue-600 text-white border-0"
+              >
+                <FileDown className="w-4 h-4 mr-2" />
+                Brochura PDF
+              </Button>
+            )}
           </div>
         </div>
 
@@ -960,55 +962,7 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {assignedAgent ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      {assignedAgent.photo_url ? (
-                        <OptimizedImage
-                          src={assignedAgent.photo_url}
-                          alt={assignedAgent.display_name || assignedAgent.full_name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
-                          fallbackIcon={User}
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
-                          <User className="w-8 h-8 text-slate-500" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900 truncate">{assignedAgent.display_name || assignedAgent.full_name}</h4>
-                        {assignedAgent.specialization && (
-                          <p className="text-sm text-slate-600 truncate">{assignedAgent.specialization}</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {assignedAgent.phone && (
-                        <a 
-                          href={`tel:${assignedAgent.phone}`}
-                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                        >
-                          <Phone className="w-4 h-4" />
-                          {assignedAgent.phone}
-                        </a>
-                      )}
-                      {assignedAgent.email && (
-                        <a 
-                          href={`mailto:${assignedAgent.email}`}
-                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                        >
-                          <Mail className="w-4 h-4" />
-                          {assignedAgent.email}
-                        </a>
-                      )}
-                    </div>
-                    
-                    {assignedAgent.bio && (
-                      <p className="text-sm text-slate-600 pt-2 border-t">{assignedAgent.bio}</p>
-                    )}
-                  </div>
-                ) : property.assigned_consultant_name || property.assigned_consultant ? (
+                {property.assigned_consultant_name || property.assigned_consultant ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       {property.assigned_consultant_photo ? (
