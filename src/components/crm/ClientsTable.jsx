@@ -110,46 +110,20 @@ export default function ClientsTable({
       key: "select",
       label: "",
       sortable: false,
-      minWidth: "50px",
+      minWidth: "40px",
       alwaysVisible: true,
       headerRender: () => (
-        <div className="flex items-center justify-center">
-          <div 
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${
-              selectedContacts.length === clients.length && clients.length > 0
-                ? 'bg-blue-600 border-blue-600' 
-                : selectedContacts.length > 0
-                ? 'bg-blue-100 border-blue-400'
-                : 'border-slate-300 hover:border-blue-400'
-            }`}
-            onClick={toggleSelectAll}
-          >
-            {selectedContacts.length === clients.length && clients.length > 0 ? (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            ) : selectedContacts.length > 0 ? (
-              <div className="w-2 h-2 bg-blue-600 rounded-sm" />
-            ) : null}
-          </div>
-        </div>
+        <Checkbox
+          checked={selectedContacts.length === clients.length && clients.length > 0}
+          onCheckedChange={toggleSelectAll}
+        />
       ),
       render: (_, client) => (
-        <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-center">
-          <div 
-            className={`w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer transition-all ${
-              selectedContacts.includes(client.id)
-                ? 'bg-blue-600 border-blue-600' 
-                : 'border-slate-300 hover:border-blue-400'
-            }`}
-            onClick={() => toggleSelectContact(client.id)}
-          >
-            {selectedContacts.includes(client.id) && (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={selectedContacts.includes(client.id)}
+            onCheckedChange={() => toggleSelectContact(client.id)}
+          />
         </div>
       )
     }] : []),
