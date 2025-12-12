@@ -400,112 +400,85 @@ Retorna um JSON com o array "items" contendo todos os registos encontrados.`,
             if (hasValidSourceUrl) {
               try {
                 console.log(`Enriching property from: ${item.source_url}`);
-                const detailResult = await base44.integrations.Core.InvokeLLM({
-                  prompt: `Analisa DETALHADAMENTE a página deste imóvel e extrai TODOS os dados disponíveis.
+                
+                // Tentar enriquecer dados - dividido em chamadas menores para evitar JSON inválido
+                let detailResult = {};
+                
+                // Primeira chamada: dados básicos e descrição
+                try {
+                  const basicData = await base44.integrations.Core.InvokeLLM({
+                    prompt: `Extrai dados BÁSICOS desta página de imóvel.
+URL: ${item.source_url}
 
-URL DO IMÓVEL: ${item.source_url}
-
-EXTRAI OS SEGUINTES DADOS (se disponíveis na página):
-
-📝 DESCRIÇÃO E TÍTULO:
-- description: descrição COMPLETA do imóvel (todo o texto do anúncio, sem resumir)
-- title: título melhorado se o atual for genérico
-
-🏠 CARACTERÍSTICAS PRINCIPAIS:
-- bedrooms: número de quartos (T1=1, T2=2, etc.)
+Extrai apenas:
+- description: descrição completa
+- bedrooms: número de quartos
 - bathrooms: número de casas de banho
 - useful_area: área útil em m²
-- gross_area: área bruta de construção em m²
-- balcony_area: área da varanda/terraço em m²
-- storage_room: se tem arrecadação (boolean)
-- storage_area: área da arrecadação em m²
-
-🔧 DETALHES TÉCNICOS E ESTADO:
-- energy_certificate: certificado energético (A+, A, B, B-, C, D, E, F ou isento)
-- year_built: ano de construção (número)
-- year_renovated: ano da última renovação (se aplicável)
-- floor: andar (ex: "3º", "R/C", "Cave", "Cobertura")
-- total_floors: número total de andares do prédio
-- parking: estacionamento/garagem (ex: "1 lugar", "Box", "2 lugares", "Sem garagem")
-- condition: estado de conservação detalhado (ex: "Novo", "Muito Bom", "Bom", "Para Renovar")
-- orientation: orientação solar (Norte, Sul, Nascente, Poente, etc.)
-- elevator: se tem elevador (boolean)
-
-💰 INFORMAÇÕES FINANCEIRAS:
-- condominium_fee: valor mensal do condomínio em euros (número)
-- imt_tax: IMT estimado (se mencionado)
-- property_tax: IMI anual (se mencionado)
-
-🎨 ACABAMENTOS E DETALHES:
-- amenities: array DETALHADO com TODAS as características mencionadas (ex: ["Varanda", "Elevador", "Ar condicionado central", "Cozinha equipada", "Arrecadação", "Vidros duplos", "Porta blindada", "Vídeo porteiro", "Piscina", "Jardim", "Ginásio", "Sauna", "Garagem Box", "Terraço", "Suite", "Closet", "Lareira", "Aquecimento central", "Painéis solares", "Alarme", "Condomínio fechado"])
-- kitchen_equipped: se cozinha está equipada (boolean)
-- furnished: se está mobilado (boolean)
-- heating_type: tipo de aquecimento (ex: "Central", "AC", "Radiadores", "Piso radiante")
-- window_type: tipo de janelas (ex: "Vidros duplos", "Alumínio", "PVC")
-- flooring: tipo de pavimento (ex: "Madeira", "Cerâmico", "Mármore", "Flutuante")
-
-📸 MULTIMÉDIA:
-- images: array com URLs de TODAS as fotos do imóvel (máximo qualidade)
-- virtual_tour_url: URL do tour virtual 360º (se disponível)
-- video_url: URL de vídeo do imóvel (se disponível)
-
-📍 LOCALIZAÇÃO COMPLETA:
-- address: morada completa e detalhada
-- city: cidade/concelho
-- state: distrito
-- zip_code: código postal
-- neighborhood: bairro/freguesia
-- proximity_features: array com pontos de interesse próximos (ex: ["Metro 5min", "Escola", "Supermercado", "Parque"])
-
-Extrai o MÁXIMO de informação possível. Não inventes - apenas extrai o que está explicitamente na página.`,
-                  add_context_from_internet: true,
-                  response_json_schema: {
-                    type: "object",
-                    properties: {
-                      description: { type: "string" },
-                      title: { type: "string" },
-                      images: { type: "array", items: { type: "string" } },
-                      amenities: { type: "array", items: { type: "string" } },
-                      energy_certificate: { type: "string" },
-                      year_built: { type: "number" },
-                      year_renovated: { type: "number" },
-                      floor: { type: "string" },
-                      total_floors: { type: "number" },
-                      parking: { type: "string" },
-                      condition: { type: "string" },
-                      orientation: { type: "string" },
-                      elevator: { type: "boolean" },
-                      gross_area: { type: "number" },
-                      useful_area: { type: "number" },
-                      balcony_area: { type: "number" },
-                      storage_room: { type: "boolean" },
-                      storage_area: { type: "number" },
-                      bedrooms: { type: "number" },
-                      bathrooms: { type: "number" },
-                      condominium_fee: { type: "number" },
-                      imt_tax: { type: "number" },
-                      property_tax: { type: "number" },
-                      kitchen_equipped: { type: "boolean" },
-                      furnished: { type: "boolean" },
-                      heating_type: { type: "string" },
-                      window_type: { type: "string" },
-                      flooring: { type: "string" },
-                      virtual_tour_url: { type: "string" },
-                      video_url: { type: "string" },
-                      address: { type: "string" },
-                      city: { type: "string" },
-                      state: { type: "string" },
-                      zip_code: { type: "string" },
-                      neighborhood: { type: "string" },
-                      proximity_features: { type: "array", items: { type: "string" } }
+- gross_area: área bruta em m²
+- images: array com URLs de fotos (máximo 10)
+- address: morada completa
+- city: cidade
+- state: distrito`,
+                    add_context_from_internet: true,
+                    response_json_schema: {
+                      type: "object",
+                      properties: {
+                        description: { type: "string" },
+                        bedrooms: { type: "number" },
+                        bathrooms: { type: "number" },
+                        useful_area: { type: "number" },
+                        gross_area: { type: "number" },
+                        images: { type: "array", items: { type: "string" } },
+                        address: { type: "string" },
+                        city: { type: "string" },
+                        state: { type: "string" }
+                      }
                     }
-                  }
-                });
-                enrichedData = detailResult || {};
+                  });
+                  detailResult = { ...detailResult, ...basicData };
+                } catch (err) {
+                  console.warn('Basic data extraction failed:', err.message);
+                }
+                
+                // Segunda chamada: características e amenities
+                try {
+                  const featuresData = await base44.integrations.Core.InvokeLLM({
+                    prompt: `Extrai CARACTERÍSTICAS desta página de imóvel.
+URL: ${item.source_url}
+
+Extrai:
+- amenities: array com características (ex: ["Varanda", "Elevador", "AC"])
+- energy_certificate: certificado energético
+- parking: garagem/estacionamento
+- condition: estado
+- floor: andar
+- elevator: tem elevador (true/false)
+- condominium_fee: valor condomínio em euros`,
+                    add_context_from_internet: true,
+                    response_json_schema: {
+                      type: "object",
+                      properties: {
+                        amenities: { type: "array", items: { type: "string" } },
+                        energy_certificate: { type: "string" },
+                        parking: { type: "string" },
+                        condition: { type: "string" },
+                        floor: { type: "string" },
+                        elevator: { type: "boolean" },
+                        condominium_fee: { type: "number" }
+                      }
+                    }
+                  });
+                  detailResult = { ...detailResult, ...featuresData };
+                } catch (err) {
+                  console.warn('Features extraction failed:', err.message);
+                }
+                
+                enrichedData = detailResult;
                 console.log(`Enriched data for ${item.title}:`, enrichedData);
               } catch (e) {
                 console.error('Failed to enrich property:', e);
-                results.items.push({ name: item.title, status: "success", note: "Sem dados adicionais" });
+                enrichedData = {};
               }
             }
             
