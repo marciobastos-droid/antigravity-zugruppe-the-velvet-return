@@ -38,6 +38,7 @@ const SendEmailDialog = lazy(() => import("../email/SendEmailDialog"));
 const EmailHistoryPanel = lazy(() => import("../email/EmailHistoryPanel"));
 const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
 const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
+const RGPDConsentManager = lazy(() => import("./RGPDConsentManager"));
 
 // Component to show elected properties summary
 function ElectedPropertiesSummary({ contactId }) {
@@ -2044,7 +2045,7 @@ export default function ClientDatabase() {
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="details">Detalhes</TabsTrigger>
                 <TabsTrigger value="opportunities" className="flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
@@ -2063,6 +2064,7 @@ export default function ClientDatabase() {
                   <Link2 className="w-3 h-3" />
                   Portal
                 </TabsTrigger>
+                <TabsTrigger value="rgpd">RGPD</TabsTrigger>
               </TabsList>
 
               <TabsContent value="opportunities" className="mt-4">
@@ -2705,6 +2707,18 @@ export default function ClientDatabase() {
               <TabsContent value="portal" className="mt-4">
                 <Suspense fallback={<LoadingFallback />}>
                   <ClientPortalManager client={selectedClient} />
+                </Suspense>
+              </TabsContent>
+
+              <TabsContent value="rgpd" className="mt-4">
+                <Suspense fallback={<LoadingFallback />}>
+                  <RGPDConsentManager 
+                    contact={selectedClient}
+                    onUpdate={() => {
+                      queryClient.invalidateQueries({ queryKey: ['clientContact', selectedClient.id] });
+                      queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+                    }}
+                  />
                 </Suspense>
               </TabsContent>
             </Tabs>
