@@ -80,7 +80,12 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     queryKey: ['users'],
     queryFn: async () => {
       const allUsers = await base44.entities.User.list();
-      return allUsers.filter(u => u.user_type === 'consultant' || u.user_type === 'gestor' || u.user_type === 'admin');
+      // Mostrar todos os utilizadores, ordenados por nome
+      return allUsers.sort((a, b) => {
+        const nameA = a.display_name || a.full_name || a.email;
+        const nameB = b.display_name || b.full_name || b.email;
+        return nameA.localeCompare(nameB);
+      });
     }
   });
 
