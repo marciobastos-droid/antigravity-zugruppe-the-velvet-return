@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   CheckSquare, Trash2, Star, Users, Tag, Eye, 
-  Building2, Navigation, X, Loader2
+  Building2, Navigation, X, Loader2, Plus
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -22,6 +22,7 @@ export default function BulkActionsBar({
   onBulkAssignDevelopment,
   onBulkDelete,
   onGenerateVisitRoute,
+  onBulkCreateDevelopment,
   agents = [],
   developments = [],
   propertyTags = [],
@@ -323,12 +324,12 @@ export default function BulkActionsBar({
               <PopoverTrigger asChild>
                 <Button size="sm" className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300">
                   <Building2 className="w-4 h-4 mr-1.5" />
-                  Empreendimento
+                  Atribuir
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-72 p-3" align="end">
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-slate-900">Atribuir empreendimento:</p>
+                  <p className="text-sm font-semibold text-slate-900">Atribuir a empreendimento existente:</p>
                   <Select value={selectedDevelopment} onValueChange={setSelectedDevelopment}>
                     <SelectTrigger>
                       <SelectValue placeholder="Escolher..." />
@@ -369,6 +370,18 @@ export default function BulkActionsBar({
                 </div>
               </PopoverContent>
             </Popover>
+
+            {/* Create New Development */}
+            <Button 
+              size="sm" 
+              onClick={onBulkCreateDevelopment}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white border-0"
+              disabled={isProcessing}
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span className="hidden sm:inline">Criar Empreendimento</span>
+              <span className="sm:hidden">Criar</span>
+            </Button>
 
             {/* Visit Route */}
             <Button 

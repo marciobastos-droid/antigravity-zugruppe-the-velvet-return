@@ -1254,7 +1254,7 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8 pb-24 sm:pb-8">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-8">
           <div>
@@ -1363,6 +1363,7 @@ export default function MyListings() {
                 });
               }
             }}
+            onBulkCreateDevelopment={() => setCreateDevelopmentDialogOpen(true)}
             onBulkDelete={handleBulkDelete}
             onGenerateVisitRoute={() => setVisitRouteOpen(true)}
             agents={agents}
@@ -1409,14 +1410,14 @@ export default function MyListings() {
           <>
             {/* View Mode Toggle */}
             <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={toggleSelectAll} className="flex-1 sm:flex-initial">
                   {selectedProperties.length === filteredProperties.length ? 'Desselecionar' : 'Selecionar'} Todos
                 </Button>
                 
                 {/* Sort Controls */}
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[180px] h-9">
+                  <SelectTrigger className="w-full sm:w-[180px] h-9">
                     <SelectValue placeholder="Ordenar por..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -1464,7 +1465,7 @@ export default function MyListings() {
                 
                 {viewMode === "grouped" && (
                   <Select value={groupBy} onValueChange={setGroupBy}>
-                    <SelectTrigger className="w-[180px] h-9">
+                    <SelectTrigger className="w-full sm:w-[180px] h-9">
                       <SelectValue placeholder="Agrupar por..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -1488,42 +1489,42 @@ export default function MyListings() {
                   </Select>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex border rounded-lg overflow-hidden">
-                                        <Button
-                                          variant={viewMode === "table" ? "default" : "ghost"}
-                                          size="sm"
-                                          onClick={() => setViewMode("table")}
-                                          className="rounded-none"
-                                          title="Vista Tabela"
-                                        >
-                                          <List className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                          variant={viewMode === "cards" ? "default" : "ghost"}
-                                          size="sm"
-                                          onClick={() => setViewMode("cards")}
-                                          className="rounded-none"
-                                          title="Vista Cards"
-                                        >
-                                          <LayoutGrid className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                          variant={viewMode === "grouped" ? "default" : "ghost"}
-                                          size="sm"
-                                          onClick={() => setViewMode("grouped")}
-                                          className="rounded-none"
-                                          title="Vista Agrupada"
-                                        >
-                                          <Layers className="w-4 h-4" />
-                                        </Button>
-                                      </div>
-                                      {totalPages > 1 && (viewMode === "cards" || viewMode === "table") && (
-                                      <p className="text-sm text-slate-600">
-                                      Página {currentPage} de {totalPages}
-                                      </p>
-                                      )}
-                                      </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex border rounded-lg overflow-hidden flex-1 sm:flex-initial">
+                  <Button
+                    variant={viewMode === "table" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("table")}
+                    className="rounded-none flex-1 sm:flex-initial"
+                    title="Vista Tabela"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "cards" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("cards")}
+                    className="rounded-none flex-1 sm:flex-initial"
+                    title="Vista Cards"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "grouped" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grouped")}
+                    className="rounded-none flex-1 sm:flex-initial"
+                    title="Vista Agrupada"
+                  >
+                    <Layers className="w-4 h-4" />
+                  </Button>
+                </div>
+                {totalPages > 1 && (viewMode === "cards" || viewMode === "table") && (
+                  <p className="text-xs sm:text-sm text-slate-600 hidden md:block">
+                    Página {currentPage} de {totalPages}
+                  </p>
+                )}
+              </div>
                                       </div>
 
             {viewMode === "table" ? (
@@ -1598,7 +1599,7 @@ export default function MyListings() {
                                 />
                               ) : (
             <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {paginatedProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
@@ -1620,38 +1621,44 @@ export default function MyListings() {
               ))}
             </div>
             {totalPages > 1 && (
-              <div className="mt-8">
+              <div className="mt-6 sm:mt-8">
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="flex-wrap gap-1">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
-                    {[...Array(totalPages)].map((_, i) => {
-                      const page = i + 1;
-                      if (
-                        page === 1 ||
-                        page === totalPages ||
-                        (page >= currentPage - 1 && page <= currentPage + 1)
-                      ) {
-                        return (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              onClick={() => setCurrentPage(page)}
-                              isActive={currentPage === page}
-                              className="cursor-pointer"
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      } else if (page === currentPage - 2 || page === currentPage + 2) {
-                        return <PaginationItem key={page}>...</PaginationItem>;
+                    {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                      let page;
+                      if (totalPages <= 5) {
+                        page = i + 1;
+                      } else if (currentPage <= 3) {
+                        page = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        page = totalPages - 4 + i;
+                      } else {
+                        page = currentPage - 2 + i;
                       }
-                      return null;
+
+                      return (
+                        <PaginationItem key={page} className="hidden sm:block">
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
                     })}
+                    <PaginationItem className="sm:hidden">
+                      <span className="text-sm text-slate-600 px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+                    </PaginationItem>
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
