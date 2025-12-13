@@ -350,11 +350,30 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                   </div>
                   <div>
                     <Label>Promotor/Construtor</Label>
-                    <Input
-                      value={formData.developer}
-                      onChange={(e) => setFormData({...formData, developer: e.target.value})}
-                      placeholder="Nome da construtora"
-                    />
+                    <div className="flex gap-2">
+                      <Select 
+                        value={formData.developer_contact_id || ""} 
+                        onValueChange={handleDeveloperSelect}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Selecionar da lista de contactos..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>Sem promotor</SelectItem>
+                          {allContacts.filter(c => c.contact_type === 'partner' || c.company_name).map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.company_name || c.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        value={formData.developer}
+                        onChange={(e) => setFormData({...formData, developer: e.target.value})}
+                        placeholder="Ou escrever manualmente"
+                        className="flex-1"
+                      />
+                    </div>
                   </div>
                 </div>
 
