@@ -105,44 +105,59 @@ export default function Tools() {
 
   // Check if user is admin/gestor (has full access) or needs permission check
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
-  
+
   // Get user's tool permissions
-  const userToolPermissions = userPerm?.permissions?.tools || {};
+  const userToolPermissions = React.useMemo(() => {
+    if (!userPerm?.permissions) return {};
+    const tools = userPerm.permissions.tools;
+    // Se tools é null ou undefined, retornar objeto vazio
+    if (!tools || typeof tools !== 'object') return {};
+    return tools;
+  }, [userPerm]);
+
   const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true;
 
   // Debug logging
   React.useEffect(() => {
     if (currentUser) {
-      console.log('[Tools Debug]', {
+      console.log('[Tools Debug - Full State]', {
         user: currentUser.email,
+        userType: currentUser.user_type,
+        role: currentUser.role,
         isAdmin,
         hasToolsPageAccess,
+        userPerm: userPerm,
         userToolPermissions,
         permissionsCount: Object.keys(userToolPermissions).length,
-        enabledTools: Object.entries(userToolPermissions).filter(([_, v]) => v).map(([k]) => k)
+        enabledTools: Object.entries(userToolPermissions).filter(([_, v]) => v === true).map(([k]) => k)
       });
     }
-  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions]);
-  
+  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions, userPerm]);
+
   // Helper to check if tool is allowed
-  const isToolAllowed = (toolId) => {
+  const isToolAllowed = React.useCallback((toolId) => {
     // Admin/Gestor tem acesso total
     if (isAdmin) {
-      console.log(`[Tools] Admin access - tool ${toolId}: ALLOWED`);
       return true;
     }
-    
+
+    // Se não tem permissões de tools definidas, não tem acesso
+    if (!userToolPermissions || Object.keys(userToolPermissions).length === 0) {
+      console.log(`[Tools] No tool permissions defined for tool ${toolId}: DENIED`);
+      return false;
+    }
+
     // Verificar se tem permissões específicas para esta ferramenta
     const hasPermission = userToolPermissions[toolId] === true;
-    
+
     console.log(`[Tools] Checking tool ${toolId}:`, {
       hasPermission,
-      userToolPermissions,
+      toolValue: userToolPermissions[toolId],
       hasToolsPageAccess
     });
-    
+
     return hasPermission;
-  };
+  }, [isAdmin, userToolPermissions, hasToolsPageAccess]);
 
   // Contar ferramentas permitidas
   const getAllToolIds = () => {
