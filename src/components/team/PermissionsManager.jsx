@@ -228,8 +228,15 @@ export default function PermissionsManager() {
   const handleSave = () => {
     if (!selectedUser) return;
     
-    // Garantir que todas as categorias de permissões estão preenchidas
-    const fullPermissions = {};
+    // Obter permissões existentes completas (incluindo tools)
+    const existing = userPermissions.find(p => p.user_email === selectedUser.email);
+    
+    // Garantir que apenas as categorias gerais são atualizadas, preservando tools
+    const fullPermissions = {
+      ...existing?.permissions // Preservar todas as permissões existentes (incluindo tools)
+    };
+    
+    // Atualizar apenas as categorias gerais (não tools)
     Object.keys(PERMISSION_LABELS).forEach(category => {
       fullPermissions[category] = {};
       Object.keys(PERMISSION_LABELS[category].permissions).forEach(perm => {
