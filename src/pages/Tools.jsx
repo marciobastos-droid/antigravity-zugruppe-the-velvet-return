@@ -198,7 +198,6 @@ export default function Tools() {
     imageExtractor: { description: "Extrair imagens de websites automaticamente" },
     excelImport: { description: "Importar e exportar dados em Excel e JSON" },
     crmIntegrations: { description: "Sincronizar com CRMs externos" },
-    ocrProcessor: { description: "Processar PDFs com OCR e extrair dados de imóveis e contactos" },
     facebookCampaigns: { description: "Gerir campanhas de Facebook Ads" },
     facebookLeads: { description: "Importar e gerir leads do Facebook" },
     facebookForms: { description: "Configurar formulários de lead do Facebook" },
@@ -426,7 +425,6 @@ export default function Tools() {
                   <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode />
                   <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode />
                   <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode />
-                  <ToolButton toolId="ocrProcessor" icon={FileText} label="Processador OCR" gridMode />
                 </div>
 
               {/* Subgrupo Facebook */}
@@ -787,7 +785,6 @@ export default function Tools() {
         {activeTab === "backupManager" && <BackupManager />}
         {activeTab === "excelImport" && <ExcelImportExport />}
         {activeTab === "crmIntegrations" && <CRMIntegrations />}
-        {activeTab === "ocrProcessor" && <OCRProcessor />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">

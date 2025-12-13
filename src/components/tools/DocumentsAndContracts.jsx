@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   FileText, Plus, Search, Calendar, AlertCircle, 
   CheckCircle2, Clock, Eye, Edit, Trash2, Download, 
-  Lock, Folder, TrendingUp, Bell
+  Lock, Folder, TrendingUp, Bell, Wand2, Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 import CreateContractDialog from "../contracts/CreateContractDialog";
@@ -17,10 +18,12 @@ import ContractDetailsDialog from "../contracts/ContractDetailsDialog";
 import SignatureIntegration from "../documents/SignatureIntegration";
 import DocumentPermissionsDialog from "../documents/DocumentPermissionsDialog";
 import DocumentViewerDialog from "../documents/DocumentViewerDialog";
+import OCRProcessor from "./OCRProcessor";
+import DealFoldersManager from "../deals/DealFoldersManager";
 
 export default function DocumentsAndContracts() {
   const queryClient = useQueryClient();
-  const [view, setView] = React.useState("contracts"); // contracts or documents
+  const [view, setView] = React.useState("contracts"); // contracts, documents, deals, or ocr
   const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -192,34 +195,39 @@ export default function DocumentsAndContracts() {
   return (
     <div className="space-y-6">
       {/* View Toggle */}
-      <div className="flex gap-2">
-        <Button
-          variant={view === "contracts" ? "default" : "outline"}
-          onClick={() => {
-            setView("contracts");
-            setSearchTerm("");
-          }}
-          className="flex items-center gap-2"
-        >
-          <FileText className="w-4 h-4" />
-          Contratos ({contracts.length})
-        </Button>
-        <Button
-          variant={view === "documents" ? "default" : "outline"}
-          onClick={() => {
-            setView("documents");
-            setSearchTerm("");
-          }}
-          className="flex items-center gap-2"
-        >
-          <Folder className="w-4 h-4" />
-          Documentos ({allDocuments.length})
-        </Button>
-      </div>
+      <Tabs value={view} onValueChange={setView} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="contracts" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Contratos
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="flex items-center gap-2">
+            <Folder className="w-4 h-4" />
+            Documentos
+          </TabsTrigger>
+          <TabsTrigger value="deals" className="flex items-center gap-2">
+            <Briefcase className="w-4 h-4" />
+            Negócios
+          </TabsTrigger>
+          <TabsTrigger value="ocr" className="flex items-center gap-2">
+            <Wand2 className="w-4 h-4" />
+            OCR
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {view === "contracts" ? (
+        <TabsContent value="ocr" className="mt-6">
+          <OCRProcessor />
+        </TabsContent>
+
+        <TabsContent value="deals" className="mt-6">
+          <DealFoldersManager />
+        </TabsContent>
+
+        <TabsContent value="contracts" className="space-y-6 mt-6">
+          {/* Move contracts content here */}
+
+          {/* Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <>
             <Card>
               <CardContent className="p-6">
@@ -266,8 +274,6 @@ export default function DocumentsAndContracts() {
               </CardContent>
             </Card>
           </>
-        ) : (
-          <>
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -312,35 +318,29 @@ export default function DocumentsAndContracts() {
                 </div>
               </CardContent>
             </Card>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Actions Bar */}
-      {view === "contracts" && (
-        <div className="flex justify-end">
-          <Button onClick={() => setCreateDialogOpen(true)} className="bg-slate-900 hover:bg-slate-800">
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Contrato
-          </Button>
-        </div>
-      )}
+          {/* Actions Bar */}
+          <div className="flex justify-end">
+            <Button onClick={() => setCreateDialogOpen(true)} className="bg-slate-900 hover:bg-slate-800">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Contrato
+            </Button>
+          </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={view === "contracts" ? "Pesquisar contratos..." : "Pesquisar documentos..."}
-                className="pl-10"
-              />
-            </div>
-            {view === "contracts" ? (
-              <>
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Pesquisar contratos..."
+                    className="pl-10"
+                  />
+                </div>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="Tipo de Contrato" />
@@ -365,10 +365,12 @@ export default function DocumentsAndContracts() {
                     <SelectItem value="cancelled">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
-              </>
-            ) : (
-              <>
-                <Select value={docTypeFilter} onValueChange={setDocTypeFilter}>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Content */}
+          <div className="grid gap-4">
                   <SelectTrigger>
                     <SelectValue placeholder="Tipo de Documento" />
                   </SelectTrigger>
@@ -380,30 +382,7 @@ export default function DocumentsAndContracts() {
                     <SelectItem value="proof_residence">Comp. Residência</SelectItem>
                     <SelectItem value="financial">Financeiros</SelectItem>
                     <SelectItem value="other">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Estado do Contrato" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Estados</SelectItem>
-                    <SelectItem value="draft">Rascunho</SelectItem>
-                    <SelectItem value="pending_signature">Pendente</SelectItem>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="completed">Concluído</SelectItem>
-                    <SelectItem value="cancelled">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Content */}
-      {view === "contracts" ? (
-        <div className="grid gap-4">
           {filteredContracts.map((contract) => {
             const warning = getExpirationWarning(contract);
             return (
@@ -482,9 +461,12 @@ export default function DocumentsAndContracts() {
               </CardContent>
             </Card>
           )}
-        </div>
-      ) : (
-        <div className="grid gap-4">
+          </div>
+        </TabsContent>
+
+        <TabsContent value="documents" className="space-y-6 mt-6">
+          {/* Documents Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {filteredDocuments.map((doc, idx) => (
             <Card key={idx} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
@@ -534,9 +516,151 @@ export default function DocumentsAndContracts() {
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum documento encontrado</h3>
               </CardContent>
             </Card>
-          )}
-        </div>
-      )}
+          <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Total</p>
+                    <p className="text-3xl font-bold text-slate-900">{docStats.total}</p>
+                  </div>
+                  <Folder className="w-10 h-10 text-slate-400" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Contratos</p>
+                    <p className="text-3xl font-bold text-blue-600">{docStats.contracts}</p>
+                  </div>
+                  <FileText className="w-10 h-10 text-blue-400" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Financeiros</p>
+                    <p className="text-3xl font-bold text-red-600">{docStats.financial}</p>
+                  </div>
+                  <FileText className="w-10 h-10 text-red-400" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-600 mb-1">Últimos 7 dias</p>
+                    <p className="text-3xl font-bold text-green-600">{docStats.recent}</p>
+                  </div>
+                  <TrendingUp className="w-10 h-10 text-green-400" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Documents Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Pesquisar documentos..."
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={docTypeFilter} onValueChange={setDocTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo de Documento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="contract">Contratos</SelectItem>
+                    <SelectItem value="annex">Anexos</SelectItem>
+                    <SelectItem value="id">Identificação</SelectItem>
+                    <SelectItem value="proof_residence">Comp. Residência</SelectItem>
+                    <SelectItem value="financial">Financeiros</SelectItem>
+                    <SelectItem value="other">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Estado do Contrato" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Estados</SelectItem>
+                    <SelectItem value="draft">Rascunho</SelectItem>
+                    <SelectItem value="pending_signature">Pendente</SelectItem>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="completed">Concluído</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Documents Content */}
+          <div className="grid gap-4">
+            {filteredDocuments.map((doc, idx) => (
+              <Card key={idx} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <FileText className="w-5 h-5 text-slate-600" />
+                        <h3 className="text-lg font-bold text-slate-900">{doc.name}</h3>
+                        <Badge className={docTypeColors[doc.type] || docTypeColors.other}>
+                          {docTypeLabels[doc.type] || doc.type}
+                        </Badge>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-3 text-sm text-slate-600">
+                        <div>
+                          <span className="font-semibold">Contrato:</span> {doc.contract_title}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Partes:</span> {doc.parties}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 ml-4">
+                      <Button variant="outline" size="sm" onClick={() => setViewingDoc(doc)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm">
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </a>
+                      {isAdmin && (
+                        <Button variant="outline" size="sm" onClick={() => setPermissionsDoc({ ...doc, contract: contracts.find(c => c.id === doc.contract_id) })}>
+                          <Lock className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {filteredDocuments.length === 0 && (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum documento encontrado</h3>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <CreateContractDialog
         open={createDialogOpen}
