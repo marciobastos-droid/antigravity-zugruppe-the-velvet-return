@@ -19,6 +19,21 @@ Deno.serve(async (req) => {
         const propertySchema = {
             type: "object",
             properties: {
+                suggested_filename: {
+                    type: "string",
+                    description: "Nome sugerido para o ficheiro baseado no conteúdo e tipo (ex: 'Certificado Energético - Rua X Lisboa', 'CPCV - João Silva')"
+                },
+                document_type: { 
+                    type: "string",
+                    enum: ["deed", "energy_certificate", "building_permit", "cpcv", "lease_agreement", 
+                           "insurance", "tax_document", "floor_plan", "inspection_report", "appraisal",
+                           "invoice", "contract", "proposal", "brochure", "technical_specs", "other"],
+                    description: "Tipo de documento identificado"
+                },
+                expiry_date: {
+                    type: "string",
+                    description: "Data de validade/expiração do documento no formato YYYY-MM-DD se aplicável (certificados, licenças, seguros)"
+                },
                 address: {
                     type: "string",
                     description: "Complete property address"
@@ -57,10 +72,12 @@ Deno.serve(async (req) => {
                 },
                 property_type: {
                     type: "string",
-                    description: "Type of property (apartment, house, land, etc)"
+                    enum: ["apartment", "house", "land", "building", "farm", "store", "warehouse", "office", "hotel", "shop"],
+                    description: "Type of property"
                 },
                 listing_type: {
                     type: "string",
+                    enum: ["sale", "rent"],
                     description: "Sale or rent"
                 },
                 year_built: {
@@ -115,21 +132,44 @@ Deno.serve(async (req) => {
             }
         };
 
-        // Extract data from PDF using OCR
-        const extractionResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
-            file_url: file_url,
-            json_schema: propertySchema
-        });
-
-        if (extractionResult.status === 'error') {
-            return Response.json({
-                success: false,
-                error: extractionResult.details,
-                ocr_processed: false
-            });
+        // Fetch raw text first for better AI analysis
+        let rawText = "";
+        try {
+            const fileResponse = await fetch(file_url);
+            if (fileResponse.ok) {
+                const arrayBuffer = await fileResponse.arrayBuffer();
+                // For PDFs, extract with OCR
+                const extractResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
+                    file_url: file_url,
+                    json_schema: { 
+                        type: "object", 
+                        properties: { 
+                            text: { type: "string", description: "Full text content" } 
+                        } 
+                    }
+                });
+                rawText = extractResult.output?.text || "";
+            }
+        } catch (e) {
+            console.error("Error extracting raw text:", e);
         }
 
-        const extractedData = extractionResult.output;
+        // Enhanced AI-powered extraction with smarter prompts
+        const extractedData = await base44.integrations.Core.InvokeLLM({
+            prompt: `Analisa este documento relacionado com imóveis e extrai informações estruturadas.
+
+DOCUMENTO: "${rawText.substring(0, 5000)}"
+
+INSTRUÇÕES:
+1. Identifica que tipo de documento é (escritura, CPCV, certificado energético, licença, avaliação, etc.)
+2. Sugere um NOME DESCRITIVO para o ficheiro baseado no tipo e conteúdo (ex: "Certificado Energético - Rua X Lisboa", "CPCV - João Silva")
+3. Se for certificado energético, licença, seguro ou similar, extrai a DATA DE VALIDADE (formato YYYY-MM-DD)
+4. Extrai nomes de pessoas/empresas mencionadas (key_entities)
+5. Identifica datas importantes com contexto (ex: assinatura, escritura, validade)
+6. Extrai informações do imóvel se disponíveis (morada, área, quartos, preço, etc.)
+7. Faz um resumo conciso do documento`,
+            response_json_schema: propertySchema
+        });
 
         // Update document with OCR data
         if (document_id) {
