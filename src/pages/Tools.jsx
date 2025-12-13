@@ -4,8 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -166,14 +168,135 @@ export default function Tools() {
   const totalTools = allToolIds.length;
   const allowedCount = allowedTools.length;
 
+  // Tool metadata with descriptions for tooltips
+  const TOOL_METADATA = {
+    marketingHub: { description: "Central unificada para gerir todas as campanhas de marketing" },
+    marketingCampaigns: { description: "Criar e monitorizar campanhas de marketing digital" },
+    socialMedia: { description: "Gerar conteúdo para redes sociais automaticamente" },
+    socialAdCreator: { description: "Criar anúncios otimizados para redes sociais" },
+    apiPublish: { description: "Publicar imóveis via API em múltiplos portais" },
+    apiIntegrations: { description: "Gerir integrações com APIs de portais imobiliários" },
+    portalIntegrations: { description: "Conectar com portais como Idealista, Imovirtual, etc." },
+    whatsapp: { description: "Configurar assistente WhatsApp Business" },
+    integrations: { description: "Hub de integrações com serviços externos" },
+    imageExtractor: { description: "Extrair imagens de websites automaticamente" },
+    excelImport: { description: "Importar e exportar dados em Excel e JSON" },
+    crmIntegrations: { description: "Sincronizar com CRMs externos" },
+    facebookCampaigns: { description: "Gerir campanhas de Facebook Ads" },
+    facebookLeads: { description: "Importar e gerir leads do Facebook" },
+    facebookForms: { description: "Configurar formulários de lead do Facebook" },
+    leadManagement: { description: "Gerir origens de leads e scoring automático" },
+    leadNurturing: { description: "Automatizar nurturing de leads" },
+    importProperties: { description: "Importar imóveis de ficheiros CSV/Excel" },
+    importLeads: { description: "Importar leads de múltiplas fontes" },
+    importContacts: { description: "Importar contactos de VCF, CSV, XML" },
+    importOpportunities: { description: "Importar oportunidades em massa" },
+    importInvoices: { description: "Importar faturas do sistema" },
+    exportProperties: { description: "Exportar imóveis em múltiplos formatos" },
+    reportsExporter: { description: "Gerar relatórios personalizados" },
+    jsonProcessor: { description: "Processar JSON com IA para extração de dados" },
+    propertyFeeds: { description: "Gerir feeds XML de imóveis" },
+    externalSync: { description: "Sincronizar com sistemas externos" },
+    casafariSync: { description: "Sincronizar imóveis com Casafari" },
+    bulkScore: { description: "Calcular pontuações de qualidade em massa" },
+    crmSync: { description: "Sincronizar dados com CRM" },
+    duplicateChecker: { description: "Verificar e remover imóveis duplicados" },
+    duplicateClients: { description: "Verificar e fundir clientes duplicados" },
+    inconsistencyChecker: { description: "Verificar inconsistências nos dados" },
+    orphanCleaner: { description: "Limpar dados órfãos sem referências" },
+    linkContacts: { description: "Vincular contactos a oportunidades automaticamente" },
+    imageValidator: { description: "Validar qualidade e formato de imagens" },
+    emailHub: { description: "Centro de gestão de emails e templates" },
+    gmailSync: { description: "Sincronizar emails do Gmail" },
+    gmailLinker: { description: "Vincular conta Gmail para sincronização" },
+    video: { description: "Criar vídeos promocionais automaticamente" },
+    description: { description: "Gerar descrições de imóveis com IA" },
+    listingOptimizer: { description: "Otimizar anúncios com sugestões de IA" },
+    calendar: { description: "Calendário unificado de visitas e eventos" },
+    aiMatching: { description: "Motor de matching inteligente cliente-imóvel" },
+    autoMatching: { description: "Matching automático com notificações" },
+    autoMatchingDashboard: { description: "Dashboard de alertas de matching" },
+    marketIntelligence: { description: "Análise de mercado e tendências" },
+    propertyPerformance: { description: "Dashboard de performance de imóveis" },
+    pricing: { description: "Sugestão de preços baseada em IA" },
+    creditSimulator: { description: "Simular crédito habitação" },
+    deedCosts: { description: "Calcular custos de escritura" },
+    commissions: { description: "Gerir comissões de vendas" },
+    invoices: { description: "Gerir e criar faturas" },
+    investorKeys: { description: "Gerir chaves de acesso para investidores" },
+    investorProperties: { description: "Gerir imóveis publicados para investidores" },
+    contractAutomation: { description: "Automatizar criação de contratos" },
+    documents: { description: "Repositório de documentos e contratos" },
+    notificationsDashboard: { description: "Central de notificações e alertas" },
+    smtpConfig: { description: "Configurar servidor de email SMTP" },
+    devNotes: { description: "Notas e sugestões de desenvolvimento" },
+    tagManager: { description: "Gerir etiquetas e categorias" },
+    backupManager: { description: "Criar e restaurar backups de dados" },
+    auditLog: { description: "Visualizar logs de atividade do sistema" }
+  };
+
   // Helper to render tool button with permission check - oculta se não permitido
-  const ToolButton = ({ toolId, icon: Icon, label, variant, className }) => {
+  const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
     const allowed = isToolAllowed(toolId);
     if (!allowed) return null;
-    
+
+    const description = TOOL_METADATA[toolId]?.description || label;
+    const isActive = activeTab === toolId;
+
+    if (gridMode) {
+      return (
+        <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              <motion.div
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+              >
+                <button
+                  onClick={() => setActiveTab(toolId)}
+                  className={`group relative p-4 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                    isActive 
+                      ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-md' 
+                      : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg transition-colors duration-300 ${
+                      isActive ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+                    }`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`font-medium text-sm mb-0.5 transition-colors ${
+                        isActive ? 'text-blue-900' : 'text-slate-900 group-hover:text-blue-900'
+                      }`}>
+                        {label}
+                      </h4>
+                      <p className="text-xs text-slate-500 line-clamp-2">{description}</p>
+                    </div>
+                  </div>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeToolIndicator"
+                      className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-xl"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              </motion.div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <p className="text-sm">{description}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
     return (
       <Button
-        variant={activeTab === toolId ? "default" : (variant || "outline")}
+        variant={isActive ? "default" : (variant || "outline")}
         onClick={() => setActiveTab(toolId)}
         className={`flex items-center gap-2 ${className || ''}`}
       >
@@ -232,208 +355,343 @@ export default function Tools() {
           )}
         </div>
 
-        <div className="space-y-4 mb-6">
+        <div className="space-y-6 mb-6">
 
           {/* Marketing Digital Group */}
-          <Card className="border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Megaphone className="w-5 h-5 text-purple-600" />
-                <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
-                <span className="text-sm text-purple-600">(12 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-4">
-                <ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" className="bg-gradient-to-r from-purple-50 to-pink-100 border-purple-400 hover:from-purple-100 hover:to-pink-200 font-semibold" />
-                <ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" />
-                <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" />
-                <ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" className="bg-pink-50 border-pink-300 hover:bg-pink-100" />
-                <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" />
-                <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" />
-                <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-                <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" className="bg-green-50 border-green-300 hover:bg-green-100" />
-                <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
-                <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens Web" className="bg-teal-50 border-teal-300 hover:bg-teal-100" />
-                <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" className="bg-green-50 border-green-300 hover:bg-green-100" />
-                <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Megaphone className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
+                      <p className="text-sm text-purple-600">Ferramentas de promoção e campanhas</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                    12 ferramentas
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
+                  <ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" gridMode />
+                  <ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" gridMode />
+                  <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" gridMode />
+                  <ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" gridMode />
+                  <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" gridMode />
+                  <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" gridMode />
+                  <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" gridMode />
+                  <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" gridMode />
+                  <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" gridMode />
+                  <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode />
+                  <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode />
+                  <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode />
+                </div>
 
               {/* Subgrupo Facebook */}
-              <div className="pl-4 border-l-4 border-blue-400 bg-blue-50/60 rounded-lg p-3">
+              <div className="mt-4 pt-4 border-t border-purple-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <Facebook className="w-4 h-4 text-blue-600" />
-                  <h4 className="font-semibold text-blue-900 text-base">Facebook</h4>
+                  <Facebook className="w-5 h-5 text-blue-600" />
+                  <h4 className="font-semibold text-blue-900">Facebook</h4>
                   <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">3 ferramentas</Badge>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" className="bg-white border-blue-200 hover:bg-blue-50" />
-                  <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" className="bg-white border-blue-200 hover:bg-blue-50" />
-                  <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" className="bg-white border-blue-200 hover:bg-blue-50" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" gridMode />
+                  <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode />
+                  <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" gridMode />
                 </div>
               </div>
 
-            </CardContent>
-          </Card>
+              </CardContent>
+              </Card>
+              </motion.div>
 
           {/* Lead Management Group */}
-          <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="w-5 h-5 text-emerald-600" />
-                <h3 className="font-bold text-emerald-900 text-lg">Gestão de Leads</h3>
-                <span className="text-sm text-emerald-600">(2 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" />
-                <ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" />
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-100 rounded-lg">
+                      <Target className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-emerald-900 text-lg">Gestão de Leads</h3>
+                      <p className="text-sm text-emerald-600">Qualificar e nutrir leads</p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                    2 ferramentas
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" gridMode />
+                  <ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" gridMode />
+                </div>
               </CardContent>
-              </Card>
+            </Card>
+          </motion.div>
 
               {/* Importações e Exportações Group */}
-              <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Download className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
-                    <span className="text-sm text-blue-600">(11 ferramentas)</span>
-                  </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                          <Download className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
+                          <p className="text-sm text-blue-600">Gerir dados de entrada e saída</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                        11 ferramentas
+                      </Badge>
+                    </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" />
-                    <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" />
-                    <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" />
-                    <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" />
-                    <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" />
-                    <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" />
-                    <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" />
-                    <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON (IA)" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                    <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" className="bg-green-50 border-green-300 hover:bg-green-100" />
-                    <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-                    <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" className="bg-orange-50 border-orange-300 hover:bg-orange-100" />
-              </div>
-              </CardContent>
-              </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode />
+                      <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode />
+                      <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" gridMode />
+                      <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" gridMode />
+                      <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" gridMode />
+                      <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" gridMode />
+                      <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" gridMode />
+                      <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON" gridMode />
+                      <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" gridMode />
+                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" gridMode />
+                      <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Utilitários Group */}
-          <Card className="border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-5 h-5 text-green-600" />
-                <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
-                <span className="text-sm text-green-600">(14 ferramentas)</span>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                <Card className="border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <Sparkles className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
+                          <p className="text-sm text-green-600">Ferramentas auxiliares e otimização</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        14 ferramentas
+                      </Badge>
+                    </div>
 
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                <ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
-                <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" />
-                <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" />
-                <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" />
-                <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" />
-                <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
-                <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" />
-                <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" className="bg-red-50 border-red-300 hover:bg-red-100" />
-                <ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" className="bg-red-50 border-red-300 hover:bg-red-100" />
-                <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" />
-                <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" />
-                <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" />
-                <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" className="bg-indigo-50 border-indigo-300 hover:bg-indigo-100" />
-              </div>
-              </CardContent>
-              </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" gridMode />
+                      <ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" gridMode />
+                      <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" gridMode />
+                      <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" gridMode />
+                      <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" gridMode />
+                      <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" gridMode />
+                      <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" gridMode />
+                      <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" gridMode />
+                      <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" gridMode />
+                      <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" gridMode />
+                      <ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" gridMode />
+                      <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" gridMode />
+                      <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" gridMode />
+                      <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" gridMode />
+                      <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Matching IA Group */}
-          <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
-                <span className="text-sm text-indigo-600">(3 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" />
-                <ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" />
-                <ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" />
-              </div>
-              </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 rounded-lg">
+                          <Brain className="w-6 h-6 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
+                          <p className="text-sm text-indigo-600">Conectar clientes a imóveis ideais</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
+                        3 ferramentas
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" gridMode />
+                      <ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" gridMode />
+                      <ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Mercado Group */}
-          <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className="w-5 h-5 text-amber-600" />
-                <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
-                <span className="text-sm text-amber-600">(5 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" />
-                <ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
-                <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" />
-                <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" />
-                <ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" className="bg-amber-50 border-amber-300 hover:bg-amber-100" />
-              </div>
-              </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
+                <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <TrendingUp className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
+                          <p className="text-sm text-amber-600">Análise e inteligência de mercado</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                        5 ferramentas
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" gridMode />
+                      <ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" gridMode />
+                      <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" gridMode />
+                      <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" gridMode />
+                      <ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Finanças Group */}
-          <Card className="border-green-400 bg-gradient-to-r from-green-50 to-emerald-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="w-5 h-5 text-green-600" />
-                <h3 className="font-bold text-green-900 text-lg">Finanças</h3>
-                <span className="text-sm text-green-600">(2 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" />
-                <ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" />
-              </div>
-              </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+              >
+                <Card className="border-green-400 bg-gradient-to-r from-green-50 to-emerald-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-green-100 rounded-lg">
+                          <DollarSign className="w-6 h-6 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-green-900 text-lg">Finanças</h3>
+                          <p className="text-sm text-green-600">Gerir comissões e faturação</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                        2 ferramentas
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" gridMode />
+                      <ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Secção de Investidores Group */}
-          <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Lock className="w-5 h-5 text-amber-600" />
-                <h3 className="font-bold text-amber-900 text-lg">Secção de Investidores</h3>
-                <span className="text-sm text-amber-600">(2 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" />
-                <ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" />
-              </div>
-              </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+              >
+                <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-amber-100 rounded-lg">
+                          <Lock className="w-6 h-6 text-amber-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-amber-900 text-lg">Secção de Investidores</h3>
+                          <p className="text-sm text-amber-600">Portal exclusivo para investidores</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                        2 ferramentas
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" gridMode />
+                      <ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Definições e Conteúdos Group */}
-          <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Folder className="w-5 h-5 text-slate-600" />
-                <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
-                <span className="text-sm text-slate-600">(8 ferramentas)</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                <ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" className="bg-purple-50 border-purple-300 hover:bg-purple-100" />
-                <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" />
-                <ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" className="bg-blue-50 border-blue-300 hover:bg-blue-100" />
-                <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" />
-                <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" />
-                <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" />
-                <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" className="bg-green-100 border-green-400 hover:bg-green-200" />
-                <ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" className="bg-slate-100 border-slate-400 hover:bg-slate-200" />
-              </div>
-              </CardContent>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.8 }}
+              >
+                <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-100 rounded-lg">
+                          <Folder className="w-6 h-6 text-slate-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
+                          <p className="text-sm text-slate-600">Configurações e gestão documental</p>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                        8 ferramentas
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      <ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" gridMode />
+                      <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" gridMode />
+                      <ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" gridMode />
+                      <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" gridMode />
+                      <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" gridMode />
+                      <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" gridMode />
+                      <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" gridMode />
+                      <ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" gridMode />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
               </div>
 
         {activeTab === "marketingHub" && <MarketingHub />}
