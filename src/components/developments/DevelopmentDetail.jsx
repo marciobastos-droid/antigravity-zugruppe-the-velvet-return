@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   Building2, MapPin, Euro, Calendar, Home, 
   Globe, Mail, Phone, Link2, Plus, X, TrendingUp, 
-  CheckCircle2, Clock, Ban, Edit, Save, Camera, Eye, Loader2, BarChart3
+  CheckCircle2, Clock, Ban, Edit, Save, Camera, Eye, Loader2, BarChart3,
+  FileText, Upload, Download, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,6 +31,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
   const [linkPropertyId, setLinkPropertyId] = React.useState("");
   const [editMode, setEditMode] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
+  const [uploadingBrochure, setUploadingBrochure] = React.useState(false);
   const [addUnitsOpen, setAddUnitsOpen] = React.useState(false);
   const [editingUnit, setEditingUnit] = React.useState(null);
   const [formData, setFormData] = React.useState({
@@ -49,6 +51,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
     amenities: development.amenities || [],
     features: development.features || [],
     website_url: development.website_url || "",
+    brochures: development.brochures || [],
     contact_email: development.contact_email || "",
     contact_phone: development.contact_phone || "",
     notes: development.notes || ""
@@ -73,6 +76,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
       amenities: development.amenities || [],
       features: development.features || [],
       website_url: development.website_url || "",
+      brochures: development.brochures || [],
       contact_email: development.contact_email || "",
       contact_phone: development.contact_phone || "",
       notes: development.notes || ""
@@ -117,6 +121,36 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
       toast.error("Erro ao carregar imagens");
     }
     setUploading(false);
+  };
+
+  const handleBrochureUpload = async (e) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+
+    setUploadingBrochure(true);
+    try {
+      const newBrochures = [...formData.brochures];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        newBrochures.push({
+          name: file.name,
+          url: file_url,
+          upload_date: new Date().toISOString(),
+          file_size: file.size,
+          language: "pt"
+        });
+      }
+      setFormData({ ...formData, brochures: newBrochures });
+      toast.success(`${files.length} brochura${files.length > 1 ? 's' : ''} carregada${files.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      toast.error("Erro ao carregar brochuras");
+    }
+    setUploadingBrochure(false);
+  };
+
+  const removeBrochure = (index) => {
+    const newBrochures = formData.brochures.filter((_, i) => i !== index);
+    setFormData({ ...formData, brochures: newBrochures });
   };
 
   const handleSave = () => {
@@ -293,9 +327,10 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
         )}
 
         <Tabs defaultValue="details" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="details">Detalhes</TabsTrigger>
             <TabsTrigger value="properties">Unidades ({linkedProperties.length})</TabsTrigger>
+            <TabsTrigger value="brochures">Brochuras ({formData.brochures?.length || 0})</TabsTrigger>
             <TabsTrigger value="salesmap">Mapa de Vendas</TabsTrigger>
             <TabsTrigger value="gallery">Galeria</TabsTrigger>
           </TabsList>
@@ -776,6 +811,99 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                       </Card>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="brochures" className="mt-4">
+            <div className="space-y-4">
+              {editMode ? (
+                <div>
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-slate-50 transition-colors mb-4">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      multiple
+                      onChange={handleBrochureUpload}
+                      className="hidden"
+                      id="brochure-upload"
+                      disabled={uploadingBrochure}
+                    />
+                    <label htmlFor="brochure-upload" className="cursor-pointer">
+                      <Upload className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+                      <p className="text-sm text-slate-600 mb-1">
+                        {uploadingBrochure 
+                          ? "A carregar..." 
+                          : "Clique para adicionar brochuras"
+                        }
+                      </p>
+                      <p className="text-xs text-slate-500">PDF, DOC, DOCX (múltiplos ficheiros)</p>
+                    </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    {formData.brochures?.map((brochure, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                        <div className="flex items-center gap-3 flex-1">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="font-medium text-sm">{brochure.name}</p>
+                            <p className="text-xs text-slate-500">
+                              {(brochure.file_size / 1024 / 1024).toFixed(2)} MB • {format(new Date(brochure.upload_date), 'dd/MM/yyyy')}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <a href={brochure.url} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="sm">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </a>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => removeBrochure(idx)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {formData.brochures?.length === 0 && (
+                      <p className="text-center text-slate-500 py-8">Nenhuma brochura adicionada</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {development.brochures?.length > 0 ? (
+                    development.brochures.map((brochure, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 border rounded-lg hover:bg-slate-100 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="font-medium text-sm">{brochure.name}</p>
+                            <p className="text-xs text-slate-500">
+                              {(brochure.file_size / 1024 / 1024).toFixed(2)} MB • {format(new Date(brochure.upload_date), 'dd/MM/yyyy')}
+                            </p>
+                          </div>
+                        </div>
+                        <a href={brochure.url} target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm">
+                            <Download className="w-4 h-4 mr-2" />
+                            Descarregar
+                          </Button>
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-slate-500">
+                      <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>Nenhuma brochura disponível</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
