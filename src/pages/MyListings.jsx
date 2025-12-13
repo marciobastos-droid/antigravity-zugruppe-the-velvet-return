@@ -119,6 +119,22 @@ const PropertyCard = memo(function PropertyCard({
               {property.bathrooms > 0 && <span>🚿 {property.bathrooms}</span>}
               {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
             </div>
+            
+            {property.development_name && (
+              <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span className="font-medium text-blue-900 truncate">{property.development_name}</span>
+                </div>
+                {property.unit_number && (
+                  <div className="flex items-center gap-1 mt-1 text-xs text-blue-700">
+                    <Hash className="w-3 h-3" />
+                    <span>Fração {property.unit_number}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="flex flex-wrap gap-1 mb-2 text-xs">
               <Badge variant="outline" className="text-[10px] sm:text-xs">{propertyTypeLabels[property.property_type] || property.property_type}</Badge>
               <Badge variant="outline" className="text-[10px] sm:text-xs">{property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}</Badge>
