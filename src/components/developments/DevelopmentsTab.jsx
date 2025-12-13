@@ -343,7 +343,7 @@ export default function DevelopmentsTab() {
                     <SelectContent>
                       <SelectItem value="manual">✍️ Inserir Manualmente</SelectItem>
                       {contacts
-                        .filter(c => c.contact_type === 'promotor' || c.partnership_type === 'promotor')
+                        .filter(c => c.contact_type === 'promoter' || c.contact_type === 'promotor')
                         .sort((a, b) => {
                           if (a.company_name && !b.company_name) return -1;
                           if (!a.company_name && b.company_name) return 1;
