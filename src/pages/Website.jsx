@@ -37,9 +37,28 @@ import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Settings } from "lucide-react";
+import LandingPageBuilder from "../components/website/LandingPageBuilder";
+import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
+import SEOManager from "../components/website/SEOManager";
 
 export default function Website() {
+  const [showWebsiteTools, setShowWebsiteTools] = React.useState(false);
   const { t, locale } = useLocalization();
+  
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch {
+        return null;
+      }
+    }
+  });
+
+  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['properties', 'website'],
     queryFn: () => base44.entities.Property.list('-created_date'),
