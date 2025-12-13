@@ -9,11 +9,14 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { file_url } = await req.json();
+        const body = await req.json();
+        const file_url = body.file_url;
 
         if (!file_url) {
             return Response.json({ error: 'Missing file_url' }, { status: 400 });
         }
+
+        console.log("Processing OCR for file:", file_url);
 
         // Extract property and contact data
         const extractedData = await base44.integrations.Core.InvokeLLM({
@@ -134,9 +137,10 @@ Se não encontrares algum campo, não o incluas.`,
 
     } catch (error) {
         console.error("Error processing OCR document:", error);
+        console.error("Error stack:", error.stack);
         return Response.json({ 
             success: false,
-            error: error.message
+            error: error.message || "Erro desconhecido ao processar documento"
         }, { status: 500 });
     }
 });
