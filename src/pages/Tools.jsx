@@ -89,33 +89,57 @@ export default function Tools() {
     queryFn: () => base44.auth.me()
   });
 
-  const { data: userPermissions = [] } = useQuery({
-    queryKey: ['userPermissions'],
-    queryFn: () => base44.entities.UserPermission.list()
+  // Buscar permissões apenas do utilizador atual
+  const { data: userPerm } = useQuery({
+    queryKey: ['myUserPermissions', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const perms = await base44.entities.UserPermission.filter({ user_email: currentUser.email });
+      console.log('[Tools] User permissions loaded:', perms);
+      return perms[0] || null;
+    },
+    enabled: !!currentUser?.email
   });
 
   // Check if user is admin/gestor (has full access) or needs permission check
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
   
   // Get user's tool permissions
-  const userPerm = userPermissions.find(p => p.user_email === currentUser?.email);
   const userToolPermissions = userPerm?.permissions?.tools || {};
   const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true;
+
+  // Debug logging
+  React.useEffect(() => {
+    if (currentUser) {
+      console.log('[Tools Debug]', {
+        user: currentUser.email,
+        isAdmin,
+        hasToolsPageAccess,
+        userToolPermissions,
+        permissionsCount: Object.keys(userToolPermissions).length,
+        enabledTools: Object.entries(userToolPermissions).filter(([_, v]) => v).map(([k]) => k)
+      });
+    }
+  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions]);
   
   // Helper to check if tool is allowed
   const isToolAllowed = (toolId) => {
     // Admin/Gestor tem acesso total
-    if (isAdmin) return true;
-    
-    // Se tem permissões específicas de ferramentas, verificar
-    if (Object.keys(userToolPermissions).length > 0) {
-      return userToolPermissions[toolId] === true;
+    if (isAdmin) {
+      console.log(`[Tools] Admin access - tool ${toolId}: ALLOWED`);
+      return true;
     }
     
-    // Se tem acesso à página tools mas sem permissões específicas, permitir todas
-    if (hasToolsPageAccess) return true;
+    // Verificar se tem permissões específicas para esta ferramenta
+    const hasPermission = userToolPermissions[toolId] === true;
     
-    return false;
+    console.log(`[Tools] Checking tool ${toolId}:`, {
+      hasPermission,
+      userToolPermissions,
+      hasToolsPageAccess
+    });
+    
+    return hasPermission;
   };
 
   // Contar ferramentas permitidas
