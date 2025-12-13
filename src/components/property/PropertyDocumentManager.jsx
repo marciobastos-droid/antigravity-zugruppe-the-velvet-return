@@ -97,7 +97,8 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     is_public: false,
     status: "draft",
     linked_contact_ids: contactId ? [contactId] : [],
-    linked_contact_names: contactName ? [contactName] : []
+    linked_contact_names: contactName ? [contactName] : [],
+    custom_category: ""
   });
 
   const [processingOCR, setProcessingOCR] = useState(false);
@@ -112,6 +113,11 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
   const { data: allContacts = [] } = useQuery({
     queryKey: ['clientContacts'],
     queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  const { data: customTags = [] } = useQuery({
+    queryKey: ['documentTags'],
+    queryFn: () => base44.entities.Tag.filter({ tag_type: 'document' }),
   });
 
   const createMutation = useMutation({
@@ -150,12 +156,29 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
       });
 
       if (response.data.success) {
+        // Melhorar sugestão de nome baseado no tipo de documento detectado
+        let suggestedName = fileName.split('.')[0];
+        const extractedData = response.data.extracted_data;
+        
+        // Usar nome sugerido pela IA se disponível
+        if (extractedData.suggested_filename) {
+          suggestedName = extractedData.suggested_filename;
+        } else if (extractedData.document_type === 'energy_certificate') {
+          suggestedName = `Certificado Energético - ${extractedData.property_address || propertyTitle}`;
+        } else if (extractedData.document_type === 'deed') {
+          suggestedName = `Escritura - ${extractedData.property_address || propertyTitle}`;
+        } else if (extractedData.document_type === 'cpcv') {
+          suggestedName = `CPCV - ${extractedData.buyer_name || 'Cliente'}`;
+        } else if (extractedData.key_entities?.length > 0) {
+          suggestedName = extractedData.key_entities[0];
+        } else if (extractedData.description) {
+          suggestedName = extractedData.description.substring(0, 50);
+        }
+
         return {
-          document_name: response.data.extracted_data.description ? 
-            response.data.extracted_data.description.substring(0, 50) : 
-            fileName.split('.')[0],
-          document_type: response.data.extracted_data.property_type ? 'appraisal' : 'other',
-          expiry_date: null,
+          document_name: suggestedName,
+          document_type: extractedData.document_type || 'other',
+          expiry_date: extractedData.expiry_date || null,
           key_entities: response.data.extracted_data.key_entities || [],
           important_dates: response.data.extracted_data.important_dates || [],
           summary: response.data.extracted_data.description?.substring(0, 200) || '',
@@ -210,6 +233,7 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
           expiry_date: ocrData?.expiry_date || formData.expiry_date || null,
           is_public: formData.is_public,
           status: formData.status,
+          tags: formData.custom_category ? [formData.custom_category] : [],
           file_url,
           file_uri,
           file_size: file.size,
@@ -249,7 +273,8 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
       is_public: false,
       status: "draft",
       linked_contact_ids: contactId ? [contactId] : [],
-      linked_contact_names: contactName ? [contactName] : []
+      linked_contact_names: contactName ? [contactName] : [],
+      custom_category: ""
     });
   };
 
@@ -337,6 +362,8 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     const matchesSearch = !searchTerm || 
       doc.document_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // Pesquisar em tags personalizadas
+      doc.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
       // Pesquisar em metadados OCR
       doc.ocr_data?.key_entities?.some(e => e.toLowerCase().includes(searchTerm.toLowerCase())) ||
       doc.ocr_data?.detected_fields && Object.values(doc.ocr_data.detected_fields).some(v => 
@@ -617,6 +644,46 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               <Label htmlFor="is_public" className="text-sm cursor-pointer">
                 Documento público (visível em feeds e integrações)
               </Label>
+            </div>
+
+            {/* Custom Category/Tag */}
+            <div>
+              <Label>Categoria Personalizada (opcional)</Label>
+              <div className="flex gap-2">
+                <Select value={formData.custom_category} onValueChange={(v) => setFormData({...formData, custom_category: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecionar categoria..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Sem categoria</SelectItem>
+                    {customTags.map((tag) => (
+                      <SelectItem key={tag.id} value={tag.name}>
+                        {tag.icon} {tag.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const tagName = prompt("Nome da nova categoria:");
+                    if (tagName) {
+                      const icon = prompt("Emoji (opcional):", "📁");
+                      await base44.entities.Tag.create({
+                        tag_type: "document",
+                        name: tagName,
+                        icon: icon || "📁",
+                        category: "custom"
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['documentTags'] });
+                      toast.success("Categoria criada");
+                    }
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Link to Contacts */}
@@ -968,6 +1035,11 @@ function DocumentRow({ doc, onView, onDownload, onDelete, onLinkContact, getDocT
               <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 text-blue-800">
                 <User className="w-3 h-3 mr-1" />
                 {doc.linked_contact_names.length} contacto{doc.linked_contact_names.length > 1 ? 's' : ''}
+              </Badge>
+            )}
+            {doc.tags?.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-indigo-50 border-indigo-200 text-indigo-800">
+                {doc.tags[0]}
               </Badge>
             )}
             {doc.ocr_data?.key_entities?.length > 0 && (
