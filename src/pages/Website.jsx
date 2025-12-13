@@ -542,6 +542,50 @@ export default function Website() {
           }}
           alternateLanguages={alternateLanguages}
         />
+      {/* Admin Tools - Floating Button */}
+      {isAdmin && (
+        <div className="fixed bottom-6 left-6 z-50">
+          <Button
+            onClick={() => setShowWebsiteTools(!showWebsiteTools)}
+            className="w-14 h-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+          >
+            <Settings className="w-6 h-6" />
+          </Button>
+        </div>
+      )}
+
+      {/* Website Tools Panel */}
+      {showWebsiteTools && isAdmin && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-slate-900">Ferramentas do Website</h2>
+              <Button variant="ghost" onClick={() => setShowWebsiteTools(false)}>
+                Fechar
+              </Button>
+            </div>
+            <div className="p-6">
+              <Tabs defaultValue="landing" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="landing">Landing Pages</TabsTrigger>
+                  <TabsTrigger value="forms">Formulários Dinâmicos</TabsTrigger>
+                  <TabsTrigger value="seo">Gestor de SEO</TabsTrigger>
+                </TabsList>
+                <TabsContent value="landing" className="mt-6">
+                  <LandingPageBuilder />
+                </TabsContent>
+                <TabsContent value="forms" className="mt-6">
+                  <DynamicFormBuilder />
+                </TabsContent>
+                <TabsContent value="seo" className="mt-6">
+                  <SEOManager />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 
