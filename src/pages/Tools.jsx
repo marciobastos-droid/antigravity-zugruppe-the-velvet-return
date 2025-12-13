@@ -70,6 +70,7 @@ import MarketingHub from "../components/marketing/MarketingHub";
 import BackupManager from "../components/tools/BackupManager";
 import ExcelImportExport from "../components/tools/ExcelImportExport";
 import CRMIntegrations from "../components/tools/CRMIntegrations";
+import OCRProcessor from "../components/tools/OCRProcessor";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
