@@ -96,12 +96,20 @@ export default function PropertiesTable({
     {
       key: "development_name",
       label: "Empreendimento",
-      minWidth: "120px",
-      render: (val) => val ? (
-        <Badge variant="outline" className="text-xs truncate max-w-[120px]">
-          <Building2 className="w-3 h-3 mr-1 flex-shrink-0" />
-          <span className="truncate">{val}</span>
-        </Badge>
+      minWidth: "150px",
+      render: (val, property) => val ? (
+        <div className="flex flex-col gap-1">
+          <Badge variant="outline" className="text-xs w-fit">
+            <Building2 className="w-3 h-3 mr-1 flex-shrink-0" />
+            <span className="truncate max-w-[120px]">{val}</span>
+          </Badge>
+          {property.unit_number && (
+            <span className="text-xs text-slate-500 flex items-center gap-1">
+              <Hash className="w-3 h-3" />
+              Fração {property.unit_number}
+            </span>
+          )}
+        </div>
       ) : <span className="text-slate-400">-</span>
     },
     {
