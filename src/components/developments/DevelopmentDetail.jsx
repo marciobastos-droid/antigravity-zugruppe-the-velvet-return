@@ -34,6 +34,24 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
   const [uploadingBrochure, setUploadingBrochure] = React.useState(false);
   const [addUnitsOpen, setAddUnitsOpen] = React.useState(false);
   const [editingUnit, setEditingUnit] = React.useState(null);
+
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  const handleDeveloperSelect = (contactId) => {
+    const contact = allContacts.find(c => c.id === contactId);
+    if (contact) {
+      setFormData({
+        ...formData,
+        developer: contact.full_name || contact.company_name || "",
+        developer_contact_id: contact.id,
+        developer_email: contact.email || "",
+        developer_phone: contact.phone || ""
+      });
+    }
+  };
   const [formData, setFormData] = React.useState({
     name: development.name || "",
     description: development.description || "",
