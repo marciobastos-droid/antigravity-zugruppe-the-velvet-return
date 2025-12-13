@@ -379,6 +379,7 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                         <SelectContent>
                           <SelectItem value={null}>Sem promotor</SelectItem>
                           {allContacts
+                            .filter(c => c.contact_type === 'promotor' || c.partnership_type === 'promotor')
                             .sort((a, b) => {
                               if (a.company_name && !b.company_name) return -1;
                               if (!a.company_name && b.company_name) return 1;
@@ -388,7 +389,6 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                               <SelectItem key={c.id} value={c.id}>
                                 {c.company_name || c.full_name}
                                 {c.company_name && c.full_name && ` - ${c.full_name}`}
-                                {c.contact_type && ` (${c.contact_type})`}
                               </SelectItem>
                             ))
                           }
