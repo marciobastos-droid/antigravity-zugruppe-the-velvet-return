@@ -69,7 +69,7 @@ export default function Website() {
   const { cta, layout, trackConversion, trackCTAClick } = useABTesting();
   
   // Guest features
-  const { addFavorite, removeFavorite, isFavorite, favoritesCount, isGuest, user } = useGuestFeatures();
+  const { addFavorite, removeFavorite, isFavorite, favoritesCount, isGuest } = useGuestFeatures();
   const [showRegisterPrompt, setShowRegisterPrompt] = React.useState(false);
 
   // Calculate dynamic ranges based on actual data
