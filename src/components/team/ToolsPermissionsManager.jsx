@@ -30,7 +30,8 @@ const TOOL_CATEGORIES = {
       { id: "integrations", name: "Integrações Externas" },
       { id: "imageExtractor", name: "Extrator de Imagens Web" },
       { id: "excelImport", name: "Excel & JSON" },
-      { id: "crmIntegrations", name: "CRM Externo" }
+      { id: "crmIntegrations", name: "CRM Externo" },
+      { id: "ocrProcessor", name: "Processador OCR" }
     ]
   },
   leads: {
