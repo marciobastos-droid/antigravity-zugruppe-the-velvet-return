@@ -135,49 +135,36 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     setSelectedFiles(files);
   };
 
-  const processDocumentOCR = async (fileUrl, fileName, fileType) => {
+  const processDocumentOCR = async (fileUrl, fileName, fileType, documentId = null) => {
     // Apenas processar PDFs e imagens
     if (!fileType?.includes('pdf') && !fileType?.includes('image')) {
       return null;
     }
 
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Analisa este documento e extrai as seguintes informações em formato JSON:
-- document_name: nome do documento ou título (string)
-- document_type: tipo do documento (escolhe o mais apropriado: deed, energy_certificate, insurance, tax_document, floor_plan, inspection_report, building_permit, lease_agreement, contract, proposal, brochure, cpcv, appraisal, invoice, technical_specs, other)
-- expiry_date: data de validade/expiração se existir (formato YYYY-MM-DD ou null)
-- key_entities: nomes de pessoas, empresas ou entidades mencionadas (array de strings)
-- important_dates: outras datas relevantes mencionadas (array de objetos com {date: "YYYY-MM-DD", description: "descrição"})
-- summary: resumo breve do conteúdo (string, máx 200 caracteres)
-- detected_fields: quaisquer campos estruturados encontrados (objeto com pares chave-valor)
-
-Se não conseguires extrair alguma informação, usa null ou array vazio.`,
-        file_urls: [fileUrl],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            document_name: { type: "string" },
-            document_type: { type: "string" },
-            expiry_date: { type: ["string", "null"] },
-            key_entities: { type: "array", items: { type: "string" } },
-            important_dates: { 
-              type: "array", 
-              items: { 
-                type: "object",
-                properties: {
-                  date: { type: "string" },
-                  description: { type: "string" }
-                }
-              }
-            },
-            summary: { type: "string" },
-            detected_fields: { type: "object" }
-          }
-        }
+      // Chamar função backend para OCR completo
+      const response = await base44.functions.invoke('processPropertyDocumentOCR', {
+        file_url: fileUrl,
+        document_id: documentId,
+        property_id: propertyId
       });
 
-      return result;
+      if (response.data.success) {
+        return {
+          document_name: response.data.extracted_data.description ? 
+            response.data.extracted_data.description.substring(0, 50) : 
+            fileName.split('.')[0],
+          document_type: response.data.extracted_data.property_type ? 'appraisal' : 'other',
+          expiry_date: null,
+          key_entities: response.data.extracted_data.key_entities || [],
+          important_dates: response.data.extracted_data.important_dates || [],
+          summary: response.data.extracted_data.description?.substring(0, 200) || '',
+          detected_fields: response.data.extracted_data,
+          property_data_extracted: response.data.fields_updated || []
+        };
+      }
+
+      return null;
     } catch (error) {
       console.error("OCR Error:", error);
       return null;
