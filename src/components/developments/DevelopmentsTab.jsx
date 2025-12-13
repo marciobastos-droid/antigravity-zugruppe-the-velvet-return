@@ -342,11 +342,20 @@ export default function DevelopmentsTab() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="manual">✍️ Inserir Manualmente</SelectItem>
-                      {contacts.filter(c => c.contact_type === 'promotor' || c.partnership_type === 'promotor').map(contact => (
-                        <SelectItem key={contact.id} value={contact.id}>
-                          {contact.full_name || contact.company_name} {contact.company_name && contact.full_name ? `(${contact.company_name})` : ''}
-                        </SelectItem>
-                      ))}
+                      {contacts
+                        .sort((a, b) => {
+                          if (a.company_name && !b.company_name) return -1;
+                          if (!a.company_name && b.company_name) return 1;
+                          return (a.company_name || a.full_name || "").localeCompare(b.company_name || b.full_name || "");
+                        })
+                        .map(contact => (
+                          <SelectItem key={contact.id} value={contact.id}>
+                            {contact.company_name || contact.full_name}
+                            {contact.company_name && contact.full_name && ` - ${contact.full_name}`}
+                            {contact.contact_type && ` (${contact.contact_type})`}
+                          </SelectItem>
+                        ))
+                      }
                     </SelectContent>
                   </Select>
                   {(!formData.developer_contact_id || formData.developer_contact_id === "manual") && (
