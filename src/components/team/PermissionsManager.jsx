@@ -25,7 +25,7 @@ const ROLE_TEMPLATES = {
     reports: { view_team: true, view_own: true, export: true },
     team: { view_members: true, manage_members: true, view_performance: true },
     settings: { manage_templates: true, manage_integrations: true, manage_tags: true },
-    pages: { dashboard: true, browse: true, my_listings: true, crm: true, tools: true, team: true }
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, reports: true, tools: true, team: true, franchising: true }
   },
   gestor: {
     properties: { view_all: true, view_own: true, create: true, edit_all: true, edit_own: true, delete: false, export: true },
@@ -157,7 +157,7 @@ const PERMISSION_LABELS = {
 export default function PermissionsManager() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [permissions, setPermissions] = useState({});
-  const [expandedSections, setExpandedSections] = useState(['properties', 'leads']);
+  const [expandedSections, setExpandedSections] = useState(['properties', 'leads', 'pages']);
   const [hasChanges, setHasChanges] = useState(false);
   const queryClient = useQueryClient();
 
