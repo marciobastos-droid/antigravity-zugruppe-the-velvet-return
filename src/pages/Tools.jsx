@@ -115,7 +115,7 @@ export default function Tools() {
     return tools;
   }, [userPerm]);
 
-  const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true;
+  const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true || (userPerm?.permissions?.tools && Object.values(userPerm.permissions.tools).some(v => v === true));
 
   // Debug logging
   React.useEffect(() => {
