@@ -143,10 +143,10 @@ export default function Home() {
         transition={{ duration: 0.6, delay: 0.3 }}
         className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6 max-w-5xl w-full">
 
-        {menuItems.map((item, index) =>
+        {menuItems.map((item, index) => (
         <Link
           key={item.path}
-          to={createPageUrl(item.path)}
+          to={createPageUrl(item.path.split('?')[0])}
           className="group">
 
             <motion.div
@@ -169,7 +169,7 @@ export default function Home() {
               <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-lg sm:rounded-xl transition-colors duration-300"></div>
             </motion.div>
           </Link>
-        )}
+        ))}
       </motion.div>
 
       {/* Marcas da Empresa */}
