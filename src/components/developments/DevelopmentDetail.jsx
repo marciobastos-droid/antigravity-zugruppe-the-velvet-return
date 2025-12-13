@@ -34,24 +34,6 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
   const [uploadingBrochure, setUploadingBrochure] = React.useState(false);
   const [addUnitsOpen, setAddUnitsOpen] = React.useState(false);
   const [editingUnit, setEditingUnit] = React.useState(null);
-
-  const { data: allContacts = [] } = useQuery({
-    queryKey: ['clientContacts'],
-    queryFn: () => base44.entities.ClientContact.list(),
-  });
-
-  const handleDeveloperSelect = (contactId) => {
-    const contact = allContacts.find(c => c.id === contactId);
-    if (contact) {
-      setFormData({
-        ...formData,
-        developer: contact.full_name || contact.company_name || "",
-        developer_contact_id: contact.id,
-        developer_email: contact.email || "",
-        developer_phone: contact.phone || ""
-      });
-    }
-  };
   const [formData, setFormData] = React.useState({
     name: development.name || "",
     description: development.description || "",
@@ -101,6 +83,24 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
     });
     setEditMode(false);
   }, [development]);
+
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list(),
+  });
+
+  const handleDeveloperSelect = (contactId) => {
+    const contact = allContacts.find(c => c.id === contactId);
+    if (contact) {
+      setFormData({
+        ...formData,
+        developer: contact.full_name || contact.company_name || "",
+        developer_contact_id: contact.id,
+        developer_email: contact.email || "",
+        developer_phone: contact.phone || ""
+      });
+    }
+  };
 
   const updateImagesMutation = useMutation({
     mutationFn: async (newImages) => {
@@ -378,11 +378,20 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value={null}>Sem promotor</SelectItem>
-                          {allContacts.filter(c => c.contact_type === 'partner' || c.company_name).map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.company_name || c.full_name}
-                            </SelectItem>
-                          ))}
+                          {allContacts
+                            .sort((a, b) => {
+                              if (a.company_name && !b.company_name) return -1;
+                              if (!a.company_name && b.company_name) return 1;
+                              return (a.company_name || a.full_name || "").localeCompare(b.company_name || b.full_name || "");
+                            })
+                            .map(c => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.company_name || c.full_name}
+                                {c.company_name && c.full_name && ` - ${c.full_name}`}
+                                {c.contact_type && ` (${c.contact_type})`}
+                              </SelectItem>
+                            ))
+                          }
                         </SelectContent>
                       </Select>
                       <Input
