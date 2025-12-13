@@ -190,29 +190,31 @@ export default function ToolsPermissionsManager() {
     mutationFn: async () => {
       const existingPerm = permissions.find(p => p.user_email === selectedUser.email);
       
+      // Construir objeto completo de permissões preservando todas as categorias existentes
+      const fullPermissions = existingPerm?.permissions ? { ...existingPerm.permissions } : {};
+      
+      // Atualizar apenas a categoria tools
+      fullPermissions.tools = { ...toolPermissions };
+      
       if (existingPerm) {
         return await base44.entities.UserPermission.update(existingPerm.id, {
-          permissions: {
-            ...existingPerm.permissions,
-            tools: toolPermissions
-          }
+          permissions: fullPermissions
         });
       } else {
         return await base44.entities.UserPermission.create({
           user_email: selectedUser.email,
-          permissions: {
-            tools: toolPermissions
-          },
+          permissions: fullPermissions,
           role_template: 'custom'
         });
       }
     },
     onSuccess: () => {
-      toast.success("Permissões guardadas");
+      toast.success("Permissões de ferramentas guardadas");
       queryClient.invalidateQueries({ queryKey: ['userPermissions'] });
       setHasChanges(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Erro ao guardar:", error);
       toast.error("Erro ao guardar permissões");
     }
   });
