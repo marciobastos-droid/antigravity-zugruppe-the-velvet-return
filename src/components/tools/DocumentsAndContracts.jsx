@@ -23,7 +23,7 @@ import DealFoldersManager from "../deals/DealFoldersManager";
 
 export default function DocumentsAndContracts() {
   const queryClient = useQueryClient();
-  const [view, setView] = React.useState("contracts"); // contracts, documents, deals, or ocr
+  const [view, setView] = React.useState("contracts");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -194,7 +194,6 @@ export default function DocumentsAndContracts() {
 
   return (
     <div className="space-y-6">
-      {/* View Toggle */}
       <Tabs value={view} onValueChange={setView} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="contracts" className="flex items-center gap-2">
@@ -224,11 +223,8 @@ export default function DocumentsAndContracts() {
         </TabsContent>
 
         <TabsContent value="contracts" className="space-y-6 mt-6">
-          {/* Move contracts content here */}
-
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <>
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -270,51 +266,6 @@ export default function DocumentsAndContracts() {
                     <p className="text-3xl font-bold text-orange-600">{contractStats.expiring}</p>
                   </div>
                   <Bell className="w-10 h-10 text-orange-400" />
-                </div>
-              </CardContent>
-            </Card>
-          </>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Total</p>
-                    <p className="text-3xl font-bold text-slate-900">{docStats.total}</p>
-                  </div>
-                  <Folder className="w-10 h-10 text-slate-400" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Contratos</p>
-                    <p className="text-3xl font-bold text-blue-600">{docStats.contracts}</p>
-                  </div>
-                  <FileText className="w-10 h-10 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Financeiros</p>
-                    <p className="text-3xl font-bold text-red-600">{docStats.financial}</p>
-                  </div>
-                  <FileText className="w-10 h-10 text-red-400" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-slate-600 mb-1">Últimos 7 dias</p>
-                    <p className="text-3xl font-bold text-green-600">{docStats.recent}</p>
-                  </div>
-                  <TrendingUp className="w-10 h-10 text-green-400" />
                 </div>
               </CardContent>
             </Card>
@@ -369,154 +320,93 @@ export default function DocumentsAndContracts() {
             </CardContent>
           </Card>
 
-          {/* Content */}
+          {/* Contracts Content */}
           <div className="grid gap-4">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Tipo de Documento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os Tipos</SelectItem>
-                    <SelectItem value="contract">Contratos</SelectItem>
-                    <SelectItem value="annex">Anexos</SelectItem>
-                    <SelectItem value="id">Identificação</SelectItem>
-                    <SelectItem value="proof_residence">Comp. Residência</SelectItem>
-                    <SelectItem value="financial">Financeiros</SelectItem>
-                    <SelectItem value="other">Outros</SelectItem>
-
-          {filteredContracts.map((contract) => {
-            const warning = getExpirationWarning(contract);
-            return (
-              <Card key={contract.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <h3 className="text-xl font-bold text-slate-900">{contract.property_title}</h3>
-                        <Badge className={statusColors[contract.status]}>
-                          {statusLabels[contract.status]}
-                        </Badge>
-                        <Badge variant="outline">{typeLabels[contract.contract_type]}</Badge>
-                        {warning && (
-                          <Badge className={`${warning.color} bg-opacity-10`}>
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            {warning.text}
+            {filteredContracts.map((contract) => {
+              const warning = getExpirationWarning(contract);
+              return (
+                <Card key={contract.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h3 className="text-xl font-bold text-slate-900">{contract.property_title}</h3>
+                          <Badge className={statusColors[contract.status]}>
+                            {statusLabels[contract.status]}
                           </Badge>
-                        )}
-                      </div>
+                          <Badge variant="outline">{typeLabels[contract.contract_type]}</Badge>
+                          {warning && (
+                            <Badge className={`${warning.color} bg-opacity-10`}>
+                              <AlertCircle className="w-3 h-3 mr-1" />
+                              {warning.text}
+                            </Badge>
+                          )}
+                        </div>
 
-                      <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-600 mb-4">
-                        <div>
-                          <p className="font-semibold text-slate-700 mb-1">Parte A:</p>
-                          <p>{contract.party_a_name}</p>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-700 mb-1">Parte B:</p>
-                          <p>{contract.party_b_name}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-slate-700">Valor:</span>
-                          <span className="text-slate-900 font-bold">€{contract.contract_value?.toLocaleString()}</span>
-                        </div>
-                        {contract.documents?.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-slate-500" />
-                            <span className="text-slate-600">{contract.documents.length} documento(s)</span>
+                        <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-600 mb-4">
+                          <div>
+                            <p className="font-semibold text-slate-700 mb-1">Parte A:</p>
+                            <p>{contract.party_a_name}</p>
                           </div>
-                        )}
+                          <div>
+                            <p className="font-semibold text-slate-700 mb-1">Parte B:</p>
+                            <p>{contract.party_b_name}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-700">Valor:</span>
+                            <span className="text-slate-900 font-bold">€{contract.contract_value?.toLocaleString()}</span>
+                          </div>
+                          {contract.documents?.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-slate-500" />
+                              <span className="text-slate-600">{contract.documents.length} documento(s)</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2 ml-4">
+                        <Button variant="outline" size="sm" onClick={() => setDetailsContract(contract)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setEditingContract(contract);
+                          setCreateDialogOpen(true);
+                        }}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setSignatureContract(contract)} className="text-blue-600">
+                          📝
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          if (window.confirm("Eliminar este contrato?")) deleteMutation.mutate(contract.id);
+                        }} className="text-red-600">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex flex-col gap-2 ml-4">
-                      <Button variant="outline" size="sm" onClick={() => setDetailsContract(contract)}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setEditingContract(contract);
-                        setCreateDialogOpen(true);
-                      }}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setSignatureContract(contract)} className="text-blue-600">
-                        📝
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        if (window.confirm("Eliminar este contrato?")) deleteMutation.mutate(contract.id);
-                      }} className="text-red-600">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {filteredContracts.length === 0 && (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum contrato encontrado</h3>
                 </CardContent>
               </Card>
-            );
-          })}
-          {filteredContracts.length === 0 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum contrato encontrado</h3>
-              </CardContent>
-            </Card>
-          )}
+            )}
           </div>
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-6 mt-6">
           {/* Documents Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {filteredDocuments.map((doc, idx) => (
-            <Card key={idx} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <FileText className="w-5 h-5 text-slate-600" />
-                      <h3 className="text-lg font-bold text-slate-900">{doc.name}</h3>
-                      <Badge className={docTypeColors[doc.type] || docTypeColors.other}>
-                        {docTypeLabels[doc.type] || doc.type}
-                      </Badge>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-3 text-sm text-slate-600">
-                      <div>
-                        <span className="font-semibold">Contrato:</span> {doc.contract_title}
-                      </div>
-                      <div>
-                        <span className="font-semibold">Partes:</span> {doc.parties}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 ml-4">
-                    <Button variant="outline" size="sm" onClick={() => setViewingDoc(doc)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </a>
-                    {isAdmin && (
-                      <Button variant="outline" size="sm" onClick={() => setPermissionsDoc({ ...doc, contract: contracts.find(c => c.id === doc.contract_id) })}>
-                        <Lock className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {filteredDocuments.length === 0 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">Nenhum documento encontrado</h3>
-              </CardContent>
-            </Card>
-          <Card>
+            <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
