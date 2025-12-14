@@ -693,30 +693,7 @@ export default function OCRProcessor() {
 
 // Contract Data Review Dialog Component
 function ContractDataReviewDialog({ open, onOpenChange, contractData, fileUrl, onSave, isSaving }) {
-  const [formData, setFormData] = useState({
-    contract_type: "sale",
-    property_title: "",
-    property_address: "",
-    contract_value: "",
-    monthly_value: "",
-    party_a_name: "",
-    party_a_email: "",
-    party_a_phone: "",
-    party_a_nif: "",
-    party_b_name: "",
-    party_b_email: "",
-    party_b_phone: "",
-    party_b_nif: "",
-    signature_date: "",
-    deed_date: "",
-    start_date: "",
-    end_date: "",
-    deposit_amount: "",
-    commission_amount: "",
-    notes: "",
-    status: "draft",
-    documents: []
-  });
+  const [formData, setFormData] = useState({});
 
   React.useEffect(() => {
     if (contractData && open) {
@@ -1019,21 +996,7 @@ function ContractDataReviewDialog({ open, onOpenChange, contractData, fileUrl, o
 
 // Deal Data Review Dialog Component
 function DealDataReviewDialog({ open, onOpenChange, dealData, fileUrl, onSave, isSaving }) {
-  const [formData, setFormData] = useState({
-    deal_name: "",
-    property_title: "",
-    property_address: "",
-    deal_type: "sale",
-    deal_value: "",
-    buyer_name: "",
-    buyer_nif: "",
-    seller_name: "",
-    seller_nif: "",
-    status: "in_progress",
-    completion_date: "",
-    notes: "",
-    documents: []
-  });
+  const [formData, setFormData] = useState({});
 
   React.useEffect(() => {
     if (dealData && open) {
