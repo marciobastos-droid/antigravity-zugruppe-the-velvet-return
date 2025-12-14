@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DollarSign, Plus, Search, Filter, Download, Building2, User, 
   Calendar, CheckCircle2, Clock, AlertCircle, TrendingUp, Pencil, Trash2,
-  Receipt, PieChart, FileBarChart
+  Receipt, PieChart, FileBarChart, Percent, Target
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -41,6 +41,8 @@ export default function CommissionsManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     opportunity_id: "",
     property_title: "",
@@ -59,6 +61,11 @@ export default function CommissionsManager() {
     payment_status: "pending",
     invoice_number: "",
     notes: ""
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => base44.auth.me(),
   });
 
   const { data: commissions = [] } = useQuery({
@@ -279,6 +286,14 @@ export default function CommissionsManager() {
         <div className="flex gap-2">
           {activeTab === "list" && (
             <>
+              <Button 
+                variant="outline" 
+                onClick={() => setConfigDialogOpen(true)}
+                className="border-blue-300 text-blue-700"
+              >
+                <Percent className="w-4 h-4 mr-2" />
+                Configurar Splits
+              </Button>
               <Button variant="outline" onClick={exportCSV}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
@@ -818,6 +833,16 @@ export default function CommissionsManager() {
           <CommissionsReports />
         </TabsContent>
       </Tabs>
+
+      {/* Commission Config Dialog */}
+      <Dialog open={configDialogOpen} onOpenChange={setConfigDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <CommissionConfigEditor 
+            user={user} 
+            onSave={() => setConfigDialogOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
