@@ -530,9 +530,7 @@ export default function CommissionsManager() {
                         <SelectContent>
                           {contacts.filter(c => 
                             c.contact_type === 'owner' || 
-                            c.contact_type === 'promoter' || 
-                            c.contact_type === 'client' ||
-                            c.contact_type === 'partner'
+                            c.contact_type === 'promoter'
                           ).map(contact => (
                             <SelectItem key={contact.id} value={contact.id}>
                               {contact.full_name}
