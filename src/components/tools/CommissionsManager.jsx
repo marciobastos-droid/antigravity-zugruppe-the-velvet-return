@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DollarSign, Plus, Search, Filter, Download, Building2, User, 
   Calendar, CheckCircle2, Clock, AlertCircle, TrendingUp, Pencil, Trash2,
-  Receipt, PieChart, FileBarChart, Percent, Target
+  Receipt, PieChart, FileBarChart, Percent, Target, Upload, FileText, X, ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -42,6 +42,7 @@ export default function CommissionsManager() {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const [formData, setFormData] = useState({
     opportunity_id: "",
@@ -60,7 +61,8 @@ export default function CommissionsManager() {
     close_date: format(new Date(), 'yyyy-MM-dd'),
     payment_status: "pending",
     invoice_number: "",
-    notes: ""
+    notes: "",
+    attachments: []
   });
 
   const { data: user } = useQuery({
@@ -136,7 +138,8 @@ export default function CommissionsManager() {
       close_date: format(new Date(), 'yyyy-MM-dd'),
       payment_status: "pending",
       invoice_number: "",
-      notes: ""
+      notes: "",
+      attachments: []
     });
   };
 
@@ -159,9 +162,43 @@ export default function CommissionsManager() {
       close_date: commission.close_date || format(new Date(), 'yyyy-MM-dd'),
       payment_status: commission.payment_status || "pending",
       invoice_number: commission.invoice_number || "",
-      notes: commission.notes || ""
+      notes: commission.notes || "",
+      attachments: commission.attachments || []
     });
     setDialogOpen(true);
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploadingFile(true);
+    try {
+      const uploadedFiles = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedFiles.push({
+          name: file.name,
+          url: file_url
+        });
+      }
+      
+      setFormData({
+        ...formData,
+        attachments: [...(formData.attachments || []), ...uploadedFiles]
+      });
+      
+      toast.success(`${files.length} ficheiro(s) anexado(s)`);
+    } catch (error) {
+      toast.error("Erro ao fazer upload");
+    }
+    setUploadingFile(false);
+    e.target.value = "";
+  };
+
+  const handleRemoveAttachment = (index) => {
+    const newAttachments = formData.attachments.filter((_, i) => i !== index);
+    setFormData({ ...formData, attachments: newAttachments });
   };
 
   const calculateCommission = (dealValue, percentage) => {
@@ -550,6 +587,84 @@ export default function CommissionsManager() {
                   />
                 </div>
 
+                {/* Attachments Section */}
+                <div className="border-t pt-4">
+                  <Label className="flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    Documentos Anexados
+                  </Label>
+                  
+                  <div className="space-y-3">
+                    {/* Upload Button */}
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="commission-file-upload"
+                        disabled={uploadingFile}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                      />
+                      <label htmlFor="commission-file-upload" className="cursor-pointer">
+                        {uploadingFile ? (
+                          <div className="flex items-center justify-center gap-2 text-blue-600">
+                            <Clock className="w-5 h-5 animate-spin" />
+                            <span className="text-sm">A carregar...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2 text-slate-600 hover:text-blue-600">
+                            <Upload className="w-5 h-5" />
+                            <span className="text-sm font-medium">
+                              Clique para anexar ficheiros
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xs text-slate-500 mt-1">
+                          PDF, Word, Excel, Imagens
+                        </p>
+                      </label>
+                    </div>
+
+                    {/* Attached Files List */}
+                    {formData.attachments && formData.attachments.length > 0 && (
+                      <div className="space-y-2">
+                        {formData.attachments.map((attachment, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg group hover:bg-slate-100"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <span className="text-sm text-slate-900 truncate">
+                                {attachment.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(attachment.url, '_blank')}
+                                className="h-8"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveAttachment(index)}
+                                className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-2 justify-end pt-2">
                   <Button variant="outline" onClick={resetForm}>Cancelar</Button>
                   <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
@@ -802,6 +917,14 @@ export default function CommissionsManager() {
                           Agente: €{commission.agent_commission?.toLocaleString()}
                         </p>
                       )}
+                      {commission.attachments && commission.attachments.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <FileText className="w-3 h-3 text-blue-600" />
+                          <span className="text-xs text-blue-700">
+                            {commission.attachments.length} documento(s)
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex gap-1">
@@ -820,6 +943,28 @@ export default function CommissionsManager() {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Show attachments in expanded view */}
+                  {commission.attachments && commission.attachments.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-slate-200">
+                      <p className="text-xs font-medium text-slate-600 mb-2">Documentos:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {commission.attachments.map((attachment, idx) => (
+                          <a
+                            key={idx}
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 hover:bg-blue-100 transition-colors"
+                          >
+                            <FileText className="w-3 h-3" />
+                            <span className="max-w-[120px] truncate">{attachment.name}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
