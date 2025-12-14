@@ -433,21 +433,23 @@ export default function CommissionsManager() {
                 </div>
 
                 <div className="border-t pt-4">
-                  <h4 className="font-medium mb-3">Cliente</h4>
+                  <h4 className="font-medium mb-3">Proprietário/Promotor</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>Nome do Cliente</Label>
+                      <Label>Nome do Proprietário/Promotor</Label>
                       <Input
                         value={formData.client_name}
                         onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+                        placeholder="Nome do proprietário ou promotor"
                       />
                     </div>
                     <div>
-                      <Label>Email do Cliente</Label>
+                      <Label>Email do Proprietário/Promotor</Label>
                       <Input
                         type="email"
                         value={formData.client_email}
                         onChange={(e) => setFormData({...formData, client_email: e.target.value})}
+                        placeholder="email@exemplo.com"
                       />
                     </div>
                   </div>
