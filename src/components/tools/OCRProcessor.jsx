@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tantml:react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Upload, FileText, Loader2, Wand2, Building2, User, 
   CheckCircle2, AlertCircle, Calendar, MapPin, Euro,
   Bed, Bath, Maximize, Home, Phone, Mail, Briefcase,
-  Download, Eye, Copy, Plus, Save
+  Download, Eye, Copy, Plus, Save, Edit, FileSignature
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +28,10 @@ export default function OCRProcessor() {
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [applying, setApplying] = useState(false);
+  const [contractDataDialogOpen, setContractDataDialogOpen] = useState(false);
+  const [dealDataDialogOpen, setDealDataDialogOpen] = useState(false);
+  const [extractedContractData, setExtractedContractData] = useState(null);
+  const [extractedDealData, setExtractedDealData] = useState(null);
 
   const handleFileSelect = async (e) => {
     const selectedFile = e.target.files[0];
@@ -172,6 +178,50 @@ export default function OCRProcessor() {
     );
   };
 
+  const createContractFromOCR = () => {
+    if (!ocrResult?.contract_data) {
+      toast.error("Nenhum dado de contrato extraído");
+      return;
+    }
+    setExtractedContractData(ocrResult.contract_data);
+    setContractDataDialogOpen(true);
+  };
+
+  const createDealFromOCR = () => {
+    if (!ocrResult?.contract_data) {
+      toast.error("Nenhum dado de negócio extraído");
+      return;
+    }
+    setExtractedDealData(ocrResult.contract_data);
+    setDealDataDialogOpen(true);
+  };
+
+  const saveContractMutation = useMutation({
+    mutationFn: async (data) => {
+      return await base44.entities.Contract.create(data);
+    },
+    onSuccess: () => {
+      toast.success("Contrato criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      setContractDataDialogOpen(false);
+      setFile(null);
+      setOcrResult(null);
+    }
+  });
+
+  const saveDealMutation = useMutation({
+    mutationFn: async (data) => {
+      return await base44.entities.DealFolder.create(data);
+    },
+    onSuccess: () => {
+      toast.success("Negócio criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['dealFolders'] });
+      setDealDataDialogOpen(false);
+      setFile(null);
+      setOcrResult(null);
+    }
+  });
+
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       {/* Upload Card */}
@@ -264,6 +314,30 @@ export default function OCRProcessor() {
                 </div>
                 {ocrResult.summary && (
                   <p className="text-xs text-slate-600 mt-3 italic">"{ocrResult.summary}"</p>
+                )}
+                
+                {/* Contract/Deal Actions */}
+                {ocrResult.contract_data && (
+                  <div className="mt-4 pt-3 border-t border-green-300 flex gap-2">
+                    <Button
+                      onClick={createContractFromOCR}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      <FileSignature className="w-4 h-4 mr-2" />
+                      Criar Contrato
+                    </Button>
+                    <Button
+                      onClick={createDealFromOCR}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+                    >
+                      <Briefcase className="w-4 h-4 mr-2" />
+                      Criar Negócio
+                    </Button>
+                  </div>
                 )}
               </div>
 
@@ -593,6 +667,526 @@ export default function OCRProcessor() {
           </CardContent>
         </Card>
       )}
+
+      {/* Contract Data Dialog */}
+      <ContractDataReviewDialog
+        open={contractDataDialogOpen}
+        onOpenChange={setContractDataDialogOpen}
+        contractData={extractedContractData}
+        fileUrl={fileUrl}
+        onSave={(data) => saveContractMutation.mutate(data)}
+        isSaving={saveContractMutation.isPending}
+      />
+
+      {/* Deal Data Dialog */}
+      <DealDataReviewDialog
+        open={dealDataDialogOpen}
+        onOpenChange={setDealDataDialogOpen}
+        dealData={extractedDealData}
+        fileUrl={fileUrl}
+        onSave={(data) => saveDealMutation.mutate(data)}
+        isSaving={saveDealMutation.isPending}
+      />
     </div>
+  );
+}
+
+// Contract Data Review Dialog Component
+function ContractDataReviewDialog({ open, onOpenChange, contractData, fileUrl, onSave, isSaving }) {
+  const [formData, setFormData] = useState({});
+
+  React.useEffect(() => {
+    if (contractData && open) {
+      setFormData({
+        contract_type: contractData.contract_type || "sale",
+        property_title: contractData.property_title || "",
+        property_address: contractData.property_address || "",
+        contract_value: contractData.contract_value || "",
+        monthly_value: contractData.monthly_value || "",
+        party_a_name: contractData.party_a_name || "",
+        party_a_email: contractData.party_a_email || "",
+        party_a_phone: contractData.party_a_phone || "",
+        party_a_nif: contractData.party_a_nif || "",
+        party_b_name: contractData.party_b_name || "",
+        party_b_email: contractData.party_b_email || "",
+        party_b_phone: contractData.party_b_phone || "",
+        party_b_nif: contractData.party_b_nif || "",
+        signature_date: contractData.signature_date || "",
+        deed_date: contractData.deed_date || "",
+        start_date: contractData.start_date || "",
+        end_date: contractData.end_date || "",
+        deposit_amount: contractData.deposit_amount || "",
+        commission_amount: contractData.commission_amount || "",
+        notes: contractData.notes || "",
+        status: "draft",
+        documents: fileUrl ? [{
+          name: "Documento OCR",
+          url: fileUrl,
+          upload_date: new Date().toISOString(),
+          type: "contract"
+        }] : []
+      });
+    }
+  }, [contractData, fileUrl, open]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      ...formData,
+      contract_value: formData.contract_value ? Number(formData.contract_value) : 0,
+      monthly_value: formData.monthly_value ? Number(formData.monthly_value) : undefined,
+      deposit_amount: formData.deposit_amount ? Number(formData.deposit_amount) : undefined,
+      commission_amount: formData.commission_amount ? Number(formData.commission_amount) : undefined
+    };
+    onSave(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FileSignature className="w-5 h-5 text-blue-600" />
+            Rever e Criar Contrato
+          </DialogTitle>
+          <p className="text-sm text-slate-600">Reveja os dados extraídos e ajuste conforme necessário</p>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Tipo de Contrato *</Label>
+              <select
+                value={formData.contract_type}
+                onChange={(e) => setFormData({...formData, contract_type: e.target.value})}
+                className="w-full h-10 px-3 rounded-md border border-slate-200"
+                required
+              >
+                <option value="sale">Venda</option>
+                <option value="purchase">Compra</option>
+                <option value="lease">Arrendamento</option>
+              </select>
+            </div>
+            <div>
+              <Label>Valor do Contrato (€) *</Label>
+              <Input
+                type="number"
+                required
+                value={formData.contract_value}
+                onChange={(e) => setFormData({...formData, contract_value: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Imóvel *</Label>
+            <Input
+              required
+              value={formData.property_title}
+              onChange={(e) => setFormData({...formData, property_title: e.target.value})}
+              placeholder="Título do imóvel"
+            />
+          </div>
+
+          <div>
+            <Label>Morada do Imóvel</Label>
+            <Input
+              value={formData.property_address}
+              onChange={(e) => setFormData({...formData, property_address: e.target.value})}
+              placeholder="Morada completa"
+            />
+          </div>
+
+          {/* Party A */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-600" />
+              Parte A (Vendedor/Senhorio)
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome Completo *</Label>
+                <Input
+                  required
+                  value={formData.party_a_name}
+                  onChange={(e) => setFormData({...formData, party_a_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={formData.party_a_email}
+                  onChange={(e) => setFormData({...formData, party_a_email: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input
+                  value={formData.party_a_phone}
+                  onChange={(e) => setFormData({...formData, party_a_phone: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input
+                  value={formData.party_a_nif}
+                  onChange={(e) => setFormData({...formData, party_a_nif: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Party B */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <User className="w-4 h-4 text-green-600" />
+              Parte B (Comprador/Inquilino)
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome Completo *</Label>
+                <Input
+                  required
+                  value={formData.party_b_name}
+                  onChange={(e) => setFormData({...formData, party_b_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={formData.party_b_email}
+                  onChange={(e) => setFormData({...formData, party_b_email: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input
+                  value={formData.party_b_phone}
+                  onChange={(e) => setFormData({...formData, party_b_phone: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input
+                  value={formData.party_b_nif}
+                  onChange={(e) => setFormData({...formData, party_b_nif: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Details */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Euro className="w-4 h-4 text-green-600" />
+              Valores
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {formData.contract_type === 'lease' && (
+                <div>
+                  <Label>Valor Mensal (€)</Label>
+                  <Input
+                    type="number"
+                    value={formData.monthly_value}
+                    onChange={(e) => setFormData({...formData, monthly_value: e.target.value})}
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Caução/Sinal (€)</Label>
+                <Input
+                  type="number"
+                  value={formData.deposit_amount}
+                  onChange={(e) => setFormData({...formData, deposit_amount: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Comissão (€)</Label>
+                <Input
+                  type="number"
+                  value={formData.commission_amount}
+                  onChange={(e) => setFormData({...formData, commission_amount: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-purple-600" />
+              Datas Importantes
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Data de Assinatura</Label>
+                <Input
+                  type="date"
+                  value={formData.signature_date}
+                  onChange={(e) => setFormData({...formData, signature_date: e.target.value})}
+                />
+              </div>
+              {formData.contract_type !== 'lease' && (
+                <div>
+                  <Label>Data de Escritura</Label>
+                  <Input
+                    type="date"
+                    value={formData.deed_date}
+                    onChange={(e) => setFormData({...formData, deed_date: e.target.value})}
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Data de Início</Label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                />
+              </div>
+              {formData.contract_type === 'lease' && (
+                <div>
+                  <Label>Data de Fim</Label>
+                  <Input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label>Notas</Label>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              rows={3}
+              placeholder="Observações adicionais..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSaving} className="flex-1 bg-blue-600 hover:bg-blue-700">
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A criar...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Criar Contrato
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Deal Data Review Dialog Component
+function DealDataReviewDialog({ open, onOpenChange, dealData, fileUrl, onSave, isSaving }) {
+  const [formData, setFormData] = useState({});
+
+  React.useEffect(() => {
+    if (dealData && open) {
+      setFormData({
+        deal_name: dealData.deal_name || `${dealData.contract_type === 'sale' ? 'Venda' : dealData.contract_type === 'purchase' ? 'Compra' : 'Arrendamento'} - ${dealData.property_title || 'Imóvel'}`,
+        property_title: dealData.property_title || "",
+        property_address: dealData.property_address || "",
+        deal_type: dealData.contract_type || "sale",
+        deal_value: dealData.contract_value || "",
+        buyer_name: dealData.party_b_name || "",
+        buyer_nif: dealData.party_b_nif || "",
+        seller_name: dealData.party_a_name || "",
+        seller_nif: dealData.party_a_nif || "",
+        status: "in_progress",
+        completion_date: dealData.deed_date || dealData.signature_date || "",
+        notes: dealData.notes || "",
+        documents: fileUrl ? [{
+          name: "Documento OCR",
+          category: dealData.document_type === 'cpcv' ? 'cpcv' : dealData.document_type === 'escritura' ? 'escritura' : 'other',
+          url: fileUrl,
+          upload_date: new Date().toISOString()
+        }] : []
+      });
+    }
+  }, [dealData, fileUrl, open]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const data = {
+      ...formData,
+      deal_value: formData.deal_value ? Number(formData.deal_value) : 0
+    };
+    onSave(data);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-purple-600" />
+            Rever e Criar Negócio
+          </DialogTitle>
+          <p className="text-sm text-slate-600">Reveja os dados extraídos e ajuste conforme necessário</p>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Nome do Negócio *</Label>
+              <Input
+                required
+                value={formData.deal_name}
+                onChange={(e) => setFormData({...formData, deal_name: e.target.value})}
+                placeholder="Ex: Venda T3 Lisboa"
+              />
+            </div>
+            <div>
+              <Label>Tipo de Negócio *</Label>
+              <select
+                value={formData.deal_type}
+                onChange={(e) => setFormData({...formData, deal_type: e.target.value})}
+                className="w-full h-10 px-3 rounded-md border border-slate-200"
+                required
+              >
+                <option value="sale">Venda</option>
+                <option value="purchase">Compra</option>
+                <option value="lease">Arrendamento</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Imóvel</Label>
+              <Input
+                value={formData.property_title}
+                onChange={(e) => setFormData({...formData, property_title: e.target.value})}
+                placeholder="Título do imóvel"
+              />
+            </div>
+            <div>
+              <Label>Valor do Negócio (€)</Label>
+              <Input
+                type="number"
+                value={formData.deal_value}
+                onChange={(e) => setFormData({...formData, deal_value: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Morada do Imóvel</Label>
+            <Input
+              value={formData.property_address}
+              onChange={(e) => setFormData({...formData, property_address: e.target.value})}
+            />
+          </div>
+
+          {/* Buyer Info */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <User className="w-4 h-4 text-green-600" />
+              Comprador/Inquilino
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome Completo</Label>
+                <Input
+                  value={formData.buyer_name}
+                  onChange={(e) => setFormData({...formData, buyer_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input
+                  value={formData.buyer_nif}
+                  onChange={(e) => setFormData({...formData, buyer_nif: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Seller Info */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-600" />
+              Vendedor/Senhorio
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Nome Completo</Label>
+                <Input
+                  value={formData.seller_name}
+                  onChange={(e) => setFormData({...formData, seller_name: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>NIF</Label>
+                <Input
+                  value={formData.seller_nif}
+                  onChange={(e) => setFormData({...formData, seller_nif: e.target.value})}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Completion Date */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <Label>Data de Conclusão</Label>
+              <Input
+                type="date"
+                value={formData.completion_date}
+                onChange={(e) => setFormData({...formData, completion_date: e.target.value})}
+              />
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label>Notas</Label>
+            <Textarea
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              rows={3}
+              placeholder="Observações adicionais..."
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSaving} className="flex-1 bg-purple-600 hover:bg-purple-700">
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A criar...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Criar Negócio
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
