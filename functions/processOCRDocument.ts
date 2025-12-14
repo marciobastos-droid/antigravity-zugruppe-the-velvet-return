@@ -20,21 +20,23 @@ Deno.serve(async (req) => {
 
         // Extract property and contact data
         const extractedData = await base44.integrations.Core.InvokeLLM({
-            prompt: `Analisa este documento PDF e extrai TODAS as informações de imóveis e contactos que encontrares.
+            prompt: `Analisa este documento PDF e extrai TODAS as informações de imóveis, contactos e dados de contrato que encontrares.
 
 INSTRUÇÕES CRÍTICAS:
 1. Extrai dados de TODOS os imóveis mencionados no documento
 2. Extrai dados de TODOS os contactos/pessoas/empresas mencionados
-3. Identifica se é um documento de angariação, avaliação, proposta, contrato, etc.
+3. Identifica se é um documento de angariação, avaliação, proposta, CPCV, Escritura, etc.
 4. Extrai preços, áreas, características técnicas, datas importantes
+5. **NOVO**: Se for CPCV ou Escritura, extrai informação estruturada do contrato
 
 FORMATO DE SAÍDA:
 Retorna um objeto JSON com:
 {
-    "document_type": "tipo do documento (avaliação/proposta/contrato/angariação/outro)",
+    "document_type": "tipo do documento (cpcv/escritura/avaliação/proposta/contrato/angariação/outro)",
     "properties": [array de imóveis encontrados com todos os campos possíveis],
     "contacts": [array de contactos encontrados],
     "important_dates": [array de datas relevantes],
+    "contract_data": {objeto com dados estruturados do contrato - APENAS se for CPCV ou Escritura},
     "summary": "resumo breve do documento"
 }
 
@@ -52,6 +54,30 @@ CAMPOS DE CONTACTO (extrai todos que encontrares):
 - company_name (se for empresa)
 - role (proprietário/vendedor/comprador/mediador/notário/outro)
 - address, notes
+
+**CAMPOS DE CONTRATO** (extrai APENAS se document_type for "cpcv" ou "escritura"):
+- document_type: "cpcv" ou "escritura"
+- contract_type: "sale", "purchase", ou "lease"
+- property_title: título/descrição do imóvel
+- property_address: morada completa do imóvel
+- contract_value: valor total do contrato/venda
+- monthly_value: valor mensal (se arrendamento)
+- party_a_name: nome completo da Parte A (Vendedor/Senhorio)
+- party_a_email: email da Parte A
+- party_a_phone: telefone da Parte A
+- party_a_nif: NIF da Parte A
+- party_b_name: nome completo da Parte B (Comprador/Inquilino)
+- party_b_email: email da Parte B
+- party_b_phone: telefone da Parte B
+- party_b_nif: NIF da Parte B
+- signature_date: data de assinatura do contrato (formato YYYY-MM-DD)
+- deed_date: data da escritura (formato YYYY-MM-DD)
+- start_date: data de início do contrato
+- end_date: data de fim (se arrendamento)
+- deposit_amount: valor da caução/sinal
+- commission_amount: valor da comissão
+- notes: observações relevantes do documento
+- deal_name: sugestão de nome para o negócio (ex: "Venda T3 Lisboa - João Silva")
 
 Se não encontrares algum campo, não o incluas.`,
             file_urls: [file_url],
@@ -111,6 +137,33 @@ Se não encontrares algum campo, não o incluas.`,
                                 address: { type: "string" },
                                 notes: { type: "string" }
                             }
+                        }
+                    },
+                    contract_data: {
+                        type: "object",
+                        properties: {
+                            document_type: { type: "string" },
+                            contract_type: { type: "string" },
+                            property_title: { type: "string" },
+                            property_address: { type: "string" },
+                            contract_value: { type: "number" },
+                            monthly_value: { type: "number" },
+                            party_a_name: { type: "string" },
+                            party_a_email: { type: "string" },
+                            party_a_phone: { type: "string" },
+                            party_a_nif: { type: "string" },
+                            party_b_name: { type: "string" },
+                            party_b_email: { type: "string" },
+                            party_b_phone: { type: "string" },
+                            party_b_nif: { type: "string" },
+                            signature_date: { type: "string" },
+                            deed_date: { type: "string" },
+                            start_date: { type: "string" },
+                            end_date: { type: "string" },
+                            deposit_amount: { type: "number" },
+                            commission_amount: { type: "number" },
+                            notes: { type: "string" },
+                            deal_name: { type: "string" }
                         }
                     },
                     important_dates: {
