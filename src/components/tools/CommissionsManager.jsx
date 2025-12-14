@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import CommissionConfigEditor from "../team/CommissionConfigEditor";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import CommissionsReports from "./CommissionsReports";
 
