@@ -278,6 +278,8 @@ export default function MyListings() {
   const { logAction } = useAuditLog();
   const [selectedProperties, setSelectedProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [cardPage, setCardPage] = useState(1);
+  const loadMoreRef = React.useRef(null);
   const [viewingNotes, setViewingNotes] = useState(null);
   const [editingProperty, setEditingProperty] = useState(null);
   const [activeTab, setActiveTab] = useState("properties");
@@ -332,7 +334,7 @@ export default function MyListings() {
     visibility: "all"
   });
   
-  const ITEMS_PER_PAGE = viewMode === "cards" ? 40 : 30;
+  const ITEMS_PER_PAGE = viewMode === "cards" ? 20 : 30; // Reduzir inicial para cards
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -355,7 +357,8 @@ export default function MyListings() {
   const { data: systemTags = [] } = useQuery({
     queryKey: ['tags'],
     queryFn: () => base44.entities.Tag.list('name'),
-    ...QUERY_CONFIG.static
+    staleTime: 300000, // Cache 5 min
+    gcTime: 600000
   });
 
   // Filtrar apenas tags de imóveis ou gerais
@@ -367,7 +370,8 @@ export default function MyListings() {
   const { data: developments = [] } = useQuery({
     queryKey: ['developments'],
     queryFn: () => base44.entities.Development.list('name'),
-    ...QUERY_CONFIG.properties
+    staleTime: 60000, // Cache 1 min
+    gcTime: 120000
   });
 
   // Buscar consultores
@@ -387,7 +391,8 @@ export default function MyListings() {
         user_type: u.user_type
       }));
     },
-    ...QUERY_CONFIG.agents
+    staleTime: 120000, // Cache 2 min
+    gcTime: 300000
   });
 
   // Fetch total count for metadata
@@ -411,11 +416,11 @@ export default function MyListings() {
   });
 
   const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['myProperties', user?.email, userPermissions, currentPage, filters],
+    queryKey: ['myProperties', user?.email, userPermissions],
     queryFn: async () => {
       if (!user) return [];
       
-      // Fetch all properties for client-side filtering (Base44 doesn't support complex server filters)
+      // Fetch all properties once
       const allProperties = await base44.entities.Property.list('-updated_date');
       
       const userType = user.user_type?.toLowerCase() || '';
@@ -447,7 +452,8 @@ export default function MyListings() {
       );
     },
     enabled: !!user,
-    ...QUERY_CONFIG.properties
+    staleTime: 30000, // Cache por 30s
+    gcTime: 60000
   });
 
   const deleteMutation = useMutation({
@@ -1171,17 +1177,45 @@ export default function MyListings() {
   }, [filteredProperties]);
   
   // Pagination - memoized
-  const totalPages = useMemo(() => Math.ceil(filteredProperties.length / ITEMS_PER_PAGE), [filteredProperties.length]);
+  const totalPages = useMemo(() => Math.ceil(filteredProperties.length / ITEMS_PER_PAGE), [filteredProperties.length, ITEMS_PER_PAGE]);
+  
+  // Para tabela: paginação normal
   const paginatedProperties = useMemo(() => {
+    if (viewMode !== "table") return filteredProperties;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredProperties, currentPage]);
+  }, [filteredProperties, currentPage, viewMode, ITEMS_PER_PAGE]);
+  
+  // Para cards: infinite scroll
+  const cardsToShow = useMemo(() => {
+    if (viewMode !== "cards") return paginatedProperties;
+    return filteredProperties.slice(0, cardPage * ITEMS_PER_PAGE);
+  }, [filteredProperties, cardPage, viewMode, paginatedProperties, ITEMS_PER_PAGE]);
   
   // Reset to page 1 when filters change - use stringified version to prevent infinite loops
   const filtersString = JSON.stringify(filters);
   useEffect(() => { 
-    setCurrentPage(1); 
+    setCurrentPage(1);
+    setCardPage(1); // Reset cards infinite scroll
   }, [filtersString]);
+  
+  // Infinite scroll observer for cards view
+  useEffect(() => {
+    if (viewMode !== "cards" || !loadMoreRef.current) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && cardPage * ITEMS_PER_PAGE < filteredProperties.length) {
+          setCardPage(prev => prev + 1);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    
+    observer.observe(loadMoreRef.current);
+    
+    return () => observer.disconnect();
+  }, [viewMode, cardPage, filteredProperties.length, ITEMS_PER_PAGE]);
 
   // Reset city filter when state changes
   const prevStateRef = React.useRef(filters.state);
@@ -1498,7 +1532,7 @@ export default function MyListings() {
                     <Layers className="w-4 h-4" />
                   </Button>
                 </div>
-                {totalPages > 1 && (viewMode === "cards" || viewMode === "table") && (
+                {viewMode === "table" && totalPages > 1 && (
                   <p className="text-xs sm:text-sm text-slate-600 hidden md:block">
                     Página {currentPage} de {totalPages}
                   </p>
@@ -1579,7 +1613,7 @@ export default function MyListings() {
                               ) : (
             <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {paginatedProperties.map((property) => (
+              {cardsToShow.map((property) => (
                 <PropertyCard
                   key={property.id}
                   property={property}
@@ -1599,53 +1633,18 @@ export default function MyListings() {
                 />
               ))}
             </div>
-            {totalPages > 1 && (
-              <div className="mt-6 sm:mt-8">
-                <Pagination>
-                  <PaginationContent className="flex-wrap gap-1">
-                    <PaginationItem>
-                      <PaginationPrevious 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                    {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                      let page;
-                      if (totalPages <= 5) {
-                        page = i + 1;
-                      } else if (currentPage <= 3) {
-                        page = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        page = totalPages - 4 + i;
-                      } else {
-                        page = currentPage - 2 + i;
-                      }
-
-                      return (
-                        <PaginationItem key={page} className="hidden sm:block">
-                          <PaginationLink
-                            onClick={() => setCurrentPage(page)}
-                            isActive={currentPage === page}
-                            className="cursor-pointer"
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      );
-                    })}
-                    <PaginationItem className="sm:hidden">
-                      <span className="text-sm text-slate-600 px-2">
-                        {currentPage} / {totalPages}
-                      </span>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext 
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+            
+            {/* Infinite Scroll Trigger */}
+            {cardPage * ITEMS_PER_PAGE < filteredProperties.length && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
+              </div>
+            )}
+            
+            {/* Show total loaded */}
+            {cardsToShow.length > 0 && (
+              <div className="text-center mt-4 text-sm text-slate-500">
+                A mostrar {cardsToShow.length} de {filteredProperties.length} imóveis
               </div>
             )}
             </>
