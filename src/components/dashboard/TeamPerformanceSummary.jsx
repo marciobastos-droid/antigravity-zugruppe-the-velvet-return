@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Award, TrendingUp, TrendingDown, Users, Target, Building2, Star, Trophy } from "lucide-react";
+import { Award, TrendingUp, TrendingDown, Users, Target, Building2, Star } from "lucide-react";
 import { useAgentNames } from "../common/useAgentNames";
 
 export default function TeamPerformanceSummary({ 
