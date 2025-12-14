@@ -179,9 +179,36 @@ export default function OpportunitiesContent() {
   };
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Opportunity.update(id, data),
+    mutationFn: async ({ id, data }) => {
+      const result = await base44.entities.Opportunity.update(id, data);
+      
+      // Auto-generate commission if status changed to won/closed
+      if ((data.status === 'won' || data.status === 'closed') && user) {
+        const opportunity = opportunities.find(o => o.id === id);
+        const previousStatus = opportunity?.status;
+        
+        // Only generate if status actually changed to won/closed
+        if (previousStatus && previousStatus !== 'won' && previousStatus !== 'closed') {
+          try {
+            const commissionResponse = await base44.functions.invoke('autoGenerateCommissions', {
+              opportunity_id: id
+            });
+            
+            if (commissionResponse.data.success) {
+              toast.success('Comissão gerada automaticamente! 💰');
+            }
+          } catch (error) {
+            console.error('Error auto-generating commission:', error);
+            // Don't fail the whole update if commission generation fails
+          }
+        }
+      }
+      
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['commissions'] });
     },
   });
 
