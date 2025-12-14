@@ -75,6 +75,11 @@ export default function CommissionsManager() {
     queryFn: () => base44.entities.Opportunity.filter({ status: 'won' }),
   });
 
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['clientContacts'],
+    queryFn: () => base44.entities.ClientContact.list('full_name'),
+  });
+
   const agents = users.filter(u => u.is_active !== false);
 
   const createMutation = useMutation({
@@ -434,23 +439,62 @@ export default function CommissionsManager() {
 
                 <div className="border-t pt-4">
                   <h4 className="font-medium mb-3">Proprietário/Promotor</h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <Label>Nome do Proprietário/Promotor</Label>
-                      <Input
-                        value={formData.client_name}
-                        onChange={(e) => setFormData({...formData, client_name: e.target.value})}
-                        placeholder="Nome do proprietário ou promotor"
-                      />
+                      <Label>Selecionar Contacto (opcional)</Label>
+                      <Select 
+                        value="" 
+                        onValueChange={(contactId) => {
+                          const contact = contacts.find(c => c.id === contactId);
+                          if (contact) {
+                            setFormData({
+                              ...formData,
+                              client_name: contact.full_name || '',
+                              client_email: contact.email || ''
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Escolher da lista de contactos..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contacts.filter(c => 
+                            c.contact_type === 'owner' || 
+                            c.contact_type === 'promoter' || 
+                            c.contact_type === 'client' ||
+                            c.contact_type === 'partner'
+                          ).map(contact => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                              {contact.full_name}
+                              {contact.company_name && ` (${contact.company_name})`}
+                              {contact.email && ` - ${contact.email}`}
+                            </SelectItem>
+                          ))}
+                          {contacts.length === 0 && (
+                            <SelectItem value="none" disabled>Sem contactos</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div>
-                      <Label>Email do Proprietário/Promotor</Label>
-                      <Input
-                        type="email"
-                        value={formData.client_email}
-                        onChange={(e) => setFormData({...formData, client_email: e.target.value})}
-                        placeholder="email@exemplo.com"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Nome do Proprietário/Promotor</Label>
+                        <Input
+                          value={formData.client_name}
+                          onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+                          placeholder="Nome do proprietário ou promotor"
+                        />
+                      </div>
+                      <div>
+                        <Label>Email do Proprietário/Promotor</Label>
+                        <Input
+                          type="email"
+                          value={formData.client_email}
+                          onChange={(e) => setFormData({...formData, client_email: e.target.value})}
+                          placeholder="email@exemplo.com"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
