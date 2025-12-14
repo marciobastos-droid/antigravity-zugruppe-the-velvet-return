@@ -308,6 +308,7 @@ export default function MyListings() {
   const [marketingPlanOpen, setMarketingPlanOpen] = useState(false);
   const [selectedPropertyForPlan, setSelectedPropertyForPlan] = useState(null);
   
+  const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -333,6 +334,15 @@ export default function MyListings() {
     published_pages: [],
     visibility: "all"
   });
+  
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchInput }));
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchInput]);
   
   const ITEMS_PER_PAGE = viewMode === "cards" ? 20 : 30; // Reduzir inicial para cards
 
@@ -1332,8 +1342,11 @@ export default function MyListings() {
         {/* Advanced Filters */}
         <AdvancedFilters
           filterConfig={filterConfig}
-          filters={filters}
-          onFiltersChange={setFilters}
+          filters={{ ...filters, search: searchInput }}
+          onFiltersChange={(newFilters) => {
+            setSearchInput(newFilters.search || "");
+            setFilters(newFilters);
+          }}
           savedFiltersKey="properties"
           totalCount={properties.length}
           filteredCount={filteredProperties.length}
