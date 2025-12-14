@@ -74,7 +74,7 @@ export default function CommissionsManager() {
     queryFn: () => base44.entities.Opportunity.filter({ status: 'won' }),
   });
 
-  const agents = users.filter(u => u.user_type === 'agente' || u.user_type === 'gestor' || u.user_type === 'admin');
+  const agents = users.filter(u => u.is_active !== false);
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Commission.create(data),
