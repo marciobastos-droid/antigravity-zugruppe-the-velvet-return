@@ -41,6 +41,7 @@ export default function CommissionsManager() {
   const [dateRange, setDateRange] = useState({ start: "", end: "" });
 
   const [formData, setFormData] = useState({
+    opportunity_id: "",
     property_title: "",
     deal_type: "sale",
     deal_value: "",
@@ -106,6 +107,7 @@ export default function CommissionsManager() {
     setDialogOpen(false);
     setEditingCommission(null);
     setFormData({
+      opportunity_id: "",
       property_title: "",
       deal_type: "sale",
       deal_value: "",
@@ -128,6 +130,7 @@ export default function CommissionsManager() {
   const handleEdit = (commission) => {
     setEditingCommission(commission);
     setFormData({
+      opportunity_id: commission.opportunity_id || "",
       property_title: commission.property_title || "",
       deal_type: commission.deal_type || "sale",
       deal_value: commission.deal_value?.toString() || "",
@@ -287,6 +290,42 @@ export default function CommissionsManager() {
               </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label>Oportunidade Fechada (opcional)</Label>
+                    <Select 
+                      value={formData.opportunity_id} 
+                      onValueChange={(oppId) => {
+                        const opp = opportunities.find(o => o.id === oppId);
+                        if (opp) {
+                          setFormData({
+                            ...formData,
+                            opportunity_id: oppId,
+                            property_title: opp.property_title || formData.property_title,
+                            client_name: opp.buyer_name || formData.client_name,
+                            client_email: opp.buyer_email || formData.client_email,
+                            agent_email: opp.assigned_to || formData.agent_email,
+                            agent_name: opp.assigned_agent_name || formData.agent_name,
+                            deal_value: opp.estimated_value?.toString() || formData.deal_value
+                          });
+                        } else {
+                          setFormData({...formData, opportunity_id: ""});
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar oportunidade..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Nenhuma (manual)</SelectItem>
+                        {opportunities.map(opp => (
+                          <SelectItem key={opp.id} value={opp.id}>
+                            {opp.buyer_name} - {opp.property_title || 'Sem título'} 
+                            {opp.estimated_value ? ` (€${opp.estimated_value.toLocaleString()})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="col-span-2">
                     <Label>Imóvel</Label>
                     <Input
@@ -650,37 +689,43 @@ export default function CommissionsManager() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <DollarSign className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-slate-900 truncate">
-                            {commission.property_title || 'Sem título'}
-                          </h3>
-                          <Badge className={status.color}>
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {status.label}
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <DollarSign className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-slate-900 truncate">
+                          {commission.property_title || 'Sem título'}
+                        </h3>
+                        {commission.opportunity_id && (
+                          <Badge variant="outline" className="text-xs">
+                            <Target className="w-3 h-3 mr-1" />
+                            Oportunidade
                           </Badge>
-                        </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
-                          {commission.client_name && (
-                            <span className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              {commission.client_name}
-                            </span>
-                          )}
-                          {commission.agent_name && (
-                            <span>Agente: {commission.agent_name}</span>
-                          )}
-                          {commission.close_date && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {format(new Date(commission.close_date), 'dd/MM/yyyy')}
-                            </span>
-                          )}
-                        </div>
+                        )}
+                        <Badge className={status.color}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {status.label}
+                        </Badge>
                       </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                        {commission.client_name && (
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            {commission.client_name}
+                          </span>
+                        )}
+                        {commission.agent_name && (
+                          <span>Agente: {commission.agent_name}</span>
+                        )}
+                        {commission.close_date && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {format(new Date(commission.close_date), 'dd/MM/yyyy')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
