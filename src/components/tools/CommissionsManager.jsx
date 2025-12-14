@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import CommissionConfigEditor from "../team/CommissionConfigEditor";
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import CommissionsReports from "./CommissionsReports";
+import PayoutsManager from "./PayoutsManager";
 
 const STATUS_CONFIG = {
   pending: { label: "Pendente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -103,9 +104,24 @@ export default function CommissionsManager() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Commission.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (_, { id, data }) => {
       queryClient.invalidateQueries({ queryKey: ['commissions'] });
       toast.success("Comissão atualizada");
+      
+      // Auto-generate payouts when marked as paid
+      if (data.payment_status === 'paid') {
+        try {
+          const result = await base44.functions.invoke('generateCommissionPayouts', { commission_id: id });
+          if (result.data.success) {
+            toast.success(result.data.message);
+            queryClient.invalidateQueries({ queryKey: ['payouts'] });
+            queryClient.invalidateQueries({ queryKey: ['payoutBatches'] });
+          }
+        } catch (error) {
+          console.error('Error generating payouts:', error);
+        }
+      }
+      
       resetForm();
     },
   });
@@ -686,6 +702,10 @@ export default function CommissionsManager() {
             <Receipt className="w-4 h-4" />
             Comissões
           </TabsTrigger>
+          <TabsTrigger value="payouts" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
+            Pagamentos
+          </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileBarChart className="w-4 h-4" />
             Relatórios
@@ -972,6 +992,10 @@ export default function CommissionsManager() {
         )}
       </div>
 
+        </TabsContent>
+
+        <TabsContent value="payouts" className="mt-6">
+          <PayoutsManager />
         </TabsContent>
 
         <TabsContent value="reports" className="mt-6">
