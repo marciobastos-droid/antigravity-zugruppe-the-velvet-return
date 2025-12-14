@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
 
     // Get commission configuration
     const commissionConfig = agent.commission_config || {};
-    const defaultCommissionPercentage = commissionConfig.default_commission_percentage || 3;
     const agentSplitPercentage = commissionConfig.default_split_percentage || 50;
     const companySplitPercentage = commissionConfig.company_split_percentage || 50;
     const autoGenerate = commissionConfig.auto_generate_commissions !== false;
@@ -92,6 +91,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Get deal type first
+    let dealType = 'sale';
+    if (property?.listing_type === 'rent') {
+      dealType = 'rent';
+    } else if (opportunity.lead_type?.includes('arrendamento') || opportunity.lead_type?.includes('rent')) {
+      dealType = 'rent';
+    }
+
     // Calculate values
     const dealValue = opportunity.estimated_value || property?.price || 0;
     
@@ -101,17 +108,32 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const commissionValue = (dealValue * defaultCommissionPercentage) / 100;
+    // Determine commission percentage based on rules
+    let commissionPercentage = commissionConfig.default_commission_percentage || 3;
+    
+    // 1. Check for tiered rates (highest priority)
+    if (commissionConfig.tiered_rates && commissionConfig.tiered_rates.length > 0) {
+      const matchingTier = commissionConfig.tiered_rates
+        .sort((a, b) => a.min_value - b.min_value)
+        .find(tier => dealValue >= tier.min_value && dealValue <= tier.max_value);
+      
+      if (matchingTier) {
+        commissionPercentage = matchingTier.commission_percentage;
+      }
+    }
+    
+    // 2. Check for deal type specific rates (overrides default but not tiers)
+    if (!commissionConfig.tiered_rates?.length) {
+      if (dealType === 'sale' && commissionConfig.sale_commission_percentage) {
+        commissionPercentage = commissionConfig.sale_commission_percentage;
+      } else if (dealType === 'rent' && commissionConfig.rent_commission_percentage) {
+        commissionPercentage = commissionConfig.rent_commission_percentage;
+      }
+    }
+
+    const commissionValue = (dealValue * commissionPercentage) / 100;
     const agentCommission = (commissionValue * agentSplitPercentage) / 100;
     const partnerCommission = (commissionValue * companySplitPercentage) / 100;
-
-    // Get deal type
-    let dealType = 'sale';
-    if (property?.listing_type === 'rent') {
-      dealType = 'rent';
-    } else if (opportunity.lead_type?.includes('arrendamento') || opportunity.lead_type?.includes('rent')) {
-      dealType = 'rent';
-    }
 
     // Get client/owner info
     let clientName = opportunity.buyer_name || '';
@@ -130,7 +152,7 @@ Deno.serve(async (req) => {
       property_title: propertyTitle,
       deal_type: dealType,
       deal_value: dealValue,
-      commission_percentage: defaultCommissionPercentage,
+      commission_percentage: commissionPercentage,
       commission_value: commissionValue,
       agent_email: agentEmail,
       agent_name: agent.display_name || agent.full_name || agentEmail,
@@ -169,7 +191,7 @@ Deno.serve(async (req) => {
       commission: commission,
       calculation: {
         deal_value: dealValue,
-        commission_percentage: defaultCommissionPercentage,
+        commission_percentage: commissionPercentage,
         total_commission: commissionValue,
         agent_split: agentSplitPercentage,
         agent_commission: agentCommission,
