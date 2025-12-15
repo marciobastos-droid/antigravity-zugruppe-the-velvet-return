@@ -60,22 +60,22 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
   const meetsHardRequirements = (property) => {
     const req = requirements;
     
-    // Verificar tipo de negócio
+    // Verificar tipo de negócio (ESTRITO)
     if (req.listing_type && req.listing_type !== 'both') {
       if (property.listing_type !== req.listing_type) return false;
     }
     
-    // Verificar orçamento máximo (exclusivo)
+    // Verificar orçamento máximo (MAIS ESTRITO - apenas 5% tolerância)
     if (req.budget_max && req.budget_max > 0) {
-      if (property.price > req.budget_max * 1.1) return false; // 10% tolerância
+      if (property.price > req.budget_max * 1.05) return false;
     }
     
     // Verificar orçamento mínimo
     if (req.budget_min && req.budget_min > 0) {
-      if (property.price < req.budget_min * 0.8) return false; // 20% tolerância
+      if (property.price < req.budget_min * 0.9) return false;
     }
     
-    // Verificar localizações (se definidas)
+    // Verificar localizações (se definidas) - ESTRITO
     if (req.locations && req.locations.length > 0) {
       const propertyLocation = `${property.city || ''} ${property.state || ''} ${property.address || ''}`.toLowerCase();
       const matchesLocation = req.locations.some(loc => 
@@ -84,17 +84,17 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
       if (!matchesLocation) return false;
     }
     
-    // Verificar tipos de imóvel (se definidos)
+    // Verificar tipos de imóvel (se definidos) - ESTRITO
     if (req.property_types && req.property_types.length > 0) {
       if (!req.property_types.includes(property.property_type)) return false;
     }
     
-    // Verificar quartos mínimos
+    // Verificar quartos mínimos (ESTRITO)
     if (req.bedrooms_min && req.bedrooms_min > 0) {
       if (!property.bedrooms || property.bedrooms < req.bedrooms_min) return false;
     }
     
-    // Verificar quartos máximos
+    // Verificar quartos máximos (ESTRITO)
     if (req.bedrooms_max && req.bedrooms_max > 0) {
       if (property.bedrooms && property.bedrooms > req.bedrooms_max) return false;
     }
@@ -102,7 +102,7 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
     // Verificar área mínima
     if (req.area_min && req.area_min > 0) {
       const area = property.useful_area || property.square_feet || 0;
-      if (area < req.area_min * 0.9) return false; // 10% tolerância
+      if (area < req.area_min * 0.95) return false;
     }
     
     // Verificar casas de banho mínimas
@@ -129,7 +129,7 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
         }
       }
 
-      // Budget matching (40 points)
+      // Budget matching (40 points) - MAIS ESTRITO
       const budgetMax = req.budget_max || lead.budget;
       const budgetMin = req.budget_min || 0;
       if (budgetMax && budgetMax > 0) {
@@ -138,18 +138,21 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
         
         if (price >= budgetMin && price <= budgetMax) {
           score += 40;
-        } else if (price <= budgetMax * 1.1 && price >= budgetMin * 0.9) {
-          score += 30;
-        } else if (price <= budgetMax * 1.2) {
-          score += 15;
+        } else if (price <= budgetMax * 1.05 && price >= budgetMin * 0.95) {
+          score += 25;
+        } else if (price <= budgetMax * 1.1) {
+          score += 10;
         }
       }
 
-      // Property type matching (15 points)
+      // Property type matching (15 points) - ESTRITO
       if (req.property_types && req.property_types.length > 0) {
         maxScore += 15;
         if (req.property_types.includes(property.property_type)) {
           score += 15;
+        } else {
+          // Penalizar fortemente se não for o tipo certo
+          score += 0;
         }
       }
 
@@ -188,35 +191,42 @@ export default function LeadPropertyMatching({ lead, onAssociateProperty, onUpda
         }
       }
 
-      // Budget matching (40 points)
+      // Budget matching (40 points) - MAIS ESTRITO
       if (lead.budget && lead.budget > 0) {
         maxScore += 40;
         const budget = lead.budget;
         const price = property.price || 0;
         
-        if (price <= budget * 1.1 && price >= budget * 0.7) {
+        if (price <= budget && price >= budget * 0.8) {
           score += 40;
-        } else if (price <= budget * 1.2 && price >= budget * 0.5) {
+        } else if (price <= budget * 1.05 && price >= budget * 0.7) {
           score += 25;
-        } else if (price <= budget * 1.5) {
+        } else if (price <= budget * 1.1) {
           score += 10;
         }
       }
 
-      // Property type matching (20 points)
+      // Property type matching (20 points) - MAIS ESTRITO
       if (lead.property_type_interest) {
         maxScore += 20;
         const interest = lead.property_type_interest.toLowerCase();
         const propType = property.property_type?.toLowerCase() || '';
         
-        if (interest.includes(propType) || propType.includes(interest) ||
+        // Match exato tem prioridade
+        if (propType === interest ||
             (interest.includes('apartamento') && propType === 'apartment') ||
             (interest.includes('moradia') && propType === 'house') ||
+            (interest.includes('terreno') && propType === 'land') ||
+            (interest.includes('prédio') && propType === 'building') ||
+            (interest.includes('comercial') && propType === 'commercial')) {
+          score += 20;
+        } else if (
+            // Matches parciais têm pontuação reduzida
             (interest.includes('t1') && property.bedrooms === 1) ||
             (interest.includes('t2') && property.bedrooms === 2) ||
             (interest.includes('t3') && property.bedrooms === 3) ||
             (interest.includes('t4') && property.bedrooms >= 4)) {
-          score += 20;
+          score += 10;
         }
       }
 
