@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, Home, Phone, Mail, Clock, FileText } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
+import MeetingNotesGenerator from "../appointments/MeetingNotesGenerator";
 
 export default function AppointmentDetailsDialog({ event, open, onOpenChange }) {
+  const [notesDialogOpen, setNotesDialogOpen] = React.useState(false);
+  
   if (!event) return null;
 
   const typeLabels = {
@@ -98,6 +101,16 @@ export default function AppointmentDetailsDialog({ event, open, onOpenChange }) 
           </div>
 
           <div className="flex gap-2 pt-4 border-t">
+            {event.type === 'appointment' && (
+              <Button
+                variant="outline"
+                onClick={() => setNotesDialogOpen(true)}
+                className="flex-1"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Gerar Notas
+              </Button>
+            )}
             {event.type === 'appointment' && event.data?.property_id && (
               <Link to={`${createPageUrl("PropertyDetails")}?id=${event.data.property_id}`} className="flex-1">
                 <Button variant="outline" className="w-full">
@@ -122,6 +135,24 @@ export default function AppointmentDetailsDialog({ event, open, onOpenChange }) 
               </Link>
             )}
           </div>
+          
+          {event.type === 'appointment' && event.data && (
+            <MeetingNotesGenerator
+              appointment={{
+                id: event.data.id,
+                title: event.title,
+                appointment_date: event.date.toISOString(),
+                client_name: event.client,
+                assigned_agent: event.data.assigned_agent,
+                property_title: event.property,
+                property_address: event.data.property_address,
+                property_id: event.data.property_id,
+                notes: event.data.notes
+              }}
+              open={notesDialogOpen}
+              onOpenChange={setNotesDialogOpen}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>
