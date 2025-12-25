@@ -199,49 +199,18 @@ export default function PropertyDetails() {
   // Guest features hook - must be called before any conditional returns
   const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
 
-  const isSaved = savedProperties.some(sp => sp.property_id === propertyId);
-
   // Track engagement - must be called before any conditional returns
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
   
   // Track property view duration and history
   useTrackView(propertyId, property, 'website');
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (isSaved) {
-        const saved = savedProperties.find(sp => sp.property_id === propertyId);
-        await base44.entities.SavedProperty.delete(saved.id);
-      } else {
-        await base44.entities.SavedProperty.create({
-          property_id: propertyId,
-          property_title: property.title,
-          property_image: property.images?.[0],
-          user_email: user.email
-        });
-                // Track save action (only if user is authenticated)
-                if (user?.email) {
-                  trackAction('shortlisted', { user_email: user.email });
-                }
-              }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
-      toast.success(isSaved ? "Imóvel removido dos guardados" : "Imóvel guardado com sucesso!");
-    },
-  });
+  // ALL MEMOIZED VALUES MUST BE BEFORE CONDITIONAL RETURNS
+  const isSaved = React.useMemo(() => 
+    savedProperties.some(sp => sp.property_id === propertyId), 
+    [savedProperties, propertyId]
+  );
 
-  // ALL COMPUTED VALUES USING HOOKS MUST BE BEFORE EARLY RETURNS
-  // Generate SEO-friendly URL for meta tags
-  const seoCanonicalUrl = React.useMemo(() => {
-    if (property && typeof window !== 'undefined') {
-      const baseUrl = window.location.origin;
-      return `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
-    }
-    return typeof window !== 'undefined' ? window.location.href : '';
-  }, [property]);
-
-  // Memoize computed values
   const images = React.useMemo(() => {
     return property?.images && property.images.length > 0 
       ? property.images 
@@ -270,11 +239,9 @@ export default function PropertyDetails() {
       return null;
     }
 
-    // Try to find in allUsers first, then consultants
     let consultant = allUsers.find(u => u.email === property.assigned_consultant)
       || consultants.find(c => c.email === property.assigned_consultant);
 
-    // If not found in users list, use data stored in property itself
     if (!consultant && property.assigned_consultant_name) {
       consultant = {
         email: property.assigned_consultant,
@@ -288,7 +255,14 @@ export default function PropertyDetails() {
     return consultant;
   }, [property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo, allUsers, consultants]);
 
-  // SEO data
+  const seoCanonicalUrl = React.useMemo(() => {
+    if (property && typeof window !== 'undefined') {
+      const baseUrl = window.location.origin;
+      return `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
+    }
+    return typeof window !== 'undefined' ? window.location.href : '';
+  }, [property]);
+
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
   const metaDescription = React.useMemo(() => property ? generatePropertyMetaDescription(property) : '', [property]);
   const metaKeywords = React.useMemo(() => property ? generatePropertyKeywords(property) : '', [property]);
@@ -301,6 +275,30 @@ export default function PropertyDetails() {
     { locale: 'es-ES', url: `${seoCanonicalUrl}&lang=es` },
     { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
   ], [seoCanonicalUrl]);
+
+  // MUTATIONS MUST BE BEFORE CONDITIONAL RETURNS
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (isSaved) {
+        const saved = savedProperties.find(sp => sp.property_id === propertyId);
+        await base44.entities.SavedProperty.delete(saved.id);
+      } else {
+        await base44.entities.SavedProperty.create({
+          property_id: propertyId,
+          property_title: property.title,
+          property_image: property.images?.[0],
+          user_email: user.email
+        });
+        if (user?.email) {
+          trackAction('shortlisted', { user_email: user.email });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
+      toast.success(isSaved ? "Imóvel removido dos guardados" : "Imóvel guardado com sucesso!");
+    },
+  });
 
   // Callback functions - stable references
   const handleWhatsAppShare = React.useCallback(() => {
