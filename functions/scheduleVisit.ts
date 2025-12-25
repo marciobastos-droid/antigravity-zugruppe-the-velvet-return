@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+const CUSTOM_DOMAIN = 'https://zuhaus.pt';
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);

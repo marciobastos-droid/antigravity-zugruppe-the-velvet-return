@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
+const CUSTOM_DOMAIN = 'https://zuhaus.pt';
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -91,7 +93,7 @@ Deno.serve(async (req) => {
           <p><strong>Mensagem:</strong></p>
           <p>${message}</p>
           <br>
-          <p><a href="${Deno.env.get('BASE44_APP_URL') || 'https://zugruppe.base44.app'}/CRMAdvanced">Ver no CRM</a></p>
+          <p><a href="${CUSTOM_DOMAIN}/CRMAdvanced">Ver no CRM</a></p>
         `
       });
       console.log('[submitPublicContact] Email sent to:', recipientEmail);

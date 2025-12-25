@@ -198,10 +198,13 @@ export default function ReverseMatching() {
     try {
       const emailBody = `Olá ${profile.buyer_name},\n\nEncontrámos um imóvel que pode interessar:\n\n${selectedProperty.title}\n📍 ${selectedProperty.city}, ${selectedProperty.state}\n💰 €${selectedProperty.price?.toLocaleString()}\n${selectedProperty.bedrooms ? `🛏️ T${selectedProperty.bedrooms}` : ''}\n⭐ Match: ${profile.matchData.score}%\n\n${profile.matchData.explanation}\n\nVer imóvel: ${window.location.origin}${createPageUrl('PropertyDetails')}?id=${selectedProperty.id}\n\nCumprimentos,\nA sua equipa`;
 
+      const propertyUrl = `https://zuhaus.pt${createPageUrl('PropertyDetails')}?id=${selectedProperty.id}`;
+      const emailBodyWithUrl = `Olá ${profile.buyer_name},\n\nEncontrámos um imóvel que pode interessar:\n\n${selectedProperty.title}\n📍 ${selectedProperty.city}, ${selectedProperty.state}\n💰 €${selectedProperty.price?.toLocaleString()}\n${selectedProperty.bedrooms ? `🛏️ T${selectedProperty.bedrooms}` : ''}\n⭐ Match: ${profile.matchData.score}%\n\n${profile.matchData.explanation}\n\nVer imóvel: ${propertyUrl}\n\nCumprimentos,\nA sua equipa`;
+      
       await base44.integrations.Core.SendEmail({
         to: profile.buyer_email,
         subject: `Novo imóvel: ${selectedProperty.title}`,
-        body: emailBody
+        body: emailBodyWithUrl
       });
 
       toast.success(`Email enviado para ${profile.buyer_name}`);

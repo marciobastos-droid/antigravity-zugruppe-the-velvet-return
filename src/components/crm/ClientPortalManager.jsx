@@ -133,8 +133,7 @@ export default function ClientPortalManager({ client, onClose }) {
 
   const getPortalUrl = () => {
     if (!portalAccess) return "";
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/ClientPortal?token=${portalAccess.access_token}`;
+    return `https://zuhaus.pt/ClientPortal?token=${portalAccess.access_token}`;
   };
 
   const copyLink = () => {
