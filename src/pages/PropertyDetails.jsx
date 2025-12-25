@@ -168,15 +168,11 @@ export default function PropertyDetails() {
     queryFn: async () => {
       try {
         const users = await base44.entities.User.list();
-        console.log('[PropertyDetails] Loaded users for consultant dropdown:', users.length);
-        console.log('[PropertyDetails] Property assigned_consultant:', property?.assigned_consultant);
-        // Mostrar todos os utilizadores, ordenados por nome
         const sorted = users.sort((a, b) => {
           const nameA = a.display_name || a.full_name || a.email;
           const nameB = b.display_name || b.full_name || b.email;
           return nameA.localeCompare(nameB);
         });
-        console.log('[PropertyDetails] Sorted users:', sorted.map(u => ({ email: u.email, name: u.full_name })));
         return sorted;
       } catch (error) {
         console.error('[PropertyDetails] Error loading users:', error);
@@ -184,10 +180,15 @@ export default function PropertyDetails() {
       }
     },
     staleTime: 0,
-    cacheTime: 60000,
-    enabled: !!property
+    cacheTime: 60000
   });
 
+  // ALL CUSTOM HOOKS MUST BE CALLED UNCONDITIONALLY BEFORE ANY RETURNS
+  const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
+  const { trackAction } = usePropertyEngagement(propertyId, property?.title);
+  useTrackView(propertyId, property, 'website');
+
+  // ALL MUTATIONS MUST BE BEFORE CONDITIONAL RETURNS
   const updatePropertyMutation = useMutation({
     mutationFn: (data) => base44.entities.Property.update(propertyId, data),
     onSuccess: () => {
@@ -196,21 +197,31 @@ export default function PropertyDetails() {
     },
   });
 
-  // Guest features hook - must be called before any conditional returns
-  const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
-
-  // Track engagement - must be called before any conditional returns
-  const { trackAction } = usePropertyEngagement(propertyId, property?.title);
-  
-  // Track property view duration and history
-  useTrackView(propertyId, property, 'website');
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const saved = savedProperties.find(sp => sp.property_id === propertyId);
+      if (saved) {
+        await base44.entities.SavedProperty.delete(saved.id);
+      } else {
+        await base44.entities.SavedProperty.create({
+          property_id: propertyId,
+          property_title: property?.title || '',
+          property_image: property?.images?.[0] || '',
+          user_email: user?.email || ''
+        });
+        if (user?.email) {
+          trackAction('shortlisted', { user_email: user.email });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
+      const saved = savedProperties.find(sp => sp.property_id === propertyId);
+      toast.success(saved ? "Imóvel removido dos guardados" : "Imóvel guardado com sucesso!");
+    },
+  });
 
   // ALL MEMOIZED VALUES MUST BE BEFORE CONDITIONAL RETURNS
-  const isSaved = React.useMemo(() => 
-    savedProperties.some(sp => sp.property_id === propertyId), 
-    [savedProperties, propertyId]
-  );
-
   const images = React.useMemo(() => {
     return property?.images && property.images.length > 0 
       ? property.images 
@@ -276,29 +287,10 @@ export default function PropertyDetails() {
     { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
   ], [seoCanonicalUrl]);
 
-  // MUTATIONS MUST BE BEFORE CONDITIONAL RETURNS
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (isSaved) {
-        const saved = savedProperties.find(sp => sp.property_id === propertyId);
-        await base44.entities.SavedProperty.delete(saved.id);
-      } else {
-        await base44.entities.SavedProperty.create({
-          property_id: propertyId,
-          property_title: property.title,
-          property_image: property.images?.[0],
-          user_email: user.email
-        });
-        if (user?.email) {
-          trackAction('shortlisted', { user_email: user.email });
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
-      toast.success(isSaved ? "Imóvel removido dos guardados" : "Imóvel guardado com sucesso!");
-    },
-  });
+  const isSaved = React.useMemo(() => 
+    savedProperties.some(sp => sp.property_id === propertyId), 
+    [savedProperties, propertyId]
+  );
 
   // Callback functions - stable references
   const handleWhatsAppShare = React.useCallback(() => {
@@ -383,6 +375,7 @@ export default function PropertyDetails() {
     updatePropertyMutation.mutate({ visibility });
   }, [updatePropertyMutation]);
 
+  // NOW SAFE TO DO CONDITIONAL RETURNS - ALL HOOKS CALLED ABOVE
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
