@@ -64,3 +64,32 @@ export function useWebVitals(callback) {
     onINP(callback);
   }, [callback]);
 }
+
+/**
+ * Hook para coletar métricas de performance
+ */
+export function usePerformanceMetrics() {
+  const [metrics, setMetrics] = React.useState({});
+
+  React.useEffect(() => {
+    const updateMetric = (metric) => {
+      setMetrics(prev => ({
+        ...prev,
+        [metric.name.toLowerCase()]: {
+          value: metric.value,
+          rating: metric.rating,
+          delta: metric.delta
+        }
+      }));
+    };
+
+    onCLS(updateMetric);
+    onFID(updateMetric);
+    onFCP(updateMetric);
+    onLCP(updateMetric);
+    onTTFB(updateMetric);
+    onINP(updateMetric);
+  }, []);
+
+  return metrics;
+}
