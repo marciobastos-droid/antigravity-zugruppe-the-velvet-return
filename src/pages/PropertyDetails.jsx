@@ -265,7 +265,7 @@ export default function PropertyDetails() {
   }, [user, property?.created_by]);
 
   const assignedConsultant = React.useMemo(() => {
-    if (!property?.assigned_consultant) {
+    if (!property || !property.assigned_consultant) {
       return null;
     }
 
@@ -285,7 +285,7 @@ export default function PropertyDetails() {
     }
 
     return consultant;
-  }, [consultants, allUsers, property]);
+  }, [property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo, allUsers, consultants]);
 
   // SEO data
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
