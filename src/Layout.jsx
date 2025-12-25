@@ -15,7 +15,7 @@ import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 import PWAProvider from "./components/pwa/PWAProvider";
 import PWAInstaller from "./components/pwa/PWAInstaller";
 // Pages where layout should be minimal (no header/footer)
-const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails"];
+const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "TermsConditions", "PrivacyPolicy", "CookiePolicy"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
