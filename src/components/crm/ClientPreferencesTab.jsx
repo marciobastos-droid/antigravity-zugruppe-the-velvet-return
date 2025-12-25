@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
 import { debounce } from "lodash";
-import PropertyMatchingDialog from "./PropertyMatchingDialog";
+import PropertyMatchingDialog from "../clients/PropertyMatchingDialog";
 import AutomatedMatchesTab from "../clients/AutomatedMatchesTab";
 import AdvancedMatching from "../clients/AdvancedMatching";
 
