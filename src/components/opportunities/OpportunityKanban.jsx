@@ -19,13 +19,13 @@ import moment from "moment";
 import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
 
 const STAGES = [
-  { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", icon: Clock },
-  { id: "contacted", label: "Contactado", color: "bg-blue-50 border-blue-300", icon: Phone },
-  { id: "visit_scheduled", label: "Visita Agendada", color: "bg-purple-50 border-purple-300", icon: Calendar },
-  { id: "proposal", label: "Proposta", color: "bg-amber-50 border-amber-300", icon: Euro },
-  { id: "negotiation", label: "Negociação", color: "bg-orange-50 border-orange-300", icon: Building2 },
-  { id: "won", label: "Ganho", color: "bg-green-50 border-green-300", icon: CheckCircle2 },
-  { id: "lost", label: "Perdido", color: "bg-red-50 border-red-300", icon: XCircle }
+  { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", headerColor: "bg-gradient-to-r from-slate-100 to-slate-200", icon: Clock },
+  { id: "contacted", label: "Contactado", color: "bg-blue-50 border-blue-300", headerColor: "bg-gradient-to-r from-blue-100 to-blue-200", icon: Phone },
+  { id: "visit_scheduled", label: "Visita Agendada", color: "bg-purple-50 border-purple-300", headerColor: "bg-gradient-to-r from-purple-100 to-purple-200", icon: Calendar },
+  { id: "proposal", label: "Proposta", color: "bg-amber-50 border-amber-300", headerColor: "bg-gradient-to-r from-amber-100 to-amber-200", icon: Euro },
+  { id: "negotiation", label: "Negociação", color: "bg-orange-50 border-orange-300", headerColor: "bg-gradient-to-r from-orange-100 to-orange-200", icon: Building2 },
+  { id: "won", label: "Ganho", color: "bg-green-50 border-green-300", headerColor: "bg-gradient-to-r from-green-100 to-green-200", icon: CheckCircle2 },
+  { id: "lost", label: "Perdido", color: "bg-red-50 border-red-300", headerColor: "bg-gradient-to-r from-red-100 to-red-200", icon: XCircle }
 ];
 
 export default function OpportunityKanban({ 
@@ -48,6 +48,20 @@ export default function OpportunityKanban({
       const prob = o.probability || 50;
       return sum + (value * prob / 100);
     }, 0);
+  };
+
+  const calculateStageTotalValue = (stageId) => {
+    return getOpportunitiesByStage(stageId).reduce((sum, o) => {
+      return sum + (o.estimated_value || 0);
+    }, 0);
+  };
+
+  const calculateStageStats = (stageId) => {
+    const opps = getOpportunitiesByStage(stageId);
+    const hot = opps.filter(o => o.qualification_status === 'hot').length;
+    const warm = opps.filter(o => o.qualification_status === 'warm').length;
+    const cold = opps.filter(o => o.qualification_status === 'cold').length;
+    return { hot, warm, cold };
   };
 
   const getQualificationBadge = (status) => {
@@ -75,25 +89,67 @@ export default function OpportunityKanban({
         {STAGES.map((stage) => {
           const stageOpportunities = getOpportunitiesByStage(stage.id);
           const stageValue = calculateStageValue(stage.id);
+          const stageTotalValue = calculateStageTotalValue(stage.id);
+          const stageStats = calculateStageStats(stage.id);
           const StageIcon = stage.icon;
 
           return (
-            <div key={stage.id} className="flex-shrink-0 w-64">
-              <div className={`rounded-t-lg p-3 ${stage.color} border border-b-0`}>
-                <div className="flex items-center justify-between">
+            <div key={stage.id} className="flex-shrink-0 w-80">
+              <div className={`rounded-t-lg p-4 ${stage.headerColor} border border-b-0 shadow-sm`}>
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <StageIcon className="w-4 h-4" />
-                    <span className="font-semibold text-sm">{stage.label}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {stageOpportunities.length}
-                    </Badge>
+                    <div className={`p-2 rounded-lg ${stage.color} border`}>
+                      <StageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="font-bold text-sm block">{stage.label}</span>
+                      <span className="text-xs text-slate-600">{stageOpportunities.length} oportunidade{stageOpportunities.length !== 1 ? 's' : ''}</span>
+                    </div>
                   </div>
                 </div>
-                {stageValue > 0 && (
-                  <p className="text-xs text-slate-600 mt-1">
-                    €{Math.round(stageValue).toLocaleString()} ponderado
-                  </p>
-                )}
+
+                {/* Stats Section */}
+                <div className="space-y-2 text-xs">
+                  {/* Values */}
+                  {stageTotalValue > 0 && (
+                    <div className="bg-white/60 rounded-lg p-2 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Valor Total:</span>
+                        <span className="font-bold text-slate-900">€{Math.round(stageTotalValue).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Ponderado:</span>
+                        <span className="font-semibold text-blue-700">€{Math.round(stageValue).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Qualification Stats */}
+                  {(stageStats.hot > 0 || stageStats.warm > 0 || stageStats.cold > 0) && (
+                    <div className="bg-white/60 rounded-lg p-2">
+                      <div className="flex items-center gap-3 justify-center">
+                        {stageStats.hot > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            <span className="font-medium text-red-700">{stageStats.hot}</span>
+                          </div>
+                        )}
+                        {stageStats.warm > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                            <span className="font-medium text-amber-700">{stageStats.warm}</span>
+                          </div>
+                        )}
+                        {stageStats.cold > 0 && (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="font-medium text-blue-700">{stageStats.cold}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <Droppable droppableId={stage.id}>
@@ -101,12 +157,14 @@ export default function OpportunityKanban({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-h-[500px] border border-t-0 rounded-b-lg p-2 transition-colors ${
-                      snapshot.isDraggingOver ? 'bg-blue-50' : 'bg-slate-50'
+                    className={`min-h-[500px] border border-t-0 rounded-b-lg p-3 transition-all duration-200 ${
+                      snapshot.isDraggingOver 
+                        ? 'bg-blue-100/50 border-blue-400 shadow-inner' 
+                        : 'bg-slate-50/50'
                     }`}
                   >
                     <ScrollArea className="h-[500px]">
-                      <div className="space-y-2 pr-2">
+                      <div className="space-y-3 pr-2">
                         {stageOpportunities.map((opp, index) => (
                           <Draggable key={opp.id} draggableId={opp.id} index={index}>
                             {(provided, snapshot) => (
@@ -114,9 +172,9 @@ export default function OpportunityKanban({
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`bg-white rounded-lg shadow-sm border p-3 cursor-pointer hover:shadow-md transition-shadow ${
-                                  snapshot.isDragging ? 'shadow-lg' : ''
-                                } ${isOverdue(opp) ? 'border-red-300 bg-red-50' : ''}`}
+                                className={`bg-white rounded-lg border-2 p-3 cursor-move hover:shadow-lg transition-all ${
+                                  snapshot.isDragging ? 'shadow-2xl scale-105 rotate-2 border-blue-400' : 'shadow-sm border-slate-200'
+                                } ${isOverdue(opp) ? 'border-red-400 bg-red-50/50' : ''}`}
                                 onClick={() => onOpportunityClick(opp)}
                               >
                                 {/* Header */}
