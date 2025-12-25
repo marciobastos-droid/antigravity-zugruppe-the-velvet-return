@@ -254,6 +254,7 @@ export default function PropertyDetails() {
         p.id !== propertyId &&
         p.status === 'active' &&
         p.visibility === 'public' &&
+        p.published_pages?.length > 0 &&
         (p.city === property?.city || p.state === property?.state) &&
         p.property_type === property?.property_type
       )
