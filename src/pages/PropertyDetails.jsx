@@ -165,19 +165,23 @@ export default function PropertyDetails() {
       try {
         const users = await base44.entities.User.list();
         console.log('[PropertyDetails] Loaded users for consultant dropdown:', users.length);
+        console.log('[PropertyDetails] Property assigned_consultant:', property?.assigned_consultant);
         // Mostrar todos os utilizadores, ordenados por nome
-        return users.sort((a, b) => {
+        const sorted = users.sort((a, b) => {
           const nameA = a.display_name || a.full_name || a.email;
           const nameB = b.display_name || b.full_name || b.email;
           return nameA.localeCompare(nameB);
         });
+        console.log('[PropertyDetails] Sorted users:', sorted.map(u => ({ email: u.email, name: u.full_name })));
+        return sorted;
       } catch (error) {
         console.error('[PropertyDetails] Error loading users:', error);
         return [];
       }
     },
-    staleTime: 0, // Always fetch fresh data
-    cacheTime: 60000 // Cache for 1 minute
+    staleTime: 0,
+    cacheTime: 60000,
+    enabled: !!property
   });
 
   const updatePropertyMutation = useMutation({
@@ -257,8 +261,13 @@ export default function PropertyDetails() {
   }, [user, property?.created_by]);
 
   const assignedConsultant = React.useMemo(() => {
-    return allUsers.find(u => u.email === property?.assigned_consultant)
+    const consultant = allUsers.find(u => u.email === property?.assigned_consultant)
       || consultants.find(c => c.email === property?.assigned_consultant);
+    console.log('[PropertyDetails] assignedConsultant:', {
+      assigned_consultant_email: property?.assigned_consultant,
+      found_consultant: consultant ? { email: consultant.email, name: consultant.full_name || consultant.display_name } : null
+    });
+    return consultant;
   }, [consultants, allUsers, property?.assigned_consultant]);
 
   // SEO data
