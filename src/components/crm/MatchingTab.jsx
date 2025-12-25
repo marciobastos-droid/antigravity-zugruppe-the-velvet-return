@@ -20,13 +20,14 @@ import EnhancedPropertyMatching from "./EnhancedPropertyMatching";
 import AutomatedMatchesTab from "../clients/AutomatedMatchesTab";
 import AdvancedMatching from "../clients/AdvancedMatching";
 import ClientPreferencesTab from "./ClientPreferencesTab";
+import ReverseMatching from "../matching/ReverseMatching";
 
 export default function MatchingTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
   const [matchingOpen, setMatchingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("clients");
-  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled", "profiles", "automated", "advanced", "preferences"
+  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled", "profiles", "automated", "advanced", "preferences", "reverse"
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -171,7 +172,7 @@ export default function MatchingTab() {
 
       {/* View Mode Toggle */}
       <div className="flex justify-end flex-wrap gap-2">
-        <div className="flex border rounded-lg overflow-hidden">
+        <div className="flex border rounded-lg overflow-hidden flex-wrap">
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
             size="sm"
@@ -180,6 +181,15 @@ export default function MatchingTab() {
           >
             <Users className="w-4 h-4 mr-1" />
             Clientes
+          </Button>
+          <Button
+            variant={viewMode === "reverse" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("reverse")}
+            className="rounded-none text-xs"
+          >
+            <Target className="w-4 h-4 mr-1" />
+            Reverso
           </Button>
           <Button
             variant={viewMode === "preferences" ? "default" : "ghost"}
@@ -246,6 +256,10 @@ export default function MatchingTab() {
           </Button>
         </div>
       </div>
+
+      {viewMode === "reverse" && (
+        <ReverseMatching />
+      )}
 
       {viewMode === "preferences" && (
         <ClientPreferencesTab />

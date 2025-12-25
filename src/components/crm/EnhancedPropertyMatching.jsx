@@ -21,6 +21,8 @@ import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import MatchFeedbackWidget from "../matching/MatchFeedbackWidget";
+import AIRecommendationsPanel from "../clients/AIRecommendationsPanel";
 
 const DEFAULT_WEIGHTS = {
   listing_type: 30,
@@ -394,7 +396,11 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
 
       {/* Tabs for filtering */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+          <TabsTrigger value="ai" className="text-xs">
+            <Sparkles className="w-3 h-3 mr-1" />
+            IA
+          </TabsTrigger>
           <TabsTrigger value="all" className="text-xs">
             Todos ({scoredProperties.length})
           </TabsTrigger>
@@ -420,6 +426,10 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
             ({viewedCount})
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai" className="mt-4">
+          <AIRecommendationsPanel profile={profile} />
+        </TabsContent>
 
         <TabsContent value={activeTab} className="mt-4">
           <ScrollArea className="h-[600px] pr-4">
@@ -631,6 +641,18 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
                                   Marcar Visto
                                 </Button>
                               )}
+                            </div>
+
+                            {/* Feedback Widget */}
+                            <div className="mt-3">
+                              <MatchFeedbackWidget
+                                profileId={profile.id}
+                                propertyId={property.id}
+                                matchScore={property.matchData.score}
+                                matchDetails={property.matchData.breakdown}
+                                criteriaWeights={weights}
+                                compact={true}
+                              />
                             </div>
                           </div>
                         </div>
