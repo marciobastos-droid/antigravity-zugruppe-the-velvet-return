@@ -8,12 +8,12 @@ export default function CookiePolicy() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <Link to={createPageUrl("Home")}>
+        <a href="https://zuhaus.pt/">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
-        </Link>
+        </a>
 
         <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
           <div className="flex items-center gap-3 mb-6">

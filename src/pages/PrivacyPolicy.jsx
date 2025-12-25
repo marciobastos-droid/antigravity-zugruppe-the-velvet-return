@@ -7,13 +7,13 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <Link 
-          to={createPageUrl("Home")} 
+        <a 
+          href="https://zuhaus.pt/" 
           className="inline-flex items-center text-slate-600 hover:text-slate-900 mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
-        </Link>
+        </a>
 
         <div className="bg-white rounded-xl shadow-sm p-8 md:p-12">
           <div className="flex items-center gap-3 mb-8">
