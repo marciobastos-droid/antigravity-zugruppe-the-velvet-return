@@ -59,7 +59,7 @@ export default function Layout({ children, currentPageName }) {
   const userTypeNormalized = user?.user_type?.toLowerCase() || '';
   const isAdmin = user && (user.role === 'admin' || userTypeNormalized === 'admin' || userTypeNormalized === 'gestor');
   const isGestor = user && userTypeNormalized === 'gestor';
-  const isConsultant = user && userTypeNormalized === 'consultant';
+  const isConsultant = user && (userTypeNormalized === 'consultant' || userTypeNormalized === 'agente');
   const userType = userTypeNormalized || user?.role || 'user';
 
   // Debug: log user type info
@@ -86,7 +86,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant'], pagePermKey: 'tools' },
+    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant', 'agente'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
     { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
     ];
@@ -118,7 +118,7 @@ export default function Layout({ children, currentPageName }) {
       const hasTypeAccess = item.visibility.includes(userType) || 
                             (isAdmin && item.visibility.includes('admin')) ||
                             (isGestor && item.visibility.includes('gestor')) ||
-                            (isConsultant && item.visibility.includes('consultant'));
+                            (isConsultant && (item.visibility.includes('consultant') || item.visibility.includes('agente')));
       
       if (hasTypeAccess) return true;
     } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
