@@ -816,33 +816,50 @@ Extrai:
                             )}
                           </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant={isPresentedOrSent ? "outline" : "default"}
-                          className={`h-7 text-xs ${!isPresentedOrSent ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-                          onClick={async () => {
-                            const updated = [...(lead.associated_properties || [])];
-                            updated[idx] = {
-                              ...ap,
-                              presented_date: isPresentedOrSent ? null : new Date().toISOString(),
-                              status: isPresentedOrSent ? 'interested' : 'visited'
-                            };
-                            await onUpdate(lead.id, { associated_properties: updated });
-                            toast.success(isPresentedOrSent ? 'Marcado como não enviado' : 'Marcado como enviado');
-                          }}
-                        >
-                          {isPresentedOrSent ? (
-                            <>
-                              <X className="w-3 h-3 mr-1" />
-                              Desfazer
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-3 h-3 mr-1" />
-                              Marcar Enviado
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant={isPresentedOrSent ? "outline" : "default"}
+                            className={`h-7 text-xs ${!isPresentedOrSent ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                            onClick={async () => {
+                              const updated = [...(lead.associated_properties || [])];
+                              updated[idx] = {
+                                ...ap,
+                                presented_date: isPresentedOrSent ? null : new Date().toISOString(),
+                                status: isPresentedOrSent ? 'interested' : 'visited'
+                              };
+                              await onUpdate(lead.id, { associated_properties: updated });
+                              toast.success(isPresentedOrSent ? 'Marcado como não enviado' : 'Marcado como enviado');
+                            }}
+                          >
+                            {isPresentedOrSent ? (
+                              <>
+                                <X className="w-3 h-3 mr-1" />
+                                Desfazer
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3 h-3 mr-1" />
+                                Marcar Enviado
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={async () => {
+                              if (window.confirm(`Remover "${ap.property_title}" dos imóveis associados?`)) {
+                                const updated = [...(lead.associated_properties || [])];
+                                updated.splice(idx, 1);
+                                await onUpdate(lead.id, { associated_properties: updated });
+                                toast.success('Imóvel removido');
+                              }
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
