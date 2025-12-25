@@ -142,11 +142,11 @@ export default function OpportunityQuickFilters({
           <FilterBadge filterKey="assigned_to" value="unassigned" label="Sem Agente" count={stats.unassigned} color="slate" icon={AlertCircle} />
           <FilterBadge filterKey="converted" value="yes" label="Convertidos" count={stats.converted} color="emerald" icon={UserCheck} />
           
-          {/* Filtro por Consultor */}
+          {/* Filtro por Consultor Ativo */}
           {filters.assigned_to !== "all" && filters.assigned_to !== "unassigned" && filters.assigned_to !== "all_assigned" && (
             <Badge
               onClick={() => onFilterChange({...filters, assigned_to: "all"})}
-              className="cursor-pointer transition-all border bg-blue-600 text-white border-blue-600 flex items-center gap-1 px-2.5 py-1 text-xs"
+              className="cursor-pointer transition-all border bg-indigo-600 text-white border-indigo-600 flex items-center gap-1 px-2.5 py-1 text-xs"
             >
               <User className="w-3 h-3" />
               <span className="font-medium">
@@ -220,24 +220,28 @@ export default function OpportunityQuickFilters({
 
             <div>
               <p className="text-xs font-semibold text-slate-700 mb-2">Consultor</p>
-              <div className="flex flex-wrap gap-2 items-center">
-                <Select value={filters.assigned_to} onValueChange={(value) => onFilterChange({...filters, assigned_to: value})}>
-                  <SelectTrigger className="h-8 text-xs w-auto min-w-[180px] bg-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos Consultores</SelectItem>
-                    <SelectItem value="unassigned">Não Atribuídos ({stats.unassigned})</SelectItem>
-                    <SelectItem value="all_assigned">Atribuídos ({stats.assigned})</SelectItem>
-                    <SelectSeparator />
-                    {users.map((u) => (
-                      <SelectItem key={u.email} value={u.email}>
-                        {u.display_name || u.full_name || u.email.split('@')[0]}
-                        {stats.byConsultant[u.email] && ` (${stats.byConsultant[u.email]})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-wrap gap-2">
+                {users
+                  .filter(u => stats.byConsultant[u.email] > 0)
+                  .sort((a, b) => (stats.byConsultant[b.email] || 0) - (stats.byConsultant[a.email] || 0))
+                  .map((u) => (
+                    <Badge
+                      key={u.email}
+                      onClick={() => toggleFilter("assigned_to", u.email)}
+                      className={`cursor-pointer transition-all border flex items-center gap-1 px-2.5 py-1 text-xs ${
+                        isActive("assigned_to", u.email)
+                          ? "bg-indigo-600 text-white border-indigo-600"
+                          : "bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+                      }`}
+                    >
+                      <User className="w-3 h-3" />
+                      <span className="font-medium">{u.display_name || u.full_name || u.email.split('@')[0]}</span>
+                      <span className={isActive("assigned_to", u.email) ? "opacity-90" : "opacity-60"}>
+                        ({stats.byConsultant[u.email]})
+                      </span>
+                      {isActive("assigned_to", u.email) && <X className="w-2.5 h-2.5 ml-0.5" />}
+                    </Badge>
+                  ))}
               </div>
             </div>
 
