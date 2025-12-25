@@ -266,7 +266,6 @@ export default function PropertyDetails() {
 
   const assignedConsultant = React.useMemo(() => {
     if (!property?.assigned_consultant) {
-      console.log('[PropertyDetails] No assigned_consultant on property');
       return null;
     }
 
@@ -283,24 +282,10 @@ export default function PropertyDetails() {
         phone: property.assigned_consultant_phone,
         photo_url: property.assigned_consultant_photo
       };
-      console.log('[PropertyDetails] Using consultant data from property:', consultant);
     }
 
-    console.log('[PropertyDetails] assignedConsultant:', {
-      assigned_consultant_email: property.assigned_consultant,
-      allUsersCount: allUsers.length,
-      consultantsCount: consultants.length,
-      found: !!consultant,
-      usedPropertyData: !!(consultant && !allUsers.find(u => u.email === property.assigned_consultant)),
-      consultantData: consultant ? { 
-        email: consultant.email, 
-        name: consultant.full_name || consultant.display_name,
-        phone: consultant.phone 
-      } : null
-    });
-
     return consultant;
-  }, [consultants, allUsers, property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo]);
+  }, [consultants, allUsers, property]);
 
   // SEO data
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
