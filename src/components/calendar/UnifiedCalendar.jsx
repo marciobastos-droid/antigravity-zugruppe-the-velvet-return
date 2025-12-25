@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateAppointmentDialog from "./CreateAppointmentDialog";
 import AppointmentDetailsDialog from "./AppointmentDetailsDialog";
+import SyncToGoogleCalendar from "./SyncToGoogleCalendar";
 
 export default function UnifiedCalendar() {
   const queryClient = useQueryClient();
@@ -220,7 +221,10 @@ export default function UnifiedCalendar() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
+          <SyncToGoogleCalendar />
+          
+          <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <Button
@@ -299,6 +303,7 @@ export default function UnifiedCalendar() {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Selected Day Events */}
         <Card>
