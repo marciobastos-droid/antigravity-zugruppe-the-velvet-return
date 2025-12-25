@@ -5,16 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Wrench, User, Save, CheckCircle2, Search } from "lucide-react";
+import { Wrench, User, Save, Search, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Tool categories and their tools - MUST match Tools page exactly
+// Tool categories matching Tools page EXACTLY
 const TOOL_CATEGORIES = {
   marketing: {
     name: "Marketing Digital",
+    icon: "📢",
+    color: "purple",
     tools: [
       { id: "marketingHub", name: "Hub de Marketing" },
       { id: "marketingCampaigns", name: "Campanhas Marketing" },
@@ -28,13 +30,15 @@ const TOOL_CATEGORIES = {
       { id: "portalIntegrations", name: "Portais Imobiliários" },
       { id: "whatsapp", name: "WhatsApp Business" },
       { id: "integrations", name: "Integrações Externas" },
-      { id: "imageExtractor", name: "Extrator de Imagens Web" },
+      { id: "imageExtractor", name: "Extrator de Imagens" },
       { id: "excelImport", name: "Excel & JSON" },
       { id: "crmIntegrations", name: "CRM Externo" }
     ]
   },
   leads: {
     name: "Gestão de Leads",
+    icon: "🎯",
+    color: "emerald",
     tools: [
       { id: "leadManagement", name: "Origens & Scoring" },
       { id: "leadNurturing", name: "Nurturing Automático" }
@@ -42,6 +46,8 @@ const TOOL_CATEGORIES = {
   },
   importExport: {
     name: "Importações e Exportações",
+    icon: "📥",
+    color: "blue",
     tools: [
       { id: "importProperties", name: "Importar Imóveis" },
       { id: "importLeads", name: "Importar Leads" },
@@ -50,7 +56,7 @@ const TOOL_CATEGORIES = {
       { id: "importInvoices", name: "Importar Faturas" },
       { id: "exportProperties", name: "Exportar Ficheiros" },
       { id: "reportsExporter", name: "Relatórios" },
-      { id: "jsonProcessor", name: "Processador JSON (IA)" },
+      { id: "jsonProcessor", name: "Processador JSON" },
       { id: "propertyFeeds", name: "Feeds de Imóveis" },
       { id: "externalSync", name: "Sincronização Externa" },
       { id: "casafariSync", name: "Casafari Sync" }
@@ -58,6 +64,8 @@ const TOOL_CATEGORIES = {
   },
   utilities: {
     name: "Utilitários",
+    icon: "✨",
+    color: "green",
     tools: [
       { id: "bulkScore", name: "Pontuações em Massa" },
       { id: "crmSync", name: "Sincronização CRM" },
@@ -78,6 +86,8 @@ const TOOL_CATEGORIES = {
   },
   matching: {
     name: "Matching com IA",
+    icon: "🧠",
+    color: "indigo",
     tools: [
       { id: "aiMatching", name: "Motor de Matching IA" },
       { id: "autoMatching", name: "Matching Automático" },
@@ -86,6 +96,8 @@ const TOOL_CATEGORIES = {
   },
   market: {
     name: "Mercado",
+    icon: "📊",
+    color: "amber",
     tools: [
       { id: "marketIntelligence", name: "Inteligência de Mercado" },
       { id: "propertyPerformance", name: "Performance de Imóveis" },
@@ -96,6 +108,8 @@ const TOOL_CATEGORIES = {
   },
   finance: {
     name: "Finanças",
+    icon: "💰",
+    color: "green",
     tools: [
       { id: "commissions", name: "Gestão de Comissões" },
       { id: "invoices", name: "Gestão de Faturas" }
@@ -103,6 +117,8 @@ const TOOL_CATEGORIES = {
   },
   investor: {
     name: "Secção de Investidores",
+    icon: "🔐",
+    color: "amber",
     tools: [
       { id: "investorKeys", name: "Chaves de Acesso" },
       { id: "investorProperties", name: "Imóveis Publicados" }
@@ -110,6 +126,8 @@ const TOOL_CATEGORIES = {
   },
   settings: {
     name: "Definições e Conteúdos",
+    icon: "⚙️",
+    color: "slate",
     tools: [
       { id: "contractAutomation", name: "Automação de Contratos" },
       { id: "documents", name: "Documentos e Contratos" },
@@ -123,7 +141,6 @@ const TOOL_CATEGORIES = {
   }
 };
 
-// Get all tool IDs
 const ALL_TOOLS = Object.values(TOOL_CATEGORIES).flatMap(cat => cat.tools.map(t => t.id));
 
 export default function ToolsPermissionsManager() {
@@ -138,16 +155,10 @@ export default function ToolsPermissionsManager() {
     queryFn: () => base44.entities.User.list()
   });
 
-  const { data: permissions = [] } = useQuery({
-    queryKey: ['userPermissions'],
-    queryFn: () => base44.entities.UserPermission.list()
-  });
-
-  // Filter users who need tool permissions (not admin/gestor who have full access)
+  // Filtrar utilizadores que precisam de permissões (excluir admin/gestor)
   const agents = users.filter(u => {
     const userType = u.user_type?.toLowerCase() || '';
     const role = u.role?.toLowerCase() || '';
-    // Exclude admins and gestores who have full access
     return userType !== 'admin' && userType !== 'gestor' && role !== 'admin';
   });
 
@@ -157,65 +168,46 @@ export default function ToolsPermissionsManager() {
     return name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  // Load permissions when user is selected
+  // Carregar permissões quando utilizador é selecionado
   useEffect(() => {
     if (selectedUser) {
-      const userPerm = permissions.find(p => p.user_email === selectedUser.email);
-      if (userPerm?.permissions?.tools) {
-        setToolPermissions(userPerm.permissions.tools);
-      } else {
-        // Default permissions for new users
-        const defaults = {};
-        ALL_TOOLS.forEach(toolId => {
-          defaults[toolId] = getDefaultToolPermission(toolId);
-        });
-        setToolPermissions(defaults);
-      }
+      const userTools = selectedUser.permissions?.tools || {};
+      setToolPermissions(userTools);
       setHasChanges(false);
     }
-  }, [selectedUser, permissions]);
-
-  const getDefaultToolPermission = (toolId) => {
-    // Default tools available to agents
-    const defaultEnabled = [
-      'importProperties', 'importLeads', 'importContacts', 'socialMedia',
-      'duplicateChecker', 'inconsistencyChecker', 'emailHub', 'video',
-      'description', 'listingOptimizer', 'calendar', 'aiMatching',
-      'pricing', 'creditSimulator', 'documents'
-    ];
-    return defaultEnabled.includes(toolId);
-  };
+  }, [selectedUser]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const existingPerm = permissions.find(p => p.user_email === selectedUser.email);
+      // Atualizar diretamente no User
+      const currentPermissions = selectedUser.permissions || {};
+      const updatedPermissions = {
+        ...currentPermissions,
+        tools: toolPermissions
+      };
       
-      // Construir objeto completo de permissões preservando todas as categorias existentes
-      const fullPermissions = existingPerm?.permissions ? { ...existingPerm.permissions } : {};
-      
-      // Atualizar apenas a categoria tools
-      fullPermissions.tools = { ...toolPermissions };
-      
-      if (existingPerm) {
-        return await base44.entities.UserPermission.update(existingPerm.id, {
-          permissions: fullPermissions
-        });
-      } else {
-        return await base44.entities.UserPermission.create({
-          user_email: selectedUser.email,
-          permissions: fullPermissions,
-          role_template: 'custom'
-        });
-      }
+      return await base44.entities.User.update(selectedUser.id, {
+        permissions: updatedPermissions
+      });
     },
     onSuccess: () => {
-      toast.success("Permissões de ferramentas guardadas");
-      queryClient.invalidateQueries({ queryKey: ['userPermissions'] });
+      toast.success("✅ Permissões de ferramentas guardadas com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       setHasChanges(false);
+      
+      // Atualizar o selectedUser localmente
+      setSelectedUser(prev => ({
+        ...prev,
+        permissions: {
+          ...prev.permissions,
+          tools: toolPermissions
+        }
+      }));
     },
     onError: (error) => {
       console.error("Erro ao guardar:", error);
-      toast.error("Erro ao guardar permissões");
+      toast.error("❌ Erro ao guardar permissões");
     }
   });
 
@@ -251,158 +243,265 @@ export default function ToolsPermissionsManager() {
   const enabledCount = Object.values(toolPermissions).filter(Boolean).length;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Agent List */}
-      <Card className="lg:col-span-1">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Agentes
-          </CardTitle>
-          <div className="relative mt-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <Input
-              placeholder="Pesquisar agente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[500px]">
-            <div className="space-y-2 pr-2">
-              {filteredAgents.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">Nenhum agente encontrado</p>
-              ) : (
-                filteredAgents.map(agent => {
-                  const userPerm = permissions.find(p => p.user_email === agent.email);
-                  const toolCount = userPerm?.permissions?.tools 
-                    ? Object.values(userPerm.permissions.tools).filter(Boolean).length 
-                    : Object.values(ALL_TOOLS.reduce((acc, t) => ({ ...acc, [t]: getDefaultToolPermission(t) }), {})).filter(Boolean).length;
-                  
-                  return (
-                    <button
-                      key={agent.id}
-                      onClick={() => setSelectedUser(agent)}
-                      className={`w-full p-3 rounded-lg text-left transition-colors ${
-                        selectedUser?.id === agent.id 
-                          ? 'bg-blue-50 border-2 border-blue-300' 
-                          : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'
-                      }`}
-                    >
-                      <p className="font-medium text-slate-900">
-                        {agent.display_name || agent.full_name || agent.email}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {toolCount}/{ALL_TOOLS.length} ferramentas
-                        </Badge>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-
-      {/* Tools Permissions */}
-      <Card className="lg:col-span-2">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Wrench className="w-5 h-5" />
-              Permissões de Ferramentas
-              {selectedUser && (
-                <Badge variant="secondary">
-                  {selectedUser.display_name || selectedUser.full_name}
-                </Badge>
-              )}
-            </CardTitle>
-            {selectedUser && (
-              <div className="flex items-center gap-2">
-                <Badge className="bg-blue-100 text-blue-800">
-                  {enabledCount}/{ALL_TOOLS.length} ativas
-                </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleEnableAll}
-                >
-                  Ativar Todas
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleDisableAll}
-                >
-                  Desativar Todas
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => saveMutation.mutate()}
-                  disabled={!hasChanges || saveMutation.isPending}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Guardar
-                </Button>
+    <div className="space-y-6">
+      {/* Header com estatísticas */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
               </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {!selectedUser ? (
-            <div className="text-center py-12">
-              <User className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">Selecione um agente para configurar as permissões</p>
+              <div>
+                <p className="text-xs text-blue-700 font-medium">Total de Utilizadores</p>
+                <p className="text-2xl font-bold text-blue-900">{agents.length}</p>
+              </div>
             </div>
-          ) : (
-            <ScrollArea className="h-[500px]">
-              <div className="space-y-6 pr-4">
-                {Object.entries(TOOL_CATEGORIES).map(([key, category]) => {
-                  const categoryEnabled = category.tools.filter(t => toolPermissions[t.id]).length;
-                  const allEnabled = categoryEnabled === category.tools.length;
-                  
-                  return (
-                    <div key={key} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-slate-900">{category.name}</h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-500">
-                            {categoryEnabled}/{category.tools.length}
-                          </span>
-                          <Switch
-                            checked={allEnabled}
-                            onCheckedChange={(checked) => handleSelectAll(key, checked)}
-                          />
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                <Wrench className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-purple-700 font-medium">Total de Ferramentas</p>
+                <p className="text-2xl font-bold text-purple-900">{ALL_TOOLS.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {selectedUser && (
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs text-green-700 font-medium">Ferramentas Ativas</p>
+                  <p className="text-2xl font-bold text-green-900">{enabledCount}/{ALL_TOOLS.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Agent List */}
+        <Card className="lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="w-5 h-5 text-blue-600" />
+              Selecionar Utilizador
+            </CardTitle>
+            <div className="relative mt-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Pesquisar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[600px]">
+              <div className="space-y-2 pr-2">
+                {filteredAgents.length === 0 ? (
+                  <div className="text-center py-8">
+                    <User className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500">Nenhum utilizador encontrado</p>
+                  </div>
+                ) : (
+                  filteredAgents.map(agent => {
+                    const toolCount = agent.permissions?.tools 
+                      ? Object.values(agent.permissions.tools).filter(Boolean).length 
+                      : 0;
+                    
+                    const isSelected = selectedUser?.id === agent.id;
+                    
+                    return (
+                      <motion.button
+                        key={agent.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedUser(agent)}
+                        className={`w-full p-3 rounded-lg text-left transition-all ${
+                          isSelected
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 shadow-md' 
+                            : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className={`w-2 h-2 rounded-full ${toolCount > 0 ? 'bg-green-500' : 'bg-slate-300'}`} />
+                          <p className="font-medium text-slate-900 text-sm">
+                            {agent.display_name || agent.full_name}
+                          </p>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {category.tools.map(tool => (
-                          <div 
-                            key={tool.id}
-                            className={`flex items-center justify-between p-2 rounded-lg ${
-                              toolPermissions[tool.id] ? 'bg-green-50' : 'bg-slate-50'
-                            }`}
-                          >
-                            <span className="text-sm text-slate-700">{tool.name}</span>
-                            <Switch
-                              checked={toolPermissions[tool.id] || false}
-                              onCheckedChange={(checked) => handleToggle(tool.id, checked)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+                        <p className="text-xs text-slate-500 mb-2">{agent.email}</p>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${toolCount > 0 ? 'bg-green-50 border-green-300 text-green-700' : 'bg-slate-100'}`}
+                        >
+                          {toolCount} / {ALL_TOOLS.length} ferramentas
+                        </Badge>
+                      </motion.button>
+                    );
+                  })
+                )}
               </div>
             </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Tools Permissions */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-purple-600" />
+                <CardTitle className="text-base">
+                  {selectedUser ? (
+                    <span>
+                      Ferramentas de <span className="text-blue-600">{selectedUser.display_name || selectedUser.full_name}</span>
+                    </span>
+                  ) : (
+                    'Permissões de Ferramentas'
+                  )}
+                </CardTitle>
+              </div>
+              {selectedUser && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+                    {enabledCount}/{ALL_TOOLS.length} ativas
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleEnableAll}
+                    className="h-8"
+                  >
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Ativar Todas
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleDisableAll}
+                    className="h-8"
+                  >
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Desativar Todas
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => saveMutation.mutate()}
+                    disabled={!hasChanges || saveMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 h-8"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    {saveMutation.isPending ? 'A guardar...' : 'Guardar'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <AnimatePresence mode="wait">
+              {!selectedUser ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-16"
+                >
+                  <User className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">Nenhum utilizador selecionado</h3>
+                  <p className="text-slate-500">Selecione um utilizador à esquerda para configurar as permissões de ferramentas</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={selectedUser.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <ScrollArea className="h-[600px]">
+                    <div className="space-y-4 pr-4">
+                      {Object.entries(TOOL_CATEGORIES).map(([key, category]) => {
+                        const categoryEnabled = category.tools.filter(t => toolPermissions[t.id]).length;
+                        const allEnabled = categoryEnabled === category.tools.length;
+                        const percentage = Math.round((categoryEnabled / category.tools.length) * 100);
+                        
+                        const colorClasses = {
+                          purple: "from-purple-50 to-purple-100 border-purple-200",
+                          emerald: "from-emerald-50 to-emerald-100 border-emerald-200",
+                          blue: "from-blue-50 to-blue-100 border-blue-200",
+                          green: "from-green-50 to-green-100 border-green-200",
+                          indigo: "from-indigo-50 to-indigo-100 border-indigo-200",
+                          amber: "from-amber-50 to-amber-100 border-amber-200",
+                          slate: "from-slate-50 to-slate-100 border-slate-200"
+                        };
+                        
+                        return (
+                          <Card key={key} className={`bg-gradient-to-r ${colorClasses[category.color]} border-2`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl">{category.icon}</span>
+                                  <div>
+                                    <h4 className="font-semibold text-slate-900">{category.name}</h4>
+                                    <p className="text-xs text-slate-600">
+                                      {categoryEnabled} de {category.tools.length} ativas ({percentage}%)
+                                    </p>
+                                  </div>
+                                </div>
+                                <Switch
+                                  checked={allEnabled}
+                                  onCheckedChange={(checked) => handleSelectAll(key, checked)}
+                                />
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {category.tools.map(tool => (
+                                  <motion.div
+                                    key={tool.id}
+                                    whileHover={{ scale: 1.02 }}
+                                    className={`flex items-center justify-between p-2.5 rounded-lg border transition-all ${
+                                      toolPermissions[tool.id] 
+                                        ? 'bg-white border-green-300 shadow-sm' 
+                                        : 'bg-white/50 border-slate-200'
+                                    }`}
+                                  >
+                                    <span className={`text-sm font-medium ${
+                                      toolPermissions[tool.id] ? 'text-slate-900' : 'text-slate-500'
+                                    }`}>
+                                      {tool.name}
+                                    </span>
+                                    <Switch
+                                      checked={toolPermissions[tool.id] || false}
+                                      onCheckedChange={(checked) => handleToggle(tool.id, checked)}
+                                    />
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
