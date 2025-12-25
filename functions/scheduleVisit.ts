@@ -107,29 +107,59 @@ Deno.serve(async (req) => {
       </div>
     `;
 
-    // Send email to client
+    // Send email to client using Resend
     if (clientEmail) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: clientEmail,
-          subject: `Visita Agendada: ${appointment.property_title || appointment.title}`,
-          body: emailBody
-        });
-        results.emailsSent.push(clientEmail);
+        const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+        if (RESEND_API_KEY) {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'noreply@zugruppe.pt',
+              to: clientEmail,
+              subject: `✅ Visita Confirmada: ${appointment.property_title || appointment.title}`,
+              html: emailBody,
+              text: `Visita Agendada\n\n${appointment.title}\nData: ${appointmentDate.toLocaleDateString('pt-PT')}\nHora: ${appointmentDate.toLocaleTimeString('pt-PT')}`
+            }),
+          });
+          
+          if (response.ok) {
+            results.emailsSent.push(clientEmail);
+          }
+        }
       } catch (error) {
         console.error('Error sending email to client:', error);
       }
     }
 
-    // Send email to agent
+    // Send email to agent using Resend
     if (agentEmail && agentEmail !== clientEmail) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: agentEmail,
-          subject: `Nova Visita Agendada: ${appointment.property_title || appointment.title}`,
-          body: emailBody
-        });
-        results.emailsSent.push(agentEmail);
+        const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+        if (RESEND_API_KEY) {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'noreply@zugruppe.pt',
+              to: agentEmail,
+              subject: `📅 Nova Visita Agendada: ${appointment.property_title || appointment.title}`,
+              html: emailBody,
+              text: `Nova Visita Agendada\n\n${appointment.title}\nData: ${appointmentDate.toLocaleDateString('pt-PT')}\nHora: ${appointmentDate.toLocaleTimeString('pt-PT')}`
+            }),
+          });
+          
+          if (response.ok) {
+            results.emailsSent.push(agentEmail);
+          }
+        }
       } catch (error) {
         console.error('Error sending email to agent:', error);
       }

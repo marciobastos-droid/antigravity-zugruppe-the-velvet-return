@@ -74,29 +74,76 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Enviar email ao responsável
+    // Send email notification using Resend
     try {
       const recipientEmail = propertyData?.assigned_consultant || 
                             propertyData?.created_by || 
                             propertyData?.agent_id || 
                             'info@zugruppe.com';
       
-      await base44.integrations.Core.SendEmail({
-        to: recipientEmail,
-        subject: `Nova mensagem via ${source_page || 'Website'}: ${property_title || 'Contacto Geral'}`,
-        body: `
-          <h2>Nova mensagem recebida via ${source_page || 'Website Público'}</h2>
-          ${property_title ? `<p><strong>Imóvel:</strong> ${property_title} ${refId ? `(${refId})` : ''}</p>` : ''}
-          <p><strong>De:</strong> ${name} (${email})</p>
-          ${phone ? `<p><strong>Telefone:</strong> ${phone}</p>` : ''}
-          ${company ? `<p><strong>Empresa:</strong> ${company}</p>` : ''}
-          <p><strong>Mensagem:</strong></p>
+      const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+      if (RESEND_API_KEY) {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'noreply@zugruppe.pt',
+            to: recipientEmail,
+            subject: `🎯 Nova Oportunidade: ${name}`,
+            html: `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: #0f172a; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+      .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+      .info-box { background: white; padding: 15px; margin: 15px 0; border-radius: 6px; border-left: 4px solid #d4af37; }
+      .label { font-weight: bold; color: #0f172a; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎯 Nova Oportunidade</h1>
+      </div>
+      <div class="content">
+        <p>Nova mensagem recebida via ${source_page || 'Website Público'}!</p>
+        
+        <div class="info-box">
+          <p><span class="label">Nome:</span> ${name}</p>
+          <p><span class="label">Email:</span> ${email}</p>
+          ${phone ? `<p><span class="label">Telefone:</span> ${phone}</p>` : ''}
+          ${company ? `<p><span class="label">Empresa:</span> ${company}</p>` : ''}
+          ${property_title ? `<p><span class="label">Imóvel:</span> ${property_title} ${refId ? `(${refId})` : ''}</p>` : ''}
+        </div>
+        
+        <div class="info-box">
+          <p class="label">Mensagem:</p>
           <p>${message}</p>
-          <br>
-          <p><a href="${CUSTOM_DOMAIN}/CRMAdvanced">Ver no CRM</a></p>
-        `
-      });
-      console.log('[submitPublicContact] Email sent to:', recipientEmail);
+        </div>
+        
+        <a href="${CUSTOM_DOMAIN}/CRMAdvanced" style="display: inline-block; background: #d4af37; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px;">Ver no CRM</a>
+      </div>
+    </div>
+  </body>
+</html>
+            `,
+            text: `Nova Oportunidade: ${name}\n\nNome: ${name}\nEmail: ${email}\n${phone ? `Telefone: ${phone}\n` : ''}${company ? `Empresa: ${company}\n` : ''}${property_title ? `Imóvel: ${property_title} ${refId ? `(${refId})` : ''}\n` : ''}\nMensagem:\n${message}\n\nVer no CRM: ${CUSTOM_DOMAIN}/CRMAdvanced`
+          }),
+        });
+
+        if (response.ok) {
+          console.log('[submitPublicContact] Resend email sent to:', recipientEmail);
+        } else {
+          console.error('[submitPublicContact] Resend error:', await response.text());
+        }
+      }
     } catch (emailError) {
       console.warn('[submitPublicContact] Email failed:', emailError.message);
     }
