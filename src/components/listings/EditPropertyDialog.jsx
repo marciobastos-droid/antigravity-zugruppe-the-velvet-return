@@ -651,7 +651,9 @@ Retorna APENAS o título melhorado, nada mais.`,
                   setFormData({
                     ...formData, 
                     assigned_consultant: v,
-                    assigned_consultant_name: consultant?.display_name || consultant?.full_name || ""
+                    assigned_consultant_name: consultant?.display_name || consultant?.full_name || "",
+                    assigned_consultant_phone: consultant?.phone || "",
+                    assigned_consultant_photo: consultant?.photo_url || ""
                   });
                 }}
               >
