@@ -125,36 +125,47 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
     try {
       toast.info("A gerar PDF...");
       
-      const element = printRef.current;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Render entire content as single page
-      const canvas = await html2canvas(element, {
-        scale: 1.5,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        windowWidth: 1200,
-        windowHeight: element.scrollHeight
-      });
+      // Get all property cards
+      const propertyCards = printRef.current.querySelectorAll('.property-card');
       
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pageWidth - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Se altura exceder página, ajustar escala
-      if (imgHeight > pageHeight - 20) {
-        const scale = (pageHeight - 20) / imgHeight;
-        const scaledWidth = imgWidth * scale;
-        const scaledHeight = imgHeight * scale;
-        pdf.addImage(imgData, 'PNG', 10, 10, scaledWidth, scaledHeight);
-      } else {
-        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      for (let i = 0; i < propertyCards.length; i++) {
+        const card = propertyCards[i];
+        
+        // Render each card
+        const canvas = await html2canvas(card, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: 1200
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pageWidth - 20;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        // Add new page for each property (except first)
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        // Center content if height is less than page
+        const yOffset = imgHeight < pageHeight - 20 ? (pageHeight - imgHeight) / 2 : 10;
+        
+        // Fit to page
+        if (imgHeight > pageHeight - 20) {
+          const scale = (pageHeight - 20) / imgHeight;
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth * scale, (pageHeight - 20));
+        } else {
+          pdf.addImage(imgData, 'PNG', 10, yOffset, imgWidth, imgHeight);
+        }
       }
       
-      const fileName = `Ficha_Visita_${properties[0]?.ref_id || 'Imoveis'}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      const fileName = `Roteiro_Visita_${format(new Date(), 'yyyyMMdd')}.pdf`;
       pdf.save(fileName);
       
       toast.success("PDF gerado com sucesso!");
@@ -545,9 +556,18 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
             }
             .page-break {
               page-break-before: always;
+              page-break-after: always;
             }
             .no-break {
               page-break-inside: avoid;
+            }
+            .property-card {
+              page-break-before: always;
+              page-break-after: always;
+              page-break-inside: avoid;
+            }
+            .property-card:first-child {
+              page-break-before: avoid;
             }
             .print-checkbox {
               width: 14px;
@@ -564,8 +584,8 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
               padding-top: 10px;
             }
             @page {
-              margin: 15mm 20mm;
-              size: A4;
+              margin: 10mm 15mm;
+              size: A4 portrait;
             }
             html, body {
               width: 210mm;
@@ -701,7 +721,7 @@ export default function VisitRouteGenerator({ properties, opportunityId, open, o
 
             {/* Property Cards */}
             {properties.map((property, index) => (
-              <div key={property.id} className={`no-break ${index > 0 ? 'page-break' : ''}`}>
+              <div key={property.id} className={`property-card ${index > 0 ? 'page-break' : ''}`}>
                 <Card className="border-2 border-slate-200">
                   <CardContent className="p-8 space-y-6">
                     {/* Property Header - Referência, Responsável, Oportunidade */}
