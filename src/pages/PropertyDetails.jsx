@@ -245,6 +245,7 @@ export default function PropertyDetails() {
       .filter(p => 
         p.id !== propertyId &&
         p.status === 'active' &&
+        p.visibility === 'public' &&
         (p.city === property?.city || p.state === property?.state) &&
         p.property_type === property?.property_type
       )
