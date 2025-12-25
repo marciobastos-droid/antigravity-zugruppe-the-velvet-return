@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -250,18 +251,20 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
     .sort((a, b) => b.matchData.score - a.matchData.score);
 
   // Filter by tab
-  const filteredProperties = scoredProperties.filter(p => {
-    const interaction = matchHistory.find(h => h.property_id === p.id);
-    
-    if (activeTab === "favorites") return interaction?.interaction_type === "shortlisted";
-    if (activeTab === "rejected") return interaction?.interaction_type === "rejected";
-    if (activeTab === "viewed") return interaction?.interaction_type === "viewed";
-    if (activeTab === "high") return p.matchData.score >= 75;
-    if (activeTab === "medium") return p.matchData.score >= 50 && p.matchData.score < 75;
-    if (activeTab === "low") return p.matchData.score < 50;
-    
-    return true; // "all"
-  });
+  const getFilteredProperties = (tab) => {
+    return scoredProperties.filter(p => {
+      const interaction = matchHistory.find(h => h.property_id === p.id);
+      
+      if (tab === "favorites") return interaction?.interaction_type === "shortlisted";
+      if (tab === "rejected") return interaction?.interaction_type === "rejected";
+      if (tab === "viewed") return interaction?.interaction_type === "viewed";
+      if (tab === "high") return p.matchData.score >= 75;
+      if (tab === "medium") return p.matchData.score >= 50 && p.matchData.score < 75;
+      if (tab === "low") return p.matchData.score < 50;
+      
+      return true; // "all"
+    });
+  }
 
   const handleMarkProperty = async (property, type) => {
     await recordInteractionMutation.mutateAsync({
@@ -313,6 +316,243 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
   const rejectedCount = matchHistory.filter(h => h.interaction_type === "rejected").length;
   const viewedCount = matchHistory.filter(h => h.interaction_type === "viewed").length;
   const highMatchCount = scoredProperties.filter(p => p.matchData.score >= 75).length;
+
+  const renderPropertiesList = (tabValue) => {
+    const filteredPropertiesForTab = getFilteredProperties(tabValue);
+    return (
+      <ScrollArea className="h-[600px] pr-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
+          </div>
+        ) : filteredPropertiesForTab.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Home className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-600">
+                {tabValue === "favorites" ? "Nenhum favorito marcado" :
+                 tabValue === "rejected" ? "Nenhum imóvel descartado" :
+                 tabValue === "viewed" ? "Nenhum imóvel visualizado" :
+                 "Nenhum imóvel corresponde aos critérios desta categoria"}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredPropertiesForTab.map((property) => {
+              const interaction = matchHistory.find(h => h.property_id === property.id);
+              const isFavorite = interaction?.interaction_type === "shortlisted";
+              const isRejected = interaction?.interaction_type === "rejected";
+              const isViewed = interaction?.interaction_type === "viewed";
+
+              return (
+                <Card 
+                  key={property.id} 
+                  className={`border-2 transition-all hover:shadow-md ${
+                    isFavorite ? 'border-pink-300 bg-pink-50' :
+                    isRejected ? 'border-slate-300 bg-slate-50 opacity-60' :
+                    getMatchColor(property.matchData.score)
+                  }`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {/* Image */}
+                      <div className="flex-shrink-0">
+                        {property.images?.[0] ? (
+                          <img 
+                            src={property.images[0]} 
+                            alt={property.title}
+                            className="w-32 h-32 object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="w-32 h-32 bg-slate-200 rounded-lg flex items-center justify-center">
+                            <Home className="w-8 h-8 text-slate-400" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-slate-900 truncate">{property.title}</h4>
+                            <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
+                              <MapPin className="w-4 h-4" />
+                              {property.city}, {property.state}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={getMatchColor(property.matchData.score)}>
+                              <Star className="w-3 h-3 mr-1" />
+                              {property.matchData.score}% - {getMatchLabel(property.matchData.score)}
+                            </Badge>
+                            <p className="text-lg font-bold text-slate-900">
+                              €{property.price?.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Quick Info */}
+                        <div className="flex flex-wrap gap-3 text-sm text-slate-700 mb-3">
+                          {property.bedrooms > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Bed className="w-4 h-4" />
+                              T{property.bedrooms}
+                            </div>
+                          )}
+                          {property.bathrooms > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Bath className="w-4 h-4" />
+                              {property.bathrooms} WC
+                            </div>
+                          )}
+                          {(property.useful_area || property.square_feet) && (
+                            <div className="flex items-center gap-1">
+                              <Maximize className="w-4 h-4" />
+                              {property.useful_area || property.square_feet}m²
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Score Breakdown */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-slate-600">Score: {property.matchData.earnedScore}/{property.matchData.maxScore} pontos</span>
+                            <button 
+                              onClick={() => setExpandedProperty(expandedProperty === property.id ? null : property.id)}
+                              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                            >
+                              <Info className="w-3 h-3" />
+                              {expandedProperty === property.id ? 'Ocultar' : 'Ver'} detalhes
+                            </button>
+                          </div>
+                          <Progress value={property.matchData.score} className="h-2" />
+                          
+                          {/* Criteria badges */}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {property.matchData.details.slice(0, 4).map((detail, idx) => (
+                              <Badge 
+                                key={idx} 
+                                variant="outline" 
+                                className={`text-[10px] ${detail.match ? 'border-green-400 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-600'}`}
+                              >
+                                {detail.match ? '✓' : '✗'} {detail.label}: {detail.points}/{detail.max}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Expanded Details */}
+                        {expandedProperty === property.id && (
+                          <div className="mt-3 p-3 bg-white rounded-lg border space-y-3">
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700 mb-1">Análise Detalhada:</p>
+                              <pre className="text-xs text-slate-600 whitespace-pre-line font-sans">
+                                {property.matchData.explanation}
+                              </pre>
+                            </div>
+                            
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700 mb-2">Breakdown de Pontuação:</p>
+                              <div className="grid grid-cols-2 gap-2 text-xs">
+                                {Object.entries(property.matchData.breakdown).map(([key, value]) => (
+                                  <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded">
+                                    <span className="text-slate-600 capitalize">
+                                      {key === 'listing_type' ? 'Tipo Negócio' :
+                                       key === 'property_type' ? 'Tipo Imóvel' :
+                                       key === 'location' ? 'Localização' :
+                                       key === 'price' ? 'Preço' :
+                                       key === 'bedrooms' ? 'Quartos' :
+                                       key === 'bathrooms' ? 'WC' :
+                                       key === 'area' ? 'Área' :
+                                       key === 'amenities' ? 'Comodidades' : key}
+                                    </span>
+                                    <span className={`font-semibold ${value.matched ? 'text-green-600' : 'text-red-600'}`}>
+                                      {Math.round(value.score)}/{value.max}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            {interaction && (
+                              <div className="pt-2 border-t">
+                                <p className="text-xs font-semibold text-slate-700 mb-1">Histórico:</p>
+                                <p className="text-xs text-slate-600">
+                                  {interaction.interaction_type === 'shortlisted' && '❤️ Marcado como favorito'}
+                                  {interaction.interaction_type === 'rejected' && '👎 Descartado'}
+                                  {interaction.interaction_type === 'viewed' && '👁️ Visualizado'}
+                                  {' em '}
+                                  {format(new Date(interaction.created_date), "d 'de' MMM 'às' HH:mm", { locale: ptBR })}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex gap-2 flex-wrap mt-3">
+                          <Link to={`${createPageUrl('PropertyDetails')}?id=${property.id}`} target="_blank">
+                            <Button variant="outline" size="sm">
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Ver Imóvel
+                            </Button>
+                          </Link>
+                          
+                          <Button 
+                            variant={isFavorite ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleMarkProperty(property, "shortlisted")}
+                            className={isFavorite ? "bg-pink-600 hover:bg-pink-700" : ""}
+                          >
+                            {isFavorite ? <Heart className="w-4 h-4 mr-2 fill-current" /> : <Heart className="w-4 h-4 mr-2" />}
+                            {isFavorite ? 'Favorito' : 'Marcar'}
+                          </Button>
+
+                          <Button 
+                            variant={isRejected ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleMarkProperty(property, "rejected")}
+                            className={isRejected ? "bg-slate-600" : ""}
+                          >
+                            {isRejected ? <HeartOff className="w-4 h-4 mr-2" /> : <ThumbsDown className="w-4 h-4 mr-2" />}
+                            {isRejected ? 'Descartado' : 'Descartar'}
+                          </Button>
+
+                          {!isViewed && (
+                            <Button 
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleMarkProperty(property, "viewed")}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Marcar Visto
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Feedback Widget */}
+                        <div className="mt-3">
+                          <MatchFeedbackWidget
+                            profileId={profile.id}
+                            propertyId={property.id}
+                            matchScore={property.matchData.score}
+                            matchDetails={property.matchData.breakdown}
+                            criteriaWeights={weights}
+                            compact={true}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -431,238 +671,32 @@ export default function EnhancedPropertyMatching({ profile, compact = false }) {
           <AIRecommendationsPanel profile={profile} />
         </TabsContent>
 
-        <TabsContent value={activeTab} className="mt-4">
-          <ScrollArea className="h-[600px] pr-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
-              </div>
-            ) : filteredProperties.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Home className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600">
-                    {activeTab === "favorites" ? "Nenhum favorito marcado" :
-                     activeTab === "rejected" ? "Nenhum imóvel descartado" :
-                     activeTab === "viewed" ? "Nenhum imóvel visualizado" :
-                     "Nenhum imóvel corresponde"}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-3">
-                {filteredProperties.map((property) => {
-                  const interaction = matchHistory.find(h => h.property_id === property.id);
-                  const isFavorite = interaction?.interaction_type === "shortlisted";
-                  const isRejected = interaction?.interaction_type === "rejected";
-                  const isViewed = interaction?.interaction_type === "viewed";
-
-                  return (
-                    <Card 
-                      key={property.id} 
-                      className={`border-2 transition-all hover:shadow-md ${
-                        isFavorite ? 'border-pink-300 bg-pink-50' :
-                        isRejected ? 'border-slate-300 bg-slate-50 opacity-60' :
-                        getMatchColor(property.matchData.score)
-                      }`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex gap-4">
-                          {/* Image */}
-                          <div className="flex-shrink-0">
-                            {property.images?.[0] ? (
-                              <img 
-                                src={property.images[0]} 
-                                alt={property.title}
-                                className="w-32 h-32 object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="w-32 h-32 bg-slate-200 rounded-lg flex items-center justify-center">
-                                <Home className="w-8 h-8 text-slate-400" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-semibold text-slate-900 truncate">{property.title}</h4>
-                                <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
-                                  <MapPin className="w-4 h-4" />
-                                  {property.city}, {property.state}
-                                </div>
-                              </div>
-                              <div className="flex flex-col items-end gap-2">
-                                <Badge className={getMatchColor(property.matchData.score)}>
-                                  <Star className="w-3 h-3 mr-1" />
-                                  {property.matchData.score}% - {getMatchLabel(property.matchData.score)}
-                                </Badge>
-                                <p className="text-lg font-bold text-slate-900">
-                                  €{property.price?.toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Quick Info */}
-                            <div className="flex flex-wrap gap-3 text-sm text-slate-700 mb-3">
-                              {property.bedrooms > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Bed className="w-4 h-4" />
-                                  T{property.bedrooms}
-                                </div>
-                              )}
-                              {property.bathrooms > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Bath className="w-4 h-4" />
-                                  {property.bathrooms} WC
-                                </div>
-                              )}
-                              {(property.useful_area || property.square_feet) && (
-                                <div className="flex items-center gap-1">
-                                  <Maximize className="w-4 h-4" />
-                                  {property.useful_area || property.square_feet}m²
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Score Breakdown */}
-                            <div className="mb-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-slate-600">Score: {property.matchData.earnedScore}/{property.matchData.maxScore} pontos</span>
-                                <button 
-                                  onClick={() => setExpandedProperty(expandedProperty === property.id ? null : property.id)}
-                                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                >
-                                  <Info className="w-3 h-3" />
-                                  {expandedProperty === property.id ? 'Ocultar' : 'Ver'} detalhes
-                                </button>
-                              </div>
-                              <Progress value={property.matchData.score} className="h-2" />
-                              
-                              {/* Criteria badges */}
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {property.matchData.details.slice(0, 4).map((detail, idx) => (
-                                  <Badge 
-                                    key={idx} 
-                                    variant="outline" 
-                                    className={`text-[10px] ${detail.match ? 'border-green-400 bg-green-50 text-green-700' : 'border-red-300 bg-red-50 text-red-600'}`}
-                                  >
-                                    {detail.match ? '✓' : '✗'} {detail.label}: {detail.points}/{detail.max}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Expanded Details */}
-                            {expandedProperty === property.id && (
-                              <div className="mt-3 p-3 bg-white rounded-lg border space-y-3">
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-700 mb-1">Análise Detalhada:</p>
-                                  <pre className="text-xs text-slate-600 whitespace-pre-line font-sans">
-                                    {property.matchData.explanation}
-                                  </pre>
-                                </div>
-                                
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-700 mb-2">Breakdown de Pontuação:</p>
-                                  <div className="grid grid-cols-2 gap-2 text-xs">
-                                    {Object.entries(property.matchData.breakdown).map(([key, value]) => (
-                                      <div key={key} className="flex items-center justify-between bg-slate-50 p-2 rounded">
-                                        <span className="text-slate-600 capitalize">
-                                          {key === 'listing_type' ? 'Tipo Negócio' :
-                                           key === 'property_type' ? 'Tipo Imóvel' :
-                                           key === 'location' ? 'Localização' :
-                                           key === 'price' ? 'Preço' :
-                                           key === 'bedrooms' ? 'Quartos' :
-                                           key === 'bathrooms' ? 'WC' :
-                                           key === 'area' ? 'Área' :
-                                           key === 'amenities' ? 'Comodidades' : key}
-                                        </span>
-                                        <span className={`font-semibold ${value.matched ? 'text-green-600' : 'text-red-600'}`}>
-                                          {Math.round(value.score)}/{value.max}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                {interaction && (
-                                  <div className="pt-2 border-t">
-                                    <p className="text-xs font-semibold text-slate-700 mb-1">Histórico:</p>
-                                    <p className="text-xs text-slate-600">
-                                      {interaction.interaction_type === 'shortlisted' && '❤️ Marcado como favorito'}
-                                      {interaction.interaction_type === 'rejected' && '👎 Descartado'}
-                                      {interaction.interaction_type === 'viewed' && '👁️ Visualizado'}
-                                      {' em '}
-                                      {format(new Date(interaction.created_date), "d 'de' MMM 'às' HH:mm", { locale: ptBR })}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="flex gap-2 flex-wrap mt-3">
-                              <Link to={`${createPageUrl('PropertyDetails')}?id=${property.id}`} target="_blank">
-                                <Button variant="outline" size="sm">
-                                  <ExternalLink className="w-4 h-4 mr-2" />
-                                  Ver Imóvel
-                                </Button>
-                              </Link>
-                              
-                              <Button 
-                                variant={isFavorite ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleMarkProperty(property, "shortlisted")}
-                                className={isFavorite ? "bg-pink-600 hover:bg-pink-700" : ""}
-                              >
-                                {isFavorite ? <Heart className="w-4 h-4 mr-2 fill-current" /> : <Heart className="w-4 h-4 mr-2" />}
-                                {isFavorite ? 'Favorito' : 'Marcar'}
-                              </Button>
-
-                              <Button 
-                                variant={isRejected ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => handleMarkProperty(property, "rejected")}
-                                className={isRejected ? "bg-slate-600" : ""}
-                              >
-                                {isRejected ? <HeartOff className="w-4 h-4 mr-2" /> : <ThumbsDown className="w-4 h-4 mr-2" />}
-                                {isRejected ? 'Descartado' : 'Descartar'}
-                              </Button>
-
-                              {!isViewed && (
-                                <Button 
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleMarkProperty(property, "viewed")}
-                                >
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Marcar Visto
-                                </Button>
-                              )}
-                            </div>
-
-                            {/* Feedback Widget */}
-                            <div className="mt-3">
-                              <MatchFeedbackWidget
-                                profileId={profile.id}
-                                propertyId={property.id}
-                                matchScore={property.matchData.score}
-                                matchDetails={property.matchData.breakdown}
-                                criteriaWeights={weights}
-                                compact={true}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </ScrollArea>
+        <TabsContent value="all" className="mt-4">
+          {renderPropertiesList("all")}
+        </TabsContent>
+        
+        <TabsContent value="high" className="mt-4">
+          {renderPropertiesList("high")}
+        </TabsContent>
+        
+        <TabsContent value="medium" className="mt-4">
+          {renderPropertiesList("medium")}
+        </TabsContent>
+        
+        <TabsContent value="low" className="mt-4">
+          {renderPropertiesList("low")}
+        </TabsContent>
+        
+        <TabsContent value="favorites" className="mt-4">
+          {renderPropertiesList("favorites")}
+        </TabsContent>
+        
+        <TabsContent value="rejected" className="mt-4">
+          {renderPropertiesList("rejected")}
+        </TabsContent>
+        
+        <TabsContent value="viewed" className="mt-4">
+          {renderPropertiesList("viewed")}
         </TabsContent>
       </Tabs>
 
