@@ -57,22 +57,38 @@ export default function AdvancedPermissionsEditor({ user, permissions, onChange,
       ]
     },
     tools: {
-      title: "Ferramentas",
+      title: "Ferramentas Individuais",
       icon: Wrench,
       color: "purple",
       items: [
-        { key: "ai_description", label: "IA - Descrições", description: "Gerar descrições com IA" },
-        { key: "ai_pricing", label: "IA - Pricing", description: "Análise de preços com IA" },
-        { key: "ai_matching", label: "IA - Matching", description: "Matching automático de clientes" },
-        { key: "bulk_import", label: "Importação em Massa", description: "Importar dados via CSV/Excel" },
-        { key: "bulk_export", label: "Exportação em Massa", description: "Exportar dados" },
-        { key: "email_campaigns", label: "Campanhas Email", description: "Criar e enviar campanhas" },
-        { key: "facebook_sync", label: "Sync Facebook", description: "Sincronização com Facebook Ads" },
-        { key: "crm_sync", label: "Sync CRM", description: "Sincronização com CRMs externos" },
-        { key: "portal_sync", label: "Sync Portais", description: "Publicação em portais" },
-        { key: "invoicing", label: "Faturação", description: "Criar e gerir faturas" },
+        // Marketing Digital
+        { key: "marketingHub", label: "Hub de Marketing", description: "Central de marketing" },
+        { key: "marketingCampaigns", label: "Campanhas Marketing", description: "Gerir campanhas" },
+        { key: "socialMedia", label: "Posts Sociais", description: "Gerar posts para redes" },
+        { key: "socialAdCreator", label: "Criador de Anúncios", description: "Criar anúncios sociais" },
+        { key: "facebookCampaigns", label: "Facebook Ads", description: "Campanhas Facebook" },
+        { key: "facebookLeads", label: "Leads Facebook", description: "Importar leads Facebook" },
+        { key: "facebookForms", label: "Formulários Facebook", description: "Gerir formulários" },
+        // Importação/Exportação
+        { key: "importProperties", label: "Importar Imóveis", description: "Importar imóveis CSV" },
+        { key: "importLeads", label: "Importar Leads", description: "Importar leads" },
+        { key: "importContacts", label: "Importar Contactos", description: "Importar contactos" },
+        { key: "exportProperties", label: "Exportar Imóveis", description: "Exportar dados" },
+        { key: "reportsExporter", label: "Relatórios", description: "Gerar relatórios" },
+        // Utilitários
+        { key: "description", label: "Gerador Descrições", description: "IA para descrições" },
+        { key: "pricing", label: "Sugestor Preços", description: "IA para pricing" },
+        { key: "listingOptimizer", label: "Otimizador Anúncios", description: "Otimizar anúncios" },
+        { key: "video", label: "Criador Vídeos", description: "Criar vídeos" },
+        { key: "calendar", label: "Calendário", description: "Calendário unificado" },
+        { key: "emailHub", label: "Centro Email", description: "Gerir emails" },
+        // Matching
+        { key: "aiMatching", label: "Matching IA", description: "Motor de matching" },
+        { key: "autoMatching", label: "Matching Auto", description: "Matching automático" },
+        // Gestão
+        { key: "duplicateChecker", label: "Verificar Duplicados", description: "Encontrar duplicados" },
         { key: "commissions", label: "Comissões", description: "Gerir comissões" },
-        { key: "reports", label: "Relatórios", description: "Gerar relatórios personalizados" }
+        { key: "invoices", label: "Faturas", description: "Gerir faturas" }
       ]
     },
     data: {

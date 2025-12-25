@@ -19,9 +19,11 @@ export default function RoleTemplates({ onApplyTemplate }) {
           documents: true, marketing: true, analytics: true
         },
         tools: {
-          ai_description: true, ai_pricing: true, ai_matching: true, bulk_import: true,
-          bulk_export: true, email_campaigns: true, facebook_sync: true, crm_sync: true,
-          portal_sync: true, invoicing: true, commissions: true, reports: true
+          marketingHub: true, marketingCampaigns: true, socialMedia: true, socialAdCreator: true,
+          facebookCampaigns: true, facebookLeads: true, facebookForms: true,
+          importProperties: true, importLeads: true, importContacts: true, exportProperties: true,
+          description: true, pricing: true, video: true, calendar: true, emailHub: true,
+          aiMatching: true, autoMatching: true, duplicateChecker: true, commissions: true, invoices: true
         },
         data: {
           view_all_properties: true, view_all_leads: true, view_all_clients: true,
@@ -47,9 +49,10 @@ export default function RoleTemplates({ onApplyTemplate }) {
           documents: true, marketing: true, analytics: true
         },
         tools: {
-          ai_description: true, ai_pricing: true, ai_matching: true, bulk_import: true,
-          bulk_export: true, email_campaigns: true, facebook_sync: false, crm_sync: false,
-          portal_sync: true, invoicing: false, commissions: true, reports: true
+          marketingHub: true, marketingCampaigns: true, socialMedia: true,
+          facebookLeads: true, importProperties: true, importLeads: true, exportProperties: true,
+          description: true, pricing: true, video: true, calendar: true, emailHub: true,
+          aiMatching: true, autoMatching: true, duplicateChecker: true, commissions: true, reportsExporter: true
         },
         data: {
           view_all_properties: true, view_all_leads: true, view_all_clients: true,
@@ -75,9 +78,9 @@ export default function RoleTemplates({ onApplyTemplate }) {
           documents: true, marketing: false, analytics: false
         },
         tools: {
-          ai_description: true, ai_pricing: true, ai_matching: true, bulk_import: false,
-          bulk_export: false, email_campaigns: true, facebook_sync: false, crm_sync: false,
-          portal_sync: false, invoicing: false, commissions: false, reports: false
+          facebookLeads: true, importProperties: true, importLeads: true,
+          description: true, pricing: true, calendar: true, emailHub: true,
+          aiMatching: true, duplicateChecker: true
         },
         data: {
           view_all_properties: true, view_all_leads: true, view_all_clients: false,
@@ -98,14 +101,12 @@ export default function RoleTemplates({ onApplyTemplate }) {
       description: "Acesso básico para gerir próprios imóveis e leads",
       permissions: {
         pages: {
-          dashboard: true, browse: true, my_listings: true, crm: true, tools: false,
+          dashboard: true, browse: true, my_listings: true, crm: true, tools: true,
           team: false, franchising: false, user_management: false, contracts: true,
           documents: true, marketing: false, analytics: false
         },
         tools: {
-          ai_description: true, ai_pricing: false, ai_matching: false, bulk_import: false,
-          bulk_export: false, email_campaigns: false, facebook_sync: false, crm_sync: false,
-          portal_sync: false, invoicing: false, commissions: false, reports: false
+          description: true, calendar: true
         },
         data: {
           view_all_properties: false, view_all_leads: false, view_all_clients: false,
