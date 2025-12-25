@@ -636,7 +636,7 @@ Extrai:
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="grid grid-cols-8 mx-4 mt-4 flex-shrink-0">
+        <TabsList className="grid grid-cols-9 mx-4 mt-4 flex-shrink-0">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
           <TabsTrigger value="history" className="text-xs">
             <History className="w-3 h-3" />
@@ -647,6 +647,9 @@ Extrai:
           <TabsTrigger value="matching" className="text-xs">Matching</TabsTrigger>
           <TabsTrigger value="communications" className="text-xs">Comms</TabsTrigger>
           <TabsTrigger value="properties" className="text-xs">Imóveis</TabsTrigger>
+          <TabsTrigger value="documents" className="text-xs">
+            <FileText className="w-3 h-3" />
+          </TabsTrigger>
           <TabsTrigger value="followups" className="text-xs">Follow</TabsTrigger>
           <TabsTrigger value="ai" className="text-xs">IA</TabsTrigger>
         </TabsList>
@@ -1052,14 +1055,6 @@ Extrai:
               </Card>
             )}
 
-            {/* Documents */}
-            <DocumentUploader 
-              leadId={lead.id}
-              leadName={lead.buyer_name}
-              propertyId={lead.property_id}
-              propertyTitle={lead.property_title}
-              entityType="lead"
-            />
           </TabsContent>
 
           {/* Documents Tab */}
