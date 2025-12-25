@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, BarChart3, Brain, PieChart, Target, Clock, Mail } from "lucide-react";
+import { Users, Calendar, BarChart3, Brain, PieChart, Target, Clock, Mail, UserCog } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";
@@ -11,6 +11,7 @@ import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 import ClientSegmentation from "../components/crm/ClientSegmentation";
 import FollowUpAutomation from "../components/crm/FollowUpAutomation";
 import EmailCampaigns from "../components/crm/EmailCampaigns";
+import ClientPreferencesTab from "../components/crm/ClientPreferencesTab";
 
 export default function CRMAdvanced() {
   // Auth check - redirect to login if not authenticated
@@ -61,6 +62,10 @@ export default function CRMAdvanced() {
               <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Matching</span>
             </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+              <UserCog className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Preferências</span>
+            </TabsTrigger>
             <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Agenda</span>
@@ -89,6 +94,10 @@ export default function CRMAdvanced() {
 
           <TabsContent value="matching">
             <MatchingTab />
+          </TabsContent>
+
+          <TabsContent value="preferences">
+            <ClientPreferencesTab />
           </TabsContent>
 
           <TabsContent value="appointments">

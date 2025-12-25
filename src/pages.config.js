@@ -2,7 +2,6 @@ import AddListing from './pages/AddListing';
 import AgentManagement from './pages/AgentManagement';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
-import ClientPreferences from './pages/ClientPreferences';
 import Contracts from './pages/Contracts';
 import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
@@ -38,7 +37,6 @@ export const PAGES = {
     "AgentManagement": AgentManagement,
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
-    "ClientPreferences": ClientPreferences,
     "Contracts": Contracts,
     "CookiePolicy": CookiePolicy,
     "Dashboard": Dashboard,
