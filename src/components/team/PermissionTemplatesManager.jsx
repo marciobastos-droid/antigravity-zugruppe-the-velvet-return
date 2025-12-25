@@ -10,9 +10,148 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Layers, Plus, Edit, Trash2, Users, CheckCircle2, XCircle, Copy, Star } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Layers, Plus, Edit, Trash2, Users, CheckCircle2, XCircle, Copy, Star, Megaphone, Target, Download, Sparkles, Brain, TrendingUp, DollarSign, Lock, Folder } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+
+const TOOL_CATEGORIES = [
+  {
+    id: "marketing",
+    name: "Marketing Digital",
+    icon: Megaphone,
+    color: "purple",
+    tools: [
+      { id: "marketingHub", name: "Hub de Marketing" },
+      { id: "marketingCampaigns", name: "Campanhas Marketing" },
+      { id: "socialMedia", name: "Posts Sociais" },
+      { id: "socialAdCreator", name: "Criador de Anúncios" },
+      { id: "apiPublish", name: "Publicação API" },
+      { id: "apiIntegrations", name: "Integrações API" },
+      { id: "portalIntegrations", name: "Portais Imobiliários" },
+      { id: "whatsapp", name: "WhatsApp Business" },
+      { id: "integrations", name: "Integrações Externas" },
+      { id: "imageExtractor", name: "Extrator de Imagens" },
+      { id: "excelImport", name: "Excel & JSON" },
+      { id: "crmIntegrations", name: "CRM Externo" },
+      { id: "facebookCampaigns", name: "Facebook Ads" },
+      { id: "facebookLeads", name: "Leads Facebook" },
+      { id: "facebookForms", name: "Formulários Facebook" }
+    ]
+  },
+  {
+    id: "leads",
+    name: "Gestão de Leads",
+    icon: Target,
+    color: "emerald",
+    tools: [
+      { id: "leadManagement", name: "Origens & Scoring" },
+      { id: "leadNurturing", name: "Nurturing Automático" }
+    ]
+  },
+  {
+    id: "importexport",
+    name: "Importações e Exportações",
+    icon: Download,
+    color: "blue",
+    tools: [
+      { id: "importProperties", name: "Importar Imóveis" },
+      { id: "importLeads", name: "Importar Leads" },
+      { id: "importContacts", name: "Importar Contactos" },
+      { id: "importOpportunities", name: "Importar Oportunidades" },
+      { id: "importInvoices", name: "Importar Faturas" },
+      { id: "exportProperties", name: "Exportar Ficheiros" },
+      { id: "reportsExporter", name: "Relatórios" },
+      { id: "jsonProcessor", name: "Processador JSON" },
+      { id: "propertyFeeds", name: "Feeds de Imóveis" },
+      { id: "externalSync", name: "Sincronização Externa" },
+      { id: "casafariSync", name: "Casafari Sync" }
+    ]
+  },
+  {
+    id: "utilities",
+    name: "Utilitários",
+    icon: Sparkles,
+    color: "green",
+    tools: [
+      { id: "bulkScore", name: "Pontuações em Massa" },
+      { id: "crmSync", name: "Sincronização CRM" },
+      { id: "duplicateChecker", name: "Verificar Duplicados" },
+      { id: "duplicateClients", name: "Clientes Duplicados" },
+      { id: "inconsistencyChecker", name: "Verificar Inconsistências" },
+      { id: "orphanCleaner", name: "Limpar Dados Órfãos" },
+      { id: "linkContacts", name: "Vincular Contactos" },
+      { id: "imageValidator", name: "Validador de Imagens" },
+      { id: "emailHub", name: "Centro de Email" },
+      { id: "gmailSync", name: "Sincronizar Gmail" },
+      { id: "gmailLinker", name: "Gmail Linker" },
+      { id: "video", name: "Criador de Vídeos" },
+      { id: "description", name: "Gerador de Descrições" },
+      { id: "listingOptimizer", name: "Otimizador de Anúncios" },
+      { id: "calendar", name: "Calendário Unificado" }
+    ]
+  },
+  {
+    id: "matching",
+    name: "Matching com IA",
+    icon: Brain,
+    color: "indigo",
+    tools: [
+      { id: "aiMatching", name: "Motor de Matching IA" },
+      { id: "autoMatching", name: "Matching Automático" },
+      { id: "autoMatchingDashboard", name: "Alertas de Matching" }
+    ]
+  },
+  {
+    id: "market",
+    name: "Mercado",
+    icon: TrendingUp,
+    color: "amber",
+    tools: [
+      { id: "marketIntelligence", name: "Inteligência de Mercado" },
+      { id: "propertyPerformance", name: "Performance de Imóveis" },
+      { id: "pricing", name: "Sugestor de Preços" },
+      { id: "creditSimulator", name: "Simulador de Crédito" },
+      { id: "deedCosts", name: "Custos de Escritura" }
+    ]
+  },
+  {
+    id: "finance",
+    name: "Finanças",
+    icon: DollarSign,
+    color: "green",
+    tools: [
+      { id: "commissions", name: "Gestão de Comissões" },
+      { id: "invoices", name: "Gestão de Faturas" }
+    ]
+  },
+  {
+    id: "investors",
+    name: "Secção de Investidores",
+    icon: Lock,
+    color: "amber",
+    tools: [
+      { id: "investorKeys", name: "Chaves de Acesso" },
+      { id: "investorProperties", name: "Imóveis Publicados" }
+    ]
+  },
+  {
+    id: "settings",
+    name: "Definições e Conteúdos",
+    icon: Folder,
+    color: "slate",
+    tools: [
+      { id: "contractAutomation", name: "Automação de Contratos" },
+      { id: "documents", name: "Documentos e Contratos" },
+      { id: "notificationsDashboard", name: "Central de Notificações" },
+      { id: "smtpConfig", name: "Config. Email" },
+      { id: "devNotes", name: "Notas & Sugestões" },
+      { id: "tagManager", name: "Etiquetas" },
+      { id: "backupManager", name: "Gestor de Backups" },
+      { id: "auditLog", name: "Logs de Atividade" }
+    ]
+  }
+];
 
 const DEFAULT_TEMPLATES = [
   {
@@ -135,6 +274,45 @@ export default function PermissionTemplatesManager() {
     return users.filter(u => u.template_id === templateId).length;
   };
 
+  const toggleTool = (toolId) => {
+    setNewTemplate(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        tools: {
+          ...prev.permissions.tools,
+          [toolId]: !prev.permissions.tools?.[toolId]
+        }
+      }
+    }));
+  };
+
+  const toggleCategory = (category, enable) => {
+    const updates = {};
+    category.tools.forEach(tool => {
+      updates[tool.id] = enable;
+    });
+    setNewTemplate(prev => ({
+      ...prev,
+      permissions: {
+        ...prev.permissions,
+        tools: {
+          ...prev.permissions.tools,
+          ...updates
+        }
+      }
+    }));
+  };
+
+  const isCategoryEnabled = (category) => {
+    return category.tools.every(tool => newTemplate.permissions?.tools?.[tool.id] === true);
+  };
+
+  const isCategoryPartial = (category) => {
+    const enabledCount = category.tools.filter(tool => newTemplate.permissions?.tools?.[tool.id] === true).length;
+    return enabledCount > 0 && enabledCount < category.tools.length;
+  };
+
   const colorClasses = {
     blue: "from-blue-50 to-blue-100 border-blue-300",
     purple: "from-purple-50 to-purple-100 border-purple-300",
@@ -254,80 +432,140 @@ export default function PermissionTemplatesManager() {
       </div>
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
               {editingTemplate ? 'Editar Template' : 'Novo Template de Permissões'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div>
-              <Label>Nome do Template</Label>
-              <Input
-                placeholder="Ex: Agente Avançado"
-                value={newTemplate.name}
-                onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-              />
-            </div>
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="info">Informação Básica</TabsTrigger>
+              <TabsTrigger value="tools">Ferramentas ({Object.values(newTemplate.permissions?.tools || {}).filter(Boolean).length})</TabsTrigger>
+            </TabsList>
 
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                placeholder="Descreva para que serve este template..."
-                value={newTemplate.description}
-                onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="info" className="space-y-4">
               <div>
-                <Label>Ícone (emoji)</Label>
+                <Label>Nome do Template</Label>
                 <Input
-                  placeholder="📋"
-                  value={newTemplate.icon}
-                  onChange={(e) => setNewTemplate({ ...newTemplate, icon: e.target.value })}
-                  maxLength={2}
+                  placeholder="Ex: Agente Avançado"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
                 />
               </div>
+
               <div>
-                <Label>Cor</Label>
-                <select
-                  value={newTemplate.color}
-                  onChange={(e) => setNewTemplate({ ...newTemplate, color: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                >
-                  <option value="blue">Azul</option>
-                  <option value="purple">Roxo</option>
-                  <option value="green">Verde</option>
-                  <option value="amber">Âmbar</option>
-                  <option value="red">Vermelho</option>
-                  <option value="indigo">Índigo</option>
-                </select>
+                <Label>Descrição</Label>
+                <Textarea
+                  placeholder="Descreva para que serve este template..."
+                  value={newTemplate.description}
+                  onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
+                  rows={2}
+                />
               </div>
-            </div>
 
-            {!editingTemplate && (
-              <div className="pt-4 border-t">
-                <p className="text-sm text-slate-600 mb-3">
-                  💡 <strong>Dica:</strong> Configure as permissões através da interface principal de gestão de permissões após criar o template.
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Ícone (emoji)</Label>
+                  <Input
+                    placeholder="📋"
+                    value={newTemplate.icon}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, icon: e.target.value })}
+                    maxLength={2}
+                  />
+                </div>
+                <div>
+                  <Label>Cor</Label>
+                  <select
+                    value={newTemplate.color}
+                    onChange={(e) => setNewTemplate({ ...newTemplate, color: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="blue">Azul</option>
+                    <option value="purple">Roxo</option>
+                    <option value="green">Verde</option>
+                    <option value="amber">Âmbar</option>
+                    <option value="red">Vermelho</option>
+                    <option value="indigo">Índigo</option>
+                  </select>
+                </div>
               </div>
-            )}
+            </TabsContent>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => { setCreateDialogOpen(false); resetForm(); }} className="flex-1">
-                Cancelar
-              </Button>
-              <Button
-                onClick={() => createMutation.mutate(newTemplate)}
-                disabled={!newTemplate.name || createMutation.isPending}
-                className="flex-1 bg-purple-600 hover:bg-purple-700"
-              >
-                {editingTemplate ? 'Atualizar' : 'Criar'} Template
-              </Button>
-            </div>
+            <TabsContent value="tools">
+              <ScrollArea className="h-[500px] pr-4">
+                <div className="space-y-4">
+                  {TOOL_CATEGORIES.map(category => {
+                    const CategoryIcon = category.icon;
+                    const enabled = isCategoryEnabled(category);
+                    const partial = isCategoryPartial(category);
+                    const enabledCount = category.tools.filter(t => newTemplate.permissions?.tools?.[t.id]).length;
+
+                    return (
+                      <Card key={category.id} className="border-2">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <CategoryIcon className={`w-5 h-5 text-${category.color}-600`} />
+                              <div>
+                                <CardTitle className="text-sm">{category.name}</CardTitle>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  {enabledCount}/{category.tools.length} ferramentas ativas
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {partial && (
+                                <Badge variant="outline" className="text-xs">Parcial</Badge>
+                              )}
+                              <Switch
+                                checked={enabled}
+                                onCheckedChange={(checked) => toggleCategory(category, checked)}
+                              />
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-2">
+                            {category.tools.map(tool => (
+                              <div
+                                key={tool.id}
+                                className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${
+                                  newTemplate.permissions?.tools?.[tool.id]
+                                    ? 'bg-green-50 border-green-300'
+                                    : 'bg-slate-50 border-slate-200'
+                                }`}
+                              >
+                                <span className="text-sm text-slate-700">{tool.name}</span>
+                                <Switch
+                                  checked={newTemplate.permissions?.tools?.[tool.id] === true}
+                                  onCheckedChange={() => toggleTool(tool.id)}
+                                  className="scale-75"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => { setCreateDialogOpen(false); resetForm(); }} className="flex-1">
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => createMutation.mutate(newTemplate)}
+              disabled={!newTemplate.name || createMutation.isPending}
+              className="flex-1 bg-purple-600 hover:bg-purple-700"
+            >
+              {editingTemplate ? 'Atualizar' : 'Criar'} Template
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
