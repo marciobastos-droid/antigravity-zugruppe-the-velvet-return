@@ -90,19 +90,21 @@ export default function Layout({ children, currentPageName }) {
     // Admins e gestores têm acesso total
     if (isAdmin) return true;
     
-    // Consultores têm acesso às suas páginas permitidas
-    if (isConsultant && pagePermKey === 'tools') {
-      // Permitir acesso se a permissão específica estiver definida OU se tiver ferramentas ativas
+    // Caso especial: página Tools
+    if (pagePermKey === 'tools') {
+      // Se tem a permissão explícita da página
       if (user?.permissions?.pages?.tools === true) return true;
-      if (user?.permissions?.tools) {
+      
+      // Se tem pelo menos uma ferramenta habilitada, pode ver a página
+      if (user?.permissions?.tools && typeof user.permissions.tools === 'object') {
         const hasAnyTool = Object.values(user.permissions.tools).some(v => v === true);
-        if (hasAnyTool) return true;
+        return hasAnyTool;
       }
-      // Por padrão, consultores podem ver Tools
-      return true;
+      
+      return false;
     }
     
-    // Se tem permissões granulares definidas, verificar
+    // Para outras páginas, verificar permissão específica
     if (user?.permissions?.pages && pagePermKey) {
       return user.permissions.pages[pagePermKey] === true;
     }
