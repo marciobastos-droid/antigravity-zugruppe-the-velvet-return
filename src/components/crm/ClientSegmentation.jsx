@@ -141,7 +141,7 @@ export default function ClientSegmentation() {
   };
 
   const calculateMatches = (criteria) => {
-    const allClients = [...opportunities, ...profiles];
+    const allClients = [...(opportunities || []), ...(profiles || [])];
     
     return allClients.filter(client => {
       // Budget filter
