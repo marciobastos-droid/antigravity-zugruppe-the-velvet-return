@@ -92,31 +92,22 @@ export default function Tools() {
     queryFn: () => base44.auth.me()
   });
 
-  // Buscar permissões apenas do utilizador atual
-  const { data: userPerm } = useQuery({
-    queryKey: ['myUserPermissions', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return null;
-      const perms = await base44.entities.UserPermission.filter({ user_email: currentUser.email });
-      console.log('[Tools] User permissions loaded:', perms);
-      return perms[0] || null;
-    },
-    enabled: !!currentUser?.email
-  });
-
   // Check if user is admin/gestor (has full access) or needs permission check
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
 
-  // Get user's tool permissions
+  // Get user's tool permissions directly from user object
   const userToolPermissions = React.useMemo(() => {
-    if (!userPerm?.permissions) return {};
-    const tools = userPerm.permissions.tools;
-    // Se tools é null ou undefined, retornar objeto vazio
+    // Admin has all permissions
+    if (isAdmin) return {};
+    
+    // Get from user.permissions.tools
+    const tools = currentUser?.permissions?.tools;
     if (!tools || typeof tools !== 'object') return {};
     return tools;
-  }, [userPerm]);
+  }, [currentUser, isAdmin]);
 
-  const hasToolsPageAccess = userPerm?.permissions?.pages?.tools === true || (userPerm?.permissions?.tools && Object.values(userPerm.permissions.tools).some(v => v === true));
+  const hasToolsPageAccess = currentUser?.permissions?.pages?.tools === true || 
+    (currentUser?.permissions?.tools && Object.values(currentUser.permissions.tools).some(v => v === true));
 
   // Debug logging
   React.useEffect(() => {
@@ -127,13 +118,13 @@ export default function Tools() {
         role: currentUser.role,
         isAdmin,
         hasToolsPageAccess,
-        userPerm: userPerm,
+        userPermissions: currentUser.permissions,
         userToolPermissions,
         permissionsCount: Object.keys(userToolPermissions).length,
         enabledTools: Object.entries(userToolPermissions).filter(([_, v]) => v === true).map(([k]) => k)
       });
     }
-  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions, userPerm]);
+  }, [currentUser, isAdmin, hasToolsPageAccess, userToolPermissions]);
 
   // Helper to check if tool is allowed
   const isToolAllowed = React.useCallback((toolId) => {
