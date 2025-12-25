@@ -265,12 +265,29 @@ export default function PropertyDetails() {
   }, [user, property?.created_by]);
 
   const assignedConsultant = React.useMemo(() => {
-    const consultant = allUsers.find(u => u.email === property?.assigned_consultant)
-      || consultants.find(c => c.email === property?.assigned_consultant);
-    console.log('[PropertyDetails] assignedConsultant:', {
-      assigned_consultant_email: property?.assigned_consultant,
-      found_consultant: consultant ? { email: consultant.email, name: consultant.full_name || consultant.display_name } : null
+    if (!property?.assigned_consultant) {
+      console.log('[PropertyDetails] No assigned_consultant on property');
+      return null;
+    }
+
+    // Try to find in allUsers first, then consultants
+    let consultant = allUsers.find(u => u.email === property.assigned_consultant);
+    if (!consultant) {
+      consultant = consultants.find(c => c.email === property.assigned_consultant);
+    }
+
+    console.log('[PropertyDetails] assignedConsultant search:', {
+      assigned_consultant_email: property.assigned_consultant,
+      allUsersCount: allUsers.length,
+      consultantsCount: consultants.length,
+      found: !!consultant,
+      consultantData: consultant ? { 
+        email: consultant.email, 
+        name: consultant.full_name || consultant.display_name,
+        phone: consultant.phone 
+      } : null
     });
+
     return consultant;
   }, [consultants, allUsers, property?.assigned_consultant]);
 
