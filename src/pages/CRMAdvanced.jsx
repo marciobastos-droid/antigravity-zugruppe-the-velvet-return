@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, BarChart3, Brain, PieChart, Target, Clock, Mail, UserCog } from "lucide-react";
+import { Users, Calendar, BarChart3, Brain, Target, Clock, Mail, UserCog } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import AppointmentScheduler from "../components/crm/AppointmentScheduler";
 import CRMDashboard from "../components/crm/CRMDashboard";

@@ -16,13 +16,16 @@ import MatchingReport from "@/components/matching/MatchingReport";
 import AIMatchingInsights from "@/components/matching/AIMatchingInsights";
 import MatchingDashboard from "@/components/matching/MatchingDashboard";
 import ScheduledReports from "@/components/matching/ScheduledReports";
+import EnhancedPropertyMatching from "./EnhancedPropertyMatching";
+import AutomatedMatchesTab from "../clients/AutomatedMatchesTab";
+import AdvancedMatching from "../clients/AdvancedMatching";
 
 export default function MatchingTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
   const [matchingOpen, setMatchingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("clients");
-  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled"
+  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled", "profiles", "automated", "advanced"
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -166,46 +169,101 @@ export default function MatchingTab() {
       </div>
 
       {/* View Mode Toggle */}
-      <div className="flex justify-end">
+      <div className="flex justify-end flex-wrap gap-2">
         <div className="flex border rounded-lg overflow-hidden">
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("list")}
-            className="rounded-none"
+            className="rounded-none text-xs"
           >
-            <Users className="w-4 h-4 mr-2" />
-            Lista
+            <Users className="w-4 h-4 mr-1" />
+            Clientes
+          </Button>
+          <Button
+            variant={viewMode === "profiles" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("profiles")}
+            className="rounded-none text-xs"
+          >
+            <Target className="w-4 h-4 mr-1" />
+            Perfis
+          </Button>
+          <Button
+            variant={viewMode === "automated" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("automated")}
+            className="rounded-none text-xs"
+          >
+            <Sparkles className="w-4 h-4 mr-1" />
+            Automático
+          </Button>
+          <Button
+            variant={viewMode === "advanced" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("advanced")}
+            className="rounded-none text-xs"
+          >
+            <Brain className="w-4 h-4 mr-1" />
+            Avançado
           </Button>
           <Button
             variant={viewMode === "ai" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("ai")}
-            className="rounded-none"
+            className="rounded-none text-xs"
           >
-            <Zap className="w-4 h-4 mr-2" />
-            Análise IA
+            <Zap className="w-4 h-4 mr-1" />
+            IA
           </Button>
           <Button
             variant={viewMode === "dashboard" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("dashboard")}
-            className="rounded-none"
+            className="rounded-none text-xs"
           >
-            <BarChart3 className="w-4 h-4 mr-2" />
+            <BarChart3 className="w-4 h-4 mr-1" />
             Dashboard
           </Button>
           <Button
             variant={viewMode === "scheduled" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("scheduled")}
-            className="rounded-none"
+            className="rounded-none text-xs"
           >
-            <Calendar className="w-4 h-4 mr-2" />
-            Agendados
+            <Calendar className="w-4 h-4 mr-1" />
+            Relatórios
           </Button>
         </div>
       </div>
+
+      {viewMode === "profiles" && (
+        selectedContact ? (
+          <EnhancedPropertyMatching profile={selectedContact} />
+        ) : (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Target className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Selecione um Cliente</h3>
+              <p className="text-slate-500 mb-4">
+                Escolha um cliente da lista para ver matching detalhado
+              </p>
+              <Button onClick={() => setViewMode("list")}>
+                <Users className="w-4 h-4 mr-2" />
+                Ver Lista de Clientes
+              </Button>
+            </CardContent>
+          </Card>
+        )
+      )}
+
+      {viewMode === "automated" && (
+        <AutomatedMatchesTab />
+      )}
+
+      {viewMode === "advanced" && (
+        <AdvancedMatching />
+      )}
 
       {viewMode === "dashboard" && (
         <MatchingDashboard />
@@ -325,6 +383,18 @@ export default function MatchingTab() {
                                 )}
                               </div>
                               <div className="flex gap-2">
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedContact(contact);
+                                    setViewMode("profiles");
+                                  }}
+                                >
+                                  <Target className="w-4 h-4" />
+                                </Button>
                                 <Button 
                                   size="sm"
                                   variant="outline"

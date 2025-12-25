@@ -16,9 +16,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
 import { debounce } from "lodash";
-import PropertyMatchingDialog from "../clients/PropertyMatchingDialog";
-import AutomatedMatchesTab from "../clients/AutomatedMatchesTab";
-import AdvancedMatching from "../clients/AdvancedMatching";
+import EnhancedPropertyMatching from "./EnhancedPropertyMatching";
+import { createPageUrl } from "@/utils";
 
 export default function ClientPreferencesTab() {
   const queryClient = useQueryClient();
@@ -1338,15 +1337,31 @@ export default function ClientPreferencesTab() {
         </>
       )}
 
-      {activeSubTab === "automated" && <AutomatedMatchesTab profiles={profiles} />}
+      {activeSubTab === "automated" && (
+        <Card className="p-6 text-center">
+          <p className="text-slate-600 mb-4">
+            Funcionalidade de Matches Automáticos disponível na aba "Matching" do CRM
+          </p>
+          <Button onClick={() => window.location.href = `${createPageUrl('CRMAdvanced')}?tab=matching`}>
+            Ir para Matching
+          </Button>
+        </Card>
+      )}
 
-      {activeSubTab === "matching" && <AdvancedMatching profiles={profiles} />}
+      {activeSubTab === "matching" && (
+        <Card className="p-6 text-center">
+          <p className="text-slate-600 mb-4">
+            Funcionalidade de Matching Avançado disponível na aba "Matching" do CRM
+          </p>
+          <Button onClick={() => window.location.href = `${createPageUrl('CRMAdvanced')}?tab=matching`}>
+            Ir para Matching
+          </Button>
+        </Card>
+      )}
 
-      <PropertyMatchingDialog
-        profile={matchingProfile}
-        open={!!matchingProfile}
-        onOpenChange={(open) => !open && setMatchingProfile(null)}
-      />
+      {matchingProfile && (
+        <EnhancedPropertyMatching profile={matchingProfile} />
+      )}
     </div>
   );
 }
