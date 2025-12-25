@@ -164,7 +164,7 @@ export default function Tools() {
   }, [isAdmin, userToolPermissions]);
 
   // Contar ferramentas permitidas
-  const getAllToolIds = () => {
+  const allToolIds = React.useMemo(() => {
     const toolIds = [];
     const groups = [
       { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations'] },
@@ -180,10 +180,9 @@ export default function Tools() {
     ];
     groups.forEach(g => toolIds.push(...g.tools));
     return toolIds;
-  };
+  }, []);
 
-  const allToolIds = getAllToolIds();
-  const allowedTools = allToolIds.filter(isToolAllowed);
+  const allowedTools = React.useMemo(() => allToolIds.filter(isToolAllowed), [allToolIds, isToolAllowed]);
   const totalTools = allToolIds.length;
   const allowedCount = allowedTools.length;
 
@@ -255,7 +254,7 @@ export default function Tools() {
   };
 
   // Helper to render tool button with permission check - oculta se não permitido
-  const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
+  const ToolButton = React.useCallback(({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
     const allowed = isToolAllowed(toolId);
     if (!allowed) return null;
 
@@ -323,25 +322,23 @@ export default function Tools() {
         {label}
       </Button>
     );
-  };
+  }, [activeTab, isToolAllowed, TOOL_METADATA]);
 
-  // Se não tem acesso à página Tools ou não tem nenhuma ferramenta
-  if (!isAdmin && (!hasToolsPageAccess || allowedCount === 0)) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <Wrench className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Acesso a Ferramentas</h2>
-          <p className="text-slate-600">
-            Não tem permissão para aceder a esta página ou não tem ferramentas atribuídas.
-            Contacte o administrador para obter acesso.
-          </p>
-        </div>
+  // Renderizar conteúdo baseado em permissões
+  const shouldShowAccessDenied = !isAdmin && (!hasToolsPageAccess || allowedCount === 0);
+
+  return shouldShowAccessDenied ? (
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 flex items-center justify-center">
+      <div className="text-center max-w-md px-4">
+        <Wrench className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Acesso a Ferramentas</h2>
+        <p className="text-slate-600">
+          Não tem permissão para aceder a esta página ou não tem ferramentas atribuídas.
+          Contacte o administrador para obter acesso.
+        </p>
       </div>
-    );
-  }
-
-  return (
+    </div>
+  ) : (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
