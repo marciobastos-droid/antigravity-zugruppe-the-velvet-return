@@ -88,9 +88,14 @@ export default function PermissionTemplatesManager() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.PermissionTemplate.create(data),
+    mutationFn: (data) => {
+      if (editingTemplate) {
+        return base44.entities.PermissionTemplate.update(editingTemplate.id, data);
+      }
+      return base44.entities.PermissionTemplate.create(data);
+    },
     onSuccess: () => {
-      toast.success("Template criado com sucesso!");
+      toast.success(editingTemplate ? "Template atualizado!" : "Template criado com sucesso!");
       queryClient.invalidateQueries({ queryKey: ['permissionTemplates'] });
       setCreateDialogOpen(false);
       resetForm();
@@ -187,21 +192,28 @@ export default function PermissionTemplatesManager() {
                         {template.template_type === 'system' && (
                           <Badge variant="outline" className="text-xs mt-1">Sistema</Badge>
                         )}
-                      </div>
-                    </div>
-                    {template.template_type !== 'system' && (
-                      <div className="flex gap-1">
+                        </div>
+                        </div>
+                        <div className="flex gap-1">
                         <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7"
-                          onClick={() => {
-                            setEditingTemplate(template);
-                            setCreateDialogOpen(true);
-                          }}
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          setEditingTemplate(template);
+                          setNewTemplate({
+                            name: template.name,
+                            description: template.description,
+                            icon: template.icon || "📋",
+                            color: template.color || "blue",
+                            permissions: template.permissions || { pages: {}, tools: {}, data: {}, actions: {} }
+                          });
+                          setCreateDialogOpen(true);
+                        }}
                         >
-                          <Edit className="w-3 h-3" />
+                        <Edit className="w-3 h-3" />
                         </Button>
+                        {template.template_type !== 'system' && (
                         <Button
                           size="icon"
                           variant="ghost"
@@ -214,8 +226,8 @@ export default function PermissionTemplatesManager() {
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
-                      </div>
-                    )}
+                        )}
+                        </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -296,11 +308,13 @@ export default function PermissionTemplatesManager() {
               </div>
             </div>
 
-            <div className="pt-4 border-t">
-              <p className="text-sm text-slate-600 mb-3">
-                💡 <strong>Dica:</strong> Configure as permissões através da interface principal de gestão de permissões após criar o template.
-              </p>
-            </div>
+            {!editingTemplate && (
+              <div className="pt-4 border-t">
+                <p className="text-sm text-slate-600 mb-3">
+                  💡 <strong>Dica:</strong> Configure as permissões através da interface principal de gestão de permissões após criar o template.
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => { setCreateDialogOpen(false); resetForm(); }} className="flex-1">
