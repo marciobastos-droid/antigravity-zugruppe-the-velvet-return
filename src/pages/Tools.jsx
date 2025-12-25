@@ -254,7 +254,7 @@ export default function Tools() {
   };
 
   // Helper to render tool button with permission check - oculta se não permitido
-  const ToolButton = React.useCallback(({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
+  const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
     const allowed = isToolAllowed(toolId);
     if (!allowed) return null;
 
@@ -322,23 +322,27 @@ export default function Tools() {
         {label}
       </Button>
     );
-  }, [activeTab, isToolAllowed, TOOL_METADATA]);
+  };
 
   // Renderizar conteúdo baseado em permissões
   const shouldShowAccessDenied = !isAdmin && (!hasToolsPageAccess || allowedCount === 0);
 
-  return shouldShowAccessDenied ? (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 flex items-center justify-center">
-      <div className="text-center max-w-md px-4">
-        <Wrench className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Acesso a Ferramentas</h2>
-        <p className="text-slate-600">
-          Não tem permissão para aceder a esta página ou não tem ferramentas atribuídas.
-          Contacte o administrador para obter acesso.
-        </p>
+  if (shouldShowAccessDenied) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <Wrench className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Acesso a Ferramentas</h2>
+          <p className="text-slate-600">
+            Não tem permissão para aceder a esta página ou não tem ferramentas atribuídas.
+            Contacte o administrador para obter acesso.
+          </p>
+        </div>
       </div>
-    </div>
-  ) : (
+    );
+  }
+
+  return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
