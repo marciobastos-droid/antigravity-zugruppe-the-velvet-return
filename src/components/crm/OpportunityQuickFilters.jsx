@@ -1,7 +1,10 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Star, Target, UserCheck, TrendingUp, ChevronDown, ChevronUp, Flame, Thermometer, Snowflake, AlertCircle, Users, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
+import { X, Star, Target, UserCheck, TrendingUp, ChevronDown, ChevronUp, Flame, Thermometer, Snowflake, AlertCircle, Users, Globe, User } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 export default function OpportunityQuickFilters({ 
   opportunities, 
@@ -10,6 +13,11 @@ export default function OpportunityQuickFilters({
   convertedOpportunityIds = new Set()
 }) {
   const [expanded, setExpanded] = React.useState(false);
+
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+  });
   
   // Calcular estatísticas
   const stats = React.useMemo(() => {
@@ -48,10 +56,23 @@ export default function OpportunityQuickFilters({
       unassigned: opportunities.filter(o => !o.assigned_to).length,
       assigned: opportunities.filter(o => o.assigned_to).length,
       
+      // Por consultor
+      byConsultant: {},
+      
       // Conversão
       converted: opportunities.filter(o => convertedOpportunityIds.has(o.id)).length,
       notConverted: opportunities.filter(o => !convertedOpportunityIds.has(o.id)).length
     };
+
+    // Contar por consultor
+    const consultantCounts = {};
+    opportunities.forEach(o => {
+      if (o.assigned_to) {
+        consultantCounts[o.assigned_to] = (consultantCounts[o.assigned_to] || 0) + 1;
+      }
+    });
+    counts.byConsultant = consultantCounts;
+
     return counts;
   }, [opportunities, convertedOpportunityIds]);
 
@@ -120,6 +141,23 @@ export default function OpportunityQuickFilters({
           <FilterBadge filterKey="lead_type" value="comprador" label="Compradores" count={stats.comprador} color="blue" />
           <FilterBadge filterKey="assigned_to" value="unassigned" label="Sem Agente" count={stats.unassigned} color="slate" icon={AlertCircle} />
           <FilterBadge filterKey="converted" value="yes" label="Convertidos" count={stats.converted} color="emerald" icon={UserCheck} />
+          
+          {/* Filtro por Consultor */}
+          {filters.assigned_to !== "all" && filters.assigned_to !== "unassigned" && filters.assigned_to !== "all_assigned" && (
+            <Badge
+              onClick={() => onFilterChange({...filters, assigned_to: "all"})}
+              className="cursor-pointer transition-all border bg-blue-600 text-white border-blue-600 flex items-center gap-1 px-2.5 py-1 text-xs"
+            >
+              <User className="w-3 h-3" />
+              <span className="font-medium">
+                {users.find(u => u.email === filters.assigned_to)?.display_name || 
+                 users.find(u => u.email === filters.assigned_to)?.full_name || 
+                 filters.assigned_to.split('@')[0]}
+              </span>
+              <span className="opacity-90">({stats.byConsultant[filters.assigned_to] || 0})</span>
+              <X className="w-2.5 h-2.5 ml-0.5" />
+            </Badge>
+          )}
         </div>
 
         {/* Botão Expandir */}
@@ -181,12 +219,34 @@ export default function OpportunityQuickFilters({
             </div>
 
             <div>
+              <p className="text-xs font-semibold text-slate-700 mb-2">Consultor</p>
+              <div className="flex flex-wrap gap-2 items-center">
+                <Select value={filters.assigned_to} onValueChange={(value) => onFilterChange({...filters, assigned_to: value})}>
+                  <SelectTrigger className="h-8 text-xs w-auto min-w-[180px] bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Consultores</SelectItem>
+                    <SelectItem value="unassigned">Não Atribuídos ({stats.unassigned})</SelectItem>
+                    <SelectItem value="all_assigned">Atribuídos ({stats.assigned})</SelectItem>
+                    <SelectSeparator />
+                    {users.map((u) => (
+                      <SelectItem key={u.email} value={u.email}>
+                        {u.display_name || u.full_name || u.email.split('@')[0]}
+                        {stats.byConsultant[u.email] && ` (${stats.byConsultant[u.email]})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
               <p className="text-xs font-semibold text-slate-700 mb-2">Outros</p>
               <div className="flex flex-wrap gap-2">
                 <FilterBadge filterKey="priority" value="urgent" label="🚨 Urgente" count={stats.urgent} color="red" />
                 <FilterBadge filterKey="priority" value="high" label="Alta Prioridade" count={stats.high} color="amber" icon={Star} />
                 <FilterBadge filterKey="converted" value="no" label="Não Convertidos" count={stats.notConverted} color="slate" />
-                <FilterBadge filterKey="assigned_to" value="all_assigned" label="Com Agente" count={stats.assigned} color="blue" icon={UserCheck} />
               </div>
             </div>
           </div>
