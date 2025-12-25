@@ -271,7 +271,7 @@ export default function Website() {
   }, [activeTab, activeProperties]);
 
   const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
-  const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
+  const featuredProperties = activeProperties.filter(p => p.featured && p.published_pages?.length > 0).slice(0, 4);
 
   const filteredProperties = tabFilteredProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||
