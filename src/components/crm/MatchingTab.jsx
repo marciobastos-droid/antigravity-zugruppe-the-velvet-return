@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Brain, Search, Users, Building2, Target, Sparkles,
   TrendingUp, Clock, CheckCircle2, AlertCircle, Filter,
-  ChevronRight, MapPin, Euro, Bed, RefreshCw, Zap, BarChart3, Calendar, Settings
+  ChevronRight, MapPin, Euro, Bed, RefreshCw, Zap, BarChart3, Calendar, Settings, UserCog
 } from "lucide-react";
 import MatchingReport from "@/components/matching/MatchingReport";
 import AIMatchingInsights from "@/components/matching/AIMatchingInsights";
@@ -19,13 +19,14 @@ import ScheduledReports from "@/components/matching/ScheduledReports";
 import EnhancedPropertyMatching from "./EnhancedPropertyMatching";
 import AutomatedMatchesTab from "../clients/AutomatedMatchesTab";
 import AdvancedMatching from "../clients/AdvancedMatching";
+import ClientPreferencesTab from "./ClientPreferencesTab";
 
 export default function MatchingTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedContact, setSelectedContact] = useState(null);
   const [matchingOpen, setMatchingOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("clients");
-  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled", "profiles", "automated", "advanced"
+  const [viewMode, setViewMode] = useState("list"); // "list", "ai", "dashboard", "scheduled", "profiles", "automated", "advanced", "preferences"
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -181,6 +182,15 @@ export default function MatchingTab() {
             Clientes
           </Button>
           <Button
+            variant={viewMode === "preferences" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("preferences")}
+            className="rounded-none text-xs"
+          >
+            <UserCog className="w-4 h-4 mr-1" />
+            Preferências
+          </Button>
+          <Button
             variant={viewMode === "profiles" ? "default" : "ghost"}
             size="sm"
             onClick={() => setViewMode("profiles")}
@@ -236,6 +246,10 @@ export default function MatchingTab() {
           </Button>
         </div>
       </div>
+
+      {viewMode === "preferences" && (
+        <ClientPreferencesTab />
+      )}
 
       {viewMode === "profiles" && (
         selectedContact ? (
