@@ -271,16 +271,27 @@ export default function PropertyDetails() {
     }
 
     // Try to find in allUsers first, then consultants
-    let consultant = allUsers.find(u => u.email === property.assigned_consultant);
-    if (!consultant) {
-      consultant = consultants.find(c => c.email === property.assigned_consultant);
+    let consultant = allUsers.find(u => u.email === property.assigned_consultant)
+      || consultants.find(c => c.email === property.assigned_consultant);
+
+    // If not found in users list, use data stored in property itself
+    if (!consultant && property.assigned_consultant_name) {
+      consultant = {
+        email: property.assigned_consultant,
+        full_name: property.assigned_consultant_name,
+        display_name: property.assigned_consultant_name,
+        phone: property.assigned_consultant_phone,
+        photo_url: property.assigned_consultant_photo
+      };
+      console.log('[PropertyDetails] Using consultant data from property:', consultant);
     }
 
-    console.log('[PropertyDetails] assignedConsultant search:', {
+    console.log('[PropertyDetails] assignedConsultant:', {
       assigned_consultant_email: property.assigned_consultant,
       allUsersCount: allUsers.length,
       consultantsCount: consultants.length,
       found: !!consultant,
+      usedPropertyData: !!(consultant && !allUsers.find(u => u.email === property.assigned_consultant)),
       consultantData: consultant ? { 
         email: consultant.email, 
         name: consultant.full_name || consultant.display_name,
@@ -289,7 +300,7 @@ export default function PropertyDetails() {
     });
 
     return consultant;
-  }, [consultants, allUsers, property?.assigned_consultant]);
+  }, [consultants, allUsers, property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo]);
 
   // SEO data
   const metaTitle = React.useMemo(() => property ? `${property.title} | ${property.city} | Zugruppe` : 'Zugruppe', [property]);
