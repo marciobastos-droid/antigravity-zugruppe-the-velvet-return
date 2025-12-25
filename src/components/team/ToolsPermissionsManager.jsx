@@ -6,10 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Wrench, User, Save, Search, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
+import { Wrench, User, Save, Search, CheckCircle2, XCircle, ArrowLeft, Layers, Users, History, Clock } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PermissionTemplatesManager from "./PermissionTemplatesManager";
 
 // Tool categories matching Tools page EXACTLY
 const TOOL_CATEGORIES = {
@@ -146,13 +150,32 @@ const ALL_TOOLS = Object.values(TOOL_CATEGORIES).flatMap(cat => cat.tools.map(t 
 export default function ToolsPermissionsManager() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [toolPermissions, setToolPermissions] = useState({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [auditDialogOpen, setAuditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("permissions");
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
     queryFn: () => base44.entities.User.list()
+  });
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['permissionTemplates'],
+    queryFn: () => base44.entities.PermissionTemplate.list()
+  });
+
+  const { data: auditLogs = [] } = useQuery({
+    queryKey: ['permissionAuditLogs'],
+    queryFn: () => base44.entities.PermissionAuditLog.list('-created_date', 50)
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
   });
 
   // Filtrar utilizadores que precisam de permissões (excluir admin/gestor)
@@ -179,24 +202,43 @@ export default function ToolsPermissionsManager() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Atualizar diretamente no User
       const currentPermissions = selectedUser.permissions || {};
+      const previousPermissions = { ...currentPermissions };
       const updatedPermissions = {
         ...currentPermissions,
         tools: toolPermissions
       };
       
-      return await base44.entities.User.update(selectedUser.id, {
+      // Atualizar utilizador
+      await base44.entities.User.update(selectedUser.id, {
         permissions: updatedPermissions
       });
+
+      // Criar log de auditoria
+      await base44.entities.PermissionAuditLog.create({
+        action_type: "permission_updated",
+        target_user_email: selectedUser.email,
+        target_user_name: selectedUser.display_name || selectedUser.full_name,
+        performed_by_email: currentUser.email,
+        performed_by_name: currentUser.full_name,
+        previous_permissions: previousPermissions,
+        new_permissions: updatedPermissions,
+        changes_summary: {
+          tools_changed: Object.keys(toolPermissions).filter(k => 
+            previousPermissions.tools?.[k] !== toolPermissions[k]
+          ).length
+        }
+      });
+
+      return { selectedUser, updatedPermissions };
     },
     onSuccess: () => {
-      toast.success("✅ Permissões de ferramentas guardadas com sucesso!");
+      toast.success("✅ Permissões guardadas e auditoria registada!");
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['permissionAuditLogs'] });
       setHasChanges(false);
       
-      // Atualizar o selectedUser localmente
       setSelectedUser(prev => ({
         ...prev,
         permissions: {
@@ -208,6 +250,56 @@ export default function ToolsPermissionsManager() {
     onError: (error) => {
       console.error("Erro ao guardar:", error);
       toast.error("❌ Erro ao guardar permissões");
+    }
+  });
+
+  const applyTemplateMutation = useMutation({
+    mutationFn: async ({ template, userIds }) => {
+      const results = [];
+      
+      for (const userId of userIds) {
+        const user = users.find(u => u.id === userId);
+        if (!user) continue;
+
+        const previousPermissions = user.permissions || {};
+        const updatedPermissions = {
+          ...template.permissions,
+          pages: { ...(template.permissions.pages || {}) },
+          tools: { ...(template.permissions.tools || {}) },
+          data: { ...(template.permissions.data || {}) },
+          actions: { ...(template.permissions.actions || {}) }
+        };
+
+        await base44.entities.User.update(userId, {
+          permissions: updatedPermissions,
+          template_id: template.id
+        });
+
+        results.push(user.email);
+      }
+
+      // Log de auditoria
+      await base44.entities.PermissionAuditLog.create({
+        action_type: userIds.length > 1 ? "bulk_update" : "template_applied",
+        target_users: results,
+        performed_by_email: currentUser.email,
+        performed_by_name: currentUser.full_name,
+        template_id: template.id,
+        template_name: template.name,
+        changes_summary: {
+          users_affected: results.length,
+          template_applied: template.name
+        }
+      });
+
+      return results;
+    },
+    onSuccess: (results) => {
+      toast.success(`✅ Template aplicado a ${results.length} utilizador(es)!`);
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['permissionAuditLogs'] });
+      setBulkMode(false);
+      setSelectedUsers([]);
     }
   });
 
@@ -240,10 +332,66 @@ export default function ToolsPermissionsManager() {
     setHasChanges(true);
   };
 
+  const applyTemplate = (template) => {
+    if (bulkMode) {
+      if (selectedUsers.length === 0) {
+        toast.error("Selecione pelo menos um utilizador");
+        return;
+      }
+      applyTemplateMutation.mutate({ template, userIds: selectedUsers });
+    } else if (selectedUser) {
+      setToolPermissions(template.permissions.tools || {});
+      setHasChanges(true);
+      toast.success(`Template "${template.name}" aplicado!`);
+    }
+  };
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
   const enabledCount = Object.values(toolPermissions).filter(Boolean).length;
 
   return (
-    <div className="space-y-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="permissions" className="flex items-center gap-2">
+          <Wrench className="w-4 h-4" />
+          Gerir Permissões
+        </TabsTrigger>
+        <TabsTrigger value="templates" className="flex items-center gap-2">
+          <Layers className="w-4 h-4" />
+          Templates
+        </TabsTrigger>
+        <TabsTrigger value="audit" className="flex items-center gap-2">
+          <History className="w-4 h-4" />
+          Auditoria
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="permissions" className="space-y-6">
+      {/* Controles de Modo */}
+      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-purple-600" />
+              <div>
+                <p className="font-semibold text-slate-900">Modo de Edição</p>
+                <p className="text-xs text-slate-600">
+                  {bulkMode ? 'Aplicar templates a múltiplos utilizadores' : 'Editar permissões individuais'}
+                </p>
+              </div>
+            </div>
+            <Switch checked={bulkMode} onCheckedChange={setBulkMode} />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header com estatísticas */}
       <div className="grid md:grid-cols-3 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
@@ -323,14 +471,22 @@ export default function ToolsPermissionsManager() {
                       ? Object.values(agent.permissions.tools).filter(Boolean).length 
                       : 0;
                     
-                    const isSelected = selectedUser?.id === agent.id;
+                    const isSelected = bulkMode 
+                      ? selectedUsers.includes(agent.id)
+                      : selectedUser?.id === agent.id;
                     
                     return (
                       <motion.button
                         key={agent.id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setSelectedUser(agent)}
+                        onClick={() => {
+                          if (bulkMode) {
+                            toggleUserSelection(agent.id);
+                          } else {
+                            setSelectedUser(agent);
+                          }
+                        }}
                         className={`w-full p-3 rounded-lg text-left transition-all ${
                           isSelected
                             ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 shadow-md' 
@@ -338,6 +494,13 @@ export default function ToolsPermissionsManager() {
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-1">
+                          {bulkMode && (
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                              isSelected ? 'bg-blue-500 border-blue-500' : 'border-slate-300'
+                            }`}>
+                              {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                            </div>
+                          )}
                           <div className={`w-2 h-2 rounded-full ${toolCount > 0 ? 'bg-green-500' : 'bg-slate-300'}`} />
                           <p className="font-medium text-slate-900 text-sm">
                             {agent.display_name || agent.full_name}
@@ -366,7 +529,13 @@ export default function ToolsPermissionsManager() {
               <div className="flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-purple-600" />
                 <CardTitle className="text-base">
-                  {selectedUser ? (
+                  {bulkMode ? (
+                    selectedUsers.length > 0 ? (
+                      <span>{selectedUsers.length} utilizador(es) selecionado(s)</span>
+                    ) : (
+                      'Selecione utilizadores e escolha um template'
+                    )
+                  ) : selectedUser ? (
                     <span>
                       Ferramentas de <span className="text-blue-600">{selectedUser.display_name || selectedUser.full_name}</span>
                     </span>
@@ -375,7 +544,7 @@ export default function ToolsPermissionsManager() {
                   )}
                 </CardTitle>
               </div>
-              {selectedUser && (
+              {!bulkMode && selectedUser && (
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className="bg-blue-100 text-blue-800 border-blue-300">
                     {enabledCount}/{ALL_TOOLS.length} ativas
@@ -413,7 +582,57 @@ export default function ToolsPermissionsManager() {
           </CardHeader>
           <CardContent>
             <AnimatePresence mode="wait">
-              {!selectedUser ? (
+              {bulkMode ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  {selectedUsers.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-slate-900 mb-2">Modo de Aplicação em Massa</h3>
+                      <p className="text-slate-500">Selecione utilizadores à esquerda e escolha um template abaixo</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <p className="text-sm font-semibold text-blue-900 mb-2">
+                          <Users className="w-4 h-4 inline mr-2" />
+                          {selectedUsers.length} utilizador(es) selecionado(s)
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          Escolha um template abaixo para aplicar as permissões a todos os utilizadores selecionados
+                        </p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-3">
+                        {templates.map(template => (
+                          <Card 
+                            key={template.id}
+                            className="hover:shadow-md transition-shadow cursor-pointer border-2 hover:border-purple-400"
+                            onClick={() => applyTemplate(template)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <span className="text-3xl">{template.icon || "📋"}</span>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-slate-900">{template.name}</h4>
+                                  <p className="text-xs text-slate-600 mb-2">{template.description}</p>
+                                  <Badge variant="outline" className="text-xs">
+                                    {Object.values(template.permissions?.tools || {}).filter(Boolean).length} ferramentas
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ) : !selectedUser ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -431,6 +650,34 @@ export default function ToolsPermissionsManager() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                 >
+                  {/* Quick Template Selector */}
+                  {templates.length > 0 && (
+                    <Card className="mb-4 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-purple-600" />
+                            <p className="font-semibold text-slate-900 text-sm">Aplicar Template Rápido</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          {templates.map(template => (
+                            <Button
+                              key={template.id}
+                              size="sm"
+                              variant="outline"
+                              onClick={() => applyTemplate(template)}
+                              className="h-8"
+                            >
+                              <span className="mr-1">{template.icon}</span>
+                              {template.name}
+                            </Button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   <ScrollArea className="h-[600px]">
                     <div className="space-y-4 pr-4">
                       {Object.entries(TOOL_CATEGORIES).map(([key, category]) => {
@@ -502,6 +749,97 @@ export default function ToolsPermissionsManager() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="templates">
+        <PermissionTemplatesManager />
+      </TabsContent>
+
+      <TabsContent value="audit">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="w-5 h-5 text-slate-600" />
+              Histórico de Alterações de Permissões
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[600px]">
+              <div className="space-y-3">
+                {auditLogs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <p className="text-slate-500">Sem histórico de alterações</p>
+                  </div>
+                ) : (
+                  auditLogs.map(log => {
+                    const actionLabels = {
+                      permission_updated: "Permissões Atualizadas",
+                      template_applied: "Template Aplicado",
+                      bulk_update: "Atualização em Massa",
+                      template_created: "Template Criado",
+                      template_deleted: "Template Eliminado"
+                    };
+
+                    const actionColors = {
+                      permission_updated: "blue",
+                      template_applied: "purple",
+                      bulk_update: "green",
+                      template_created: "amber",
+                      template_deleted: "red"
+                    };
+
+                    const color = actionColors[log.action_type] || "slate";
+
+                    return (
+                      <Card key={log.id} className={`border-l-4 border-l-${color}-500`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <Badge className={`bg-${color}-100 text-${color}-700 mb-2`}>
+                                {actionLabels[log.action_type]}
+                              </Badge>
+                              <p className="text-sm font-semibold text-slate-900">
+                                {log.action_type === 'bulk_update' 
+                                  ? `${log.changes_summary?.users_affected || 0} utilizadores afetados`
+                                  : log.target_user_name || log.target_user_email}
+                              </p>
+                              {log.template_name && (
+                                <p className="text-xs text-slate-600 mt-1">
+                                  Template: <span className="font-medium">{log.template_name}</span>
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-slate-500">
+                                {new Date(log.created_date).toLocaleDateString('pt-PT', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              <p className="text-xs text-slate-600 mt-1">
+                                por {log.performed_by_name}
+                              </p>
+                            </div>
+                          </div>
+                          {log.changes_summary?.tools_changed > 0 && (
+                            <p className="text-xs text-slate-500">
+                              {log.changes_summary.tools_changed} ferramenta(s) alterada(s)
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }
