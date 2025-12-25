@@ -989,17 +989,19 @@ export default function PropertyDetails() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       {assignedConsultant.photo_url ? (
-                        <OptimizedImage
+                        <img
                           src={assignedConsultant.photo_url}
                           alt={assignedConsultant.display_name || assignedConsultant.full_name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
-                          fallbackIcon={User}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 flex-shrink-0"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.querySelector('.fallback-icon')?.classList.remove('hidden');
+                          }}
                         />
-                      ) : (
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
-                          <User className="w-8 h-8 text-slate-500" />
-                        </div>
-                      )}
+                      ) : null}
+                      <div className={`w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0 fallback-icon ${assignedConsultant.photo_url ? 'hidden' : ''}`}>
+                        <User className="w-8 h-8 text-slate-500" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
                         {assignedConsultant.specialization && (
