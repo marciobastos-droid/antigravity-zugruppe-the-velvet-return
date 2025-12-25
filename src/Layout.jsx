@@ -30,18 +30,12 @@ export default function Layout({ children, currentPageName }) {
     }
   }, []);
 
-  // Carregar permissões do utilizador
+  // Permissões já vêm no objeto user
   React.useEffect(() => {
-    if (user?.email && typeof base44 !== 'undefined') {
-      base44.entities.UserPermission.filter({ user_email: user.email })
-        .then(perms => {
-          if (perms.length > 0) {
-            setUserPermissions(perms[0].permissions);
-          }
-        })
-        .catch(() => {});
+    if (user) {
+      setUserPermissions(user.permissions || null);
     }
-  }, [user?.email]);
+  }, [user]);
 
   // Render minimal layout for Home page
   if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
@@ -95,16 +89,24 @@ export default function Layout({ children, currentPageName }) {
   const hasPagePermission = (pagePermKey) => {
     // Admins e gestores têm acesso total
     if (isAdmin) return true;
+    
+    // Consultores têm acesso às suas páginas permitidas
+    if (isConsultant && pagePermKey === 'tools') {
+      // Permitir acesso se a permissão específica estiver definida OU se tiver ferramentas ativas
+      if (user?.permissions?.pages?.tools === true) return true;
+      if (user?.permissions?.tools) {
+        const hasAnyTool = Object.values(user.permissions.tools).some(v => v === true);
+        if (hasAnyTool) return true;
+      }
+      // Por padrão, consultores podem ver Tools
+      return true;
+    }
+    
     // Se tem permissões granulares definidas, verificar
-    if (userPermissions?.pages && pagePermKey) {
-      return userPermissions.pages[pagePermKey] === true;
+    if (user?.permissions?.pages && pagePermKey) {
+      return user.permissions.pages[pagePermKey] === true;
     }
-    // Se tem permissão de ferramentas (tools), dar acesso
-    if (pagePermKey === 'tools' && userPermissions?.tools) {
-      // Verifica se tem pelo menos uma ferramenta permitida
-      const hasAnyTool = Object.values(userPermissions.tools).some(v => v === true);
-      if (hasAnyTool) return true;
-    }
+    
     return false;
   };
 

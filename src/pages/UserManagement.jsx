@@ -8,8 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff } from "lucide-react";
+import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff, Settings } from "lucide-react";
 import { toast } from "sonner";
+import AdvancedPermissionsEditor from "../components/users/AdvancedPermissionsEditor";
+import RoleTemplates from "../components/users/RoleTemplates";
 
 export default function UserManagement() {
   const queryClient = useQueryClient();
@@ -169,9 +171,15 @@ Equipa Zugruppe`
         onSuccess: () => {
           setPermissionsDialogOpen(false);
           setSelectedUser(null);
+          toast.success("Permissões atualizadas com sucesso!");
         }
       }
     );
+  };
+
+  const handleApplyTemplate = (templatePermissions) => {
+    if (!selectedUser) return;
+    handleUpdatePermissions(templatePermissions);
   };
 
   const filteredUsers = users.filter(user => {
@@ -750,23 +758,28 @@ Equipa Zugruppe`
           setPermissionsDialogOpen(open);
           if (!open) setSelectedUser(null);
         }}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-purple-600" />
-                Gerir Permissões - {selectedUser?.full_name}
+                <Settings className="w-5 h-5 text-purple-600" />
+                Configuração de Permissões - {selectedUser?.display_name || selectedUser?.full_name}
               </DialogTitle>
             </DialogHeader>
             
             {selectedUser && (
-              <PermissionsPanel 
-                user={selectedUser} 
-                onSave={handleUpdatePermissions}
-                onCancel={() => {
-                  setPermissionsDialogOpen(false);
-                  setSelectedUser(null);
-                }}
-              />
+              <div className="space-y-6">
+                <RoleTemplates onApplyTemplate={handleApplyTemplate} />
+                <AdvancedPermissionsEditor
+                  user={selectedUser}
+                  permissions={selectedUser.permissions}
+                  onChange={() => {}}
+                  onSave={handleUpdatePermissions}
+                  onCancel={() => {
+                    setPermissionsDialogOpen(false);
+                    setSelectedUser(null);
+                  }}
+                />
+              </div>
             )}
           </DialogContent>
         </Dialog>
@@ -775,116 +788,4 @@ Equipa Zugruppe`
   );
 }
 
-function PermissionsPanel({ user, onSave, onCancel }) {
-  const [permissions, setPermissions] = useState(user.permissions || {
-    canManageProperties: true,
-    canManageLeads: true,
-    canViewAllProperties: user.user_type === 'admin' || user.user_type === 'gestor',
-    canViewAllLeads: user.user_type === 'admin' || user.user_type === 'gestor',
-    canManageContracts: user.user_type === 'admin' || user.user_type === 'gestor',
-    canManageDocuments: true,
-    canAccessReports: user.user_type === 'admin' || user.user_type === 'gestor',
-    canManageClients: true,
-    canExportData: user.user_type === 'admin' || user.user_type === 'gestor',
-    canUseAITools: true,
-  });
-
-  const permissionGroups = [
-    {
-      title: "Imóveis",
-      icon: Building2,
-      permissions: [
-        { key: 'canManageProperties', label: 'Gerir os seus imóveis', description: 'Criar, editar e eliminar imóveis próprios' },
-        { key: 'canViewAllProperties', label: 'Ver todos os imóveis', description: 'Aceder a todos os imóveis da equipa' },
-      ]
-    },
-    {
-      title: "Leads & Oportunidades",
-      icon: MessageSquare,
-      permissions: [
-        { key: 'canManageLeads', label: 'Gerir os seus leads', description: 'Gerir leads atribuídos' },
-        { key: 'canViewAllLeads', label: 'Ver todos os leads', description: 'Aceder a todos os leads da equipa' },
-      ]
-    },
-    {
-      title: "Clientes & Contratos",
-      icon: UsersIcon,
-      permissions: [
-        { key: 'canManageClients', label: 'Gerir clientes', description: 'Criar e gerir perfis de clientes' },
-        { key: 'canManageContracts', label: 'Gerir contratos', description: 'Criar e assinar contratos' },
-        { key: 'canManageDocuments', label: 'Gerir documentos', description: 'Upload e gestão de documentos' },
-      ]
-    },
-    {
-      title: "Ferramentas & Relatórios",
-      icon: Shield,
-      permissions: [
-        { key: 'canAccessReports', label: 'Aceder a relatórios', description: 'Ver dashboard e estatísticas completas' },
-        { key: 'canExportData', label: 'Exportar dados', description: 'Exportar imóveis e leads' },
-        { key: 'canUseAITools', label: 'Usar ferramentas IA', description: 'Acesso a ferramentas de IA' },
-      ]
-    },
-  ];
-
-  const togglePermission = (key) => {
-    setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  return (
-    <div className="space-y-6 mt-4">
-      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-        <div className="flex items-start gap-2">
-          <Shield className="w-5 h-5 text-purple-600 mt-0.5" />
-          <div>
-            <p className="font-medium text-purple-900">Painel de Permissões Avançadas</p>
-            <p className="text-sm text-purple-700 mt-1">
-              Configure permissões específicas para {user.full_name}. As permissões são aplicadas imediatamente após guardar.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {permissionGroups.map((group, idx) => {
-        const Icon = group.icon;
-        return (
-          <Card key={idx}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Icon className="w-5 h-5 text-slate-600" />
-                {group.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {group.permissions.map((perm) => (
-                <div key={perm.key} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={permissions[perm.key]}
-                    onChange={() => togglePermission(perm.key)}
-                    className="mt-1 w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                  />
-                  <div className="flex-1">
-                    <label className="font-medium text-slate-900 cursor-pointer block" onClick={() => togglePermission(perm.key)}>
-                      {perm.label}
-                    </label>
-                    <p className="text-sm text-slate-600">{perm.description}</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        );
-      })}
-
-      <div className="flex gap-3 pt-4 border-t">
-        <Button variant="outline" onClick={onCancel} className="flex-1">
-          Cancelar
-        </Button>
-        <Button onClick={() => onSave(permissions)} className="flex-1 bg-purple-600 hover:bg-purple-700">
-          <Lock className="w-4 h-4 mr-2" />
-          Guardar Permissões
-        </Button>
-      </div>
-    </div>
-  );
-}
+// Removed old PermissionsPanel - now using AdvancedPermissionsEditor
