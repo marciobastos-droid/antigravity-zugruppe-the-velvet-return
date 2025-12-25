@@ -313,71 +313,51 @@ export default function PropertyDetails() {
 
   const handleContactSubmit = React.useCallback(async (e) => {
     e.preventDefault();
-    
+
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
       toast.error("Por favor preencha todos os campos obrigatórios");
       return;
     }
-    
-    setSendingMessage(true);
-    
-    try {
-        const response = await base44.functions.invoke('submitPublicContact', {
-          name: contactForm.name,
-          email: contactForm.email,
-          phone: contactForm.phone,
-          message: contactForm.message,
-          property_id: property.id,
-          property_title: property.title,
-          source_page: 'PropertyDetails'
-        });
 
+    setSendingMessage(true);
+
+    try {
+      const { data } = await base44.functions.invoke('submitPublicContact', {
+        name: contactForm.name,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        message: contactForm.message,
+        property_id: property.id,
+        property_title: property.title,
+        source_page: 'PropertyDetails'
+      });
+
+      if (data.success) {
         toast.success("Mensagem enviada com sucesso!");
-      
-      // Track contact action (non-blocking, only if authenticated)
-      if (user?.email) {
-        try {
-          trackAction('contacted', { 
-            contact_name: contactForm.name,
-            contact_email: contactForm.email 
-          });
-        } catch (trackError) {
-          console.warn('[PropertyDetails] Tracking failed:', trackError);
+
+        // Track contact action (non-blocking, only if authenticated)
+        if (user?.email) {
+          try {
+            trackAction('contacted', { 
+              contact_name: contactForm.name,
+              contact_email: contactForm.email 
+            });
+          } catch (trackError) {
+            console.warn('[PropertyDetails] Tracking failed:', trackError);
+          }
         }
+
+        // Show confirmation and reset
+        setContactForm({ name: '', email: '', phone: '', message: '' });
+        setSendingMessage(false);
+        setMessageSent(true);
+      } else {
+        throw new Error(data.error || 'Erro ao enviar mensagem');
       }
-      
-      // Show confirmation and reset
-      setContactForm({ name: '', email: '', phone: '', message: '' });
-      setSendingMessage(false);
-      setMessageSent(true);
     } catch (error) {
       console.error('[PropertyDetails] Error sending message:', error);
       setSendingMessage(false);
-      
-      // Melhor tratamento de erros
-      let errorMessage = 'Erro desconhecido ao enviar mensagem';
-      
-      if (error.response) {
-        // Erro de resposta HTTP
-        if (error.response.data) {
-          if (typeof error.response.data === 'object' && error.response.data.error) {
-            errorMessage = error.response.data.error;
-          } else if (typeof error.response.data === 'string') {
-            errorMessage = error.response.data;
-          }
-        } else {
-          errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
-        }
-      } else if (error.message) {
-        // Erro de rede ou parsing
-        if (error.message.includes('JSON')) {
-          errorMessage = 'Erro ao processar resposta do servidor. A mensagem pode ter sido enviada com sucesso.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast.error(`Erro ao enviar mensagem: ${errorMessage}`);
+      toast.error(`Erro ao enviar mensagem: ${error.message || 'Erro desconhecido'}`);
     }
   }, [property, contactForm, user?.email, trackAction]);
 
