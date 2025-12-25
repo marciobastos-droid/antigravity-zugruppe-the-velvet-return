@@ -329,13 +329,42 @@ export default function Tools() {
   if (!isAdmin && (!hasToolsPageAccess || allowedCount === 0)) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
+        <div className="text-center max-w-2xl px-4">
           <Wrench className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Sem Acesso a Ferramentas</h2>
-          <p className="text-slate-600">
+          <p className="text-slate-600 mb-6">
             Não tem permissão para aceder a esta página ou não tem ferramentas atribuídas.
             Contacte o administrador para obter acesso.
           </p>
+
+          {/* Debug Info - Apenas para desenvolvimento */}
+          {process.env.NODE_ENV === 'development' && currentUser && (
+            <Card className="mt-6 text-left bg-slate-50 border-2 border-slate-300">
+              <CardContent className="p-4">
+                <h3 className="font-bold text-sm text-slate-900 mb-2">🔍 Debug Info:</h3>
+                <div className="space-y-1 text-xs font-mono">
+                  <div><strong>Email:</strong> {currentUser.email}</div>
+                  <div><strong>User Type:</strong> {currentUser.user_type || 'undefined'}</div>
+                  <div><strong>Role:</strong> {currentUser.role || 'undefined'}</div>
+                  <div><strong>isAdmin:</strong> {isAdmin ? 'true' : 'false'}</div>
+                  <div><strong>hasToolsPageAccess:</strong> {hasToolsPageAccess ? 'true' : 'false'}</div>
+                  <div><strong>allowedCount:</strong> {allowedCount}</div>
+                  <div className="mt-2 pt-2 border-t border-slate-300">
+                    <strong>Permissions Object:</strong>
+                    <pre className="mt-1 text-xs bg-white p-2 rounded overflow-auto max-h-40">
+                      {JSON.stringify(currentUser.permissions, null, 2) || 'null'}
+                    </pre>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-slate-300">
+                    <strong>Tools Permissions:</strong>
+                    <pre className="mt-1 text-xs bg-white p-2 rounded overflow-auto max-h-40">
+                      {JSON.stringify(userToolPermissions, null, 2) || '{}'}
+                    </pre>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     );
