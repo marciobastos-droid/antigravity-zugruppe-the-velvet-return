@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { UploadCloud, Loader2, FileText, CheckCircle2, AlertCircle, Shield } from 'lucide-react';
+import { UploadCloud, Loader2, FileText, CheckCircle2, AlertCircle, Shield, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export default function DenunciationChannel() {
@@ -101,6 +101,13 @@ export default function DenunciationChannel() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        <a href="https://zuhaus.pt/">
+          <Button variant="ghost" className="mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
+        </a>
+        
         <Card className="shadow-xl border-slate-200">
           <CardContent className="p-8 md:p-12">
             <div className="text-center mb-8">
