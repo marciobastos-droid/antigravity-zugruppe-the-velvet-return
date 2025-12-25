@@ -991,71 +991,62 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {(() => {
-                  console.log('[PropertyDetails Render] assignedConsultant:', assignedConsultant);
-                  console.log('[PropertyDetails Render] property.assigned_consultant:', property?.assigned_consultant);
-
-                  if (assignedConsultant) {
-                    return (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                          {assignedConsultant.photo_url ? (
-                            <OptimizedImage
-                              src={assignedConsultant.photo_url}
-                              alt={assignedConsultant.display_name || assignedConsultant.full_name}
-                              className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
-                              fallbackIcon={User}
-                            />
-                          ) : (
-                            <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
-                              <User className="w-8 h-8 text-slate-500" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
-                            {assignedConsultant.specialization && (
-                              <p className="text-sm text-slate-600 truncate">{assignedConsultant.specialization}</p>
-                            )}
-                          </div>
+                {assignedConsultant ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      {assignedConsultant.photo_url ? (
+                        <OptimizedImage
+                          src={assignedConsultant.photo_url}
+                          alt={assignedConsultant.display_name || assignedConsultant.full_name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
+                          fallbackIcon={User}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
+                          <User className="w-8 h-8 text-slate-500" />
                         </div>
-
-                        <div className="space-y-2">
-                          {assignedConsultant.phone && (
-                            <a 
-                              href={`tel:${assignedConsultant.phone}`}
-                              className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                            >
-                              <Phone className="w-4 h-4" />
-                              {assignedConsultant.phone}
-                            </a>
-                          )}
-                          {assignedConsultant.email && (
-                            <a 
-                              href={`mailto:${assignedConsultant.email}`}
-                              className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
-                            >
-                              <Mail className="w-4 h-4" />
-                              {assignedConsultant.email}
-                            </a>
-                          )}
-                        </div>
-
-                        {assignedConsultant.bio && (
-                          <p className="text-sm text-slate-600 pt-2 border-t">{assignedConsultant.bio}</p>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
+                        {assignedConsultant.specialization && (
+                          <p className="text-sm text-slate-600 truncate">{assignedConsultant.specialization}</p>
                         )}
                       </div>
-                    );
-                  }
-
-                  return (
-                    <div className="text-center py-4">
-                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <User className="w-8 h-8 text-slate-400" />
-                      </div>
-                      <p className="text-slate-600">{t('property.details.noAgent')}</p>
                     </div>
-                  );
-                })()}
+
+                    <div className="space-y-2">
+                      {assignedConsultant.phone && (
+                        <a 
+                          href={`tel:${assignedConsultant.phone}`}
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                        >
+                          <Phone className="w-4 h-4" />
+                          {assignedConsultant.phone}
+                        </a>
+                      )}
+                      {assignedConsultant.email && (
+                        <a 
+                          href={`mailto:${assignedConsultant.email}`}
+                          className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
+                        >
+                          <Mail className="w-4 h-4" />
+                          {assignedConsultant.email}
+                        </a>
+                      )}
+                    </div>
+
+                    {assignedConsultant.bio && (
+                      <p className="text-sm text-slate-600 pt-2 border-t">{assignedConsultant.bio}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <User className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <p className="text-slate-600">{t('property.details.noAgent')}</p>
+                  </div>
+                )}
 
                 {/* Schedule Viewing Button */}
                 <div className="mt-6 pt-6 border-t">
