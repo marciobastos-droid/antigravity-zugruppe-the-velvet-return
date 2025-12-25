@@ -115,18 +115,10 @@ export default function Layout({ children, currentPageName }) {
 
     // Para páginas restritas, verificar tipo de utilizador primeiro
     if (Array.isArray(item.visibility)) {
-      const hasTypeAccess = item.visibility.includes(userType) || (isAdmin && item.visibility.includes('admin'));
-      
-      // Debug log para Tools
-      if (item.name === 'Tools') {
-        console.log('[Tools Debug]', {
-          userType,
-          visibility: item.visibility,
-          hasTypeAccess,
-          isAdmin,
-          userPermissions
-        });
-      }
+      const hasTypeAccess = item.visibility.includes(userType) || 
+                            (isAdmin && item.visibility.includes('admin')) ||
+                            (isGestor && item.visibility.includes('gestor')) ||
+                            (isConsultant && item.visibility.includes('consultant'));
       
       if (hasTypeAccess) return true;
     } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
