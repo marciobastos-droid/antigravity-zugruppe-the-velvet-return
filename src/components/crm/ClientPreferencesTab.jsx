@@ -774,14 +774,567 @@ export default function ClientPreferencesTab() {
 
       {activeSubTab === "profiles" && (
         <>
-          {/* ... rest of profiles content ... */}
-          {/* Keeping the full implementation for brevity */}
+          {selectedProfiles.length > 0 && (
+            <Card className="mb-6 border-blue-500 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CheckSquare className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-900">
+                      {selectedProfiles.length} perfil{selectedProfiles.length > 1 ? 's' : ''} selecionado{selectedProfiles.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                      disabled={bulkDeleteMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Eliminar Selecionados
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedProfiles([])}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-5 h-5 text-slate-700" />
+                <h3 className="font-semibold text-slate-900">Filtros</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Pesquisar</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Nome ou email..."
+                      className="pl-10 pr-8"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Perfil</label>
+                  <Select value={profileTypeFilter} onValueChange={setProfileTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="comprador">Comprador</SelectItem>
+                      <SelectItem value="vendedor">Vendedor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Estado</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Estados</SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="paused">Pausado</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Anúncio</label>
+                  <Select value={listingTypeFilter} onValueChange={setListingTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="sale">Compra</SelectItem>
+                      <SelectItem value="rent">Arrendamento</SelectItem>
+                      <SelectItem value="both">Ambos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Localização</label>
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {uniqueLocations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                <p className="text-sm text-slate-600">
+                  A mostrando <strong>{filteredProfiles.length}</strong> de <strong>{profiles.length}</strong> perfis
+                </p>
+                <div className="flex items-center gap-2">
+                  {hasActiveFilters() && (
+                    <Button variant="link" size="sm" onClick={clearFilters}>
+                      Limpar filtros
+                    </Button>
+                  )}
+                  {filteredProfiles.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+                      {selectedProfiles.length === filteredProfiles.length ? 'Desselecionar' : 'Selecionar'} Todos
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {filteredProfiles.length === 0 ? (
+            <Card className="text-center py-20">
+              <CardContent>
+                <UserPlus className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold text-slate-900 mb-2">
+                  {profiles.length === 0 ? "Nenhum perfil criado" : "Nenhum perfil encontrado"}
+                </h3>
+                <p className="text-slate-600 mb-6">
+                  {profiles.length === 0 ? "Comece por criar o primeiro perfil de cliente" : "Tente ajustar os filtros"}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid gap-4">
+                {paginatedProfiles.map((profile) => (
+                  <Card key={profile.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <Checkbox
+                          checked={selectedProfiles.includes(profile.id)}
+                          onCheckedChange={() => toggleSelect(profile.id)}
+                          className="mt-1"
+                        />
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h3 className="text-xl font-semibold text-slate-900">{profile.buyer_name}</h3>
+                            <Badge className={getProfileTypeColor(profile.profile_type)}>
+                              {profile.profile_type === 'comprador' ? 'Comprador' :
+                                profile.profile_type === 'vendedor' ? 'Vendedor' : 'Parceiro'}
+                            </Badge>
+                            <Badge className={profile.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}>
+                              {profile.status === 'active' ? 'Ativo' : profile.status === 'paused' ? 'Pausado' : 'Fechado'}
+                            </Badge>
+                            {profile.lead_source && (
+                              <Badge variant="outline" className="flex items-center gap-1">
+                                {React.createElement(getSourceIcon(profile.lead_source), { className: "w-3 h-3" })}
+                                {getSourceLabel(profile.lead_source)}
+                              </Badge>
+                            )}
+                            {profile.assigned_agent && (
+                              <Badge variant="outline">
+                                <UserCog className="w-3 h-3 mr-1" />
+                                Agente
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-700">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-slate-500" />
+                              {profile.buyer_email}
+                            </div>
+                            {profile.buyer_phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-slate-500" />
+                                {profile.buyer_phone}
+                              </div>
+                            )}
+                            {profile.locations && profile.locations.length > 0 && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-slate-500" />
+                                {profile.locations.join(", ")}
+                              </div>
+                            )}
+                            {(profile.budget_min || profile.budget_max) && (
+                              <div className="flex items-center gap-2">
+                                <DollarSign className="w-4 h-4 text-slate-500" />
+                                {profile.budget_min ? `€${profile.budget_min.toLocaleString()}` : '€0'} - {profile.budget_max ? `€${profile.budget_max.toLocaleString()}` : '∞'}
+                              </div>
+                            )}
+                            {profile.bedrooms_min > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Bed className="w-4 h-4 text-slate-500" />
+                                Min. {profile.bedrooms_min} quartos
+                              </div>
+                            )}
+                            {profile.square_feet_min > 0 && (
+                              <div className="flex items-center gap-2">
+                                <Maximize className="w-4 h-4 text-slate-500" />
+                                Min. {profile.square_feet_min}m²
+                              </div>
+                            )}
+                          </div>
+
+                          {profile.property_types && profile.property_types.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-3">
+                              {profile.property_types.map((type) => (
+                                <Badge key={type} variant="secondary" className="text-xs">
+                                  {propertyTypeLabels[type]}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+
+                          {profile.last_match_date && (
+                            <p className="text-xs text-slate-500 mt-2">
+                              Último match: {format(new Date(profile.last_match_date), "d 'de' MMM, HH:mm", { locale: ptBR })}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          {(() => {
+                            const matchCount = calculateMatches(profile);
+                            return (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => setMatchingProfile(profile)}
+                                className="bg-blue-600 hover:bg-blue-700 relative"
+                              >
+                                <TrendingUp className="w-4 h-4 mr-2" />
+                                Ver Matches
+                                {matchCount > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                                    {matchCount}
+                                  </span>
+                                )}
+                              </Button>
+                            );
+                          })()}
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(profile)}>
+                            Editar
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(profile.id, profile.buyer_name)} className="text-red-600 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {totalPagesProfiles > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      {[...Array(totalPagesProfiles)].map((_, i) => {
+                        const page = i + 1;
+                        if (
+                          page === 1 ||
+                          page === totalPagesProfiles ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page)}
+                                isActive={currentPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        } else if (page === currentPage - 2 || page === currentPage + 2) {
+                          return <PaginationItem key={page}>...</PaginationItem>;
+                        }
+                        return null;
+                      })}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPagesProfiles, p + 1))}
+                          className={currentPage === totalPagesProfiles ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 
       {activeSubTab === "partners" && (
         <>
-          {/* ... rest of partners content ... */}
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="w-5 h-5 text-purple-700" />
+                <h3 className="font-semibold text-slate-900">Filtros de Parceiros</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Pesquisar</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Nome ou email..."
+                      className="pl-10 pr-8"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Estado</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os Estados</SelectItem>
+                      <SelectItem value="active">Ativo</SelectItem>
+                      <SelectItem value="paused">Pausado</SelectItem>
+                      <SelectItem value="closed">Fechado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Localização</label>
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {uniqueLocations.map((loc) => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Parceiro</label>
+                  <Select value={partnerTypeFilter} onValueChange={setPartnerTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="parceiro_comprador">Parceiro Comprador</SelectItem>
+                      <SelectItem value="parceiro_vendedor">Parceiro Vendedor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                <p className="text-sm text-slate-600">
+                  A mostrar <strong>{filteredPartners.length}</strong> de <strong>{profiles.filter((p) => p.profile_type === 'parceiro_comprador' || p.profile_type === 'parceiro_vendedor').length}</strong> parceiros
+                </p>
+                {hasActiveFilters() && (
+                  <Button variant="link" size="sm" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {filteredPartners.length === 0 ? (
+            <Card className="text-center py-20">
+              <CardContent>
+                <Building2 className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold text-slate-900 mb-2">
+                  Nenhum parceiro encontrado
+                </h3>
+                <p className="text-slate-600 mb-6">
+                  {profiles.filter((p) => p.profile_type === 'parceiro_comprador' || p.profile_type === 'parceiro_vendedor').length === 0 ? "Crie perfis de parceiros para gerir colaborações" : "Ajuste os filtros para encontrar parceiros existentes"}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <div className="grid gap-4">
+                {paginatedPartners.map((profile) => (
+                  <Card key={profile.id} className="hover:shadow-md transition-shadow border-purple-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
+                            <h3 className="text-xl font-semibold text-slate-900">{profile.buyer_name}</h3>
+                            <Badge className="bg-purple-100 text-purple-800">
+                              {profile.profile_type === 'parceiro_comprador' ? 'Parceiro Comprador' : 'Parceiro Vendedor'}
+                            </Badge>
+                            {profile.partnership_type && (
+                              <Badge variant="outline">{profile.partnership_type}</Badge>
+                            )}
+                            {profile.company_name && (
+                              <Badge variant="outline" className="bg-slate-50">
+                                {profile.company_name}
+                              </Badge>
+                            )}
+                            <Badge className={profile.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600'}>
+                              {profile.status === 'active' ? 'Ativo' : profile.status === 'paused' ? 'Pausado' : 'Fechado'}
+                            </Badge>
+                            {profile.lead_source && (
+                              <Badge variant="outline" className="flex items-center gap-1">
+                                {React.createElement(getSourceIcon(profile.lead_source), { className: "w-3 h-3" })}
+                                {getSourceLabel(profile.lead_source)}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-700">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-4 h-4 text-slate-500" />
+                              {profile.buyer_email}
+                            </div>
+                            {profile.buyer_phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-slate-500" />
+                                {profile.buyer_phone}
+                              </div>
+                            )}
+                            {profile.locations && profile.locations.length > 0 && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-slate-500" />
+                                {profile.locations.join(", ")}
+                              </div>
+                            )}
+                          </div>
+
+                          {profile.additional_notes && (
+                            <p className="text-sm text-slate-600 mt-3 line-clamp-2">{profile.additional_notes}</p>
+                          )}
+
+                          {profile.last_match_date && (
+                            <p className="text-xs text-slate-500 mt-2">
+                              Último match: {format(new Date(profile.last_match_date), "d 'de' MMM, HH:mm", { locale: ptBR })}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2 ml-4">
+                          {(() => {
+                            const matchCount = calculateMatches(profile);
+                            return (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => setMatchingProfile(profile)}
+                                className="bg-blue-600 hover:bg-blue-700 relative"
+                              >
+                                <TrendingUp className="w-4 h-4 mr-2" />
+                                Ver Matches
+                                {matchCount > 0 && (
+                                  <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                                    {matchCount}
+                                  </span>
+                                )}
+                              </Button>
+                            );
+                          })()}
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(profile)}>
+                            Editar
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(profile.id, profile.buyer_name)} className="text-red-600 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {totalPagesPartners > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      {[...Array(totalPagesPartners)].map((_, i) => {
+                        const page = i + 1;
+                        if (
+                          page === 1 ||
+                          page === totalPagesPartners ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page)}
+                                isActive={currentPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        } else if (page === currentPage - 2 || page === currentPage + 2) {
+                          return <PaginationItem key={page}>...</PaginationItem>;
+                        }
+                        return null;
+                      })}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage((p) => Math.min(totalPagesPartners, p + 1))}
+                          className={currentPage === totalPagesPartners ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
 
