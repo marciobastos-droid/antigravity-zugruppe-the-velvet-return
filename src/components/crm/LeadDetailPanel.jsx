@@ -510,8 +510,11 @@ Extrai:
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="grid grid-cols-7 mx-4 mt-4 flex-shrink-0">
+        <TabsList className="grid grid-cols-8 mx-4 mt-4 flex-shrink-0">
           <TabsTrigger value="overview" className="text-xs">Resumo</TabsTrigger>
+          <TabsTrigger value="history" className="text-xs">
+            <History className="w-3 h-3" />
+          </TabsTrigger>
           <TabsTrigger value="emails" className="text-xs">
             <Mail className="w-3 h-3" />
           </TabsTrigger>
@@ -994,6 +997,23 @@ Extrai:
             )}
           </TabsContent>
 
+          {/* History Tab */}
+          <TabsContent value="history" className="mt-0">
+            {lead.buyer_email ? (
+              <ClientHistoryTimeline 
+                clientEmail={lead.buyer_email} 
+                clientName={lead.buyer_name}
+              />
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">Email não disponível para mostrar histórico</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* AI Tab */}
           <TabsContent value="ai" className="mt-0 space-y-4">
             {/* AI Communication Assistant */}
@@ -1076,16 +1096,6 @@ Extrai:
           }
         }}
       />
-
-      {/* Client History Timeline */}
-      {lead.buyer_email && (
-        <div className="mt-6">
-          <ClientHistoryTimeline 
-            clientEmail={lead.buyer_email} 
-            clientName={lead.buyer_name}
-          />
-        </div>
-      )}
 
       {/* Property Linker Dialog */}
       <PropertyLinker
