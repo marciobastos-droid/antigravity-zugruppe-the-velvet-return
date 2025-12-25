@@ -8,7 +8,7 @@ export default function ManageData() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <Link to={createPageUrl("ZuGruppe")}>
+        <Link to={createPageUrl("Home")}>
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
