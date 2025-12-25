@@ -31,6 +31,11 @@ import { useAgentNames } from "../components/common/useAgentNames";
 import { toast } from "sonner";
 import ReportsTab from "../components/dashboard/ReportsTab";
 import PropertiesOverviewWidget from "../components/dashboard/PropertiesOverviewWidget";
+import LeadSourceROIReport from "../components/reports/LeadSourceROIReport";
+import PipelineAnalysisReport from "../components/reports/PipelineAnalysisReport";
+import AgentPerformanceReport from "../components/reports/AgentPerformanceReport";
+import PropertyPerformanceReport from "../components/reports/PropertyPerformanceReport";
+import SalesReport from "../components/reports/SalesReport";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -613,7 +618,7 @@ export default function Dashboard() {
             <TabsList>
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="properties">Imóveis</TabsTrigger>
-              <TabsTrigger value="reports">Relatórios</TabsTrigger>
+              <TabsTrigger value="reports">Relatórios Avançados</TabsTrigger>
               <TabsTrigger value="adminboard">AdminBoard</TabsTrigger>
             </TabsList>
 
@@ -949,7 +954,40 @@ export default function Dashboard() {
             </TabsContent>
 
             <TabsContent value="reports">
-              <ReportsTab />
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-6">
+                  <TabsTrigger value="overview">Resumo</TabsTrigger>
+                  <TabsTrigger value="properties">Anúncios</TabsTrigger>
+                  <TabsTrigger value="sales">Vendas</TabsTrigger>
+                  <TabsTrigger value="sources">ROI</TabsTrigger>
+                  <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+                  <TabsTrigger value="agents">Agentes</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="overview">
+                  <ReportsTab />
+                </TabsContent>
+                
+                <TabsContent value="properties">
+                  <PropertyPerformanceReport />
+                </TabsContent>
+                
+                <TabsContent value="sales">
+                  <SalesReport />
+                </TabsContent>
+                
+                <TabsContent value="sources">
+                  <LeadSourceROIReport />
+                </TabsContent>
+                
+                <TabsContent value="pipeline">
+                  <PipelineAnalysisReport />
+                </TabsContent>
+                
+                <TabsContent value="agents">
+                  <AgentPerformanceReport />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             <TabsContent value="adminboard">

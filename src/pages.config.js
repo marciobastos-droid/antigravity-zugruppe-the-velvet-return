@@ -1,71 +1,71 @@
-import PropertyDetails from './pages/PropertyDetails';
 import AddListing from './pages/AddListing';
-import MyListings from './pages/MyListings';
-import UserManagement from './pages/UserManagement';
-import ClientPreferences from './pages/ClientPreferences';
-import VideoMaker from './pages/VideoMaker';
-import Tools from './pages/Tools';
-import Dashboard from './pages/Dashboard';
 import AgentManagement from './pages/AgentManagement';
-import Contracts from './pages/Contracts';
-import DocumentsHub from './pages/DocumentsHub';
-import Home from './pages/Home';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
-import Reports from './pages/Reports';
-import TeamManagement from './pages/TeamManagement';
+import ClientPreferences from './pages/ClientPreferences';
+import Contracts from './pages/Contracts';
+import CookiePolicy from './pages/CookiePolicy';
+import Dashboard from './pages/Dashboard';
+import DenunciationChannel from './pages/DenunciationChannel';
+import DocumentsHub from './pages/DocumentsHub';
+import Favorites from './pages/Favorites';
 import Franchising from './pages/Franchising';
 import GmailCallback from './pages/GmailCallback';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import DenunciationChannel from './pages/DenunciationChannel';
-import TermsConditions from './pages/TermsConditions';
-import CookiePolicy from './pages/CookiePolicy';
-import ManageData from './pages/ManageData';
-import ZuHaus from './pages/ZuHaus';
-import ZuHandel from './pages/ZuHandel';
+import Home from './pages/Home';
 import InvestorSection from './pages/InvestorSection';
-import Website from './pages/Website';
+import LandingPage from './pages/LandingPage';
+import ManageData from './pages/ManageData';
+import MyListings from './pages/MyListings';
+import PerformanceMonitor from './pages/PerformanceMonitor';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import PropertyDetails from './pages/PropertyDetails';
+import RGPDConsent from './pages/RGPDConsent';
 import Subscriptions from './pages/Subscriptions';
 import Support from './pages/Support';
-import LandingPage from './pages/LandingPage';
-import Favorites from './pages/Favorites';
-import RGPDConsent from './pages/RGPDConsent';
+import TeamManagement from './pages/TeamManagement';
+import TermsConditions from './pages/TermsConditions';
+import Tools from './pages/Tools';
+import UserManagement from './pages/UserManagement';
+import VideoMaker from './pages/VideoMaker';
+import Website from './pages/Website';
+import ZuHandel from './pages/ZuHandel';
+import ZuHaus from './pages/ZuHaus';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "PropertyDetails": PropertyDetails,
     "AddListing": AddListing,
-    "MyListings": MyListings,
-    "UserManagement": UserManagement,
-    "ClientPreferences": ClientPreferences,
-    "VideoMaker": VideoMaker,
-    "Tools": Tools,
-    "Dashboard": Dashboard,
     "AgentManagement": AgentManagement,
-    "Contracts": Contracts,
-    "DocumentsHub": DocumentsHub,
-    "Home": Home,
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
-    "Reports": Reports,
-    "TeamManagement": TeamManagement,
+    "ClientPreferences": ClientPreferences,
+    "Contracts": Contracts,
+    "CookiePolicy": CookiePolicy,
+    "Dashboard": Dashboard,
+    "DenunciationChannel": DenunciationChannel,
+    "DocumentsHub": DocumentsHub,
+    "Favorites": Favorites,
     "Franchising": Franchising,
     "GmailCallback": GmailCallback,
-    "PrivacyPolicy": PrivacyPolicy,
-    "DenunciationChannel": DenunciationChannel,
-    "TermsConditions": TermsConditions,
-    "CookiePolicy": CookiePolicy,
-    "ManageData": ManageData,
-    "ZuHaus": ZuHaus,
-    "ZuHandel": ZuHandel,
+    "Home": Home,
     "InvestorSection": InvestorSection,
-    "Website": Website,
+    "LandingPage": LandingPage,
+    "ManageData": ManageData,
+    "MyListings": MyListings,
+    "PerformanceMonitor": PerformanceMonitor,
+    "PrivacyPolicy": PrivacyPolicy,
+    "PropertyDetails": PropertyDetails,
+    "RGPDConsent": RGPDConsent,
     "Subscriptions": Subscriptions,
     "Support": Support,
-    "LandingPage": LandingPage,
-    "Favorites": Favorites,
-    "RGPDConsent": RGPDConsent,
+    "TeamManagement": TeamManagement,
+    "TermsConditions": TermsConditions,
+    "Tools": Tools,
+    "UserManagement": UserManagement,
+    "VideoMaker": VideoMaker,
+    "Website": Website,
+    "ZuHandel": ZuHandel,
+    "ZuHaus": ZuHaus,
 }
 
 export const pagesConfig = {
