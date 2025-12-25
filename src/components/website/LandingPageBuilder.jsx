@@ -371,7 +371,7 @@ Tom: Profissional mas acolhedor, focado em benefícios`,
                     placeholder="Moradias de Luxo em Cascais | Zugruppe"
                     maxLength={60}
                   />
-                  <p className="text-xs text-slate-500 mt-1">{formData.meta_title.length}/60 caracteres</p>
+                  <p className="text-xs text-slate-500 mt-1">{(formData.meta_title || "").length}/60 caracteres</p>
                 </div>
 
                 <div>
@@ -383,7 +383,7 @@ Tom: Profissional mas acolhedor, focado em benefícios`,
                     maxLength={160}
                     rows={3}
                   />
-                  <p className="text-xs text-slate-500 mt-1">{formData.meta_description.length}/160 caracteres</p>
+                  <p className="text-xs text-slate-500 mt-1">{(formData.meta_description || "").length}/160 caracteres</p>
                 </div>
 
                 <div>
