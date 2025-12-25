@@ -111,9 +111,6 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
   const [commLoggerOpen, setCommLoggerOpen] = React.useState(false);
   const [visitRouteOpen, setVisitRouteOpen] = React.useState(false);
-  const [selectedPropertyIndexes, setSelectedPropertyIndexes] = React.useState([]);
-  const [generatingPDF, setGeneratingPDF] = React.useState(false);
-  const [sendingEmail, setSendingEmail] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -270,129 +267,6 @@ Extrai:
     const updatedFollowUps = [...(lead.follow_ups || [])];
     updatedFollowUps[index].completed = !updatedFollowUps[index].completed;
     await onUpdate(lead.id, { follow_ups: updatedFollowUps });
-  };
-
-  const togglePropertySelection = (index) => {
-    setSelectedPropertyIndexes(prev =>
-      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
-    );
-  };
-
-  const handleGeneratePDF = async () => {
-    if (selectedPropertyIndexes.length === 0) {
-      toast.error("Selecione pelo menos um imóvel");
-      return;
-    }
-
-    setGeneratingPDF(true);
-    try {
-      const selectedProperties = selectedPropertyIndexes
-        .map(idx => {
-          const ap = lead.associated_properties[idx];
-          return properties.find(p => p.id === ap.property_id);
-        })
-        .filter(Boolean);
-
-      const { jsPDF } = await import('https://cdn.skypack.dev/jspdf@2.5.1');
-      const doc = new jsPDF();
-      
-      doc.setFontSize(20);
-      doc.text('Proposta de Imóveis', 20, 20);
-      
-      doc.setFontSize(12);
-      doc.text(`Cliente: ${lead.buyer_name}`, 20, 35);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, 20, 42);
-      
-      let y = 55;
-      selectedProperties.forEach((prop, idx) => {
-        if (y > 250) {
-          doc.addPage();
-          y = 20;
-        }
-        
-        doc.setFontSize(14);
-        doc.text(`${idx + 1}. ${prop.title}`, 20, y);
-        y += 8;
-        
-        doc.setFontSize(10);
-        doc.text(`Preço: €${prop.price?.toLocaleString()}`, 25, y);
-        y += 6;
-        doc.text(`Localização: ${prop.city}`, 25, y);
-        y += 6;
-        if (prop.bedrooms) doc.text(`Quartos: ${prop.bedrooms}`, 25, y);
-        y += 6;
-        if (prop.useful_area) doc.text(`Área: ${prop.useful_area}m²`, 25, y);
-        y += 10;
-      });
-      
-      doc.save(`proposta-${lead.buyer_name.replace(/\s+/g, '-')}.pdf`);
-      toast.success('PDF gerado com sucesso!');
-      setSelectedPropertyIndexes([]);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar PDF');
-    }
-    setGeneratingPDF(false);
-  };
-
-  const handleSendEmail = async () => {
-    if (selectedPropertyIndexes.length === 0) {
-      toast.error("Selecione pelo menos um imóvel");
-      return;
-    }
-
-    setSendingEmail(true);
-    try {
-      const selectedProperties = selectedPropertyIndexes
-        .map(idx => {
-          const ap = lead.associated_properties[idx];
-          return properties.find(p => p.id === ap.property_id);
-        })
-        .filter(Boolean);
-
-      const propertiesHTML = selectedProperties.map(prop => `
-        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-          <h3 style="margin: 0 0 8px 0; color: #0f172a;">${prop.title}</h3>
-          <p style="margin: 4px 0; color: #64748b;"><strong>Preço:</strong> €${prop.price?.toLocaleString()}</p>
-          <p style="margin: 4px 0; color: #64748b;"><strong>Localização:</strong> ${prop.city}</p>
-          ${prop.bedrooms ? `<p style="margin: 4px 0; color: #64748b;"><strong>Quartos:</strong> T${prop.bedrooms}</p>` : ''}
-          ${prop.useful_area ? `<p style="margin: 4px 0; color: #64748b;"><strong>Área:</strong> ${prop.useful_area}m²</p>` : ''}
-          <a href="${window.location.origin}/PropertyDetails?id=${prop.id}" style="color: #3b82f6; text-decoration: none;">Ver detalhes →</a>
-        </div>
-      `).join('');
-
-      await base44.functions.invoke('sendResendEmail', {
-        to: lead.buyer_email,
-        subject: `Sugestões de Imóveis - ${lead.buyer_name}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #0f172a;">Olá ${lead.buyer_name},</h2>
-            <p>Selecionámos ${selectedProperties.length} imóve${selectedProperties.length > 1 ? 'is' : 'l'} que poderão ser do seu interesse:</p>
-            ${propertiesHTML}
-            <p style="margin-top: 24px;">Estamos disponíveis para qualquer esclarecimento.</p>
-            <p style="color: #64748b;">Cumprimentos,<br>Equipa Zugruppe</p>
-          </div>
-        `
-      });
-
-      // Marcar como enviados
-      const updated = [...(lead.associated_properties || [])];
-      selectedPropertyIndexes.forEach(idx => {
-        updated[idx] = {
-          ...updated[idx],
-          presented_date: new Date().toISOString(),
-          status: 'visited'
-        };
-      });
-      await onUpdate(lead.id, { associated_properties: updated });
-
-      toast.success('Email enviado com sucesso!');
-      setSelectedPropertyIndexes([]);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error('Erro ao enviar email');
-    }
-    setSendingEmail(false);
   };
 
   const handleAssociateProperty = async (propertyId) => {
