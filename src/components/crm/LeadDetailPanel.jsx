@@ -925,15 +925,6 @@ Extrai:
               </Card>
             )}
 
-            {/* Documents Section */}
-            <DocumentUploader 
-              leadId={lead.id}
-              leadName={lead.buyer_name}
-              propertyId={lead.property_id}
-              propertyTitle={lead.property_title}
-              entityType="lead"
-            />
-
             <LeadPropertyMatching 
               lead={lead}
               onAssociateProperty={handleAssociateProperty}
@@ -1062,6 +1053,17 @@ Extrai:
             )}
 
             {/* Documents */}
+            <DocumentUploader 
+              leadId={lead.id}
+              leadName={lead.buyer_name}
+              propertyId={lead.property_id}
+              propertyTitle={lead.property_title}
+              entityType="lead"
+            />
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="mt-0 space-y-4">
             <DocumentUploader 
               leadId={lead.id}
               leadName={lead.buyer_name}
