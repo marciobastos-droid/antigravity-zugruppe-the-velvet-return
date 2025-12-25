@@ -111,6 +111,9 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
   const [commLoggerOpen, setCommLoggerOpen] = React.useState(false);
   const [visitRouteOpen, setVisitRouteOpen] = React.useState(false);
+  const [selectedPropertyIndexes, setSelectedPropertyIndexes] = React.useState([]);
+  const [generatingPDF, setGeneratingPDF] = React.useState(false);
+  const [sendingEmail, setSendingEmail] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -267,6 +270,129 @@ Extrai:
     const updatedFollowUps = [...(lead.follow_ups || [])];
     updatedFollowUps[index].completed = !updatedFollowUps[index].completed;
     await onUpdate(lead.id, { follow_ups: updatedFollowUps });
+  };
+
+  const togglePropertySelection = (index) => {
+    setSelectedPropertyIndexes(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    );
+  };
+
+  const handleGeneratePDF = async () => {
+    if (selectedPropertyIndexes.length === 0) {
+      toast.error("Selecione pelo menos um imóvel");
+      return;
+    }
+
+    setGeneratingPDF(true);
+    try {
+      const selectedProperties = selectedPropertyIndexes
+        .map(idx => {
+          const ap = lead.associated_properties[idx];
+          return properties.find(p => p.id === ap.property_id);
+        })
+        .filter(Boolean);
+
+      const { jsPDF } = await import('https://cdn.skypack.dev/jspdf@2.5.1');
+      const doc = new jsPDF();
+      
+      doc.setFontSize(20);
+      doc.text('Proposta de Imóveis', 20, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Cliente: ${lead.buyer_name}`, 20, 35);
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, 20, 42);
+      
+      let y = 55;
+      selectedProperties.forEach((prop, idx) => {
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.setFontSize(14);
+        doc.text(`${idx + 1}. ${prop.title}`, 20, y);
+        y += 8;
+        
+        doc.setFontSize(10);
+        doc.text(`Preço: €${prop.price?.toLocaleString()}`, 25, y);
+        y += 6;
+        doc.text(`Localização: ${prop.city}`, 25, y);
+        y += 6;
+        if (prop.bedrooms) doc.text(`Quartos: ${prop.bedrooms}`, 25, y);
+        y += 6;
+        if (prop.useful_area) doc.text(`Área: ${prop.useful_area}m²`, 25, y);
+        y += 10;
+      });
+      
+      doc.save(`proposta-${lead.buyer_name.replace(/\s+/g, '-')}.pdf`);
+      toast.success('PDF gerado com sucesso!');
+      setSelectedPropertyIndexes([]);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    }
+    setGeneratingPDF(false);
+  };
+
+  const handleSendEmail = async () => {
+    if (selectedPropertyIndexes.length === 0) {
+      toast.error("Selecione pelo menos um imóvel");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      const selectedProperties = selectedPropertyIndexes
+        .map(idx => {
+          const ap = lead.associated_properties[idx];
+          return properties.find(p => p.id === ap.property_id);
+        })
+        .filter(Boolean);
+
+      const propertiesHTML = selectedProperties.map(prop => `
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+          <h3 style="margin: 0 0 8px 0; color: #0f172a;">${prop.title}</h3>
+          <p style="margin: 4px 0; color: #64748b;"><strong>Preço:</strong> €${prop.price?.toLocaleString()}</p>
+          <p style="margin: 4px 0; color: #64748b;"><strong>Localização:</strong> ${prop.city}</p>
+          ${prop.bedrooms ? `<p style="margin: 4px 0; color: #64748b;"><strong>Quartos:</strong> T${prop.bedrooms}</p>` : ''}
+          ${prop.useful_area ? `<p style="margin: 4px 0; color: #64748b;"><strong>Área:</strong> ${prop.useful_area}m²</p>` : ''}
+          <a href="${window.location.origin}/PropertyDetails?id=${prop.id}" style="color: #3b82f6; text-decoration: none;">Ver detalhes →</a>
+        </div>
+      `).join('');
+
+      await base44.functions.invoke('sendResendEmail', {
+        to: lead.buyer_email,
+        subject: `Sugestões de Imóveis - ${lead.buyer_name}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0f172a;">Olá ${lead.buyer_name},</h2>
+            <p>Selecionámos ${selectedProperties.length} imóve${selectedProperties.length > 1 ? 'is' : 'l'} que poderão ser do seu interesse:</p>
+            ${propertiesHTML}
+            <p style="margin-top: 24px;">Estamos disponíveis para qualquer esclarecimento.</p>
+            <p style="color: #64748b;">Cumprimentos,<br>Equipa Zugruppe</p>
+          </div>
+        `
+      });
+
+      // Marcar como enviados
+      const updated = [...(lead.associated_properties || [])];
+      selectedPropertyIndexes.forEach(idx => {
+        updated[idx] = {
+          ...updated[idx],
+          presented_date: new Date().toISOString(),
+          status: 'visited'
+        };
+      });
+      await onUpdate(lead.id, { associated_properties: updated });
+
+      toast.success('Email enviado com sucesso!');
+      setSelectedPropertyIndexes([]);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error('Erro ao enviar email');
+    }
+    setSendingEmail(false);
   };
 
   const handleAssociateProperty = async (propertyId) => {
@@ -749,8 +875,193 @@ Extrai:
             />
           </TabsContent>
 
-          {/* Properties Tab - Documents Only */}
+          {/* Properties Tab */}
           <TabsContent value="properties" className="mt-0 space-y-4">
+            {/* Bulk Actions for Associated Properties */}
+            {selectedPropertyIndexes.length > 0 && lead.associated_properties?.length > 0 && (
+              <Card className="border-blue-500 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="text-sm font-medium text-blue-900">
+                      {selectedPropertyIndexes.length} imóve{selectedPropertyIndexes.length > 1 ? 'is' : 'l'} selecionado{selectedPropertyIndexes.length > 1 ? 's' : ''}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleSendEmail}
+                        disabled={sendingEmail || !lead.buyer_email}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        {sendingEmail ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <Mail className="w-3 h-3 mr-1" />
+                        )}
+                        Enviar Email
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleGeneratePDF}
+                        disabled={generatingPDF}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {generatingPDF ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <FileText className="w-3 h-3 mr-1" />
+                        )}
+                        Gerar PDF
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedPropertyIndexes([])}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents Section */}
+            <DocumentUploader 
+              leadId={lead.id}
+              leadName={lead.buyer_name}
+              propertyId={lead.property_id}
+              propertyTitle={lead.property_title}
+              entityType="lead"
+            />
+
+            <LeadPropertyMatching 
+              lead={lead}
+              onAssociateProperty={handleAssociateProperty}
+            />
+
+            {/* Associated Properties */}
+            {lead.associated_properties?.length > 0 && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center justify-between">
+                    <span>Imóveis Associados ({lead.associated_properties.length})</span>
+                    <div className="flex gap-2">
+                      {selectedPropertyIndexes.length < lead.associated_properties.length && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedPropertyIndexes(lead.associated_properties.map((_, i) => i))}
+                          className="h-7 text-xs"
+                        >
+                          Selecionar Todos
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setVisitRouteOpen(true)}
+                        className="h-7 text-xs"
+                      >
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Gerar Roteiro
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {lead.associated_properties.map((ap, idx) => {
+                    const prop = properties.find(p => p.id === ap.property_id);
+                    const isPresentedOrSent = ap.status === 'visited' || ap.presented_date;
+                    const isSelected = selectedPropertyIndexes.includes(idx);
+                    
+                    return (
+                      <div key={idx} className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                        isSelected ? 'bg-blue-100 border-blue-400' :
+                        isPresentedOrSent ? 'bg-blue-50 border-blue-200' : 'bg-white'
+                      }`}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => togglePropertySelection(idx)}
+                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                        <div className="w-12 h-10 rounded overflow-hidden bg-slate-200 flex-shrink-0">
+                          {prop?.images?.[0] ? (
+                            <img src={prop.images[0]} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="w-5 h-5 text-slate-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{ap.property_title}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {ap.status === 'interested' ? 'Interessado' :
+                               ap.status === 'visited' ? 'Visitado' :
+                               ap.status === 'rejected' ? 'Rejeitado' : 'Negociando'}
+                            </Badge>
+                            {ap.presented_date && (
+                              <Badge className="text-xs bg-blue-600">
+                                <Send className="w-3 h-3 mr-1" />
+                                Enviado {format(new Date(ap.presented_date), "d MMM", { locale: pt })}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            variant={isPresentedOrSent ? "outline" : "default"}
+                            className={`h-7 text-xs ${!isPresentedOrSent ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                            onClick={async () => {
+                              const updated = [...(lead.associated_properties || [])];
+                              updated[idx] = {
+                                ...ap,
+                                presented_date: isPresentedOrSent ? null : new Date().toISOString(),
+                                status: isPresentedOrSent ? 'interested' : 'visited'
+                              };
+                              await onUpdate(lead.id, { associated_properties: updated });
+                              toast.success(isPresentedOrSent ? 'Marcado como não enviado' : 'Marcado como enviado');
+                            }}
+                          >
+                            {isPresentedOrSent ? (
+                              <>
+                                <X className="w-3 h-3 mr-1" />
+                                Desfazer
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-3 h-3 mr-1" />
+                                Marcar Enviado
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={async () => {
+                              if (window.confirm(`Remover "${ap.property_title}" dos imóveis associados?`)) {
+                                const updated = [...(lead.associated_properties || [])];
+                                updated.splice(idx, 1);
+                                await onUpdate(lead.id, { associated_properties: updated });
+                                toast.success('Imóvel removido');
+                              }
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents */}
             <DocumentUploader 
               leadId={lead.id}
               leadName={lead.buyer_name}
