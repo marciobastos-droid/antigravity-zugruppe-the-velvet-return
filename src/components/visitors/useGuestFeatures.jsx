@@ -2,15 +2,6 @@ import React from "react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
-// Importar tracking apenas quando disponível
-let trackActionFn = null;
-try {
-  const { useVisitorTracking } = await import("../tracking/VisitorTracker");
-  trackActionFn = useVisitorTracking;
-} catch (e) {
-  // Tracking não disponível
-}
-
 /**
  * Hook para gerir funcionalidades de visitantes não autenticados
  * Usa localStorage para persistir dados e sincroniza quando o utilizador faz login
@@ -113,19 +104,6 @@ export function useGuestFeatures() {
       const updated = [...favorites, newFav];
       setFavorites(updated);
       localStorage.setItem('guest_favorites', JSON.stringify(updated));
-      
-      // Track favorite action (se disponível)
-      if (trackActionFn) {
-        try {
-          const { trackAction } = trackActionFn();
-          trackAction('favorite_added', {
-            property_id: property.id,
-            property_title: property.title
-          });
-        } catch (e) {
-          // Ignorar se tracking falhar
-        }
-      }
       
       // Show prompt to register after 3 favorites
       if (updated.length === 3) {

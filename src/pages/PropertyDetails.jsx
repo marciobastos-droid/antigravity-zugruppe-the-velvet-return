@@ -471,27 +471,28 @@ export default function PropertyDetails() {
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
-        {property && (
           <SEOHead
-          title={metaTitle}
-          description={metaDescription}
-          keywords={metaKeywords}
-          image={propertyImage}
-          url={seoCanonicalUrl}
-          type="product"
-          price={property.price}
-          currency={property.currency || "EUR"}
-          availability={property.availability_status === "available" ? "in stock" : "out of stock"}
-          propertyType={property.property_type}
-          location={{
-            city: property.city,
-            state: property.state,
-            country: property.country || "Portugal"
-          }}
-          structuredData={structuredData}
-          alternateLanguages={alternateLanguages}
-        />
-      )}
+            title={metaTitle}
+            description={metaDescription}
+            keywords={metaKeywords}
+            image={propertyImage}
+            url={seoCanonicalUrl}
+            type="product"
+            price={property.price}
+            currency={property.currency || "EUR"}
+            availability={property.availability_status === "available" ? "in stock" : "out of stock"}
+            propertyType={property.property_type}
+            location={{
+              city: property.city,
+              state: property.state,
+              country: property.country || "Portugal"
+            }}
+            structuredData={structuredData}
+            alternateLanguages={alternateLanguages}
+          />
+        )}
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -1158,8 +1159,7 @@ export default function PropertyDetails() {
             />
           </React.Suspense>
         )}
-      </div>
-      </div>
+        </div>
       </div>
     </HelmetProvider>
   );
