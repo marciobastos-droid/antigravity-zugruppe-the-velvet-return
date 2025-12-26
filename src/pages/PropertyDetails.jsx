@@ -12,6 +12,7 @@ import {
   Phone, Mail, User, ChevronLeft, ChevronRight, X,
   Building2, Ruler, Zap, Wrench, Send, Loader2, Check, Camera, FileDown
 } from "lucide-react";
+import DynamicContactForm from "../components/forms/DynamicContactForm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1059,88 +1060,22 @@ export default function PropertyDetails() {
                 <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
                   <h4 className="font-semibold text-sm sm:text-base text-slate-900 mb-3 sm:mb-4">{t('property.details.contactAgent')}</h4>
 
-                  {messageSent ? (
-                    <div className="text-center py-6 sm:py-8 bg-green-50 rounded-lg border-2 border-green-200">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                        <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                      </div>
-                      <h5 className="text-base sm:text-lg font-semibold text-green-900 mb-1">{t('contact.messageSent')}</h5>
-                      <p className="text-xs sm:text-sm text-green-700 px-4">{t('contact.messageConfirmation')}</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="mt-3 sm:mt-4"
-                        onClick={() => setMessageSent(false)}
-                      >
-                        {t('contact.sendAnother')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleContactSubmit} className="space-y-3 sm:space-y-4">
-                      <div>
-                        <Label htmlFor="name" className="text-xs sm:text-sm">{t('contact.name')} {t('contact.required')}</Label>
-                        <Input
-                          id="name"
-                          required
-                          value={contactForm.name}
-                          onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                          placeholder={locale === 'en' ? 'Your name' : 'O seu nome'}
-                          className="h-9 sm:h-10 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email" className="text-xs sm:text-sm">{t('contact.email')} {t('contact.required')}</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          required
-                          value={contactForm.email}
-                          onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                          placeholder={locale === 'en' ? 'email@example.com' : 'email@exemplo.com'}
-                          className="h-9 sm:h-10 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone" className="text-xs sm:text-sm">{t('contact.phone')}</Label>
-                        <Input
-                          id="phone"
-                          value={contactForm.phone}
-                          onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
-                          placeholder="+351 912 345 678"
-                          className="h-9 sm:h-10 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="message" className="text-xs sm:text-sm">{t('contact.message')} {t('contact.required')}</Label>
-                        <Textarea
-                          id="message"
-                          required
-                          value={contactForm.message}
-                          onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                          placeholder={t('contact.messagePlaceholder', { title: property.title })}
-                          rows={4}
-                          className="text-sm resize-none"
-                        />
-                      </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-slate-900 hover:bg-slate-800 h-10 sm:h-11 text-sm sm:text-base"
-                        disabled={sendingMessage}
-                      >
-                        {sendingMessage ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {t('contact.sending')}
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4 mr-2" />
-                            {t('contact.submit')}
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  )}
+                  <DynamicContactForm
+                    propertyId={property.id}
+                    propertyTitle={property.title}
+                    context="property"
+                    showInterestType={true}
+                    variant="default"
+                    onSuccess={() => {
+                      setMessageSent(true);
+                      if (user?.email) {
+                        trackAction('contacted', { 
+                          contact_name: contactForm.name,
+                          contact_email: contactForm.email 
+                        });
+                      }
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
