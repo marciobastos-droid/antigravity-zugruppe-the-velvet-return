@@ -78,13 +78,13 @@ export default function SmartContactSection({
                   </div>
 
                   <div className="flex items-start gap-4 p-4 rounded-lg bg-white border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="w-6 h-6 text-purple-600" />
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <MessageCircle className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">WhatsApp</p>
-                      <a href="https://wa.me/351912345678" target="_blank" className="text-purple-600 hover:text-purple-700">
-                        Enviar mensagem
+                      <a href="https://wa.me/351910239889" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700">
+                        +351 910 239 889
                       </a>
                     </div>
                   </div>

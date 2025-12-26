@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { 
   Heart, Search, MessageSquare, Calendar, TrendingUp, 
   Clock, CheckCircle, XCircle, Home, User, Send, Loader2,
-  MapPin, Bed, Bath, Maximize, Euro, Eye, Filter
+  MapPin, Bed, Bath, Maximize, Euro, Eye, Filter, FileText, Mail
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
