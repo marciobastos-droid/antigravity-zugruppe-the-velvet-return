@@ -52,6 +52,7 @@ import { QUERY_CONFIG } from "../components/utils/queryClient";
 import SEOHead from "../components/seo/SEOHead";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import { HelmetProvider } from "react-helmet-async";
+import VisitorTracker from "../components/tracking/VisitorTracker";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
