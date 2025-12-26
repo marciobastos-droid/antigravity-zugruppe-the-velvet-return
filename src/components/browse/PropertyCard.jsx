@@ -84,12 +84,12 @@ export default function PropertyCard({ property, hideMetadata = false }) {
           </Badge>
         </div>
         <div className="absolute bottom-3 md:bottom-4 right-3 md:right-4">
-          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-base md:text-lg">
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 md:px-3 py-1 md:py-1.5 rounded-lg font-bold text-sm md:text-base">
             {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
             {property.currency && property.currency !== 'EUR' && (() => {
               const eurValue = convertToEUR(property.price, property.currency);
               return eurValue ? (
-                <div className="text-xs font-normal text-white/80 mt-0.5">
+                <div className="text-[10px] font-normal text-white/80 mt-0.5">
                   ≈ €{eurValue.toLocaleString()}
                 </div>
               ) : null;
