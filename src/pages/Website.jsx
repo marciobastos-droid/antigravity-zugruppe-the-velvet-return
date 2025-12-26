@@ -536,6 +536,8 @@ export default function Website() {
           description={dynamicSEO.description}
           keywords={dynamicSEO.keywords}
           type="website"
+          image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+          url={typeof window !== 'undefined' ? window.location.href : ''}
           structuredData={{
             "@context": "https://schema.org",
             "@type": "RealEstateAgent",
@@ -545,7 +547,15 @@ export default function Website() {
             "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
             "areaServed": "Portugal",
             "knowsAbout": ["Residential Real Estate", "Commercial Real Estate", "Property Management"],
-            "numberOfItems": filteredProperties.length
+            "numberOfItems": filteredProperties.length,
+            "priceRange": `€${Math.min(...filteredProperties.map(p => p.price || 0))} - €${Math.max(...filteredProperties.map(p => p.price || 0))}`,
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "PT",
+              "addressLocality": "Lisboa"
+            },
+            "telephone": "+351234026615",
+            "email": "info@zuconnect.pt"
           }}
           alternateLanguages={alternateLanguages}
         />

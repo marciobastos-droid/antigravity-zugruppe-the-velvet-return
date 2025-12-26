@@ -55,6 +55,42 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Visitor Tracking */}
       <VisitorTracker pageType="website" pageTitle="ZuConnect - Home" />
+      
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title="Zugruppe - Imobiliária de Confiança em Portugal | Compra, Venda e Arrendamento"
+        description="Encontre o imóvel ideal com a Zugruppe. Especialistas em compra, venda e arrendamento de imóveis residenciais e comerciais em Portugal. Apoio personalizado em todas as etapas."
+        keywords="imobiliária portugal, comprar casa portugal, venda imoveis, arrendamento, apartamentos, moradias, zugruppe, imóveis lisboa, imóveis porto"
+        type="website"
+        image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "RealEstateAgent",
+          "name": "Zugruppe",
+          "description": "Imobiliária de confiança em Portugal especializada em compra, venda e arrendamento",
+          "url": "https://zugruppe.base44.app",
+          "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+          "areaServed": {
+            "@type": "Country",
+            "name": "Portugal"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "PT",
+            "addressLocality": "Lisboa"
+          },
+          "telephone": "+351234026615",
+          "email": "info@zuconnect.pt",
+          "priceRange": "€€€",
+          "openingHours": "Mo-Fr 09:00-19:00, Sa 10:00-14:00",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "150"
+          }
+        }}
+      />
 
       {/* Hero with Form */}
       <HeroWithForm 
