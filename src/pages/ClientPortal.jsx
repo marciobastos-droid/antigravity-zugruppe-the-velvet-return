@@ -22,6 +22,9 @@ import { format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ViewingHistory from "../components/portal/ViewingHistory";
 import ClientPropertyInterests from "../components/portal/ClientPropertyInterests";
+import ClientPreferences from "../components/portal/ClientPreferences";
+import ProposalsViewer from "../components/portal/ProposalsViewer";
+import CommunicationsHistory from "../components/portal/CommunicationsHistory";
 
 // Status colors and labels
 const statusColors = {
@@ -390,38 +393,50 @@ export default function ClientPortal() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-white shadow-lg rounded-lg">
-            <TabsTrigger value="saved" className="relative">
-              <Heart className="w-4 h-4 mr-2" />
-              Guardados
+          <TabsList className="grid w-full grid-cols-9 bg-white shadow-lg rounded-lg">
+            <TabsTrigger value="saved" className="text-xs lg:text-sm">
+              <Heart className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Guardados</span>
             </TabsTrigger>
-            <TabsTrigger value="recommended" className="relative">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Selecionados
+            <TabsTrigger value="recommended" className="text-xs lg:text-sm">
+              <TrendingUp className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Selecionados</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="relative">
-              <Eye className="w-4 h-4 mr-2" />
-              Histórico
-            </TabsTrigger>
-            <TabsTrigger value="inquiries" className="relative">
-              <Search className="w-4 h-4 mr-2" />
-              Consultas
+            <TabsTrigger value="inquiries" className="relative text-xs lg:text-sm">
+              <Search className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Consultas</span>
               {opportunities.filter(o => !['won', 'lost'].includes(o.status)).length > 0 && (
-                <Badge className="ml-2 bg-blue-600 text-white">
+                <Badge className="ml-1 lg:ml-2 bg-blue-600 text-white text-xs">
                   {opportunities.filter(o => !['won', 'lost'].includes(o.status)).length}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="messages" className="relative">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Mensagens
+            <TabsTrigger value="viewings" className="text-xs lg:text-sm">
+              <Calendar className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Visitas</span>
+            </TabsTrigger>
+            <TabsTrigger value="proposals" className="text-xs lg:text-sm">
+              <FileText className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Propostas</span>
+            </TabsTrigger>
+            <TabsTrigger value="communications" className="text-xs lg:text-sm">
+              <MessageSquare className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Comunicações</span>
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="text-xs lg:text-sm">
+              <User className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Preferências</span>
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="relative text-xs lg:text-sm">
+              <Mail className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Mensagens</span>
               {unreadMessages > 0 && (
-                <Badge className="ml-2 bg-red-600 text-white">{unreadMessages}</Badge>
+                <Badge className="ml-1 lg:ml-2 bg-red-600 text-white text-xs">{unreadMessages}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="viewings">
-              <Calendar className="w-4 h-4 mr-2" />
-              Visitas
+            <TabsTrigger value="history" className="text-xs lg:text-sm">
+              <Eye className="w-4 h-4 lg:mr-2" />
+              <span className="hidden lg:inline">Histórico</span>
             </TabsTrigger>
           </TabsList>
 
@@ -731,6 +746,21 @@ export default function ClientPortal() {
           {/* Viewing History */}
           <TabsContent value="history" className="mt-6">
             <ViewingHistory userEmail={user?.email} />
+          </TabsContent>
+
+          {/* Proposals and Documents */}
+          <TabsContent value="proposals" className="mt-6">
+            <ProposalsViewer userEmail={user?.email} />
+          </TabsContent>
+
+          {/* Communications History */}
+          <TabsContent value="communications" className="mt-6">
+            <CommunicationsHistory userEmail={user?.email} />
+          </TabsContent>
+
+          {/* Client Preferences */}
+          <TabsContent value="preferences" className="mt-6">
+            <ClientPreferences userEmail={user?.email} />
           </TabsContent>
 
           {/* Messages */}
