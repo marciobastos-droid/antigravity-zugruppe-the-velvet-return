@@ -59,9 +59,9 @@ export default function SmartContactSection({
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">Email</p>
-                      <a href="mailto:info@zuconnect.pt" className="text-blue-600 hover:text-blue-700">info@zugruppe.com
-
-                    </a>
+                      <a href="mailto:info@zuconnect.pt" className="text-blue-600 hover:text-blue-700">
+                        info@zuconnect.pt
+                      </a>
                     </div>
                   </div>
 
@@ -71,9 +71,9 @@ export default function SmartContactSection({
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">Telefone</p>
-                      <a href="tel:+351912345678" className="text-green-600 hover:text-green-700">
-                        +351 912 345 678
-                      </a>
+                      <a href="tel:+351912345678" className="text-green-600 hover:text-green-700">+351 234 026 615
+
+                    </a>
                     </div>
                   </div>
 
