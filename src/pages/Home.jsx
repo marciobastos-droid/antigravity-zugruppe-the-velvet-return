@@ -1,303 +1,188 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, Settings } from "lucide-react";
+import { ArrowRight, Building2, Users, TrendingUp, Star, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import HeroWithForm from "../components/website/HeroWithForm";
+import SmartContactSection from "../components/website/SmartContactSection";
+import VisitorTracker from "../components/tracking/VisitorTracker";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
-  const queryClient = useQueryClient();
-  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
-  const [editingBrand, setEditingBrand] = React.useState(null);
-  const [uploading, setUploading] = React.useState(false);
-
-  const { data: user } = useQuery({
-    queryKey: ['user'],
+  const { data: properties = [] } = useQuery({
+    queryKey: ['properties', 'count'],
     queryFn: async () => {
-      try {
-        return await base44.auth.me();
-      } catch {
-        return null;
-      }
+      const props = await base44.entities.Property.list();
+      return props.filter(p => p.status === 'active');
     }
   });
 
-  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  const stats = [
+    { value: properties.length + '+', label: 'Imóveis Ativos' },
+    { value: '500+', label: 'Clientes Satisfeitos' },
+    { value: '15+', label: 'Anos de Experiência' }
+  ];
 
-  // Menu CRM
-  const menuItems = [
-  {
-    image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-    title: "Dashboard",
-    path: "Dashboard"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop",
-    title: "Imóveis",
-    path: "MyListings"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop",
-    title: "WebSite",
-    path: "Website"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1553028826-f4804a6dba3b?w=400&h=300&fit=crop",
-    title: "Oportunidades",
-    path: "CRMAdvanced"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=300&fit=crop",
-    title: "Ferramentas",
-    path: "Tools"
-  }];
-
-
-  // Marcas da empresa - carregadas da base de dados
-  const { data: brandItems = [], refetch: refetchBrands } = useQuery({
-    queryKey: ['brandItems'],
-    queryFn: async () => {
-      try {
-        return await base44.entities.BrandItem.list('order');
-      } catch {
-        return [];
-      }
+  const services = [
+    {
+      icon: Building2,
+      title: "Imóveis Residenciais",
+      description: "Encontre a casa dos seus sonhos com a nossa ajuda personalizada",
+      color: "blue",
+      link: createPageUrl("Website") + "?tab=residential"
+    },
+    {
+      icon: Users,
+      title: "Espaços Comerciais",
+      description: "Soluções comerciais para o crescimento do seu negócio",
+      color: "purple",
+      link: createPageUrl("Website") + "?tab=commercial"
+    },
+    {
+      icon: TrendingUp,
+      title: "Consultoria",
+      description: "Análise de mercado e apoio em todas as etapas do processo",
+      color: "green",
+      link: createPageUrl("Website")
     }
-  });
-
-  const handleEditBrand = (brand) => {
-    setEditingBrand({ ...brand });
-    setEditDialogOpen(true);
-  };
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setEditingBrand((prev) => ({ ...prev, image: file_url }));
-      toast.success("Imagem carregada");
-    } catch (error) {
-      toast.error("Erro ao carregar imagem");
-    }
-    setUploading(false);
-  };
-
-  const handleSaveBrand = async () => {
-    try {
-      await base44.entities.BrandItem.update(editingBrand.id, {
-        title: editingBrand.title,
-        image: editingBrand.image,
-        url: editingBrand.url
-      });
-      refetchBrands();
-      setEditDialogOpen(false);
-      setEditingBrand(null);
-      toast.success("Marca atualizada");
-    } catch (error) {
-      toast.error("Erro ao guardar marca");
-    }
-  };
+  ];
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-3 sm:px-4 py-8 sm:py-12">
-      {/* Logo */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="mb-8 sm:mb-12">
+    <div className="min-h-screen bg-white">
+      {/* Visitor Tracking */}
+      <VisitorTracker pageType="website" pageTitle="ZuConnect - Home" />
 
-        <img
-          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-          alt="Zugruppe"
-          className="h-28 sm:h-40 md:h-56 w-auto mx-auto" />
+      {/* Hero with Form */}
+      <HeroWithForm 
+        title="Encontre o Seu Imóvel de Sonho"
+        subtitle="Apoio personalizado em todas as etapas da sua jornada imobiliária"
+        stats={stats}
+      />
 
-      </motion.div>
-
-      {/* Welcome */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-center mb-10">
-
-        <h1 className="text-[#27251f] mb-2 text-base font-semibold md:text-3xl">
-
-        </h1>
-        <p className="text-[#27251f]/60"></p>
-      </motion.div>
-
-      {/* Menu CRM Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.3 }}
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6 max-w-5xl w-full">
-
-        {menuItems.map((item, index) => (
-        <Link
-          key={item.path}
-          to={createPageUrl(item.path.split('?')[0])}
-          className="group">
-
-            <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 * index }}
-            className="relative overflow-hidden rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
-
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#27251f]/80 via-[#27251f]/20 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 text-center">
-                <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base">{item.title}</h3>
-              </div>
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-lg sm:rounded-xl transition-colors duration-300"></div>
-            </motion.div>
-          </Link>
-        ))}
-      </motion.div>
-
-      {/* Marcas da Empresa */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-8 sm:mt-12 text-center">
-
-        <h2 className="text-base sm:text-lg font-medium text-[#27251f]/60 mb-4 sm:mb-6"></h2>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.7 }}
-        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-6 max-w-5xl w-full">
-
-        {brandItems.map((item, index) =>
-        <div key={item.id} className="relative group">
-            <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer">
-
-              <motion.div
+      {/* Services Section */}
+      <section className="py-20 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.h2 
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 * index + 0.7 }}
-              className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105">
-
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-
-                </div>
-                <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#4cb5f5] rounded-xl transition-colors duration-300"></div>
-              </motion.div>
-            </a>
-            {isAdmin &&
-          <button
-            onClick={(e) => {e.preventDefault();handleEditBrand(item);}}
-            className="absolute top-2 right-2 p-2 bg-white/90 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white">
-
-                <Settings className="w-4 h-4 text-[#27251f]" />
-              </button>
-          }
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl font-bold text-slate-900 mb-4"
+            >
+              Os Nossos Serviços
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-slate-600 max-w-2xl mx-auto"
+            >
+              Soluções completas para todas as suas necessidades imobiliárias
+            </motion.p>
           </div>
-        )}
-      </motion.div>
 
-      {/* Edit Brand Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar Marca</DialogTitle>
-          </DialogHeader>
-          {editingBrand &&
-          <div className="space-y-4 mt-4">
-              <div>
-                <Label>Imagem</Label>
-                <div className="mt-2 flex items-center gap-4">
-                  <img
-                  src={editingBrand.image}
-                  alt="Preview"
-                  className="w-24 h-18 object-cover rounded-lg" />
+          <div className="grid md:grid-cols-3 gap-8">
+            {services.map((service, idx) => {
+              const Icon = service.icon;
+              const colorClasses = {
+                blue: "from-blue-500 to-blue-600",
+                purple: "from-purple-500 to-purple-600",
+                green: "from-green-500 to-green-600"
+              };
 
-                  <div>
-                    <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="brand-image-upload" />
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <Link to={service.link}>
+                    <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-blue-300">
+                      <CardContent className="p-8">
+                        <div className={`w-16 h-16 bg-gradient-to-br ${colorClasses[service.color]} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                          {service.title}
+                        </h3>
+                        <p className="text-slate-600 mb-4">
+                          {service.description}
+                        </p>
+                        <div className="flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all">
+                          Saber mais
+                          <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-                    <label htmlFor="brand-image-upload">
-                      <Button variant="outline" size="sm" asChild disabled={uploading}>
-                        <span>
-                          <Camera className="w-4 h-4 mr-2" />
-                          {uploading ? "A carregar..." : "Alterar Imagem"}
-                        </span>
-                      </Button>
-                    </label>
-                  </div>
+      {/* Why Choose Us */}
+      <section className="py-20 bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-4xl font-bold mb-4"
+            >
+              Porquê Escolher-nos?
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-slate-300 max-w-2xl mx-auto"
+            >
+              Experiência, profissionalismo e resultados comprovados
+            </motion.p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { icon: Star, title: "Excelência", description: "Serviço premium em todas as interações" },
+              { icon: Users, title: "Equipa Dedicada", description: "Profissionais experientes ao seu serviço" },
+              { icon: TrendingUp, title: "Resultados", description: "Histórico comprovado de sucesso" },
+              { icon: Search, title: "Pesquisa Avançada", description: "Tecnologia para encontrar o imóvel ideal" }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                className="text-center"
+              >
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-8 h-8 text-white" />
                 </div>
-              </div>
-              <div>
-                <Label>Nome da Marca</Label>
-                <Input
-                value={editingBrand.title}
-                onChange={(e) => setEditingBrand((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Nome da marca" />
+                <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                <p className="text-slate-400">{item.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              </div>
-              <div>
-                <Label>URL (link externo)</Label>
-                <Input
-                value={editingBrand.url}
-                onChange={(e) => setEditingBrand((prev) => ({ ...prev, url: e.target.value }))}
-                placeholder="https://..." />
-
-              </div>
-              <div className="flex gap-2 pt-4">
-                <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="flex-1">
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveBrand} className="flex-1 bg-[#4cb5f5] hover:bg-[#3da5e5]">
-                  Guardar
-                </Button>
-              </div>
-            </div>
-          }
-        </DialogContent>
-      </Dialog>
-
-      {/* Footer */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.9 }}
-        className="mt-10 sm:mt-16 text-center px-4">
-
-        <p className="text-[#27251f]/40 text-xs sm:text-sm">© 2025 ZuGruppe - The Velvet Return
-
-        </p>
-      </motion.footer>
-    </div>);
-
+      {/* Contact Section */}
+      <SmartContactSection
+        title="Pronto para Começar?"
+        subtitle="Entre em contacto connosco e descubra como podemos ajudá-lo"
+        showContactInfo={true}
+      />
+    </div>
+  );
 }
