@@ -71,6 +71,7 @@ import BackupManager from "../components/tools/BackupManager";
 import ExcelImportExport from "../components/tools/ExcelImportExport";
 import CRMIntegrations from "../components/tools/CRMIntegrations";
 import OCRProcessor from "../components/tools/OCRProcessor";
+import SEOAnalytics from "../components/seo/SEOAnalytics";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
@@ -167,7 +168,7 @@ export default function Tools() {
   const allToolIds = React.useMemo(() => {
     const toolIds = [];
     const groups = [
-      { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations'] },
+      { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
       { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
       { tools: ['leadManagement', 'leadNurturing'] },
       { tools: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 'exportProperties', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 'externalSync', 'casafariSync'] },
@@ -200,6 +201,7 @@ export default function Tools() {
     imageExtractor: { description: "Extrair imagens de websites automaticamente" },
     excelImport: { description: "Importar e exportar dados em Excel e JSON" },
     crmIntegrations: { description: "Sincronizar com CRMs externos" },
+    seoAnalytics: { description: "Análise de SEO e sugestões de conteúdo para blog" },
     facebookCampaigns: { description: "Gerir campanhas de Facebook Ads" },
     facebookLeads: { description: "Importar e gerir leads do Facebook" },
     facebookForms: { description: "Configurar formulários de lead do Facebook" },
@@ -429,6 +431,7 @@ export default function Tools() {
                   <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode />
                   <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode />
                   <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode />
+                  <ToolButton toolId="seoAnalytics" icon={TrendingUp} label="SEO & Blog Analytics" gridMode />
                 </div>
 
               {/* Subgrupo Facebook */}
@@ -789,6 +792,7 @@ export default function Tools() {
         {activeTab === "backupManager" && <BackupManager />}
         {activeTab === "excelImport" && <ExcelImportExport />}
         {activeTab === "crmIntegrations" && <CRMIntegrations />}
+        {activeTab === "seoAnalytics" && <SEOAnalytics />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
