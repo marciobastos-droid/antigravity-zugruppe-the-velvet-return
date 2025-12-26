@@ -231,7 +231,12 @@ export default function OpportunityKanban({
                                 <div className="flex flex-wrap gap-1 mb-2">
                                   {getQualificationBadge(opp.qualification_status)}
                                   {opp.lead_type && (
-                                    <Badge variant="outline" className="text-xs">
+                                    <Badge className={
+                                      opp.lead_type === 'comprador' ? 'bg-blue-100 text-blue-800 border-blue-300' : 
+                                      opp.lead_type === 'vendedor' ? 'bg-green-100 text-green-800 border-green-300' : 
+                                      opp.lead_type === 'parceiro_comprador' ? 'bg-purple-100 text-purple-800 border-purple-300' : 
+                                      'bg-indigo-100 text-indigo-800 border-indigo-300'
+                                    }>
                                       {opp.lead_type === 'comprador' ? 'Comprador' : 
                                        opp.lead_type === 'vendedor' ? 'Vendedor' : 
                                        opp.lead_type === 'parceiro_comprador' ? 'P. Comprador' : 'P. Vendedor'}
