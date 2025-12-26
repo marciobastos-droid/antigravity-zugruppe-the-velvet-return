@@ -41,6 +41,8 @@ import { Settings } from "lucide-react";
 import LandingPageBuilder from "../components/website/LandingPageBuilder";
 import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
 import SEOManager from "../components/website/SEOManager";
+import VisitorTracker from "../components/tracking/VisitorTracker";
+import SmartContactSection from "../components/website/SmartContactSection";
 
 export default function Website() {
   const [showWebsiteTools, setShowWebsiteTools] = React.useState(false);
@@ -524,6 +526,9 @@ export default function Website() {
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
+        {/* Visitor Tracking */}
+        <VisitorTracker pageType="website" pageTitle="ZuGruppe - Browse Properties" />
+        
         <SEOHead
           title={dynamicSEO.title}
           description={dynamicSEO.description}
@@ -1304,64 +1309,25 @@ export default function Website() {
         )}
       </div>
 
-      {/* Contact CTA */}
-      <div className={`py-8 sm:py-12 ${
-        activeTab === "residential"
-          ? "bg-gradient-to-r from-[#d22630] to-[#a01d26]"
+      {/* Contact Section */}
+      <SmartContactSection
+        title={activeTab === "residential" 
+          ? "Encontre o Seu Lar Ideal"
           : activeTab === "commercial"
-          ? "bg-gradient-to-r from-[#75787b] to-[#5a5c5e]"
-          : "bg-gradient-to-r from-blue-600 to-blue-700"
-      }`}>
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
-            {activeTab === "residential" 
-              ? t('property.cta.dreamHome')
-              : activeTab === "commercial"
-              ? t('property.cta.commercialSpace')
-              : t('property.cta.notFound')
-            }
-          </h2>
-          <p className={`text-sm sm:text-base mb-4 sm:mb-6 max-w-2xl mx-auto ${
-            activeTab === "residential" ? "text-slate-200" : activeTab === "commercial" ? "text-slate-200" : "text-blue-100"
-          }`}>
-            {activeTab === "residential"
-              ? t('property.cta.helpResidential')
-              : activeTab === "commercial"
-              ? t('property.cta.helpCommercial')
-              : t('property.cta.helpGeneral')
-            }
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
-            <Button 
-              size="default"
-              onClick={() => {
-                trackCTAClick('primary');
-                trackConversion('cta_click');
-              }}
-              className={`h-10 sm:h-11 text-sm sm:text-base ${
-                activeTab === "residential"
-                  ? "bg-white text-[#d22630] hover:bg-slate-100"
-                  : activeTab === "commercial"
-                  ? "bg-white text-[#75787b] hover:bg-slate-100"
-                  : "bg-white text-blue-600 hover:bg-blue-50"
-              }`}
-            >
-              <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              {t('property.cta.contactUs')}
-            </Button>
-            <Button 
-              size="default"
-              onClick={() => {
-                trackCTAClick('secondary');
-              }}
-              className="h-10 sm:h-11 text-sm sm:text-base bg-white/10 text-white border-2 border-white hover:bg-white hover:text-slate-900 transition-colors"
-            >
-              <Mail className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              {t('property.cta.sendEmail')}
-            </Button>
-          </div>
-          </div>
-          </div>
+          ? "O Espaço Perfeito para o Seu Negócio"
+          : "Como Podemos Ajudar?"}
+        subtitle={activeTab === "residential"
+          ? "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos"
+          : activeTab === "commercial"
+          ? "Soluções comerciais personalizadas para o seu sucesso"
+          : "Preencha o formulário e entraremos em contacto consigo"}
+        showContactInfo={true}
+        className={activeTab === "residential"
+          ? "bg-gradient-to-br from-red-50 to-pink-50"
+          : activeTab === "commercial"
+          ? "bg-gradient-to-br from-slate-50 to-gray-100"
+          : "bg-gradient-to-br from-blue-50 to-indigo-50"}
+      />
 
           {/* Footer Legal */}
           <footer className="bg-slate-900 text-white py-8 mt-0">

@@ -1160,6 +1160,7 @@ export default function PropertyDetails() {
         )}
       </div>
       </div>
+      </div>
     </HelmetProvider>
   );
 }

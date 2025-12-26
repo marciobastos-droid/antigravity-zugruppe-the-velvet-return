@@ -9,6 +9,8 @@ import SmartInput from "./SmartInput";
 import SmartTextarea from "./SmartTextarea";
 import { useSmartForm } from "./useSmartForm";
 import { base44 } from "@/api/base44Client";
+import { useVisitorTracking } from "../tracking/VisitorTracker";
+import { cn } from "@/lib/utils";
 
 /**
  * Formulário de contacto dinâmico e inteligente
@@ -43,6 +45,7 @@ export default function DynamicContactForm({
   const [interestType, setInterestType] = useState(null);
   const [emailSuggestions, setEmailSuggestions] = useState([]);
   const [showScheduling, setShowScheduling] = useState(false);
+  const { trackAction } = useVisitorTracking();
 
   // Auto-preencher dados do utilizador ao carregar
   useEffect(() => {
@@ -116,6 +119,19 @@ export default function DynamicContactForm({
       if (data.success) {
         toast.success("Mensagem enviada com sucesso!");
         setSent(true);
+        
+        // Guardar email do guest para tracking
+        if (data.guest_email) {
+          localStorage.setItem('guest_email', data.guest_email);
+        }
+
+        // Track contact submission
+        trackAction('contact_submitted', {
+          property_id: propertyId,
+          interest_type: interestType,
+          wants_appointment: showScheduling
+        });
+
         resetForm();
         
         if (onSuccess) {
