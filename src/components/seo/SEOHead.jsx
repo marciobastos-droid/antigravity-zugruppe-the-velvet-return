@@ -87,33 +87,6 @@ export default function SEOHead({
 
   return (
     <Helmet>
-      {/* Basic Meta Tags */}
-      <title>{fullTitle}</title>
-      <meta name="description" content={metaDescription} />
-      {keywords && <meta name="keywords" content={keywords} />}
-      <link rel="canonical" href={canonical} />
-
-      {/* Open Graph */}
-      <meta property="og:type" content={type} />
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={metaDescription} />
-      <meta property="og:image" content={metaImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={title || defaultTitle} />
-      <meta property="og:url" content={canonical} />
-      <meta property="og:site_name" content={siteName} />
-      <meta property="og:locale" content={lang === 'pt' ? 'pt_PT' : lang === 'en' ? 'en_US' : lang === 'es' ? 'es_ES' : 'fr_FR'} />
-      {lang !== 'pt' && <meta property="og:locale:alternate" content="pt_PT" />}
-      {lang !== 'en' && <meta property="og:locale:alternate" content="en_US" />}
-      {lang !== 'es' && <meta property="og:locale:alternate" content="es_ES" />}
-      {lang !== 'fr' && <meta property="og:locale:alternate" content="fr_FR" />}
-
-      {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={metaDescription} />
-      <meta name="twitter:image" content={metaImage} />
 
       {/* Hreflang Tags for Multilingual Support */}
       {alternateLanguages.length > 0 && alternateLanguages.map((lang) => (

@@ -255,19 +255,35 @@ export function generatePropertyStructuredData(property, imageUrl) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://zugruppe.pt';
   const propertyUrl = `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
   
+  // Map property types to Schema.org accommodation types
+  const schemaTypeMap = {
+    'apartment': 'Apartment',
+    'house': 'House',
+    'land': 'Residence',
+    'building': 'Residence',
+    'farm': 'House',
+    'store': 'Store',
+    'warehouse': 'Store',
+    'office': 'OfficeSpace'
+  };
+  
+  const accommodationType = schemaTypeMap[property.property_type] || 'Residence';
+  
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": property.listing_type === 'sale' ? "RealEstateListing" : "Apartment",
+    "@type": ["Product", accommodationType],
     "name": property.title,
     "description": property.description || generatePropertyMetaDescription(property),
     "url": propertyUrl,
-    "image": property.images || [imageUrl || `${baseUrl}/default-property.jpg`],
+    "image": property.images?.length > 0 ? property.images : [imageUrl || `${baseUrl}/default-property.jpg`],
+    "datePublished": property.created_date,
+    "dateModified": property.updated_date,
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": property.address,
-      "addressLocality": property.city,
-      "addressRegion": property.state,
-      "postalCode": property.zip_code,
+      "streetAddress": property.address || '',
+      "addressLocality": property.city || '',
+      "addressRegion": property.state || '',
+      "postalCode": property.zip_code || '',
       "addressCountry": property.country || "PT"
     }
   };
@@ -281,25 +297,33 @@ export function generatePropertyStructuredData(property, imageUrl) {
     };
   }
   
-  // Offer details
+  // Offer details with rental/sale specifics
   structuredData.offers = {
     "@type": "Offer",
     "price": property.price,
     "priceCurrency": property.currency || "EUR",
     "availability": property.availability_status === 'available' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    "itemCondition": property.year_built && property.year_built > new Date().getFullYear() - 5 ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition",
+    "businessFunction": property.listing_type === 'sale' ? "http://purl.org/goodrelations/v1#Sell" : "http://purl.org/goodrelations/v1#LeaseOut",
     "seller": {
-      "@type": "Organization",
+      "@type": "RealEstateAgent",
       "name": "Zugruppe",
       "url": baseUrl,
-      "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+      "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+      "telephone": "+351234026615",
+      "email": "info@zuconnect.pt"
     }
   };
   
-  // Property features
-  if (property.bedrooms !== undefined) structuredData.numberOfRooms = property.bedrooms;
-  if (property.bathrooms) structuredData.numberOfBathroomsTotal = property.bathrooms;
-  if (property.bedrooms !== undefined) structuredData.numberOfBedrooms = property.bedrooms;
+  // Property features (specific fields for accommodation types)
+  if (property.bedrooms !== undefined) {
+    structuredData.numberOfRooms = property.bedrooms;
+    structuredData.numberOfBedrooms = property.bedrooms;
+  }
+  if (property.bathrooms) {
+    structuredData.numberOfBathroomsTotal = property.bathrooms;
+  }
   
   // Floor size
   if (property.useful_area || property.square_feet) {
@@ -312,43 +336,91 @@ export function generatePropertyStructuredData(property, imageUrl) {
   }
   
   // Additional details
-  if (property.year_built) structuredData.yearBuilt = property.year_built;
-  if (property.created_date) structuredData.datePosted = property.created_date;
+  if (property.year_built) {
+    structuredData.yearBuilt = property.year_built;
+  }
+  
+  if (property.created_date) {
+    structuredData.datePosted = property.created_date;
+  }
+  
+  // Property ID
+  if (property.ref_id) {
+    structuredData.sku = property.ref_id;
+    structuredData.identifier = property.ref_id;
+    structuredData.productID = property.ref_id;
+  }
   
   // Amenities as features
   if (property.amenities && property.amenities.length > 0) {
-    structuredData.amenityFeature = property.amenities.slice(0, 10).map(amenity => ({
+    structuredData.amenityFeature = property.amenities.map(amenity => ({
       "@type": "LocationFeatureSpecification",
-      "name": amenity
+      "name": amenity,
+      "value": true
     }));
   }
   
-  // Additional properties
+  // Additional properties array
+  structuredData.additionalProperty = [];
+  
   if (property.gross_area) {
-    structuredData.additionalProperty = structuredData.additionalProperty || [];
     structuredData.additionalProperty.push({
       "@type": "PropertyValue",
-      "name": "Área Bruta",
-      "value": `${property.gross_area} m²`
+      "name": "grossArea",
+      "value": property.gross_area,
+      "unitCode": "MTK",
+      "unitText": "m²"
     });
   }
   
   if (property.energy_certificate) {
-    structuredData.additionalProperty = structuredData.additionalProperty || [];
     structuredData.additionalProperty.push({
       "@type": "PropertyValue",
-      "name": "Certificado Energético",
+      "name": "energyRating",
       "value": property.energy_certificate
     });
   }
   
   if (property.garage && property.garage !== 'none') {
-    structuredData.additionalProperty = structuredData.additionalProperty || [];
     structuredData.additionalProperty.push({
       "@type": "PropertyValue",
-      "name": "Garagem",
+      "name": "numberOfParkingSpaces",
       "value": property.garage
     });
+  }
+  
+  if (property.floor) {
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "floorLevel",
+      "value": property.floor
+    });
+  }
+  
+  if (property.front_count) {
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "numberOfFronts",
+      "value": property.front_count
+    });
+  }
+  
+  if (property.sun_exposure) {
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "sunExposure",
+      "value": property.sun_exposure
+    });
+  }
+  
+  // Aggregate rating if available
+  if (property.quality_score) {
+    structuredData.aggregateRating = {
+      "@type": "AggregateRating",
+      "ratingValue": (property.quality_score / 20).toFixed(1),
+      "bestRating": "5",
+      "worstRating": "1"
+    };
   }
   
   return structuredData;
