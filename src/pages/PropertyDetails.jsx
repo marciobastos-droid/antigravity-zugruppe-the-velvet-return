@@ -257,11 +257,26 @@ export default function PropertyDetails() {
       return null;
     }
 
+    // Procurar consultor nos utilizadores
     let consultant = allUsers.find(u => u.email === property.assigned_consultant)
       || consultants.find(c => c.email === property.assigned_consultant);
 
-    if (!consultant && property.assigned_consultant_name) {
-      consultant = {
+    // Se encontrou o consultor, priorizar dados guardados no property (podem ser mais recentes)
+    if (consultant) {
+      return {
+        email: consultant.email,
+        full_name: property.assigned_consultant_name || consultant.display_name || consultant.full_name,
+        display_name: property.assigned_consultant_name || consultant.display_name || consultant.full_name,
+        phone: property.assigned_consultant_phone || consultant.phone,
+        photo_url: property.assigned_consultant_photo || consultant.photo_url,
+        specialization: consultant.specialization,
+        bio: consultant.bio
+      };
+    }
+
+    // Se não encontrou mas tem nome guardado no property, criar objeto
+    if (property.assigned_consultant_name) {
+      return {
         email: property.assigned_consultant,
         full_name: property.assigned_consultant_name,
         display_name: property.assigned_consultant_name,
@@ -270,7 +285,7 @@ export default function PropertyDetails() {
       };
     }
 
-    return consultant;
+    return null;
   }, [property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo, allUsers, consultants]);
 
   const seoCanonicalUrl = React.useMemo(() => {
@@ -994,27 +1009,31 @@ export default function PropertyDetails() {
                 {assignedConsultant ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="relative w-16 h-16 flex-shrink-0">
-                        {assignedConsultant.photo_url ? (
-                          <img
-                            src={assignedConsultant.photo_url}
-                            alt={assignedConsultant.display_name || assignedConsultant.full_name}
-                            className="w-16 h-16 rounded-full object-cover border-2 border-slate-200"
-                            onError={(e) => {
-                              // Se a imagem falhar, substituir por fallback
-                              e.target.style.display = 'none';
-                              const fallback = e.target.nextElementSibling;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div 
-                          className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300"
-                          style={{ display: assignedConsultant.photo_url ? 'none' : 'flex' }}
-                        >
+                      {assignedConsultant.photo_url ? (
+                        <img
+                          src={assignedConsultant.photo_url}
+                          alt={assignedConsultant.display_name || assignedConsultant.full_name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 flex-shrink-0"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            console.error('[PropertyDetails] Erro ao carregar foto do consultor:', assignedConsultant.photo_url);
+                            e.target.onerror = null;
+                            e.target.src = '';
+                            e.target.style.display = 'none';
+                            const parent = e.target.parentElement;
+                            if (parent) {
+                              const fallback = document.createElement('div');
+                              fallback.className = 'w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300';
+                              fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
                           <User className="w-8 h-8 text-slate-500" />
                         </div>
-                      </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
                         {assignedConsultant.specialization && (
@@ -1029,8 +1048,8 @@ export default function PropertyDetails() {
                           href={`tel:${assignedConsultant.phone}`}
                           className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
-                          <Phone className="w-4 h-4" />
-                          {assignedConsultant.phone}
+                          <Phone className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{assignedConsultant.phone}</span>
                         </a>
                       )}
                       {assignedConsultant.email && (
@@ -1038,8 +1057,8 @@ export default function PropertyDetails() {
                           href={`mailto:${assignedConsultant.email}`}
                           className="flex items-center gap-2 text-slate-700 hover:text-blue-600 transition-colors"
                         >
-                          <Mail className="w-4 h-4" />
-                          {assignedConsultant.email}
+                          <Mail className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{assignedConsultant.email}</span>
                         </a>
                       )}
                     </div>
