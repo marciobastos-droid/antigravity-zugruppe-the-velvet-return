@@ -147,8 +147,8 @@ export default function SmartContactSection({
             viewport={{ once: true }}
             transition={{ delay: showContactInfo ? 0.2 : 0 }}>
 
-            <Card className="shadow-lg border-slate-200">
-              <CardContent className="p-6 md:p-8">
+            <Card className="shadow-2xl border-slate-200 bg-white overflow-hidden">
+              <CardContent className="p-8 md:p-10">
                 <DynamicContactForm
                   context="general"
                   showInterestType={false}
