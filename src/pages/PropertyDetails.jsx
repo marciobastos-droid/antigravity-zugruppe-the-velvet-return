@@ -152,21 +152,19 @@ export default function PropertyDetails() {
     ...QUERY_CONFIG.properties
   });
 
-  const { data: consultants = [] } = useQuery({
-    queryKey: ['consultants'],
+  const { data: consultorProfiles = [] } = useQuery({
+    queryKey: ['consultorProfiles'],
     queryFn: async () => {
       try {
-        const users = await base44.entities.User.list();
-        console.log('[PropertyDetails] All users loaded:', users.length);
-        const filtered = users.filter(u => u.user_type === 'consultant' || u.user_type === 'gestor' || u.user_type === 'admin');
-        console.log('[PropertyDetails] Filtered consultants:', filtered.length);
-        return filtered;
+        const profiles = await base44.entities.ConsultorProfile.filter({ is_active: true });
+        console.log('[PropertyDetails] ConsultorProfiles loaded:', profiles.length);
+        return profiles;
       } catch (error) {
-        console.error('[PropertyDetails] Error loading consultants:', error);
+        console.error('[PropertyDetails] Error loading consultor profiles:', error);
         return [];
       }
     },
-    ...QUERY_CONFIG.agents
+    staleTime: 5 * 60 * 1000
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -257,36 +255,28 @@ export default function PropertyDetails() {
       return null;
     }
 
-    // Procurar consultor nos utilizadores
-    let consultant = allUsers.find(u => u.email === property.assigned_consultant)
-      || consultants.find(c => c.email === property.assigned_consultant);
-
-    // Se encontrou o consultor, priorizar dados guardados no property (podem ser mais recentes)
-    if (consultant) {
+    // Procurar no ConsultorProfile (fonte única de verdade)
+    const consultorProfile = consultorProfiles.find(p => p.user_email === property.assigned_consultant);
+    
+    if (consultorProfile) {
       return {
-        email: consultant.email,
-        full_name: property.assigned_consultant_name || consultant.display_name || consultant.full_name,
-        display_name: property.assigned_consultant_name || consultant.display_name || consultant.full_name,
-        phone: property.assigned_consultant_phone || consultant.phone,
-        photo_url: property.assigned_consultant_photo || consultant.photo_url,
-        specialization: consultant.specialization,
-        bio: consultant.bio
+        email: consultorProfile.user_email,
+        full_name: consultorProfile.display_name,
+        display_name: consultorProfile.display_name,
+        phone: consultorProfile.phone,
+        whatsapp: consultorProfile.whatsapp,
+        photo_url: consultorProfile.photo_url,
+        specialization: consultorProfile.specialization,
+        bio: consultorProfile.bio,
+        languages: consultorProfile.languages,
+        linkedin_url: consultorProfile.linkedin_url,
+        instagram_url: consultorProfile.instagram_url
       };
     }
 
-    // Se não encontrou mas tem nome guardado no property, criar objeto
-    if (property.assigned_consultant_name) {
-      return {
-        email: property.assigned_consultant,
-        full_name: property.assigned_consultant_name,
-        display_name: property.assigned_consultant_name,
-        phone: property.assigned_consultant_phone,
-        photo_url: property.assigned_consultant_photo
-      };
-    }
-
+    // Fallback: se não existe perfil público, não mostrar informação
     return null;
-  }, [property?.assigned_consultant, property?.assigned_consultant_name, property?.assigned_consultant_phone, property?.assigned_consultant_photo, allUsers, consultants]);
+  }, [property?.assigned_consultant, consultorProfiles]);
 
   const seoCanonicalUrl = React.useMemo(() => {
     if (property && typeof window !== 'undefined') {
@@ -424,14 +414,10 @@ export default function PropertyDetails() {
   }, [property?.images]);
 
   const handleConsultantChange = React.useCallback((email) => {
-    const consultant = allUsers.find(u => u.email === email) || consultants.find(c => c.email === email);
     updatePropertyMutation.mutate({
-      assigned_consultant: email || null,
-      assigned_consultant_name: consultant?.display_name || consultant?.full_name || null,
-      assigned_consultant_phone: consultant?.phone || null,
-      assigned_consultant_photo: consultant?.photo_url || null
+      assigned_consultant: email || null
     });
-  }, [allUsers, consultants, updatePropertyMutation]);
+  }, [updatePropertyMutation]);
 
   const handleVisibilityChange = React.useCallback((visibility) => {
     updatePropertyMutation.mutate({ visibility });
@@ -1083,6 +1069,17 @@ export default function PropertyDetails() {
                     </div>
 
                     <div className="space-y-2">
+                      {assignedConsultant.whatsapp && (
+                        <a 
+                          href={`https://wa.me/${assignedConsultant.whatsapp.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-700 hover:text-green-600 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">WhatsApp</span>
+                        </a>
+                      )}
                       {assignedConsultant.phone && (
                         <a 
                           href={`tel:${assignedConsultant.phone}`}
@@ -1105,6 +1102,31 @@ export default function PropertyDetails() {
 
                     {assignedConsultant.bio && (
                       <p className="text-sm text-slate-600 pt-2 border-t">{assignedConsultant.bio}</p>
+                    )}
+
+                    {(assignedConsultant.linkedin_url || assignedConsultant.instagram_url) && (
+                      <div className="flex gap-2 pt-2 border-t">
+                        {assignedConsultant.linkedin_url && (
+                          <a 
+                            href={assignedConsultant.linkedin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                        {assignedConsultant.instagram_url && (
+                          <a 
+                            href={assignedConsultant.instagram_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-pink-600 hover:text-pink-700"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
                     )}
                   </div>
                 ) : (
