@@ -71,9 +71,9 @@ export default function SmartContactSection({
                     </div>
                     <div>
                       <p className="font-semibold text-slate-900">Telefone</p>
-                      <a href="tel:+351910239889" className="text-green-600 hover:text-green-700">
-                        +351 910 239 889
-                      </a>
+                      <a href="tel:+351912345678" className="text-green-600 hover:text-green-700">+351 234 026 615
+
+                    </a>
                     </div>
                   </div>
 
