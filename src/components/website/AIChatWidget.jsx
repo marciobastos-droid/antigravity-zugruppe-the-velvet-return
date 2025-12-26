@@ -29,7 +29,7 @@ export default function AIChatWidget() {
       setMessages([
         {
           role: "assistant",
-          content: "👋 Olá! Sou o assistente virtual da ZuGruppe. Como posso ajudá-lo hoje?\n\nPosso responder a perguntas sobre:\n• Imóveis disponíveis\n• Preços e localizações\n• Processo de compra/arrendamento\n• Agendamento de visitas"
+          content: "👋 Olá! Sou o assistente virtual inteligente da ZuGruppe. Como posso ajudá-lo hoje?\n\n💡 Posso ajudar com:\n• Pesquisa de imóveis por características e localização\n• Informações sobre preços e custos de aquisição\n• Processo de compra/arrendamento em Portugal\n• Financiamento e calculadora de prestações\n• Agendamento de visitas e tours virtuais\n• Documentação e procedimentos legais\n• Dicas sobre investimento imobiliário\n\n✨ Sou capaz de responder a perguntas específicas sobre qualquer imóvel do nosso portefólio!"
         }
       ]);
     }
@@ -55,26 +55,62 @@ export default function AIChatWidget() {
         // Prompt for contact info
         responseContent = "Fico feliz em poder ajudar! 😊\n\nPara que possamos oferecer um serviço personalizado e entrar em contacto consigo, pode partilhar o seu email ou telefone?";
       } else {
-        // Regular AI response
+        // Fetch properties for context if needed
+        let propertiesContext = '';
+        try {
+          const properties = await base44.entities.Property.list('-created_date', 10);
+          const activeProps = properties.filter(p => p.status === 'active').slice(0, 5);
+          
+          if (activeProps.length > 0) {
+            propertiesContext = `\n\nIMÓVEIS DESTACADOS DISPONÍVEIS (para referência):\n${activeProps.map(p => 
+              `- REF ${p.ref_id || p.id.substring(0,8)}: ${p.property_type} ${p.listing_type === 'sale' ? 'venda' : 'arrendamento'} em ${p.city}, T${p.bedrooms || '?'}, ${p.useful_area || p.square_feet || '?'}m², €${p.price?.toLocaleString()}`
+            ).join('\n')}`;
+          }
+        } catch (e) {
+          console.warn('Could not fetch properties:', e);
+        }
+
+        // Regular AI response with enhanced context
         const context = messages.map(m => `${m.role === 'user' ? 'Cliente' : 'Assistente'}: ${m.content}`).join('\n');
         
         const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `És um assistente virtual profissional da ZuGruppe, uma empresa imobiliária de luxo.
+          prompt: `És um assistente virtual especializado e inteligente da ZuGruppe, empresa imobiliária de luxo em Portugal.
 
 CONTEXTO DA CONVERSA:
 ${context}
 
 NOVA MENSAGEM DO CLIENTE:
 ${userMessage}
+${propertiesContext}
 
-INSTRUÇÕES:
-- Responde de forma profissional, simpática e prestável
-- Se perguntarem sobre imóveis específicos, recomenda que visitem o site ou agendem visita
-- Se pedirem contacto, indica: email: info@zugruppe.com, telefone: +351 XXX XXX XXX
-- Usa emojis moderadamente para ser mais amigável
-- Mantém respostas concisas (máx 3 parágrafos)
-- Se detetares um email ou telefone na mensagem, agradece os dados de contacto
-- Menciona que podem agendar visitas online através do site
+INSTRUÇÕES AVANÇADAS:
+- És um especialista em mercado imobiliário português e internacional
+- Fornece informações detalhadas sobre:
+  * Processo de compra/arrendamento em Portugal (IMT, IMI, escrituras, etc.)
+  * Custos de aquisição e taxas aplicáveis
+  * Financiamento bancário e simulações de crédito habitação
+  * Investimento imobiliário (Golden Visa, rendibilidade, etc.)
+  * Documentação necessária (NIF, conta bancária, etc.)
+  * Zonas e localizações (características, infraestruturas, valorização)
+
+- Se perguntarem sobre imóveis específicos:
+  * Usa a lista de imóveis disponíveis acima para dar informações reais
+  * Destaca características únicas e vantagens
+  * Sugere visitas online ou presenciais
+  * Menciona que podem filtrar por características no site
+
+- Se pedirem contacto direto:
+  * Email: info@zugruppe.com
+  * Telefone: +351 XXX XXX XXX
+  * Horário: Segunda a Sexta, 9h-18h
+
+- Dá respostas completas mas concisas (máx 4 parágrafos curtos)
+- Usa emojis estrategicamente (1-2 por mensagem)
+- Termina com pergunta ou call-to-action quando apropriado
+- Se detetares email/telefone, agradece e confirma contacto em breve
+- Para perguntas sobre custos, sê específico com percentagens e valores típicos
+
+IMPORTANTE: És uma IA avançada, não digas "não tenho acesso a". Se não tens info específica, dá orientações gerais e sugere contacto direto com a equipa para detalhes.
 
 Responde APENAS com o texto da resposta, sem introduções.`,
           add_context_from_internet: false

@@ -11,6 +11,8 @@ import AIDescriptionGenerator from "./AIDescriptionGenerator";
 import AIBuyerMatcher from "./AIBuyerMatcher";
 import PropertyMediaUploader from "./PropertyMediaUploader";
 import AITitleGenerator from "./AITitleGenerator";
+import AIMultilingualDescriptionGenerator from "./AIMultilingualDescriptionGenerator";
+import AISEOOptimizer from "./AISEOOptimizer";
 
 export default function AIPropertyTools({ property, onUpdate }) {
   const [activeTab, setActiveTab] = React.useState("price");
@@ -25,12 +27,14 @@ export default function AIPropertyTools({ property, onUpdate }) {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="title">Título</TabsTrigger>
-            <TabsTrigger value="description">Descrição</TabsTrigger>
-            <TabsTrigger value="price">Preço</TabsTrigger>
-            <TabsTrigger value="buyers">Compradores</TabsTrigger>
-            <TabsTrigger value="media">Média</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-7 h-auto">
+            <TabsTrigger value="title" className="text-xs">Título</TabsTrigger>
+            <TabsTrigger value="description" className="text-xs">Descrição</TabsTrigger>
+            <TabsTrigger value="multilingual" className="text-xs">🌍 Multi-Idioma</TabsTrigger>
+            <TabsTrigger value="seo" className="text-xs">🔍 SEO</TabsTrigger>
+            <TabsTrigger value="price" className="text-xs">Preço</TabsTrigger>
+            <TabsTrigger value="buyers" className="text-xs">Compradores</TabsTrigger>
+            <TabsTrigger value="media" className="text-xs">Média</TabsTrigger>
           </TabsList>
 
           <TabsContent value="title" className="mt-4">
@@ -39,6 +43,14 @@ export default function AIPropertyTools({ property, onUpdate }) {
 
           <TabsContent value="description" className="mt-4">
             <AIDescriptionGenerator property={property} onUpdate={onUpdate} />
+          </TabsContent>
+
+          <TabsContent value="multilingual" className="mt-4">
+            <AIMultilingualDescriptionGenerator property={property} onUpdate={onUpdate} />
+          </TabsContent>
+
+          <TabsContent value="seo" className="mt-4">
+            <AISEOOptimizer property={property} onUpdate={onUpdate} />
           </TabsContent>
 
           <TabsContent value="price" className="mt-4">
