@@ -37,6 +37,7 @@ import ContactRequirements from "./ContactRequirements";
 import PropertyLinker from "./PropertyLinker";
 import QuickCommunicationLogger from "./QuickCommunicationLogger";
 import VisitRouteGenerator from "../visits/VisitRouteGenerator";
+import PropertyPDFGenerator from "../documents/PropertyPDFGenerator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,9 +112,8 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [propertyLinkerOpen, setPropertyLinkerOpen] = React.useState(false);
   const [commLoggerOpen, setCommLoggerOpen] = React.useState(false);
   const [visitRouteOpen, setVisitRouteOpen] = React.useState(false);
+  const [pdfGeneratorOpen, setPdfGeneratorOpen] = React.useState(false);
   const [selectedPropertyIndexes, setSelectedPropertyIndexes] = React.useState([]);
-  const [generatingPDF, setGeneratingPDF] = React.useState(false);
-  const [sendingEmail, setSendingEmail] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -276,6 +276,14 @@ Extrai:
     setSelectedPropertyIndexes(prev =>
       prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
     );
+  };
+
+  const handleOpenPDFGenerator = () => {
+    if (selectedPropertyIndexes.length === 0) {
+      toast.error("Selecione pelo menos um imóvel");
+      return;
+    }
+    setPdfGeneratorOpen(true);
   };
 
   const handleGeneratePDF = async () => {
@@ -1209,29 +1217,11 @@ Extrai:
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        onClick={handleSendEmail}
-                        disabled={sendingEmail || !lead.buyer_email}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={handleOpenPDFGenerator}
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                       >
-                        {sendingEmail ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <Mail className="w-3 h-3 mr-1" />
-                        )}
-                        Enviar Email
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleGeneratePDF}
-                        disabled={generatingPDF}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {generatingPDF ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <FileText className="w-3 h-3 mr-1" />
-                        )}
-                        Gerar PDF
+                        <FileText className="w-3 h-3 mr-1" />
+                        Gerar PDF Profissional
                       </Button>
                       <Button
                         size="sm"
@@ -1638,6 +1628,21 @@ Extrai:
         opportunityId={lead.id}
         open={visitRouteOpen}
         onOpenChange={setVisitRouteOpen}
+      />
+
+      {/* PDF Generator Dialog */}
+      <PropertyPDFGenerator
+        open={pdfGeneratorOpen}
+        onOpenChange={setPdfGeneratorOpen}
+        properties={selectedPropertyIndexes
+          .map(idx => {
+            const ap = lead.associated_properties[idx];
+            return properties.find(p => p.id === ap.property_id);
+          })
+          .filter(Boolean)}
+        recipientEmail={lead.buyer_email}
+        recipientName={lead.buyer_name}
+        opportunityId={lead.id}
       />
     </div>
   );
