@@ -88,22 +88,24 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const imgWidth = pageWidth;
+      // Adicionar margens para evitar corte
+      const margin = 5; // 5mm de margem
+      const imgWidth = pageWidth - (2 * margin);
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       let heightLeft = imgHeight;
       let position = 0;
 
       // Add first page
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'JPEG', margin, position + margin, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 2 * margin);
 
       // Add additional pages if content is longer
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'JPEG', margin, position + margin, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 2 * margin);
       }
 
       const fileName = `Brochura_${property.ref_id || property.id.slice(0,8)}_${property.city}.pdf`;
@@ -221,29 +223,58 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
           </style>
 
           {/* Header with Logo */}
-          <div className="flex items-center justify-between mb-8 pb-6 border-b-4 border-blue-600">
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            marginBottom: '32px', 
+            paddingBottom: '24px', 
+            borderBottom: '4px solid #2563eb',
+            pageBreakInside: 'avoid'
+          }}>
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
               alt="ZuGruppe"
-              className="h-16"
+              style={{ height: '64px', maxWidth: '200px', objectFit: 'contain' }}
             />
-            <div className="text-right">
-              <Badge className="bg-blue-600 text-white text-lg px-4 py-2">
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ 
+                backgroundColor: '#2563eb', 
+                color: 'white', 
+                fontSize: '18px', 
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                fontWeight: 'bold',
+                letterSpacing: 'normal'
+              }}>
                 {property.listing_type === 'sale' ? 'VENDA' : 'ARRENDAMENTO'}
-              </Badge>
+              </span>
               {property.ref_id && (
-                <p className="text-sm text-slate-500 mt-2">Ref: {property.ref_id}</p>
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#64748b', 
+                  marginTop: '8px',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: 'normal'
+                }}>Ref: {property.ref_id}</p>
               )}
             </div>
           </div>
 
           {/* Main Image */}
           {property.images?.[0] && (
-            <div className="mb-6 rounded-xl overflow-hidden shadow-2xl">
+            <div style={{ marginBottom: '24px', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
               <img 
                 src={property.images[0]} 
                 alt={property.title}
-                className="w-full h-96 object-cover"
+                style={{ 
+                  width: '100%', 
+                  height: 'auto',
+                  maxHeight: '500px',
+                  objectFit: 'contain',
+                  backgroundColor: '#f8fafc'
+                }}
                 crossOrigin="anonymous"
               />
             </div>
@@ -448,15 +479,31 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
 
           {/* Additional Images */}
           {property.images && property.images.length > 1 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Galeria de Imagens</h2>
-              <div className="grid grid-cols-3 gap-3">
+            <div style={{ marginBottom: '32px', pageBreakInside: 'avoid' }}>
+              <h2 style={{ 
+                fontSize: '24px', 
+                fontWeight: 'bold', 
+                color: '#0f172a', 
+                marginBottom: '16px',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                letterSpacing: 'normal'
+              }}>Galeria de Imagens</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {property.images.slice(1, 7).map((img, idx) => (
-                  <div key={idx} className="aspect-video rounded-lg overflow-hidden">
+                  <div key={idx} style={{ 
+                    aspectRatio: '16/9', 
+                    borderRadius: '8px', 
+                    overflow: 'hidden',
+                    backgroundColor: '#f8fafc'
+                  }}>
                     <img 
                       src={img} 
                       alt={`Imagem ${idx + 2}`}
-                      className="w-full h-full object-cover"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'contain'
+                      }}
                       crossOrigin="anonymous"
                     />
                   </div>
