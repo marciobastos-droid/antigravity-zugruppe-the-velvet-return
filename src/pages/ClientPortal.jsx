@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { 
   Heart, Search, MessageSquare, Calendar, TrendingUp, 
   Clock, CheckCircle, XCircle, Home, User, Send, Loader2,
-  MapPin, Bed, Bath, Maximize, Euro, Eye, Filter, FileText, Mail
+  MapPin, Bed, Bath, Maximize, Euro, Eye, Filter, FileText, Mail, Settings
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -185,12 +185,6 @@ export default function ClientPortal() {
     enabled: !!user?.email
   });
 
-  // Fetch agents
-  const { data: agents = [] } = useQuery({
-    queryKey: ['agents'],
-    queryFn: () => base44.entities.Agent.list()
-  });
-
   // Fetch all active properties for inquiry selection
   const { data: allProperties = [] } = useQuery({
     queryKey: ['allActiveProperties'],
@@ -265,8 +259,8 @@ export default function ClientPortal() {
   });
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedAgent) {
-      toast.error("Selecione um agente e escreva uma mensagem");
+    if (!message.trim()) {
+      toast.error("Escreva uma mensagem");
       return;
     }
 
@@ -274,8 +268,6 @@ export default function ClientPortal() {
     await sendMessageMutation.mutateAsync({
       client_email: user.email,
       client_name: user.full_name,
-      agent_email: selectedAgent.email,
-      agent_name: selectedAgent.full_name,
       message: message,
       direction: 'client_to_agent',
       is_read: false
@@ -424,7 +416,7 @@ export default function ClientPortal() {
               <span className="hidden lg:inline">Comunicações</span>
             </TabsTrigger>
             <TabsTrigger value="preferences" className="text-xs lg:text-sm">
-              <User className="w-4 h-4 lg:mr-2" />
+              <Settings className="w-4 h-4 lg:mr-2" />
               <span className="hidden lg:inline">Preferências</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="relative text-xs lg:text-sm">
@@ -916,34 +908,18 @@ export default function ClientPortal() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             <div>
-              <Label>Agente</Label>
-              <select
-                className="w-full mt-1 px-3 py-2 border rounded-lg"
-                value={selectedAgent?.id || ''}
-                onChange={(e) => setSelectedAgent(agents.find(a => a.id === e.target.value))}
-              >
-                <option value="">Selecione um agente...</option>
-                {agents.map(agent => (
-                  <option key={agent.id} value={agent.id}>
-                    {agent.display_name || agent.full_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <Label>Mensagem</Label>
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Escreva a sua mensagem..."
+                placeholder="Escreva a sua mensagem à nossa equipa..."
                 rows={5}
               />
             </div>
 
             <Button 
               onClick={handleSendMessage}
-              disabled={sendingMessage || !message.trim() || !selectedAgent}
+              disabled={sendingMessage || !message.trim()}
               className="w-full"
             >
               {sendingMessage ? (
