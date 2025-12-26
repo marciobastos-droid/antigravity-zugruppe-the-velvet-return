@@ -21,6 +21,7 @@ import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
 const STAGES = [
   { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", headerColor: "bg-gradient-to-r from-slate-100 to-slate-200", icon: Clock },
   { id: "contacted", label: "Contactado", color: "bg-blue-50 border-blue-300", headerColor: "bg-gradient-to-r from-blue-100 to-blue-200", icon: Phone },
+  { id: "qualified", label: "Qualificado", color: "bg-teal-50 border-teal-300", headerColor: "bg-gradient-to-r from-teal-100 to-teal-200", icon: CheckCircle2 },
   { id: "visit_scheduled", label: "Visita Agendada", color: "bg-purple-50 border-purple-300", headerColor: "bg-gradient-to-r from-purple-100 to-purple-200", icon: Calendar },
   { id: "proposal", label: "Proposta", color: "bg-amber-50 border-amber-300", headerColor: "bg-gradient-to-r from-amber-100 to-amber-200", icon: Euro },
   { id: "negotiation", label: "Negociação", color: "bg-orange-50 border-orange-300", headerColor: "bg-gradient-to-r from-orange-100 to-orange-200", icon: Building2 },
