@@ -1213,12 +1213,12 @@ export default function Website() {
         {/* Properties Grid/List */}
         {paginatedProperties.length > 0 ? (
           <>
-            {/* Pré-carregar imagens da próxima página */}
+            {/* Pré-carregar imagens da próxima página (apenas primeiras 4) */}
             <ImagePreloader 
               images={sortedProperties.slice(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE)
                 .flatMap(p => p.images?.[0] || [])
                 .filter(Boolean)
-                .slice(0, 8)}
+                .slice(0, 4)}
             />
             
             <div className={viewMode === "grid" 
@@ -1416,8 +1416,13 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           <OptimizedImage
             src={images[imgIndex]}
             alt={property.title}
+            width={800}
+            height={600}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="w-full h-full"
             priority={index < 4}
+            quality={80}
+            blur={true}
             fallbackIcon={Home}
           />
         ) : (
@@ -1545,8 +1550,13 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           <OptimizedImage
             src={image}
             alt={property.title}
+            width={640}
+            height={480}
+            sizes="288px"
             className="w-full h-full"
             priority={index < 3}
+            quality={80}
+            blur={true}
             fallbackIcon={Home}
           />
         ) : (
