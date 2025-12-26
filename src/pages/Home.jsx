@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import HeroWithForm from "../components/website/HeroWithForm";
 import SmartContactSection from "../components/website/SmartContactSection";
+import AboutSection from "../components/website/AboutSection";
 import VisitorTracker from "../components/tracking/VisitorTracker";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -176,6 +177,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* About Section */}
+      <AboutSection />
 
       {/* Contact Section */}
       <SmartContactSection
