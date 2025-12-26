@@ -213,7 +213,17 @@ Retorna as top 10 recomendações ordenadas por score (100 = match perfeito).`;
       summary: aiResponse.summary,
       model_used: !!aiModel,
       model_confidence: aiModel?.confidence_score || 0,
-      total_properties_analyzed: unseenProperties.length
+      total_properties_analyzed: unseenProperties.length,
+      filtered_count: matchingProperties.length,
+      requirements_applied: {
+        listing_type: profile.listing_type,
+        budget_range: `€${profile.budget_min || 0} - €${profile.budget_max || '∞'}`,
+        property_types: profile.property_types,
+        locations: profile.locations,
+        min_bedrooms: profile.bedrooms_min,
+        min_bathrooms: profile.bathrooms_min,
+        min_area: profile.square_feet_min
+      }
     });
 
   } catch (error) {
