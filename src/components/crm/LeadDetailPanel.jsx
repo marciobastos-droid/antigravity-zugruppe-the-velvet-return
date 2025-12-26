@@ -571,7 +571,9 @@ Extrai:
         }
         
         // === DESCRIÇÃO ===
-        if (prop.description) {
+        // Garantir espaçamento para o rodapé (mínimo 30mm do fundo)
+        const maxDescriptionY = pageHeight - 35;
+        if (prop.description && y < maxDescriptionY - 20) {
           doc.setFillColor(76, 181, 245); // #4cb5f5
           doc.roundedRect(margin, y, 65, 7, 1, 1, 'F');
           doc.setTextColor(255, 255, 255);
@@ -588,12 +590,17 @@ Extrai:
             ? prop.description.substring(0, maxDescLength) + '...' 
             : prop.description;
           const descLines = doc.splitTextToSize(descText, pageWidth - 2 * margin - 4);
-          doc.text(descLines, margin + 2, y);
-          y += descLines.length * 4 + 5;
+          
+          // Limitar linhas para não sobrepor o rodapé
+          const availableLines = Math.floor((maxDescriptionY - y) / 4);
+          const linesToShow = descLines.slice(0, availableLines);
+          doc.text(linesToShow, margin + 2, y);
+          y += linesToShow.length * 4 + 5;
         }
         
         // === COMODIDADES ===
-        if (prop.amenities?.length > 0 && y < pageHeight - 50) {
+        // Só mostrar comodidades se houver espaço suficiente antes do rodapé
+        if (prop.amenities?.length > 0 && y < pageHeight - 60) {
           doc.setFillColor(76, 181, 245); // #4cb5f5
           doc.roundedRect(margin, y, 70, 7, 1, 1, 'F');
           doc.setTextColor(255, 255, 255);
@@ -615,7 +622,7 @@ Extrai:
             doc.text(`• ${amenity}`, x, y + row * 4);
           });
           
-          y += amenitiesPerColumn * 4 + 5;
+          y += amenitiesPerColumn * 4 + 8;
         }
         
         // Barra inferior azul da marca
