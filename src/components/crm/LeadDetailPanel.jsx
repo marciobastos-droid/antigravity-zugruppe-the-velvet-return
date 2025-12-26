@@ -324,9 +324,9 @@ Extrai:
       doc.setFillColor(76, 181, 245); // #4cb5f5
       doc.rect(0, 0, pageWidth, 4, 'F');
       
-      // Logo Zugruppe - formato original
+      // Logo Zugruppe - proporção original mantida
       try {
-        await addImageToPDF('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/21f1b89c1_ZuGruppe.jpg', pageWidth / 2 - 40, 20, 80, 25);
+        await addImageToPDF('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/21f1b89c1_ZuGruppe.jpg', pageWidth / 2 - 35, 20, 70, 18);
       } catch (e) {
         console.warn('Logo não carregado');
       }
