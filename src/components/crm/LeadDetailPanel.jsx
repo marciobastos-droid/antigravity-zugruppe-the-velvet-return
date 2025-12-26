@@ -324,9 +324,9 @@ Extrai:
       doc.setFillColor(76, 181, 245); // #4cb5f5
       doc.rect(0, 0, pageWidth, 4, 'F');
       
-      // Logo Zugruppe
+      // Logo Zugruppe - formato original
       try {
-        await addImageToPDF('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/f0d849c97_ZuGruppe.jpg', pageWidth / 2 - 35, 25, 70, 22);
+        await addImageToPDF('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/21f1b89c1_ZuGruppe.jpg', pageWidth / 2 - 40, 20, 80, 25);
       } catch (e) {
         console.warn('Logo não carregado');
       }
@@ -387,7 +387,9 @@ Extrai:
       // Footer capa
       doc.setFontSize(9);
       doc.setTextColor(120, 120, 120);
-      doc.text('Zugruppe - Soluções Imobiliárias de Excelência', pageWidth / 2, pageHeight - 15, { align: 'center' });
+      doc.text('ZuGruppe - The Velvet Return', pageWidth / 2, pageHeight - 20, { align: 'center' });
+      doc.setFontSize(8);
+      doc.text('Licença IMPIC 11355', pageWidth / 2, pageHeight - 14, { align: 'center' });
       
       // === PÁGINAS DOS IMÓVEIS ===
       for (let i = 0; i < selectedProperties.length; i++) {
@@ -440,19 +442,20 @@ Extrai:
         
         // Box de preço destacado - azul da marca
         doc.setFillColor(76, 181, 245); // #4cb5f5
-        doc.roundedRect(margin, y, 65, 14, 3, 3, 'F');
+        doc.roundedRect(margin, y, 70, 14, 3, 3, 'F');
         doc.setTextColor(255, 255, 255); // branco
-        doc.setFontSize(16);
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.text(`€${prop.price?.toLocaleString() || 'N/A'}`, margin + 32.5, y + 9, { align: 'center' });
+        const priceText = `€ ${prop.price?.toLocaleString() || 'N/A'}`;
+        doc.text(priceText, margin + 35, y + 9, { align: 'center' });
         
         // Tipo de negócio
         doc.setFillColor(245, 245, 245);
-        doc.roundedRect(margin + 70, y, 35, 14, 3, 3, 'F');
+        doc.roundedRect(margin + 75, y, 35, 14, 3, 3, 'F');
         doc.setTextColor(39, 37, 31); // #27251f
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
-        doc.text(prop.listing_type === 'sale' ? 'Venda' : 'Arrendamento', margin + 87.5, y + 9, { align: 'center' });
+        doc.text(prop.listing_type === 'sale' ? 'Venda' : 'Arrendamento', margin + 92.5, y + 9, { align: 'center' });
         y += 20;
         
         // === CARACTERÍSTICAS PRINCIPAIS ===
@@ -617,13 +620,17 @@ Extrai:
         
         // Barra inferior azul da marca
         doc.setFillColor(76, 181, 245); // #4cb5f5
-        doc.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+        doc.rect(0, pageHeight - 12, pageWidth, 12, 'F');
         
         // Footer
         doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255);
-        doc.text('Zugruppe - Soluções Imobiliárias', margin, pageHeight - 4);
+        doc.text('ZuGruppe - The Velvet Return', margin, pageHeight - 6);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.text('Licença IMPIC 11355', margin, pageHeight - 2);
+        doc.setFontSize(8);
         doc.text(`Página ${i + 2} de ${selectedProperties.length + 1}`, pageWidth - margin, pageHeight - 4, { align: 'right' });
       }
       
