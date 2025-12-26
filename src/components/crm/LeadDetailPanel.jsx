@@ -435,6 +435,7 @@ Extrai:
     const configs = {
       new: { label: 'Novo', color: 'bg-blue-100 text-blue-800 border-blue-200', icon: AlertCircle },
       contacted: { label: 'Contactado', color: 'bg-purple-100 text-purple-800 border-purple-200', icon: Phone },
+      qualified: { label: 'Qualificado', color: 'bg-teal-100 text-teal-800 border-teal-200', icon: CheckCircle2 },
       visit_scheduled: { label: 'Visita Agendada', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: Calendar },
       proposal: { label: 'Proposta', color: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: FileText },
       negotiation: { label: 'Negociação', color: 'bg-orange-100 text-orange-800 border-orange-200', icon: TrendingUp },
@@ -599,6 +600,7 @@ Extrai:
               <SelectContent>
                 <SelectItem value="new">Novo</SelectItem>
                 <SelectItem value="contacted">Contactado</SelectItem>
+                <SelectItem value="qualified">Qualificado</SelectItem>
                 <SelectItem value="visit_scheduled">Visita Agendada</SelectItem>
                 <SelectItem value="proposal">Proposta</SelectItem>
                 <SelectItem value="negotiation">Negociação</SelectItem>
