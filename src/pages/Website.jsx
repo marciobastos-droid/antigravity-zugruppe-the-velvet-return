@@ -43,6 +43,8 @@ import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
 import SEOManager from "../components/website/SEOManager";
 import VisitorTracker from "../components/tracking/VisitorTracker";
 import SmartContactSection from "../components/website/SmartContactSection";
+import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
+import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
 
 export default function Website() {
   const [showWebsiteTools, setShowWebsiteTools] = React.useState(false);
@@ -1400,6 +1402,7 @@ export default function Website() {
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
   const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
+  const translatedProperty = useTranslatedProperty(property);
 
   return (
     <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative">
@@ -1454,18 +1457,13 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
         {/* Price */}
         <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
           <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 sm:px-2.5 py-1 rounded-lg">
-            <div className="text-xs sm:text-sm font-bold">
-              {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-              {property.listing_type === 'rent' && <span className="text-[10px] sm:text-xs font-normal">{t('common.perMonth')}</span>}
-            </div>
-            {property.currency && property.currency !== 'EUR' && (() => {
-              const eurValue = convertToEUR(property.price, property.currency);
-              return eurValue ? (
-                <div className="text-[10px] sm:text-xs text-white/80">
-                  ≈ €{eurValue.toLocaleString()}
-                </div>
-              ) : null;
-            })()}
+            <MultiCurrencyPrice
+              price={property.price}
+              currency={property.currency}
+              listingType={property.listing_type}
+              showAlternatives={false}
+              variant="compact"
+            />
           </div>
         </div>
       </div>
@@ -1473,7 +1471,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
       {/* Content */}
       <div className="p-3 sm:p-4">
         <h3 className="font-semibold text-sm sm:text-base text-slate-900 line-clamp-1 group-hover:text-blue-600 transition-colors mb-1">
-          {property.title}
+          {translatedProperty?.title || property.title}
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mb-2 sm:mb-3">
           <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
@@ -1536,9 +1534,10 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
 
     // List Card for List View - Highly Optimized Memoization
     const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
-  const image = property.images?.[0];
+    const image = property.images?.[0];
+    const translatedProperty = useTranslatedProperty(property);
 
-  return (
+    return (
     <div className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative">
       <Link 
         to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
@@ -1570,7 +1569,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           <div className="flex items-start justify-between gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
               <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 sm:line-clamp-1">
-                {property.title}
+                {translatedProperty?.title || property.title}
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 flex items-center gap-1 mt-1">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />

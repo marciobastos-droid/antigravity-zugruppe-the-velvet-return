@@ -53,6 +53,10 @@ import SEOHead from "../components/seo/SEOHead";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import { HelmetProvider } from "react-helmet-async";
 import VisitorTracker from "../components/tracking/VisitorTracker";
+import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
+import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
+import InternationalSEO from "../components/seo/InternationalSEO";
+import AutoTranslateButton from "../components/property/AutoTranslateButton";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
@@ -189,6 +193,7 @@ export default function PropertyDetails() {
   const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
   useTrackView(propertyId, property, 'website');
+  const translatedProperty = useTranslatedProperty(property);
 
   // ALL MUTATIONS MUST BE BEFORE CONDITIONAL RETURNS
   const updatePropertyMutation = useMutation({
@@ -652,12 +657,22 @@ export default function PropertyDetails() {
                 {/* Header with Ref ID and Title */}
                 <div className="mb-4 sm:mb-6">
                   {property.ref_id && (
-                    <Badge variant="outline" className="mb-2 text-xs sm:text-sm font-mono">
-                      <Hash className="w-3 h-3 mr-1" />
-                      {property.ref_id}
-                    </Badge>
+                   <Badge variant="outline" className="mb-2 text-xs sm:text-sm font-mono">
+                     <Hash className="w-3 h-3 mr-1" />
+                     {property.ref_id}
+                   </Badge>
                   )}
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2 sm:mb-3">{property.title}</h1>
+                  {isOwner && (
+                   <div className="mb-3">
+                     <AutoTranslateButton 
+                       property={property}
+                       onTranslated={(translations) => {
+                         queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
+                       }}
+                     />
+                   </div>
+                  )}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-2 sm:mb-3">{translatedProperty?.title || property.title}</h1>
                   <div className="flex items-start sm:items-center text-slate-600 text-sm sm:text-base md:text-lg">
                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0 mt-0.5 sm:mt-0" />
                     <span className="leading-snug">
@@ -672,19 +687,14 @@ export default function PropertyDetails() {
                 {/* Price and Type */}
                 <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-slate-200">
                   <div>
-                      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
-                        {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-                        {property.listing_type === 'rent' && <span className="text-sm sm:text-base md:text-lg font-normal text-slate-500">{t('common.perMonth')}</span>}
-                      </div>
-                      {property.currency && property.currency !== 'EUR' && (() => {
-                        const eurValue = convertToEUR(property.price, property.currency);
-                        return eurValue ? (
-                          <div className="text-sm sm:text-base md:text-lg text-slate-500 mt-1">
-                            ≈ €{eurValue.toLocaleString()} {property.listing_type === 'rent' && '/mês'}
-                          </div>
-                        ) : null;
-                      })()}
-                    <div className="flex gap-1.5 sm:gap-2 mt-2 flex-wrap">
+                    <MultiCurrencyPrice
+                      price={property.price}
+                      currency={property.currency}
+                      listingType={property.listing_type}
+                      showAlternatives={true}
+                      variant="full"
+                    />
+                    <div className="flex gap-1.5 sm:gap-2 mt-3 flex-wrap">
                       <Badge className="bg-slate-900 text-white text-xs sm:text-sm">
                         {t(`property.listing.${property.listing_type}`)}
                       </Badge>
@@ -795,16 +805,16 @@ export default function PropertyDetails() {
                 <div className="py-6 border-b border-slate-200">
                   <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.description')}</h3>
                   <p className="text-slate-700 leading-relaxed whitespace-pre-line">
-                    {property.description || (locale === 'en' ? 'No description available.' : 'Sem descrição disponível.')}
+                    {translatedProperty?.description || property.description || (locale === 'en' ? 'No description available.' : 'Sem descrição disponível.')}
                   </p>
                 </div>
 
                 {/* Amenities */}
-                {property.amenities && property.amenities.length > 0 && (
+                {(translatedProperty?.amenities || property.amenities)?.length > 0 && (
                   <div className="py-6 border-b border-slate-200">
                     <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.amenities')}</h3>
                     <div className="flex flex-wrap gap-2">
-                      {property.amenities.map((amenity, idx) => (
+                      {(translatedProperty?.amenities || property.amenities).map((amenity, idx) => (
                         <Badge key={idx} variant="secondary" className="text-sm py-1.5 px-3">
                           <Check className="w-3 h-3 mr-1.5" />
                           {amenity}
