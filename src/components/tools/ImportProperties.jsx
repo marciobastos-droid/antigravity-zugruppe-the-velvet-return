@@ -56,6 +56,7 @@ const portalGroups = {
   redes: {
     label: "Redes Imobiliárias",
     portals: [
+      { name: "Porta da Frente", domain: "portadafrente.com", color: "bg-orange-100 text-orange-800" },
       { name: "Luximos", domain: "luximos.pt", color: "bg-amber-100 text-amber-800" },
       { name: "JLL", domain: "jll.pt", color: "bg-blue-100 text-blue-800" },
       { name: "Sotheby's", domain: "sothebysrealty.pt", color: "bg-slate-100 text-slate-800" },
@@ -983,7 +984,11 @@ IMPORTANTE:
       const propertiesWithTags = await Promise.all(
         processedProperties.map(async (p) => {
           const tags = await generatePropertyTags(p);
-          return { ...p, tags };
+          // Adicionar tag "Porta da Frente" se for desta rede
+          const finalTags = portal.name === "Porta da Frente" 
+            ? [...(tags || []), "porta da frente"]
+            : tags;
+          return { ...p, tags: finalTags };
         })
       );
 
@@ -1295,7 +1300,11 @@ IMPORTANTE:
         const propertiesWithTags = await Promise.all(
           validProperties.map(async (p) => {
             const tags = await generatePropertyTags(p);
-            return { ...p, tags };
+            // Adicionar tag "Porta da Frente" se for desta rede
+            const finalTags = portal.name === "Porta da Frente" 
+              ? [...(tags || []), "porta da frente"]
+              : tags;
+            return { ...p, tags: finalTags };
           })
         );
 
