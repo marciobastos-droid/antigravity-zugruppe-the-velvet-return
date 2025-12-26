@@ -23,12 +23,12 @@ import Subscriptions from './pages/Subscriptions';
 import Support from './pages/Support';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
+import Tools from './pages/Tools';
 import UserManagement from './pages/UserManagement';
 import VideoMaker from './pages/VideoMaker';
 import Website from './pages/Website';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import Tools from './pages/Tools';
 import __Layout from './Layout.jsx';
 
 
@@ -58,12 +58,12 @@ export const PAGES = {
     "Support": Support,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
+    "Tools": Tools,
     "UserManagement": UserManagement,
     "VideoMaker": VideoMaker,
     "Website": Website,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "Tools": Tools,
 }
 
 export const pagesConfig = {
