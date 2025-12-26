@@ -36,86 +36,103 @@ export default function SmartContactSection({
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
           {/* Contact Info */}
           {showContactInfo &&
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="space-y-6">
+            className="space-y-8">
 
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-6">
+                <h3 className="text-2xl font-bold text-slate-900 mb-8">
                   Informações de Contacto
                 </h3>
                 
                 <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-white border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-blue-600" />
+                  <motion.a 
+                    href="mailto:info@zuconnect.pt"
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    className="flex items-start gap-5 p-5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all group cursor-pointer">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Mail className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">Email</p>
-                      <a href="mailto:info@zuconnect.pt" className="text-blue-600 hover:text-blue-700">
+                      <p className="font-semibold text-slate-900 mb-1">Email</p>
+                      <p className="text-blue-600 group-hover:text-blue-700 font-medium">
                         info@zuconnect.pt
-                      </a>
+                      </p>
                     </div>
-                  </div>
+                  </motion.a>
 
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-white border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-6 h-6 text-green-600" />
+                  <motion.a 
+                    href="tel:+351234026615"
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    className="flex items-start gap-5 p-5 rounded-2xl bg-white border border-slate-200 hover:border-green-300 hover:shadow-lg transition-all group cursor-pointer">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Phone className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">Telefone</p>
-                      <a href="tel:+351234026615" className="text-green-600 hover:text-green-700">
+                      <p className="font-semibold text-slate-900 mb-1">Telefone</p>
+                      <p className="text-green-600 group-hover:text-green-700 font-medium">
                         +351 234 026 615
-                      </a>
+                      </p>
                     </div>
-                  </div>
+                  </motion.a>
 
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-white border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="w-6 h-6 text-green-600" />
+                  <motion.a 
+                    href="https://wa.me/351910239889"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    className="flex items-start gap-5 p-5 rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 hover:border-green-300 hover:shadow-lg transition-all group cursor-pointer">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <MessageCircle className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">WhatsApp</p>
-                      <a href="https://wa.me/351910239889" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700">
-                        +351 910 239 889
-                      </a>
+                      <p className="font-semibold text-slate-900 mb-1">WhatsApp</p>
+                      <p className="text-green-600 group-hover:text-green-700 font-medium">
+                        Enviar mensagem
+                      </p>
                     </div>
-                  </div>
+                  </motion.a>
 
-                  <div className="flex items-start gap-4 p-4 rounded-lg bg-white border border-slate-200 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-amber-600" />
+                  <motion.div 
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    className="flex items-start gap-5 p-5 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:shadow-lg transition-all group">
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <MapPin className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">Morada</p>
-                      <p className="text-slate-600 text-sm">
+                      <p className="font-semibold text-slate-900 mb-1">Morada</p>
+                      <p className="text-slate-600">
                         Lisboa, Portugal
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
 
-              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 text-white border-0">
-                <CardContent className="p-6">
-                  <h4 className="font-bold text-lg mb-3">Horário de Atendimento</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span>Segunda a Sexta:</span>
-                      <span className="font-semibold">09:00 - 19:00</span>
+              <Card className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white border-0 shadow-xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
+                <CardContent className="p-8 relative">
+                  <h4 className="font-bold text-xl mb-6 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    Horário de Atendimento
+                  </h4>
+                  <div className="space-y-4 text-base">
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+                      <span className="text-slate-300">Segunda a Sexta</span>
+                      <span className="font-bold text-white">09:00 - 19:00</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Sábado:</span>
-                      <span className="font-semibold">10:00 - 14:00</span>
+                    <div className="flex justify-between items-center pb-3 border-b border-slate-700">
+                      <span className="text-slate-300">Sábado</span>
+                      <span className="font-bold text-white">10:00 - 14:00</span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Domingo:</span>
-                      <span>Encerrado</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Domingo</span>
+                      <span className="text-slate-500">Encerrado</span>
                     </div>
                   </div>
                 </CardContent>
