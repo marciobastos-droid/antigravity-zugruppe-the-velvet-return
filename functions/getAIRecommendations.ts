@@ -27,10 +27,24 @@ Deno.serve(async (req) => {
     const aiModel = models && models.length > 0 ? models[0] : null;
 
     // Buscar propriedades ativas
-    const properties = await base44.asServiceRole.entities.Property.filter({ status: 'active' });
+    const allProperties = await base44.asServiceRole.entities.Property.filter({ status: 'active' });
+    const properties = Array.isArray(allProperties) ? allProperties : [];
+
+    if (properties.length === 0) {
+      return Response.json({
+        success: true,
+        recommendations: [],
+        summary: { traditional_matches: 0, ai_predictions: 0, avg_confidence: 0 },
+        model_used: !!aiModel,
+        model_confidence: aiModel?.confidence_score || 0,
+        total_properties_analyzed: 0,
+        message: 'Nenhuma propriedade ativa disponível'
+      });
+    }
 
     // Buscar interações anteriores
-    const interactions = await base44.asServiceRole.entities.PropertyInteraction.filter({ profile_id });
+    const allInteractions = await base44.asServiceRole.entities.PropertyInteraction.filter({ profile_id });
+    const interactions = Array.isArray(allInteractions) ? allInteractions : [];
     const viewedPropertyIds = interactions.map(i => i.property_id);
 
     // Preparar propriedades não vistas
