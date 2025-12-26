@@ -83,8 +83,10 @@ export function generatePropertyMetaDescription(property) {
     parts.push(type);
   }
   
-  // Localização
-  if (property.city) {
+  // Localização detalhada
+  if (property.city && property.state) {
+    parts.push(`em ${property.city}, ${property.state}`);
+  } else if (property.city) {
     parts.push(`em ${property.city}`);
   }
   
@@ -93,20 +95,44 @@ export function generatePropertyMetaDescription(property) {
     parts.push(`por €${property.price.toLocaleString()}`);
   }
   
-  // Área
+  // Área e casas de banho
+  const details = [];
   if (property.useful_area || property.square_feet) {
-    parts.push(`com ${property.useful_area || property.square_feet}m²`);
+    details.push(`${property.useful_area || property.square_feet}m²`);
+  }
+  if (property.bathrooms) {
+    details.push(`${property.bathrooms} WC`);
+  }
+  if (details.length > 0) {
+    parts.push(`com ${details.join(', ')}`);
   }
   
   // Action
   const action = property.listing_type === 'sale' ? 'para venda' : 'para arrendar';
   parts.push(action);
   
-  let description = parts.join(' ') + '.';
+  // Características premium
+  const highlights = [];
+  if (property.energy_certificate && ['A+', 'A', 'B'].includes(property.energy_certificate)) {
+    highlights.push(`Cert. Energético ${property.energy_certificate}`);
+  }
+  if (property.garage && property.garage !== 'none') {
+    highlights.push('garagem');
+  }
+  if (property.amenities?.some(a => a.toLowerCase().includes('piscina'))) {
+    highlights.push('piscina');
+  }
+  
+  let description = parts.join(' ');
+  if (highlights.length > 0) {
+    description += `. ${highlights.join(', ')}.`;
+  } else {
+    description += '.';
+  }
   
   // Adiciona início da descrição se houver espaço
-  if (property.description && description.length < 120) {
-    const extraDesc = property.description.substring(0, 160 - description.length - 3);
+  if (property.description && description.length < 130) {
+    const extraDesc = property.description.substring(0, 155 - description.length - 3);
     description += ' ' + extraDesc + '...';
   }
   
@@ -132,40 +158,92 @@ export function generatePropertyKeywords(property) {
     office: 'escritório'
   };
   
-  // Tipo
+  // Tipo base e variações
   const type = propertyTypeMap[property.property_type];
   if (type) {
     keywords.push(type);
     if (property.bedrooms !== undefined) {
       keywords.push(`${type} t${property.bedrooms}`);
+      keywords.push(`t${property.bedrooms}`);
+    }
+    // Variações do tipo
+    keywords.push(`${type}s`);
+    if (property.listing_type === 'sale') {
+      keywords.push(`${type} para venda`, `comprar ${type}`);
+    } else {
+      keywords.push(`${type} para arrendar`, `arrendar ${type}`);
     }
   }
   
-  // Localização
-  if (property.city) keywords.push(property.city.toLowerCase());
-  if (property.state) keywords.push(property.state.toLowerCase());
+  // Localização multi-nível
+  if (property.city) {
+    keywords.push(property.city.toLowerCase());
+    keywords.push(`imóveis ${property.city.toLowerCase()}`);
+    keywords.push(`${type} ${property.city.toLowerCase()}`);
+  }
+  if (property.state && property.state !== property.city) {
+    keywords.push(property.state.toLowerCase());
+  }
+  if (property.country && property.country !== 'Portugal') {
+    keywords.push(property.country.toLowerCase());
+  }
   
-  // Ação
+  // Ação principal
   keywords.push(property.listing_type === 'sale' ? 'venda' : 'arrendamento');
+  keywords.push(property.listing_type === 'sale' ? 'comprar' : 'arrendar');
   
-  // Características
+  // Características detalhadas
   if (property.bedrooms) keywords.push(`${property.bedrooms} quartos`);
-  if (property.bathrooms) keywords.push(`${property.bathrooms} wc`);
+  if (property.bathrooms) keywords.push(`${property.bathrooms} casas de banho`);
+  if (property.useful_area || property.square_feet) {
+    keywords.push(`${property.useful_area || property.square_feet}m²`);
+  }
+  
+  // Faixa de preço
+  if (property.price) {
+    const priceK = Math.floor(property.price / 1000);
+    keywords.push(`€${priceK}k`);
+    if (property.price < 200000) keywords.push('imóvel económico');
+    else if (property.price > 500000) keywords.push('imóvel de luxo', 'propriedade premium');
+  }
+  
+  // Ano e estado
+  if (property.year_built && property.year_built > 2015) keywords.push('imóvel novo', 'recente');
+  if (property.year_renovated) keywords.push('renovado', 'remodelado');
+  
+  // Certificado energético
+  if (property.energy_certificate && ['A+', 'A', 'B'].includes(property.energy_certificate)) {
+    keywords.push('eficiência energética', `certificado ${property.energy_certificate}`);
+  }
   
   // Amenidades principais
   if (property.amenities && property.amenities.length > 0) {
-    const mainAmenities = ['piscina', 'garagem', 'jardim', 'terraço'];
+    const amenityKeywords = {
+      'piscina': ['piscina', 'com piscina'],
+      'garagem': ['garagem', 'estacionamento'],
+      'jardim': ['jardim', 'espaço exterior'],
+      'terraço': ['terraço', 'varanda'],
+      'elevador': ['elevador'],
+      'ar condicionado': ['ar condicionado', 'climatizado'],
+      'condomínio fechado': ['condomínio fechado', 'segurança'],
+      'vista mar': ['vista mar', 'frente mar']
+    };
+    
     property.amenities.forEach(amenity => {
       const lower = amenity.toLowerCase();
-      if (mainAmenities.some(a => lower.includes(a))) {
-        keywords.push(lower);
-      }
+      Object.entries(amenityKeywords).forEach(([key, values]) => {
+        if (lower.includes(key)) {
+          keywords.push(...values);
+        }
+      });
     });
   }
   
-  keywords.push('imóvel', 'portugal', 'zugruppe');
+  // Termos base e marca
+  keywords.push('imóvel', 'propriedade', 'portugal', 'zugruppe', 'imobiliária');
   
-  return keywords.filter(Boolean).join(', ');
+  // Remover duplicados e limitar
+  return [...new Set(keywords)].filter(Boolean).slice(0, 50).join(', ');
 }
 
 /**
@@ -177,13 +255,13 @@ export function generatePropertyStructuredData(property, imageUrl) {
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://zugruppe.pt';
   const propertyUrl = `${baseUrl}${generatePropertySEOUrl(property)}?id=${property.id}`;
   
-  return {
+  const structuredData = {
     "@context": "https://schema.org",
-    "@type": property.listing_type === 'sale' ? "RealEstateListing" : "RentAction",
+    "@type": property.listing_type === 'sale' ? "RealEstateListing" : "Apartment",
     "name": property.title,
     "description": property.description || generatePropertyMetaDescription(property),
     "url": propertyUrl,
-    "image": imageUrl || property.images?.[0] || `${baseUrl}/default-property.jpg`,
+    "image": property.images || [imageUrl || `${baseUrl}/default-property.jpg`],
     "address": {
       "@type": "PostalAddress",
       "streetAddress": property.address,
@@ -191,33 +269,87 @@ export function generatePropertyStructuredData(property, imageUrl) {
       "addressRegion": property.state,
       "postalCode": property.zip_code,
       "addressCountry": property.country || "PT"
-    },
-    "geo": property.latitude && property.longitude ? {
+    }
+  };
+  
+  // Geo coordinates
+  if (property.latitude && property.longitude) {
+    structuredData.geo = {
       "@type": "GeoCoordinates",
       "latitude": property.latitude,
       "longitude": property.longitude
-    } : undefined,
-    "offers": {
-      "@type": "Offer",
-      "price": property.price,
-      "priceCurrency": property.currency || "EUR",
-      "availability": property.availability_status === 'available' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    },
-    "numberOfRooms": property.bedrooms,
-    "numberOfBathroomsTotal": property.bathrooms,
-    "floorSize": {
-      "@type": "QuantitativeValue",
-      "value": property.useful_area || property.square_feet,
-      "unitCode": "MTK"
-    },
-    "yearBuilt": property.year_built,
-    "datePosted": property.created_date,
+    };
+  }
+  
+  // Offer details
+  structuredData.offers = {
+    "@type": "Offer",
+    "price": property.price,
+    "priceCurrency": property.currency || "EUR",
+    "availability": property.availability_status === 'available' ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    "priceValidUntil": new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     "seller": {
       "@type": "Organization",
       "name": "Zugruppe",
       "url": baseUrl,
-      "logo": `${baseUrl}/logo.png`
+      "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
     }
   };
+  
+  // Property features
+  if (property.bedrooms !== undefined) structuredData.numberOfRooms = property.bedrooms;
+  if (property.bathrooms) structuredData.numberOfBathroomsTotal = property.bathrooms;
+  if (property.bedrooms !== undefined) structuredData.numberOfBedrooms = property.bedrooms;
+  
+  // Floor size
+  if (property.useful_area || property.square_feet) {
+    structuredData.floorSize = {
+      "@type": "QuantitativeValue",
+      "value": property.useful_area || property.square_feet,
+      "unitCode": "MTK",
+      "unitText": "m²"
+    };
+  }
+  
+  // Additional details
+  if (property.year_built) structuredData.yearBuilt = property.year_built;
+  if (property.created_date) structuredData.datePosted = property.created_date;
+  
+  // Amenities as features
+  if (property.amenities && property.amenities.length > 0) {
+    structuredData.amenityFeature = property.amenities.slice(0, 10).map(amenity => ({
+      "@type": "LocationFeatureSpecification",
+      "name": amenity
+    }));
+  }
+  
+  // Additional properties
+  if (property.gross_area) {
+    structuredData.additionalProperty = structuredData.additionalProperty || [];
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "Área Bruta",
+      "value": `${property.gross_area} m²`
+    });
+  }
+  
+  if (property.energy_certificate) {
+    structuredData.additionalProperty = structuredData.additionalProperty || [];
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "Certificado Energético",
+      "value": property.energy_certificate
+    });
+  }
+  
+  if (property.garage && property.garage !== 'none') {
+    structuredData.additionalProperty = structuredData.additionalProperty || [];
+    structuredData.additionalProperty.push({
+      "@type": "PropertyValue",
+      "name": "Garagem",
+      "value": property.garage
+    });
+  }
+  
+  return structuredData;
 }
