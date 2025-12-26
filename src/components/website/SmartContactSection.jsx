@@ -16,15 +16,14 @@ export default function SmartContactSection({
   className = ""
 }) {
   return (
-    <section className={`py-12 md:py-20 ${className}`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+    <section className={`py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-
+            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent mb-6">
             {title}
           </motion.h2>
           <motion.p
@@ -32,8 +31,7 @@ export default function SmartContactSection({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-lg text-slate-600 max-w-2xl mx-auto">
-
+            className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
             {subtitle}
           </motion.p>
         </div>
