@@ -744,6 +744,7 @@ export default function OpportunitiesContent() {
               const statusLabels = {
                 new: "Novo",
                 contacted: "Contactado",
+                qualified: "Qualificado",
                 visit_scheduled: "Visita Agendada",
                 proposal: "Proposta",
                 negotiation: "Negociação",
