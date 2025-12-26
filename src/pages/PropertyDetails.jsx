@@ -472,26 +472,29 @@ export default function PropertyDetails() {
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
-          <SEOHead
-            title={metaTitle}
-            description={metaDescription}
-            keywords={metaKeywords}
-            image={propertyImage}
-            url={seoCanonicalUrl}
-            type="product"
-            price={property.price}
-            currency={property.currency || "EUR"}
-            availability={property.availability_status === "available" ? "in stock" : "out of stock"}
-            propertyType={property.property_type}
-            location={{
-              city: property.city,
-              state: property.state,
-              country: property.country || "Portugal"
-            }}
-            structuredData={structuredData}
-            alternateLanguages={alternateLanguages}
-          />
-        )}
+        {/* Visitor Tracking */}
+        {property && <VisitorTracker pageType="property" pageId={property.id} pageTitle={property.title} />}
+        
+        {/* SEO Meta Tags */}
+        <SEOHead
+          title={metaTitle}
+          description={metaDescription}
+          keywords={metaKeywords}
+          image={propertyImage}
+          url={seoCanonicalUrl}
+          type="product"
+          price={property.price}
+          currency={property.currency || "EUR"}
+          availability={property.availability_status === "available" ? "in stock" : "out of stock"}
+          propertyType={property.property_type}
+          location={{
+            city: property.city,
+            state: property.state,
+            country: property.country || "Portugal"
+          }}
+          structuredData={structuredData}
+          alternateLanguages={alternateLanguages}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
