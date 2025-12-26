@@ -229,7 +229,7 @@ export default function OpportunitiesContent() {
     
     const newStatus = destination.droppableId;
     
-    if (['new', 'contacted', 'visit_scheduled', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
+    if (['new', 'contacted', 'qualified', 'visit_scheduled', 'proposal', 'negotiation', 'won', 'lost'].includes(newStatus)) {
       updateMutation.mutate({
         id: draggableId,
         data: { status: newStatus }
@@ -735,6 +735,7 @@ export default function OpportunitiesContent() {
               const statusColors = {
                 new: "bg-green-100 text-green-800 border-green-300",
                 contacted: "bg-blue-100 text-blue-800 border-blue-300",
+                qualified: "bg-teal-100 text-teal-800 border-teal-300",
                 visit_scheduled: "bg-purple-100 text-purple-800 border-purple-300",
                 proposal: "bg-amber-100 text-amber-800 border-amber-300",
                 negotiation: "bg-orange-100 text-orange-800 border-orange-300",
