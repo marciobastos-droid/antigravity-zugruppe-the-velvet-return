@@ -287,15 +287,15 @@ export default function PropertyDetails() {
   }, [property]);
 
   const metaTitle = React.useMemo(() => {
-    if (!property) return 'Zugruppe';
-    
+    if (!property) return 'Zugruppe - Imobiliária de Confiança';
+
     const parts = [];
-    
+
     // Tipologia + Tipo
     if (property.bedrooms !== undefined && property.bedrooms !== null) {
       parts.push(`T${property.bedrooms}`);
     }
-    
+
     const typeMap = {
       apartment: 'Apartamento',
       house: 'Moradia',
@@ -307,25 +307,21 @@ export default function PropertyDetails() {
       office: 'Escritório'
     };
     parts.push(typeMap[property.property_type] || property.property_type);
-    
+
     // Localização
     if (property.city) parts.push(property.city);
     if (property.state && property.state !== property.city) parts.push(property.state);
-    
-    // Ação
-    parts.push(property.listing_type === 'sale' ? 'Venda' : 'Arrendamento');
-    
-    // Área se relevante
-    if (property.useful_area || property.square_feet) {
-      parts.push(`${property.useful_area || property.square_feet}m²`);
-    }
-    
-    // Preço
-    if (property.price) {
-      parts.push(`€${property.price.toLocaleString()}`);
-    }
-    
-    return `${parts.join(' • ')} | Zugruppe`;
+
+    // Ação - mais SEO-friendly
+    const actionText = property.listing_type === 'sale' ? 'Venda' : 'Arrendamento';
+
+    // Construir título otimizado
+    const mainTitle = parts.slice(0, 3).join(' ');
+    const priceText = property.price ? `€${property.price.toLocaleString()}` : '';
+    const areaText = (property.useful_area || property.square_feet) ? `${property.useful_area || property.square_feet}m²` : '';
+
+    // Formato: "T3 Apartamento Lisboa - Venda €250.000 | 120m² | Zugruppe"
+    return `${mainTitle} - ${actionText} ${priceText}${areaText ? ` | ${areaText}` : ''} | Zugruppe`;
   }, [property]);
   const metaDescription = React.useMemo(() => property ? generatePropertyMetaDescription(property) : '', [property]);
   const metaKeywords = React.useMemo(() => property ? generatePropertyKeywords(property) : '', [property]);
