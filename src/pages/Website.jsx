@@ -1455,12 +1455,15 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
         </div>
 
         {/* Price */}
-        <div className="absolute bottom-2 right-2">
-          <div className="bg-slate-900/85 backdrop-blur-sm text-white px-2 py-0.5 rounded-md">
-            <div className="text-xs font-semibold">
-              {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-              {property.listing_type === 'rent' && <span className="text-[10px] font-normal opacity-80">/mês</span>}
-            </div>
+        <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3">
+          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 sm:px-2.5 py-1 rounded-lg">
+            <MultiCurrencyPrice
+              price={property.price}
+              currency={property.currency}
+              listingType={property.listing_type}
+              showAlternatives={false}
+              variant="compact"
+            />
           </div>
         </div>
       </div>
