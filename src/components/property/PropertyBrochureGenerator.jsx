@@ -36,20 +36,23 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
       await Promise.all(
         Array.from(images).map(img => {
           if (img.complete) return Promise.resolve();
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             img.onload = resolve;
-            img.onerror = resolve; // Continuar mesmo com erro
-            setTimeout(resolve, 3000); // Timeout de 3s
+            img.onerror = resolve;
+            setTimeout(resolve, 3000);
           });
         })
       );
 
-      // Aguardar um pouco mais para garantir renderização
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Aguardar renderização completa - crítico para fontes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Forçar reflow para garantir que estilos são aplicados
+      element.offsetHeight;
       
       // Capture the content com configurações otimizadas
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -57,13 +60,25 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
         windowWidth: 1200,
         windowHeight: element.scrollHeight,
         imageTimeout: 15000,
-        removeContainer: true,
-        letterRendering: true,
+        removeContainer: false,
+        letterRendering: 1,
+        foreignObjectRendering: false,
         onclone: (clonedDoc) => {
-          // Garantir que todos os estilos sejam aplicados no clone
           const clonedElement = clonedDoc.querySelector('[data-brochure="true"]');
           if (clonedElement) {
             clonedElement.style.width = '1200px';
+            clonedElement.style.fontFamily = 'Arial, Helvetica, sans-serif';
+            clonedElement.style.letterSpacing = 'normal';
+            clonedElement.style.wordSpacing = 'normal';
+            
+            // Aplicar estilos a todos os elementos de texto
+            const textElements = clonedElement.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6');
+            textElements.forEach(el => {
+              el.style.fontFamily = 'Arial, Helvetica, sans-serif';
+              el.style.letterSpacing = 'normal';
+              el.style.wordSpacing = 'normal';
+              el.style.whiteSpace = 'pre-wrap';
+            });
           }
         }
       });
@@ -151,25 +166,56 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
         </div>
 
         {/* Brochure Content */}
-        <div ref={brochureRef} data-brochure="true" className="bg-white p-8" style={{ width: '1200px', maxWidth: '1200px' }}>
+        <div ref={brochureRef} data-brochure="true" className="bg-white" style={{ 
+          width: '1200px', 
+          maxWidth: '1200px',
+          padding: '48px',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '16px',
+          lineHeight: '1.6',
+          letterSpacing: 'normal',
+          wordSpacing: 'normal'
+        }}>
           <style>
             {`
               @page {
                 margin: 0;
               }
+              [data-brochure="true"] {
+                font-family: Arial, Helvetica, sans-serif !important;
+                -webkit-font-smoothing: antialiased !important;
+                -moz-osx-font-smoothing: grayscale !important;
+              }
               [data-brochure="true"] * {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-                letter-spacing: 0 !important;
-                line-height: 1.5 !important;
+                font-family: Arial, Helvetica, sans-serif !important;
+                letter-spacing: normal !important;
+                word-spacing: normal !important;
+                line-height: 1.6 !important;
+                box-sizing: border-box !important;
               }
-              [data-brochure="true"] h1, 
-              [data-brochure="true"] h2, 
-              [data-brochure="true"] h3 {
-                margin-bottom: 0.5em !important;
+              [data-brochure="true"] h1 {
+                font-size: 36px !important;
                 line-height: 1.3 !important;
+                margin-bottom: 16px !important;
+                font-weight: bold !important;
               }
-              [data-brochure="true"] p {
-                margin-bottom: 0.75em !important;
+              [data-brochure="true"] h2 {
+                font-size: 24px !important;
+                line-height: 1.4 !important;
+                margin-bottom: 12px !important;
+                font-weight: bold !important;
+              }
+              [data-brochure="true"] h3 {
+                font-size: 20px !important;
+                line-height: 1.4 !important;
+                margin-bottom: 12px !important;
+                font-weight: bold !important;
+              }
+              [data-brochure="true"] p,
+              [data-brochure="true"] span,
+              [data-brochure="true"] div {
+                letter-spacing: 0.01em !important;
+                word-spacing: 0.05em !important;
               }
             `}
           </style>
@@ -204,22 +250,54 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
           )}
 
           {/* Title and Price */}
-          <div className="mb-8">
-            <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: '#0f172a', marginBottom: '16px', lineHeight: '1.2' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <h1 style={{ 
+              fontSize: '36px', 
+              fontWeight: 'bold', 
+              color: '#0f172a', 
+              marginBottom: '16px', 
+              lineHeight: '1.3',
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              letterSpacing: 'normal',
+              wordSpacing: 'normal'
+            }}>
               {propertyTypeLabels[property.property_type] || property.property_type}
               {property.bedrooms > 0 && ` T${property.bedrooms}`}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb' }}>
+              <div style={{ 
+                fontSize: '32px', 
+                fontWeight: 'bold', 
+                color: '#2563eb',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                letterSpacing: 'normal'
+              }}>
                 €{property.price?.toLocaleString()}
               </div>
               {property.listing_type === 'rent' && (
-                <span style={{ fontSize: '16px', color: '#64748b', padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: '6px' }}>
+                <span style={{ 
+                  fontSize: '16px', 
+                  color: '#64748b', 
+                  padding: '4px 12px', 
+                  border: '1px solid #cbd5e1', 
+                  borderRadius: '6px',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: 'normal'
+                }}>
                   por mês
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '18px' }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              color: '#475569', 
+              fontSize: '18px',
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              letterSpacing: '0.01em',
+              wordSpacing: '0.05em'
+            }}>
               <MapPin className="w-5 h-5" />
               <span>
                 {property.address && `${property.address}, `}
@@ -264,11 +342,31 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
           {/* Description */}
           {property.description && (
             <div style={{ marginBottom: '32px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ 
+                fontSize: '24px', 
+                fontWeight: 'bold', 
+                color: '#0f172a', 
+                marginBottom: '16px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                letterSpacing: 'normal',
+                wordSpacing: 'normal'
+              }}>
                 <Home className="w-6 h-6 text-blue-600" />
                 Descrição
               </h2>
-              <p style={{ color: '#334155', lineHeight: '1.75', whiteSpace: 'pre-wrap', fontSize: '15px' }}>
+              <p style={{ 
+                color: '#334155', 
+                lineHeight: '1.75', 
+                whiteSpace: 'pre-wrap', 
+                fontSize: '15px',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                letterSpacing: '0.01em',
+                wordSpacing: '0.05em',
+                textAlign: 'justify'
+              }}>
                 {property.description}
               </p>
             </div>
@@ -277,34 +375,41 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
           {/* Additional Details */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '32px' }}>
             <div>
-              <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#0f172a', marginBottom: '16px' }}>Características</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: '#334155', fontSize: '14px' }}>
+              <h3 style={{ 
+                fontSize: '20px', 
+                fontWeight: 'bold', 
+                color: '#0f172a', 
+                marginBottom: '16px',
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                letterSpacing: 'normal'
+              }}>Características</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px' }}>
                 {property.year_built && property.year_built > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155', fontFamily: 'Arial, sans-serif', letterSpacing: '0.01em', wordSpacing: '0.05em' }}>
                     <span>Ano de Construção:</span>
                     <span style={{ fontWeight: '600' }}>{property.year_built}</span>
                   </div>
                 )}
                 {property.garage && property.garage !== 'none' && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155', fontFamily: 'Arial, sans-serif', letterSpacing: '0.01em', wordSpacing: '0.05em' }}>
                     <span>Garagem:</span>
                     <span style={{ fontWeight: '600' }}>{property.garage} lugar(es)</span>
                   </div>
                 )}
                 {property.sun_exposure && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155', fontFamily: 'Arial, sans-serif', letterSpacing: '0.01em', wordSpacing: '0.05em' }}>
                     <span>Exposição Solar:</span>
                     <span style={{ fontWeight: '600', textTransform: 'capitalize' }}>{property.sun_exposure.replace(/_/g, '/')}</span>
                   </div>
                 )}
                 {property.gross_area && property.gross_area > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155', fontFamily: 'Arial, sans-serif', letterSpacing: '0.01em', wordSpacing: '0.05em' }}>
                     <span>Área Bruta:</span>
                     <span style={{ fontWeight: '600' }}>{property.gross_area}m²</span>
                   </div>
                 )}
                 {property.useful_area && property.useful_area > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155', fontFamily: 'Arial, sans-serif', letterSpacing: '0.01em', wordSpacing: '0.05em' }}>
                     <span>Área Útil:</span>
                     <span style={{ fontWeight: '600' }}>{property.useful_area}m²</span>
                   </div>
@@ -315,12 +420,25 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <div>
-                <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#0f172a', marginBottom: '16px' }}>Comodidades</h3>
+                <h3 style={{ 
+                  fontSize: '20px', 
+                  fontWeight: 'bold', 
+                  color: '#0f172a', 
+                  marginBottom: '16px',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: 'normal'
+                }}>Comodidades</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {property.amenities.slice(0, 10).map((amenity, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <CheckCircle2 className="w-4 h-4 text-green-600" style={{ flexShrink: 0 }} />
-                      <span style={{ fontSize: '13px', color: '#334155' }}>{amenity}</span>
+                      <span style={{ 
+                        fontSize: '13px', 
+                        color: '#334155',
+                        fontFamily: 'Arial, Helvetica, sans-serif',
+                        letterSpacing: '0.01em',
+                        wordSpacing: '0.05em'
+                      }}>{amenity}</span>
                     </div>
                   ))}
                 </div>
@@ -349,7 +467,14 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
 
           {/* Consultant Info */}
           <div style={{ background: 'linear-gradient(to right, #eff6ff, #eef2ff)', borderRadius: '12px', padding: '24px', marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#0f172a', marginBottom: '16px' }}>Informações de Contacto</h3>
+            <h3 style={{ 
+              fontSize: '20px', 
+              fontWeight: 'bold', 
+              color: '#0f172a', 
+              marginBottom: '16px',
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              letterSpacing: 'normal'
+            }}>Informações de Contacto</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               {(property.assigned_consultant_photo || consultant?.photo_url) && (
                 <img 
@@ -360,20 +485,38 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
                 />
               )}
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: '18px', fontWeight: '600', color: '#0f172a', marginBottom: '12px' }}>
+                <p style={{ 
+                  fontSize: '18px', 
+                  fontWeight: '600', 
+                  color: '#0f172a', 
+                  marginBottom: '12px',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: 'normal',
+                  wordSpacing: 'normal'
+                }}>
                   {property.assigned_consultant_name || consultant?.full_name || 'ZuGruppe'}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {(property.assigned_consultant_phone || consultant?.phone) && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155' }}>
                       <Phone className="w-5 h-5 text-blue-600" style={{ flexShrink: 0 }} />
-                      <span style={{ fontWeight: '500', fontSize: '14px' }}>{property.assigned_consultant_phone || consultant?.phone}</span>
+                      <span style={{ 
+                        fontWeight: '500', 
+                        fontSize: '14px',
+                        fontFamily: 'Arial, Helvetica, sans-serif',
+                        letterSpacing: '0.01em'
+                      }}>{property.assigned_consultant_phone || consultant?.phone}</span>
                     </div>
                   )}
                   {(property.assigned_consultant || consultant?.email) && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155' }}>
                       <Mail className="w-5 h-5 text-blue-600" style={{ flexShrink: 0 }} />
-                      <span style={{ fontWeight: '500', fontSize: '14px' }}>{property.assigned_consultant || consultant?.email}</span>
+                      <span style={{ 
+                        fontWeight: '500', 
+                        fontSize: '14px',
+                        fontFamily: 'Arial, Helvetica, sans-serif',
+                        letterSpacing: '0.01em'
+                      }}>{property.assigned_consultant || consultant?.email}</span>
                     </div>
                   )}
                 </div>
@@ -391,13 +534,38 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
                   style={{ height: '48px' }}
                 />
               </div>
-              <div style={{ textAlign: 'right', fontSize: '13px', color: '#475569' }}>
-                <p style={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '4px' }}>IMPIC 11355 | Privileged Approach Unipessoal Lda</p>
-                <p style={{ marginBottom: '2px' }}>📞 234 026 223 | ✉️ info@zugruppe.com</p>
-                <p>🌐 www.zugruppe.com</p>
+              <div style={{ textAlign: 'right', fontSize: '13px' }}>
+                <p style={{ 
+                  fontWeight: 'bold', 
+                  color: '#0f172a', 
+                  marginBottom: '4px',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: '0.01em',
+                  wordSpacing: '0.05em'
+                }}>IMPIC 11355 | Privileged Approach Unipessoal Lda</p>
+                <p style={{ 
+                  marginBottom: '2px', 
+                  color: '#475569',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: '0.01em',
+                  wordSpacing: '0.05em'
+                }}>📞 234 026 223 | ✉️ info@zugruppe.com</p>
+                <p style={{ 
+                  color: '#475569',
+                  fontFamily: 'Arial, Helvetica, sans-serif',
+                  letterSpacing: '0.01em',
+                  wordSpacing: '0.05em'
+                }}>🌐 www.zugruppe.com</p>
               </div>
             </div>
-            <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: '#94a3b8' }}>
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '16px', 
+              fontSize: '11px', 
+              color: '#94a3b8',
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              letterSpacing: 'normal'
+            }}>
               Brochura gerada em {new Date().toLocaleDateString('pt-PT')}
             </div>
           </div>
