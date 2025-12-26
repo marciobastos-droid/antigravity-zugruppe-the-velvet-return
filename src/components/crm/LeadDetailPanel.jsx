@@ -293,44 +293,217 @@ Extrai:
         })
         .filter(Boolean);
 
-      const { jsPDF } = await import('https://cdn.skypack.dev/jspdf@2.5.1');
+      const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
-      doc.setFontSize(20);
-      doc.text('Proposta de Imóveis', 20, 20);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      // Helper para adicionar imagem com carregamento
+      const addImageToPDF = async (imageUrl, x, y, width, height) => {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+          doc.addImage(img, 'JPEG', x, y, width, height);
+        } catch (error) {
+          console.warn('Error loading image:', error);
+        }
+      };
+      
+      // Capa
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(32);
+      doc.setFont(undefined, 'bold');
+      doc.text('Proposta de Imóveis', pageWidth / 2, 80, { align: 'center' });
+      
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'normal');
+      doc.text(`${lead.buyer_name}`, pageWidth / 2, 100, { align: 'center' });
       
       doc.setFontSize(12);
-      doc.text(`Cliente: ${lead.buyer_name}`, 20, 35);
-      doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, 20, 42);
+      doc.setTextColor(203, 213, 225);
+      doc.text(`${new Date().toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' })}`, pageWidth / 2, 110, { align: 'center' });
       
-      let y = 55;
-      selectedProperties.forEach((prop, idx) => {
-        if (y > 250) {
-          doc.addPage();
-          y = 20;
+      doc.setFontSize(11);
+      doc.text(`${selectedProperties.length} Imóve${selectedProperties.length > 1 ? 'is' : 'l'} Selecionado${selectedProperties.length > 1 ? 's' : ''}`, pageWidth / 2, 120, { align: 'center' });
+      
+      // Logo (se disponível)
+      try {
+        await addImageToPDF('https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg', pageWidth / 2 - 25, 140, 50, 15);
+      } catch (e) {}
+      
+      // Imóveis
+      for (let i = 0; i < selectedProperties.length; i++) {
+        const prop = selectedProperties[i];
+        doc.addPage();
+        
+        // Header com número do imóvel
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, pageWidth, 35, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Imóvel ${i + 1} de ${selectedProperties.length}`, 20, 15);
+        
+        if (prop.ref_id) {
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
+          doc.text(`Ref: ${prop.ref_id}`, 20, 25);
         }
         
-        doc.setFontSize(14);
-        doc.text(`${idx + 1}. ${prop.title}`, 20, y);
-        y += 8;
+        // Imagem principal
+        if (prop.images?.[0]) {
+          await addImageToPDF(prop.images[0], 20, 45, 170, 100);
+        }
         
+        let y = 155;
+        
+        // Título
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        const titleLines = doc.splitTextToSize(prop.title, pageWidth - 40);
+        doc.text(titleLines, 20, y);
+        y += titleLines.length * 7 + 5;
+        
+        // Preço destaque
+        doc.setFillColor(212, 175, 55);
+        doc.roundedRect(20, y, 60, 12, 2, 2, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`€${prop.price?.toLocaleString() || 'N/A'}`, 50, y + 8, { align: 'center' });
+        y += 20;
+        
+        // Características principais
+        doc.setFillColor(241, 245, 249);
+        doc.roundedRect(20, y, pageWidth - 40, 25, 2, 2, 'F');
+        
+        doc.setTextColor(51, 65, 85);
         doc.setFontSize(10);
-        doc.text(`Preço: €${prop.price?.toLocaleString()}`, 25, y);
+        doc.setFont(undefined, 'normal');
+        
+        const features = [];
+        if (prop.bedrooms) features.push(`🛏️ ${prop.bedrooms} Quarto${prop.bedrooms > 1 ? 's' : ''}`);
+        if (prop.bathrooms) features.push(`🚿 ${prop.bathrooms} WC${prop.bathrooms > 1 ? 's' : ''}`);
+        if (prop.useful_area || prop.square_feet) features.push(`📐 ${prop.useful_area || prop.square_feet}m²`);
+        if (prop.garage && prop.garage !== 'none') features.push(`🚗 Garagem: ${prop.garage}`);
+        
+        const featuresPerLine = 2;
+        for (let j = 0; j < features.length; j += featuresPerLine) {
+          const line = features.slice(j, j + featuresPerLine);
+          doc.text(line.join('    '), 25, y + 8 + (Math.floor(j / featuresPerLine) * 6));
+        }
+        y += 32;
+        
+        // Localização
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(15, 23, 42);
+        doc.text('📍 Localização', 20, y);
         y += 6;
-        doc.text(`Localização: ${prop.city}`, 25, y);
-        y += 6;
-        if (prop.bedrooms) doc.text(`Quartos: ${prop.bedrooms}`, 25, y);
-        y += 6;
-        if (prop.useful_area) doc.text(`Área: ${prop.useful_area}m²`, 25, y);
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        if (prop.address) doc.text(prop.address, 25, y);
+        y += 5;
+        doc.text(`${prop.city}, ${prop.state}`, 25, y);
+        if (prop.zip_code) {
+          y += 5;
+          doc.text(`CEP: ${prop.zip_code}`, 25, y);
+        }
         y += 10;
-      });
+        
+        // Detalhes adicionais
+        if (prop.year_built || prop.energy_certificate || prop.floor) {
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text('ℹ️ Detalhes', 20, y);
+          y += 6;
+          
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(71, 85, 105);
+          
+          if (prop.year_built) {
+            doc.text(`Ano de Construção: ${prop.year_built}`, 25, y);
+            y += 5;
+          }
+          if (prop.energy_certificate) {
+            doc.text(`Certificado Energético: ${prop.energy_certificate}`, 25, y);
+            y += 5;
+          }
+          if (prop.floor) {
+            doc.text(`Piso: ${prop.floor}`, 25, y);
+            y += 5;
+          }
+          if (prop.front_count) {
+            doc.text(`Frentes: ${prop.front_count}`, 25, y);
+            y += 5;
+          }
+          y += 5;
+        }
+        
+        // Descrição
+        if (prop.description) {
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text('📝 Descrição', 20, y);
+          y += 6;
+          
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(71, 85, 105);
+          const descLines = doc.splitTextToSize(prop.description.substring(0, 400), pageWidth - 50);
+          doc.text(descLines.slice(0, 8), 25, y);
+          y += descLines.slice(0, 8).length * 5 + 5;
+        }
+        
+        // Comodidades
+        if (prop.amenities?.length > 0) {
+          if (y > pageHeight - 40) {
+            doc.addPage();
+            y = 20;
+          }
+          
+          doc.setFontSize(11);
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(15, 23, 42);
+          doc.text('✨ Comodidades', 20, y);
+          y += 6;
+          
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(9);
+          doc.setTextColor(71, 85, 105);
+          
+          const amenitiesText = prop.amenities.slice(0, 12).map(a => `• ${a}`).join('  ');
+          const amenityLines = doc.splitTextToSize(amenitiesText, pageWidth - 50);
+          doc.text(amenityLines, 25, y);
+        }
+        
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(148, 163, 184);
+        doc.text('Zugruppe - Soluções Imobiliárias', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
       
-      doc.save(`proposta-${lead.buyer_name.replace(/\s+/g, '-')}.pdf`);
-      toast.success('PDF gerado com sucesso!');
+      doc.save(`proposta-${lead.buyer_name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('PDF profissional gerado com sucesso!');
       setSelectedPropertyIndexes([]);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar PDF');
+      toast.error('Erro ao gerar PDF: ' + error.message);
     }
     setGeneratingPDF(false);
   };
