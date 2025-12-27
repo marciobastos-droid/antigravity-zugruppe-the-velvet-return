@@ -1,7 +1,24 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
+    // Verificar autenticação via secret do cron job
+    const cronSecret = Deno.env.get("CRON_JOB_SECRET");
+    const authHeader = req.headers.get("Authorization");
+    const urlParams = new URLSearchParams(req.url.split('?')[1] || '');
+    const secretFromQuery = urlParams.get("secret");
+    
+    // Verificar se o secret foi fornecido e corresponde
+    const providedSecret = authHeader?.replace("Bearer ", "") || secretFromQuery;
+    
+    if (!cronSecret || providedSecret !== cronSecret) {
+      console.error('Unauthorized cron job attempt');
+      return Response.json({ 
+        error: 'Unauthorized',
+        message: 'Valid CRON_JOB_SECRET required'
+      }, { status: 401 });
+    }
+    
     const base44 = createClientFromRequest(req);
     
     // Get all users with Facebook Lead Ads configured
