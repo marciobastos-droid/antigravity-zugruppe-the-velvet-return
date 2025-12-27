@@ -64,6 +64,16 @@ export default function AgentManagementTab() {
     },
   });
 
+  const getAgentPropertyCount = (agentId) => {
+    return properties.filter(p => p.agent_id === agentId).length;
+  };
+
+  const filteredAgents = agents.filter(a =>
+    a.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.phone?.includes(searchTerm)
+  );
+
   const resetForm = () => {
     setFormData({
       full_name: "",
@@ -116,16 +126,6 @@ export default function AgentManagementTab() {
       data: { ...agent, is_active: !agent.is_active }
     });
   };
-
-  const getAgentPropertyCount = (agentId) => {
-    return properties.filter(p => p.agent_id === agentId).length;
-  };
-
-  const filteredAgents = agents.filter(a =>
-    a.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.phone?.includes(searchTerm)
-  );
 
   if (isLoading) {
     return (
