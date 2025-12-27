@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, 
   Building2, MessageSquare, CheckCircle2, XCircle, UserCog, 
-  Briefcase, Lock, Trash2, Pencil, AlertCircle, RefreshCw 
+  Briefcase, Lock, Trash2, Pencil, AlertCircle, RefreshCw, Upload, Camera 
 } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedPermissionsEditor from "../users/AdvancedPermissionsEditor";
@@ -23,6 +23,7 @@ export default function UserManagementTab({ currentUser }) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(null);
 
   const { data: users = [], isLoading, error: usersError, refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
@@ -95,6 +96,34 @@ export default function UserManagementTab({ currentUser }) {
   const handleApplyTemplate = (templatePermissions) => {
     if (!selectedUser) return;
     handleUpdatePermissions(templatePermissions);
+  };
+
+  const handlePhotoUpload = async (e, userId) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem não pode exceder 5MB");
+      return;
+    }
+
+    setUploadingPhoto(userId);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.entities.User.update(userId, { photo_url: file_url });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("Foto atualizada com sucesso");
+    } catch (error) {
+      console.error("Erro ao carregar foto:", error);
+      toast.error("Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(null);
+    }
   };
 
   const getUserStats = (userEmail) => {
@@ -186,10 +215,43 @@ export default function UserManagementTab({ currentUser }) {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-white font-bold">
-                        {user.full_name?.[0]?.toUpperCase() || "U"}
-                      </span>
+                    <div className="relative group">
+                      {user.photo_url ? (
+                        <img
+                          src={user.photo_url}
+                          alt={user.full_name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-slate-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">
+                            {user.full_name?.[0]?.toUpperCase() || "U"}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {!isCurrentUser && (
+                        <>
+                          <input
+                            type="file"
+                            id={`photo-upload-${user.id}`}
+                            accept="image/*"
+                            onChange={(e) => handlePhotoUpload(e, user.id)}
+                            className="hidden"
+                          />
+                          <button
+                            onClick={() => document.getElementById(`photo-upload-${user.id}`).click()}
+                            disabled={uploadingPhoto === user.id}
+                            className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            {uploadingPhoto === user.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Camera className="w-5 h-5 text-white" />
+                            )}
+                          </button>
+                        </>
+                      )}
                     </div>
                     
                     <div className="flex-1">
