@@ -288,11 +288,6 @@ const bulkCreateOrUpdate = async (base44, properties) => {
   return results;
 };
 
-// Helper para verificar se portal é uma rede imobiliária
-const isRedeImobiliaria = (portalName) => {
-  return portalGroups.redes.portals.some(p => p.name === portalName);
-};
-
 export default function ImportProperties() {
   const queryClient = useQueryClient();
   const [file, setFile] = React.useState(null);
@@ -989,9 +984,9 @@ IMPORTANTE:
       const propertiesWithTags = await Promise.all(
         processedProperties.map(async (p) => {
           const tags = await generatePropertyTags(p);
-          // Adicionar tag "Prestige Reality Advisors" se for de uma rede imobiliária
-          const finalTags = isRedeImobiliaria(portal.name)
-            ? [...(tags || []), "prestige reality advisors"]
+          // Adicionar tag "Porta da Frente" se for desta rede
+          const finalTags = portal.name === "Porta da Frente" 
+            ? [...(tags || []), "porta da frente"]
             : tags;
           return { ...p, tags: finalTags };
         })
@@ -1531,9 +1526,9 @@ Retorna array de imóveis com o máximo de detalhes possível.`,
         const propertiesWithTags = await Promise.all(
           validProperties.map(async (p) => {
             const tags = await generatePropertyTags(p);
-            // Adicionar tag "Prestige Reality Advisors" se for de uma rede imobiliária
-            const finalTags = isRedeImobiliaria(portal.name)
-              ? [...(tags || []), "prestige reality advisors"]
+            // Adicionar tag "Porta da Frente" se for desta rede
+            const finalTags = portal.name === "Porta da Frente" 
+              ? [...(tags || []), "porta da frente"]
               : tags;
             return { ...p, tags: finalTags };
           })
@@ -1641,11 +1636,7 @@ Retorna array de imóveis com o máximo de detalhes possível.`,
 
         // Generate tags
         const tags = await generatePropertyTags(property);
-        // Adicionar tag "Prestige Reality Advisors" se for de uma rede imobiliária
-        const finalTags = isRedeImobiliaria(portal.name)
-          ? [...(tags || []), "prestige reality advisors"]
-          : tags;
-        property.tags = finalTags;
+        property.tags = tags;
 
         setProgress("A guardar imóvel...");
 
