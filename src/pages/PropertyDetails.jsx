@@ -71,13 +71,6 @@ export default function PropertyDetails() {
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
   
-  // Debug logging
-  React.useEffect(() => {
-    console.log('[PropertyDetails] URL:', window.location.href);
-    console.log('[PropertyDetails] Property ID:', propertyId);
-    console.log('[PropertyDetails] Search params:', urlParams.toString());
-  }, [propertyId]);
-  
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
@@ -422,6 +415,13 @@ export default function PropertyDetails() {
   const handleVisibilityChange = React.useCallback((visibility) => {
     updatePropertyMutation.mutate({ visibility });
   }, [updatePropertyMutation]);
+
+  // Debug logging - now as effect
+  React.useEffect(() => {
+    console.log('[PropertyDetails] URL:', window.location.href);
+    console.log('[PropertyDetails] Property ID:', propertyId);
+    console.log('[PropertyDetails] Search params:', urlParams.toString());
+  }, [propertyId]);
 
   // NOW SAFE TO DO CONDITIONAL RETURNS - ALL HOOKS CALLED ABOVE
   if (isLoading) {
