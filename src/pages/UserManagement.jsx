@@ -253,14 +253,9 @@ Equipa Zugruppe`
     );
   }
 
-  const getUserStats = (userEmail) => {
+  return (
     const userProperties = properties.filter(p => p.created_by === userEmail).length;
     const assignedOpportunities = opportunities.filter(o => o.assigned_to === userEmail).length;
-    const closedDeals = opportunities.filter(o => o.assigned_to === userEmail && o.status === 'closed').length;
-    return { properties: userProperties, opportunities: assignedOpportunities, closed: closedDeals };
-  };
-
-  return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-start mb-8">
