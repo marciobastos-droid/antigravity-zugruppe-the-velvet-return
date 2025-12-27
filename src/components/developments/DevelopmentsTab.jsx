@@ -12,12 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { 
   Building2, Plus, Search, MapPin, Euro, 
-  Edit, Trash2, Eye, Home, Camera, TrendingUp, Sparkles, CheckSquare
+  Edit, Trash2, Eye, Home, Camera, TrendingUp, Sparkles, CheckSquare, Link2
 } from "lucide-react";
 import { toast } from "sonner";
 import DevelopmentDetail from "@/components/developments/DevelopmentDetail";
 import AIDevelopmentDescriptionGenerator from "@/components/developments/AIDevelopmentDescriptionGenerator";
 import { useAuditLog } from "@/components/audit/useAuditLog";
+import ImageUrlImporter from "@/components/tools/ImageUrlImporter";
+import AddressValidator from "@/components/tools/AddressValidator";
 
 export default function DevelopmentsTab() {
   const queryClient = useQueryClient();
@@ -37,6 +39,7 @@ export default function DevelopmentsTab() {
     developer: "",
     country: ""
   });
+  const [urlImporterOpen, setUrlImporterOpen] = React.useState(false);
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -453,6 +456,25 @@ export default function DevelopmentsTab() {
                 </div>
               </div>
 
+              <AddressValidator
+                address={formData.address}
+                city={formData.city}
+                state={formData.state}
+                country={formData.country}
+                postalCode={formData.postal_code}
+                onValidated={(validated) => {
+                  setFormData({
+                    ...formData,
+                    latitude: validated.latitude,
+                    longitude: validated.longitude,
+                    address: validated.address || formData.address,
+                    city: validated.city || formData.city,
+                    state: validated.state || formData.state,
+                    postal_code: validated.postalCode || formData.postal_code
+                  });
+                }}
+              />
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Código Postal</Label>
@@ -575,22 +597,34 @@ export default function DevelopmentsTab() {
                       </div>
                     ))}
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="dev-images-tab"
-                  />
-                  <label htmlFor="dev-images-tab">
-                    <Button type="button" variant="outline" size="sm" asChild disabled={uploading}>
-                      <span>
-                        <Camera className="w-4 h-4 mr-2" />
-                        {uploading ? "A carregar..." : "Adicionar Imagens"}
-                      </span>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="dev-images-tab"
+                    />
+                    <label htmlFor="dev-images-tab" className="flex-1">
+                      <Button type="button" variant="outline" size="sm" asChild disabled={uploading} className="w-full">
+                        <span>
+                          <Camera className="w-4 h-4 mr-2" />
+                          {uploading ? "A carregar..." : "Carregar do PC"}
+                        </span>
+                      </Button>
+                    </label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setUrlImporterOpen(true)}
+                      className="flex-1"
+                    >
+                      <Link2 className="w-4 h-4 mr-2" />
+                      Importar de URL
                     </Button>
-                  </label>
+                  </div>
                 </div>
               </div>
 
@@ -836,6 +870,19 @@ export default function DevelopmentsTab() {
           properties={properties}
         />
       )}
+
+      {/* Image URL Importer */}
+      <ImageUrlImporter
+        open={urlImporterOpen}
+        onOpenChange={setUrlImporterOpen}
+        onImagesImported={(urls) => {
+          setFormData({
+            ...formData,
+            images: [...formData.images, ...urls]
+          });
+          setUrlImporterOpen(false);
+        }}
+      />
 
       {/* Bulk Edit Dialog */}
       <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
