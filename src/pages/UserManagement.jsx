@@ -191,6 +191,13 @@ Equipa Zugruppe`
     handleUpdatePermissions(templatePermissions);
   };
 
+  const getUserStats = (userEmail) => {
+    const userProperties = properties.filter(p => p.created_by === userEmail).length;
+    const assignedOpportunities = opportunities.filter(o => o.assigned_to === userEmail).length;
+    const closedDeals = opportunities.filter(o => o.assigned_to === userEmail && o.status === 'closed').length;
+    return { properties: userProperties, opportunities: assignedOpportunities, closed: closedDeals };
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === "" || 
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
