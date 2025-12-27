@@ -634,6 +634,7 @@ export default function DevelopmentsTab() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
