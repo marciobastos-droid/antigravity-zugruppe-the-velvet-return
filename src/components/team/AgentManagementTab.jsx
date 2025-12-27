@@ -16,6 +16,7 @@ export default function AgentManagementTab() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -127,6 +128,35 @@ export default function AgentManagementTab() {
     });
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem não pode exceder 5MB");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, photo_url: file_url });
+      toast.success("Foto carregada com sucesso");
+    } catch (error) {
+      console.error("Erro ao carregar foto:", error);
+      toast.error("Erro ao carregar foto");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -206,13 +236,52 @@ export default function AgentManagementTab() {
               </div>
 
               <div>
-                <Label>URL da Foto</Label>
-                <Input
-                  type="url"
-                  value={formData.photo_url}
-                  onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
-                  placeholder="https://..."
-                />
+                <Label>Foto do Agente</Label>
+                <div className="space-y-3">
+                  {formData.photo_url && (
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={formData.photo_url} 
+                        alt="Preview" 
+                        className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({...formData, photo_url: ""})}
+                        className="text-red-600"
+                      >
+                        Remover
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => document.getElementById('photo-upload').click()}
+                      disabled={uploadingPhoto}
+                    >
+                      {uploadingPhoto ? "A carregar..." : "Carregar Foto"}
+                    </Button>
+                    <input
+                      id="photo-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <Input
+                    type="url"
+                    value={formData.photo_url}
+                    onChange={(e) => setFormData({...formData, photo_url: e.target.value})}
+                    placeholder="Ou cole URL da imagem..."
+                    className="text-sm"
+                  />
+                </div>
               </div>
 
               <div>
