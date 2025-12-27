@@ -984,10 +984,10 @@ IMPORTANTE:
       const propertiesWithTags = await Promise.all(
         processedProperties.map(async (p) => {
           const tags = await generatePropertyTags(p);
-          // Adicionar tag "Porta da Frente" se for desta rede
+          // Adicionar tags específicas por portal
           const finalTags = portal.name === "Porta da Frente" 
-            ? [...(tags || []), "porta da frente"]
-            : tags;
+            ? [...(tags || []), "porta da frente", "prestige reality advisors"]
+            : [...(tags || []), "prestige reality advisors"];
           return { ...p, tags: finalTags };
         })
       );
@@ -1526,10 +1526,10 @@ Retorna array de imóveis com o máximo de detalhes possível.`,
         const propertiesWithTags = await Promise.all(
           validProperties.map(async (p) => {
             const tags = await generatePropertyTags(p);
-            // Adicionar tag "Porta da Frente" se for desta rede
+            // Adicionar tags específicas por portal
             const finalTags = portal.name === "Porta da Frente" 
-              ? [...(tags || []), "porta da frente"]
-              : tags;
+              ? [...(tags || []), "porta da frente", "prestige reality advisors"]
+              : [...(tags || []), "prestige reality advisors"];
             return { ...p, tags: finalTags };
           })
         );
