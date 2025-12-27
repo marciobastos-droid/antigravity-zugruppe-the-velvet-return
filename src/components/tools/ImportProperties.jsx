@@ -1091,6 +1091,232 @@ IMPORTANTE:
     }
   };
 
+  const importFromText = async (text) => {
+    setImporting(true);
+    setProgress("A analisar texto com IA...");
+    
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Extrai TODOS os imóveis deste texto. Pode haver um ou vários imóveis descritos.
+
+TEXTO:
+${text}
+
+INSTRUÇÕES:
+- Identifica cada imóvel separadamente se houver múltiplos
+- Extrai título, descrição, preço, tipo, quartos, área, localização, comodidades
+- property_type: "apartment", "house", "land", "building", "farm", "store", "warehouse", "office"
+- listing_type: "sale" ou "rent" (se não especificado, assume "sale")
+- Preços portugueses: 450.000€ = 450000
+- Se área não especificada em m², tenta inferir de "120 metros" = 120
+- Extrai todas as comodidades mencionadas (piscina, garagem, varanda, etc.)
+
+Retorna array de imóveis, mesmo que seja só 1.`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            properties: {
+              type: "array",
+              items: propertySchema
+            }
+          }
+        }
+      });
+
+      if (!result?.properties || result.properties.length === 0) {
+        throw new Error("Nenhum imóvel encontrado no texto");
+      }
+
+      const properties = result.properties;
+      setProgress(`${properties.length} imóvel(eis) identificado(s)! A processar...`);
+
+      // Classificar com IA
+      const processedProperties = await Promise.all(
+        properties.map(async (p) => {
+          const detected = await detectPropertyTypes(p.title, p.description, p.price);
+          if (detected) {
+            return { 
+              ...p, 
+              property_type: detected.property_type || p.property_type || 'apartment', 
+              listing_type: detected.listing_type || p.listing_type || 'sale' 
+            };
+          }
+          return {
+            ...p,
+            property_type: p.property_type || 'apartment',
+            listing_type: p.listing_type || 'sale'
+          };
+        })
+      );
+
+      setProgress(`A gerar tags para ${processedProperties.length} imóveis...`);
+      const propertiesWithTags = await Promise.all(
+        processedProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
+      const { data: refData } = await base44.functions.invoke('generateRefId', { 
+        entity_type: 'Property', 
+        count: propertiesWithTags.length 
+      });
+      const refIds = refData.ref_ids || [refData.ref_id];
+
+      const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+        ...p,
+        ref_id: refIds[index],
+        status: "active",
+        address: p.address || p.city,
+        state: p.state || p.city,
+        source_url: 'Text Import',
+        is_partner_property: propertyOwnership === "partner",
+        partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+        partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                      propertyOwnership === "private" ? privateOwnerName : undefined,
+        internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                       `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+      }));
+
+      const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
+      const totalProcessed = importResults.created.length + importResults.updated.length;
+
+      setResults({
+        success: true,
+        count: totalProcessed,
+        properties: [...importResults.created, ...importResults.updated],
+        message: `✅ ${totalProcessed} imóveis processados de texto!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados`
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      toast.success(`${totalProcessed} imóveis importados!`);
+      
+      // Clear textarea
+      const textarea = document.getElementById('text-import-area');
+      if (textarea) textarea.value = '';
+
+    } catch (error) {
+      setResults({ success: false, message: error.message || "Erro ao processar texto" });
+      toast.error("Erro ao processar texto");
+    }
+    
+    setImporting(false);
+  };
+
+  const importFromBrochurePDF = async (file) => {
+    setImporting(true);
+    setProgress("A carregar brochura PDF...");
+    
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setProgress("A extrair dados da brochura com IA...");
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Analisa esta brochura imobiliária e extrai TODOS os imóveis.
+
+INSTRUÇÕES:
+- Identifica cada imóvel separadamente (pode haver vários na mesma brochura)
+- Extrai título, descrição completa, preço, tipo, quartos, área, localização, comodidades
+- property_type: "apartment", "house", "land", "building", "farm", "store", "warehouse", "office"
+- listing_type: "sale" ou "rent"
+- Preços portugueses: 450.000€ = 450000
+- Extrai TODAS as comodidades visíveis (piscina, garagem, varanda, elevador, etc.)
+- Se houver imagens na brochura, tenta extrair URLs se possível
+
+Retorna array de imóveis com o máximo de detalhes possível.`,
+        file_urls: [file_url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            properties: {
+              type: "array",
+              items: propertySchema
+            }
+          }
+        }
+      });
+
+      if (!result?.properties || result.properties.length === 0) {
+        throw new Error("Nenhum imóvel encontrado na brochura");
+      }
+
+      const properties = result.properties;
+      setProgress(`${properties.length} imóvel(eis) encontrado(s)! A processar...`);
+
+      // Classificar com IA
+      const processedProperties = await Promise.all(
+        properties.map(async (p) => {
+          const detected = await detectPropertyTypes(p.title, p.description, p.price);
+          if (detected) {
+            return { 
+              ...p, 
+              property_type: detected.property_type || p.property_type || 'apartment', 
+              listing_type: detected.listing_type || p.listing_type || 'sale' 
+            };
+          }
+          return {
+            ...p,
+            property_type: p.property_type || 'apartment',
+            listing_type: p.listing_type || 'sale'
+          };
+        })
+      );
+
+      setProgress(`A gerar tags para ${processedProperties.length} imóveis...`);
+      const propertiesWithTags = await Promise.all(
+        processedProperties.map(async (p) => {
+          const tags = await generatePropertyTags(p);
+          return { ...p, tags };
+        })
+      );
+
+      const { data: refData } = await base44.functions.invoke('generateRefId', { 
+        entity_type: 'Property', 
+        count: propertiesWithTags.length 
+      });
+      const refIds = refData.ref_ids || [refData.ref_id];
+
+      const propertiesWithRefIds = propertiesWithTags.map((p, index) => ({
+        ...p,
+        ref_id: refIds[index],
+        status: "active",
+        address: p.address || p.city,
+        state: p.state || p.city,
+        source_url: 'Brochure PDF',
+        is_partner_property: propertyOwnership === "partner",
+        partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+        partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                      propertyOwnership === "private" ? privateOwnerName : undefined,
+        internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                       `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+      }));
+
+      const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
+      const totalProcessed = importResults.created.length + importResults.updated.length;
+
+      setResults({
+        success: true,
+        count: totalProcessed,
+        properties: [...importResults.created, ...importResults.updated],
+        message: `✅ ${totalProcessed} imóveis processados da brochura!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados`
+      });
+
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
+      await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+      toast.success(`${totalProcessed} imóveis importados!`);
+      
+      setFile(null);
+      setFileType(null);
+
+    } catch (error) {
+      setResults({ success: false, message: error.message || "Erro ao processar brochura PDF" });
+      toast.error("Erro ao processar brochura");
+    }
+    
+    setImporting(false);
+  };
+
   const importFromPDF = async (file) => {
         setImporting(true);
         setProgress("A carregar PDF...");
@@ -1745,8 +1971,94 @@ IMPORTANTE:
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
+            <MessageSquareText className="w-5 h-5" />
+            Importar por Texto/Brochura
+          </CardTitle>
+          <p className="text-sm text-slate-500">Cole texto livre ou faça upload de brochura PDF - IA extrai os dados automaticamente</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Textarea
+            placeholder="Cole aqui o texto do anúncio ou descrição do imóvel...&#10;&#10;Exemplo:&#10;Apartamento T3 em Lisboa, Avenidas Novas&#10;Preço: 450.000€&#10;Área: 120m²&#10;3 quartos, 2 casas de banho&#10;Piscina, garagem para 2 carros&#10;..."
+            rows={8}
+            className="font-mono text-sm resize-none"
+            id="text-import-area"
+          />
+          
+          <div className="text-center text-sm text-slate-500">ou</div>
+          
+          <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setFile(file);
+                  setFileType('brochure-pdf');
+                }
+              }}
+              className="hidden"
+              id="brochure-upload"
+              disabled={importing}
+            />
+            <label htmlFor="brochure-upload" className="cursor-pointer">
+              <FileText className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+              <p className="text-slate-700 font-medium mb-1">
+                {file && fileType === 'brochure-pdf' ? file.name : "Upload de Brochura PDF"}
+              </p>
+              <p className="text-xs text-slate-500">A IA irá extrair todos os detalhes automaticamente</p>
+            </label>
+          </div>
+          
+          <Button
+            onClick={async () => {
+              const textarea = document.getElementById('text-import-area');
+              const text = textarea?.value?.trim();
+              
+              if (!text && (!file || fileType !== 'brochure-pdf')) {
+                toast.error("Cole texto ou faça upload de uma brochura PDF");
+                return;
+              }
+              
+              if (text) {
+                await importFromText(text);
+              } else if (file && fileType === 'brochure-pdf') {
+                await importFromBrochurePDF(file);
+              }
+            }}
+            disabled={importing}
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            {importing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {progress}
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Extrair com IA
+              </>
+            )}
+          </Button>
+          
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+            <p className="text-xs text-purple-900 font-medium mb-1">🤖 Como funciona?</p>
+            <p className="text-xs text-purple-700">
+              ✓ Cole descrições de imóveis em texto livre<br />
+              ✓ Ou faça upload de brochuras PDF com layouts variados<br />
+              ✓ A IA identifica automaticamente título, preço, localização, características, etc.<br />
+              ✓ Suporta múltiplos imóveis num único texto ou PDF
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Importar de Ficheiro (Melhorado)
+            Importar de Ficheiro Estruturado
           </CardTitle>
           <p className="text-sm text-slate-500">CSV com preview e validação interativa, Excel e JSON</p>
         </CardHeader>
