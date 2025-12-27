@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff, Settings } from "lucide-react";
+import { UserPlus, Search, Shield, Users as UsersIcon, Mail, Phone, Building2, MessageSquare, CheckCircle2, XCircle, UserCog, Briefcase, Lock, Trash2, Pencil, Key, Eye, EyeOff, Settings, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedPermissionsEditor from "../components/users/AdvancedPermissionsEditor";
 import RoleTemplates from "../components/users/RoleTemplates";
@@ -39,9 +39,18 @@ export default function UserManagement() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading, error: usersError, refetch: refetchUsers } = useQuery({
     queryKey: ['users'],
-    queryFn: () => base44.entities.User.list('-created_date'),
+    queryFn: async () => {
+      try {
+        return await base44.entities.User.list('-created_date');
+      } catch (error) {
+        console.error('[UserManagement] Error fetching users:', error);
+        throw error;
+      }
+    },
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const { data: properties = [] } = useQuery({
@@ -213,6 +222,26 @@ Equipa Zugruppe`
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900" />
+      </div>
+    );
+  }
+
+  if (usersError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Erro ao Carregar Utilizadores</h2>
+            <p className="text-slate-600 mb-4">
+              {usersError.message || 'Ocorreu um erro de rede ao tentar carregar os utilizadores.'}
+            </p>
+            <Button onClick={() => refetchUsers()} className="w-full">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -787,5 +816,3 @@ Equipa Zugruppe`
     </div>
   );
 }
-
-// Removed old PermissionsPanel - now using AdvancedPermissionsEditor
