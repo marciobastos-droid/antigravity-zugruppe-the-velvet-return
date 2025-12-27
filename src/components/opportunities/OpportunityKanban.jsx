@@ -69,9 +69,9 @@ export default function OpportunityKanban({
 
   const getQualificationBadge = (status) => {
     switch (status) {
-      case 'hot': return <Badge className="bg-red-100 text-red-800 text-xs">🔥 Hot</Badge>;
-      case 'warm': return <Badge className="bg-amber-100 text-amber-800 text-xs">🌡️ Warm</Badge>;
-      case 'cold': return <Badge className="bg-blue-100 text-blue-800 text-xs">❄️ Cold</Badge>;
+      case 'hot': return <Badge className="bg-red-100 text-red-800 text-[0.65rem] py-0 px-1.5">🔥 Hot</Badge>;
+      case 'warm': return <Badge className="bg-amber-100 text-amber-800 text-[0.65rem] py-0 px-1.5">🌡️ Warm</Badge>;
+      case 'cold': return <Badge className="bg-blue-100 text-blue-800 text-[0.65rem] py-0 px-1.5">❄️ Cold</Badge>;
       default: return null;
     }
   };
@@ -160,14 +160,14 @@ export default function OpportunityKanban({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`min-h-[500px] border border-t-0 rounded-b-lg p-3 transition-all duration-200 ${
+                    className={`min-h-[500px] border border-t-0 rounded-b-lg p-2 transition-all duration-200 ${
                       snapshot.isDraggingOver 
                         ? 'bg-blue-100/50 border-blue-400 shadow-inner' 
                         : 'bg-slate-50/50'
                     }`}
                   >
                     <ScrollArea className="h-[500px]">
-                      <div className="space-y-3 pr-2">
+                      <div className="space-y-2 pr-2">
                         {stageOpportunities.map((opp, index) => (
                           <Draggable key={opp.id} draggableId={opp.id} index={index}>
                             {(provided, snapshot) => (
@@ -175,32 +175,32 @@ export default function OpportunityKanban({
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                className={`bg-white rounded-lg border-2 p-3 cursor-move hover:shadow-lg transition-all ${
+                                className={`bg-white rounded-lg border-2 p-2 cursor-move hover:shadow-lg transition-all ${
                                   snapshot.isDragging ? 'shadow-2xl scale-105 rotate-2 border-blue-400' : 'shadow-sm border-slate-200'
                                 } ${isOverdue(opp) ? 'border-red-400 bg-red-50/50' : ''}`}
                                 onClick={() => onOpportunityClick(opp)}
                               >
                                 {/* Header */}
-                                <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-start justify-between mb-1">
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-0.5">
                                       {opp.priority === 'high' && (
-                                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                                        <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
                                       )}
                                       {opp.ref_id && (
-                                        <Badge variant="outline" className="text-xs font-mono">
+                                        <Badge variant="outline" className="text-[0.6rem] font-mono leading-none py-0 px-1">
                                           {opp.ref_id}
                                         </Badge>
                                       )}
                                     </div>
-                                    <h4 className="font-medium text-sm text-slate-900 truncate">
+                                    <h4 className="font-medium text-xs text-slate-900 leading-tight line-clamp-1">
                                       {opp.buyer_name}
                                     </h4>
                                   </div>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                        <MoreHorizontal className="w-4 h-4" />
+                                      <Button variant="ghost" size="sm" className="h-5 w-5 p-0 flex-shrink-0">
+                                        <MoreHorizontal className="w-3.5 h-3.5" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -230,15 +230,15 @@ export default function OpportunityKanban({
                                 </div>
 
                                 {/* Badges */}
-                                <div className="flex flex-wrap gap-1 mb-2">
+                                <div className="flex flex-wrap gap-1 mb-1">
                                   {getQualificationBadge(opp.qualification_status)}
                                   {opp.lead_type && (
-                                    <Badge className={
+                                    <Badge className={`text-[0.65rem] py-0 px-1.5 ${
                                       opp.lead_type === 'comprador' ? 'bg-blue-100 text-blue-800 border-blue-300' : 
                                       opp.lead_type === 'vendedor' ? 'bg-green-100 text-green-800 border-green-300' : 
                                       opp.lead_type === 'parceiro_comprador' ? 'bg-purple-100 text-purple-800 border-purple-300' : 
                                       'bg-indigo-100 text-indigo-800 border-indigo-300'
-                                    }>
+                                    }`}>
                                       {opp.lead_type === 'comprador' ? 'Comprador' : 
                                        opp.lead_type === 'vendedor' ? 'Vendedor' : 
                                        opp.lead_type === 'parceiro_comprador' ? 'P. Comprador' : 'P. Vendedor'}
@@ -247,15 +247,15 @@ export default function OpportunityKanban({
                                 </div>
 
                                 {/* Contact Info */}
-                                <div className="space-y-1 text-xs text-slate-600">
+                                <div className="space-y-0.5 text-[0.65rem] text-slate-600 mb-1">
                                   {opp.buyer_email && (
-                                    <div className="flex items-center gap-1.5 truncate">
+                                    <div className="flex items-center gap-1 truncate">
                                       <Mail className="w-3 h-3 flex-shrink-0" />
                                       <span className="truncate">{opp.buyer_email}</span>
                                     </div>
                                   )}
                                   {opp.buyer_phone && (
-                                    <div className="flex items-center gap-1.5">
+                                    <div className="flex items-center gap-1">
                                       <Phone className="w-3 h-3 flex-shrink-0" />
                                       <span>{opp.buyer_phone}</span>
                                     </div>
@@ -264,14 +264,14 @@ export default function OpportunityKanban({
 
                                 {/* Value & Probability */}
                                 {(opp.estimated_value || opp.probability) && (
-                                  <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                                  <div className="flex items-center gap-2 mt-1 pt-1 border-t">
                                     {opp.estimated_value && (
-                                      <span className="text-xs font-medium text-green-700">
+                                      <span className="text-[0.65rem] font-medium text-green-700">
                                         €{opp.estimated_value.toLocaleString()}
                                       </span>
                                     )}
                                     {opp.probability && (
-                                      <Badge variant="secondary" className="text-xs">
+                                      <Badge variant="secondary" className="text-[0.6rem] py-0 px-1">
                                         {opp.probability}%
                                       </Badge>
                                     )}
@@ -280,19 +280,19 @@ export default function OpportunityKanban({
 
                                 {/* Main Property */}
                                 {opp.property_id && opp.property_title && (
-                                  <div className="mt-2 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+                                  <div className="mt-1 pt-1 border-t" onClick={(e) => e.stopPropagation()}>
                                     <Link
                                       to={`${createPageUrl("PropertyDetails")}?id=${opp.property_id}`}
-                                      className="flex items-start gap-2 p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+                                      className="flex items-start gap-1.5 p-1.5 bg-blue-50 hover:bg-blue-100 rounded transition-colors group"
                                     >
-                                      <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                                      <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
                                       <div className="flex-1 min-w-0">
-                                        <div className="text-xs font-medium text-blue-900 truncate group-hover:text-blue-700">
+                                        <div className="text-[0.65rem] font-medium text-blue-900 line-clamp-1 group-hover:text-blue-700 leading-tight">
                                           {opp.property_title}
                                         </div>
                                         {opp.property_address && (
-                                          <div className="text-xs text-blue-700 truncate flex items-center gap-1 mt-0.5">
-                                            <MapPin className="w-3 h-3" />
+                                          <div className="text-[0.6rem] text-blue-700 line-clamp-1 flex items-center gap-0.5 mt-0.5">
+                                            <MapPin className="w-2.5 h-2.5" />
                                             {opp.property_address}
                                           </div>
                                         )}
@@ -304,8 +304,8 @@ export default function OpportunityKanban({
 
                                 {/* Associated Properties */}
                                 {opp.associated_properties?.length > 0 && (
-                                  <div className={`${opp.property_id ? 'mt-1' : 'mt-2 pt-2 border-t'}`}>
-                                    <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
+                                  <div className={`${opp.property_id ? 'mt-0.5' : 'mt-1 pt-1 border-t'}`}>
+                                    <div className="flex items-center gap-1 text-[0.65rem] text-slate-500">
                                       <Building2 className="w-3 h-3" />
                                       <span>+{opp.associated_properties.length} outro{opp.associated_properties.length !== 1 ? 's' : ''}</span>
                                     </div>
@@ -313,16 +313,16 @@ export default function OpportunityKanban({
                                 )}
 
                                 {/* Dates & Alerts */}
-                                <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+                                <div className="flex items-center gap-2 mt-1 pt-1 border-t">
                                   {opp.expected_close_date && (
-                                    <div className={`flex items-center gap-1 text-xs ${isOverdue(opp) ? 'text-red-600' : 'text-slate-500'}`}>
+                                    <div className={`flex items-center gap-1 text-[0.65rem] ${isOverdue(opp) ? 'text-red-600' : 'text-slate-500'}`}>
                                       <Calendar className="w-3 h-3" />
                                       <span>{moment(opp.expected_close_date).format('DD/MM')}</span>
                                     </div>
                                   )}
                                   {needsFollowup(opp) && (
-                                    <Badge className="bg-orange-100 text-orange-800 text-xs">
-                                      <AlertCircle className="w-3 h-3 mr-1" />
+                                    <Badge className="bg-orange-100 text-orange-800 text-[0.6rem] py-0 px-1">
+                                      <AlertCircle className="w-2.5 h-2.5 mr-0.5" />
                                       Follow-up
                                     </Badge>
                                   )}
