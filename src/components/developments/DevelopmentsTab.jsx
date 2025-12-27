@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Progress } from "@/components/ui/progress";
 import { 
   Building2, Plus, Search, MapPin, Euro, 
-  Edit, Trash2, Eye, Home, Camera, TrendingUp, Sparkles
+  Edit, Trash2, Eye, Home, Camera, TrendingUp, Sparkles, CheckSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import DevelopmentDetail from "@/components/developments/DevelopmentDetail";
@@ -30,6 +30,13 @@ export default function DevelopmentsTab() {
   const [selectedDev, setSelectedDev] = React.useState(null);
   const [uploading, setUploading] = React.useState(false);
   const [showAIGenerator, setShowAIGenerator] = React.useState(false);
+  const [selectedDevs, setSelectedDevs] = React.useState([]);
+  const [bulkEditOpen, setBulkEditOpen] = React.useState(false);
+  const [bulkEditData, setBulkEditData] = React.useState({
+    status: "",
+    developer: "",
+    country: ""
+  });
 
   const [formData, setFormData] = React.useState({
     name: "",
@@ -41,6 +48,7 @@ export default function DevelopmentsTab() {
     address: "",
     city: "",
     postal_code: "",
+    country: "Portugal",
     status: "planning",
     total_units: "",
     available_units: "",
@@ -146,6 +154,7 @@ export default function DevelopmentsTab() {
       address: "",
       city: "",
       postal_code: "",
+      country: "Portugal",
       status: "planning",
       total_units: "",
       available_units: "",
@@ -177,6 +186,7 @@ export default function DevelopmentsTab() {
       address: dev.address || "",
       city: dev.city || "",
       postal_code: dev.postal_code || "",
+      country: dev.country || "Portugal",
       status: dev.status || "planning",
       total_units: dev.total_units || "",
       available_units: dev.available_units || "",
@@ -287,14 +297,32 @@ export default function DevelopmentsTab() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <p className="text-slate-600">{allDevelopments.length} empreendimentos registados</p>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 hover:bg-slate-800">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Empreendimento
+        <div className="flex items-center gap-3">
+          <p className="text-slate-600">{allDevelopments.length} empreendimentos registados</p>
+          {selectedDevs.length > 0 && (
+            <Badge className="bg-blue-100 text-blue-800">
+              {selectedDevs.length} selecionados
+            </Badge>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {selectedDevs.length > 0 && (
+            <Button 
+              variant="outline"
+              onClick={() => setBulkEditOpen(true)}
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <CheckSquare className="w-4 h-4 mr-2" />
+              Editar em Massa ({selectedDevs.length})
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-slate-900 hover:bg-slate-800">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Empreendimento
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingDev ? "Editar Empreendimento" : "Novo Empreendimento"}</DialogTitle>
@@ -405,7 +433,7 @@ export default function DevelopmentsTab() {
                 )}
               </div>
 
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Morada</Label>
                   <Input
@@ -423,6 +451,9 @@ export default function DevelopmentsTab() {
                     placeholder="Lisboa"
                   />
                 </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Código Postal</Label>
                   <Input
@@ -430,6 +461,36 @@ export default function DevelopmentsTab() {
                     onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
                     placeholder="1000-000"
                   />
+                </div>
+                <div>
+                  <Label>País</Label>
+                  <Select value={formData.country} onValueChange={(v) => setFormData({...formData, country: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Portugal">Portugal</SelectItem>
+                      <SelectItem value="Spain">Espanha</SelectItem>
+                      <SelectItem value="France">França</SelectItem>
+                      <SelectItem value="Italy">Itália</SelectItem>
+                      <SelectItem value="United Kingdom">Reino Unido</SelectItem>
+                      <SelectItem value="Germany">Alemanha</SelectItem>
+                      <SelectItem value="United States">Estados Unidos</SelectItem>
+                      <SelectItem value="Canada">Canadá</SelectItem>
+                      <SelectItem value="Brazil">Brasil</SelectItem>
+                      <SelectItem value="United Arab Emirates">Emirados Árabes Unidos</SelectItem>
+                      <SelectItem value="Angola">Angola</SelectItem>
+                      <SelectItem value="Mozambique">Moçambique</SelectItem>
+                      <SelectItem value="Cape Verde">Cabo Verde</SelectItem>
+                      <SelectItem value="Switzerland">Suíça</SelectItem>
+                      <SelectItem value="Luxembourg">Luxemburgo</SelectItem>
+                      <SelectItem value="Netherlands">Holanda</SelectItem>
+                      <SelectItem value="Belgium">Bélgica</SelectItem>
+                      <SelectItem value="Greece">Grécia</SelectItem>
+                      <SelectItem value="Turkey">Turquia</SelectItem>
+                      <SelectItem value="Morocco">Marrocos</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -659,7 +720,22 @@ export default function DevelopmentsTab() {
 
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900">{dev.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedDevs.includes(dev.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDevs([...selectedDevs, dev.id]);
+                          } else {
+                            setSelectedDevs(selectedDevs.filter(id => id !== dev.id));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-slate-300"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <h3 className="text-lg font-semibold text-slate-900">{dev.name}</h3>
+                    </div>
                     <Badge className={statusColors[dev.status]}>
                       {statusLabels[dev.status]}
                     </Badge>
@@ -759,6 +835,126 @@ export default function DevelopmentsTab() {
           properties={properties}
         />
       )}
+
+      {/* Bulk Edit Dialog */}
+      <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar {selectedDevs.length} Empreendimentos</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>País</Label>
+              <Select 
+                value={bulkEditData.country} 
+                onValueChange={(v) => setBulkEditData({...bulkEditData, country: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem alteração" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Sem alteração</SelectItem>
+                  <SelectItem value="Portugal">Portugal</SelectItem>
+                  <SelectItem value="Spain">Espanha</SelectItem>
+                  <SelectItem value="France">França</SelectItem>
+                  <SelectItem value="Italy">Itália</SelectItem>
+                  <SelectItem value="United Kingdom">Reino Unido</SelectItem>
+                  <SelectItem value="Germany">Alemanha</SelectItem>
+                  <SelectItem value="United States">Estados Unidos</SelectItem>
+                  <SelectItem value="Canada">Canadá</SelectItem>
+                  <SelectItem value="Brazil">Brasil</SelectItem>
+                  <SelectItem value="United Arab Emirates">Emirados Árabes Unidos</SelectItem>
+                  <SelectItem value="Angola">Angola</SelectItem>
+                  <SelectItem value="Mozambique">Moçambique</SelectItem>
+                  <SelectItem value="Cape Verde">Cabo Verde</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Estado</Label>
+              <Select 
+                value={bulkEditData.status} 
+                onValueChange={(v) => setBulkEditData({...bulkEditData, status: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem alteração" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Sem alteração</SelectItem>
+                  <SelectItem value="planning">Em Planeamento</SelectItem>
+                  <SelectItem value="under_construction">Em Construção</SelectItem>
+                  <SelectItem value="completed">Concluído</SelectItem>
+                  <SelectItem value="selling">Em Comercialização</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Promotor</Label>
+              <Select 
+                value={bulkEditData.developer} 
+                onValueChange={(v) => setBulkEditData({...bulkEditData, developer: v})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem alteração" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Sem alteração</SelectItem>
+                  {developers.map(dev => (
+                    <SelectItem key={dev} value={dev}>{dev}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setBulkEditOpen(false);
+                  setBulkEditData({ status: "", developer: "", country: "" });
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    const updates = {};
+                    if (bulkEditData.status) updates.status = bulkEditData.status;
+                    if (bulkEditData.developer) updates.developer = bulkEditData.developer;
+                    if (bulkEditData.country) updates.country = bulkEditData.country;
+
+                    if (Object.keys(updates).length === 0) {
+                      toast.error("Selecione pelo menos um campo para atualizar");
+                      return;
+                    }
+
+                    // Update each selected development
+                    for (const devId of selectedDevs) {
+                      await base44.entities.Development.update(devId, updates);
+                    }
+
+                    queryClient.invalidateQueries({ queryKey: ['developments'] });
+                    toast.success(`${selectedDevs.length} empreendimentos atualizados`);
+                    setBulkEditOpen(false);
+                    setSelectedDevs([]);
+                    setBulkEditData({ status: "", developer: "", country: "" });
+                  } catch (error) {
+                    toast.error("Erro ao atualizar");
+                  }
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Aplicar Alterações
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
