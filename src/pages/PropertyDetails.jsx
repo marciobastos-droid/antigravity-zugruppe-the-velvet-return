@@ -160,6 +160,21 @@ export default function PropertyDetails() {
     staleTime: 5 * 60 * 1000
   });
 
+  const { data: agents = [] } = useQuery({
+    queryKey: ['agents'],
+    queryFn: async () => {
+      try {
+        const agentList = await base44.entities.Agent.filter({ is_active: true });
+        console.log('[PropertyDetails] Agents loaded:', agentList.length);
+        return agentList;
+      } catch (error) {
+        console.error('[PropertyDetails] Error loading agents:', error);
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000
+  });
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersForConsultant'],
     queryFn: async () => {
@@ -244,32 +259,70 @@ export default function PropertyDetails() {
   }, [user, property?.created_by]);
 
   const assignedConsultant = React.useMemo(() => {
-    if (!property || !property.assigned_consultant) {
+    if (!property) {
       return null;
     }
 
-    // Procurar no ConsultorProfile (fonte única de verdade)
-    const consultorProfile = consultorProfiles.find(p => p.user_email === property.assigned_consultant);
-    
-    if (consultorProfile) {
+    // Prioridade 1: Buscar na entidade Agent pelo agent_id
+    if (property.agent_id) {
+      const agent = agents.find(a => a.id === property.agent_id || a.agent_id === property.agent_id);
+      if (agent) {
+        console.log('[PropertyDetails] Found agent by agent_id:', agent);
+        return {
+          email: agent.email,
+          full_name: agent.full_name,
+          display_name: agent.full_name,
+          phone: agent.phone,
+          whatsapp: agent.phone, // Usar phone como whatsapp se não houver campo separado
+          photo_url: agent.photo_url,
+          specialization: agent.specialization,
+          bio: agent.bio,
+          linkedin_url: agent.profile_url,
+          instagram_url: null
+        };
+      }
+    }
+
+    // Prioridade 2: Buscar no ConsultorProfile pelo assigned_consultant (email)
+    if (property.assigned_consultant) {
+      const consultorProfile = consultorProfiles.find(p => p.user_email === property.assigned_consultant);
+      
+      if (consultorProfile) {
+        console.log('[PropertyDetails] Found consultant profile:', consultorProfile);
+        return {
+          email: consultorProfile.user_email,
+          full_name: consultorProfile.display_name,
+          display_name: consultorProfile.display_name,
+          phone: consultorProfile.phone,
+          whatsapp: consultorProfile.whatsapp,
+          photo_url: consultorProfile.photo_url,
+          specialization: consultorProfile.specialization,
+          bio: consultorProfile.bio,
+          languages: consultorProfile.languages,
+          linkedin_url: consultorProfile.linkedin_url,
+          instagram_url: consultorProfile.instagram_url
+        };
+      }
+    }
+
+    // Prioridade 3: Campos diretos no Property (assigned_consultant_*)
+    if (property.assigned_consultant_name || property.assigned_consultant_email) {
+      console.log('[PropertyDetails] Using direct fields from property');
       return {
-        email: consultorProfile.user_email,
-        full_name: consultorProfile.display_name,
-        display_name: consultorProfile.display_name,
-        phone: consultorProfile.phone,
-        whatsapp: consultorProfile.whatsapp,
-        photo_url: consultorProfile.photo_url,
-        specialization: consultorProfile.specialization,
-        bio: consultorProfile.bio,
-        languages: consultorProfile.languages,
-        linkedin_url: consultorProfile.linkedin_url,
-        instagram_url: consultorProfile.instagram_url
+        email: property.assigned_consultant_email || property.assigned_consultant,
+        full_name: property.assigned_consultant_name,
+        display_name: property.assigned_consultant_name,
+        phone: property.assigned_consultant_phone,
+        whatsapp: property.assigned_consultant_phone,
+        photo_url: property.assigned_consultant_photo,
+        specialization: null,
+        bio: null
       };
     }
 
-    // Fallback: se não existe perfil público, não mostrar informação
+    console.log('[PropertyDetails] No consultant found');
     return null;
-  }, [property?.assigned_consultant, consultorProfiles]);
+  }, [property, agents, consultorProfiles]);
 
   const seoCanonicalUrl = React.useMemo(() => {
     if (property && typeof window !== 'undefined') {
