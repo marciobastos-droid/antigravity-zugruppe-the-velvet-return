@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import moment from "moment";
 import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
+import { toast } from "sonner";
 
 const STAGES = [
   { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", headerColor: "bg-gradient-to-r from-slate-100 to-slate-200", icon: Clock },
