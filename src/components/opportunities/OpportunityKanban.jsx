@@ -7,8 +7,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   User, Phone, Mail, Euro, Calendar, Building2,
   Star, AlertCircle, Clock, CheckCircle2, XCircle,
-  MoreHorizontal, Eye
+  MoreHorizontal, Eye, ExternalLink, MapPin
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -276,12 +278,36 @@ export default function OpportunityKanban({
                                   </div>
                                 )}
 
+                                {/* Main Property */}
+                                {opp.property_id && opp.property_title && (
+                                  <div className="mt-2 pt-2 border-t" onClick={(e) => e.stopPropagation()}>
+                                    <Link
+                                      to={`${createPageUrl("PropertyDetails")}?id=${opp.property_id}`}
+                                      className="flex items-start gap-2 p-2 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors group"
+                                    >
+                                      <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-xs font-medium text-blue-900 truncate group-hover:text-blue-700">
+                                          {opp.property_title}
+                                        </div>
+                                        {opp.property_address && (
+                                          <div className="text-xs text-blue-700 truncate flex items-center gap-1 mt-0.5">
+                                            <MapPin className="w-3 h-3" />
+                                            {opp.property_address}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <ExternalLink className="w-3 h-3 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                                    </Link>
+                                  </div>
+                                )}
+
                                 {/* Associated Properties */}
                                 {opp.associated_properties?.length > 0 && (
-                                  <div className="mt-2 pt-2 border-t">
-                                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                                  <div className={`${opp.property_id ? 'mt-1' : 'mt-2 pt-2 border-t'}`}>
+                                    <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
                                       <Building2 className="w-3 h-3" />
-                                      <span>{opp.associated_properties.length} imóvel(is)</span>
+                                      <span>+{opp.associated_properties.length} outro{opp.associated_properties.length !== 1 ? 's' : ''}</span>
                                     </div>
                                   </div>
                                 )}
