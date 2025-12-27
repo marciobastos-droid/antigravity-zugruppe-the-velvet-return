@@ -290,12 +290,6 @@ export default function PropertyDetails() {
     if (!property) return 'Zugruppe';
     
     const parts = [];
-    
-    // Tipologia + Tipo
-    if (property.bedrooms !== undefined && property.bedrooms !== null) {
-      parts.push(`T${property.bedrooms}`);
-    }
-    
     const typeMap = {
       apartment: 'Apartamento',
       house: 'Moradia',
@@ -306,6 +300,12 @@ export default function PropertyDetails() {
       warehouse: 'Armazém',
       office: 'Escritório'
     };
+    
+    // Tipologia + Tipo
+    if (property.bedrooms !== undefined && property.bedrooms !== null) {
+      parts.push(`T${property.bedrooms}`);
+    }
+    
     parts.push(typeMap[property.property_type] || property.property_type);
     
     // Localização
