@@ -144,50 +144,50 @@ export default function Layout({ children, currentPageName }) {
         <PWAInstaller />
         <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
-      <style>{`
-        :root {
-          --color-primary: #0f172a;
-          --color-accent: #d4af37;
-          --color-secondary: #1e293b;
-        }
+          <style>{`
+            :root {
+              --color-primary: #0f172a;
+              --color-accent: #d4af37;
+              --color-secondary: #1e293b;
+            }
 
-        /* Mobile Optimizations */
-        @media (max-width: 768px) {
-          body {
-            font-size: 16px; /* Prevent auto-zoom on iOS */
-            -webkit-text-size-adjust: 100%;
-          }
+            /* Mobile Optimizations */
+            @media (max-width: 768px) {
+              body {
+                font-size: 16px; /* Prevent auto-zoom on iOS */
+                -webkit-text-size-adjust: 100%;
+              }
 
-          /* Safe area for notch devices */
-          .safe-area-inset-top {
-            padding-top: env(safe-area-inset-top);
-          }
+              /* Safe area for notch devices */
+              .safe-area-inset-top {
+                padding-top: env(safe-area-inset-top);
+              }
 
-          /* Touch feedback */
-          .active\\:scale-98:active {
-            transform: scale(0.98);
-          }
+              /* Touch feedback */
+              .active\\:scale-98:active {
+                transform: scale(0.98);
+              }
 
-          /* Smooth scrolling */
-          * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-          }
+              /* Smooth scrolling */
+              * {
+                -webkit-tap-highlight-color: transparent;
+                -webkit-touch-callout: none;
+              }
 
-          /* Better touch targets */
-          button, a, input, select, textarea {
-            min-height: 44px;
-          }
+              /* Better touch targets */
+              button, a, input, select, textarea {
+                min-height: 44px;
+              }
 
-          /* Prevent text selection on buttons */
-          button {
-            -webkit-user-select: none;
-            user-select: none;
-          }
-        }
-      `}
+              /* Prevent text selection on buttons */
+              button {
+                -webkit-user-select: none;
+                user-select: none;
+              }
+            }
+          `}</style>
       
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-lg bg-white/95 safe-area-inset-top">
+          <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-lg bg-white/95 safe-area-inset-top">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex justify-between items-center h-16 sm:h-16 md:h-20">
                     <Link to={createPageUrl("Home")} className="flex items-center gap-2 md:gap-3 group flex-shrink-0">
@@ -350,11 +350,11 @@ export default function Layout({ children, currentPageName }) {
             </nav>
           </div>
         )}
-      </header>
+          </header>
 
-      <main className="pb-8">{children}</main>
-      </div>
+          <main className="pb-8">{children}</main>
+        </div>
       </LocalizationProvider>
-      </PWAProvider>
-      );
-      }
+    </PWAProvider>
+  );
+}
