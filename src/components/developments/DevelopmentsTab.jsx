@@ -321,24 +321,26 @@ export default function DevelopmentsTab() {
           )}
           <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) resetForm(); setDialogOpen(open); }}>
             <DialogTrigger asChild>
-              <Button className="bg-slate-900 hover:bg-slate-800">
+              <Button className="bg-slate-900 hover:bg-slate-800 min-h-[44px] px-4">
                 <Plus className="w-4 h-4 mr-2" />
-                Novo Empreendimento
+                <span className="hidden sm:inline">Novo Empreendimento</span>
+                <span className="sm:hidden">Novo</span>
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto sm:rounded-2xl rounded-t-2xl bottom-0 sm:bottom-auto translate-y-0 sm:translate-y-[-50%]">
             <DialogHeader>
               <DialogTitle>{editingDev ? "Editar Empreendimento" : "Novo Empreendimento"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+              <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Nome do Empreendimento *</Label>
+                  <Label className="text-base">Nome do Empreendimento *</Label>
                   <Input
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Residências do Parque"
+                    className="h-12 text-base"
                   />
                 </div>
                 <div>
@@ -657,12 +659,12 @@ export default function DevelopmentsTab() {
                 />
               </div>
 
-              <div className="flex gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
+              <div className="flex gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={resetForm} className="flex-1 h-12 text-base">
                   Cancelar
                 </Button>
-                <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800">
-                  {editingDev ? "Atualizar" : "Criar Empreendimento"}
+                <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800 h-12 text-base">
+                  {editingDev ? "Atualizar" : "Criar"}
                 </Button>
               </div>
             </form>
@@ -727,7 +729,7 @@ export default function DevelopmentsTab() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredDevelopments.map((dev) => {
             const devProperties = getPropertiesForDevelopment(dev.id);
 
@@ -831,35 +833,32 @@ export default function DevelopmentsTab() {
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="flex-1"
+                      className="flex-1 h-11 active:bg-slate-100"
                       onClick={() => setSelectedDev(dev)}
                     >
-                      <Eye className="w-4 h-4 mr-1" />
+                      <Eye className="w-4 h-4 mr-2" />
                       Ver
                     </Button>
                     {dev.source === 'entity' && (
                       <>
                         <Button 
                           variant="outline" 
-                          size="sm" 
                           onClick={() => handleEdit(dev)}
-                          className="text-blue-600 hover:bg-blue-50"
+                          className="text-blue-600 hover:bg-blue-50 h-11 px-3 active:bg-blue-100"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-5 h-5" />
                         </Button>
                         <Button 
                           variant="outline" 
-                          size="sm" 
                           onClick={() => handleDelete(dev.id, dev.name)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 h-11 px-3 active:bg-red-100"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </Button>
                       </>
                     )}
                     {dev.source === 'property' && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs h-11 px-3 flex items-center">
                         Via Imóvel
                       </Badge>
                     )}

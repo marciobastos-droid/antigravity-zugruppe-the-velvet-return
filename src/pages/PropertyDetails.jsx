@@ -544,15 +544,15 @@ export default function PropertyDetails() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <Link to={createPageUrl("Website")}>
-            <Button variant="outline">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-0 sm:justify-between mb-6">
+          <Link to={createPageUrl("Website")} className="order-1 sm:order-none">
+            <Button variant="outline" className="w-full sm:w-auto h-11 active:bg-slate-100">
               <ArrowLeft className="w-4 h-4 mr-2" />
               {t('common.back')}
             </Button>
           </Link>
-          
-          <div className="flex gap-2">
+
+          <div className="flex flex-wrap gap-2 order-2 sm:order-none">
             {isOwner && (
               <Button
                 variant="outline"
@@ -580,19 +580,19 @@ export default function PropertyDetails() {
                 }
               }}
               disabled={!isGuest && saveMutation.isPending}
-              className={(isSaved || isFavorite(propertyId)) ? "border-red-500 text-red-600" : ""}
+              className={`h-11 active:scale-95 ${(isSaved || isFavorite(propertyId)) ? "border-red-500 text-red-600" : ""}`}
             >
-              <Heart className={`w-4 h-4 mr-2 ${(isSaved || isFavorite(propertyId)) ? "fill-current" : ""}`} />
-              {(isSaved || isFavorite(propertyId)) ? t('contact.savedProperty') : t('contact.saveProperty')}
+              <Heart className={`w-4 h-4 sm:mr-2 ${(isSaved || isFavorite(propertyId)) ? "fill-current" : ""}`} />
+              <span className="hidden sm:inline">{(isSaved || isFavorite(propertyId)) ? t('contact.savedProperty') : t('contact.saveProperty')}</span>
             </Button>
             
             <Button
               variant="outline"
               onClick={handleWhatsAppShare}
-              className="bg-green-500 hover:bg-green-600 text-white border-0"
+              className="bg-green-500 hover:bg-green-600 text-white border-0 h-11 active:bg-green-700"
             >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {t('contact.shareProperty')}
+              <MessageCircle className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{t('contact.shareProperty')}</span>
             </Button>
 
             {isAuthenticated && (
@@ -610,7 +610,7 @@ export default function PropertyDetails() {
 
         <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content - Left Column */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-2 lg:order-1">
             {/* Image Gallery */}
             <div className="bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-slate-200">
               <div 
@@ -748,13 +748,13 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Key Features Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 py-4 sm:py-6 border-b border-slate-200">
-                  <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
-                      <Bed className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+                <div className="grid grid-cols-2 gap-3 py-4 sm:py-6 border-b border-slate-200">
+                  <div className="text-center p-4 sm:p-4 bg-slate-50 rounded-xl min-h-[100px] flex flex-col justify-center">
+                    <div className="w-10 h-10 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-2 shadow-sm">
+                      <Bed className="w-5 h-5 sm:w-5 sm:h-5 text-slate-700" />
                     </div>
-                    <div className="text-xl sm:text-2xl font-bold text-slate-900">{property.bedrooms || 0}</div>
-                    <div className="text-xs sm:text-sm text-slate-600">{t('property.details.bedrooms')}</div>
+                    <div className="text-2xl sm:text-2xl font-bold text-slate-900">{property.bedrooms || 0}</div>
+                    <div className="text-sm sm:text-sm text-slate-600">{t('property.details.bedrooms')}</div>
                   </div>
                   <div className="text-center p-3 sm:p-4 bg-slate-50 rounded-xl">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white rounded-lg flex items-center justify-center mx-auto mb-1.5 sm:mb-2 shadow-sm">
@@ -985,7 +985,7 @@ export default function PropertyDetails() {
           </div>
 
           {/* Sidebar - Right Column */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:space-y-6 order-1 lg:order-2">
             {/* Agent Card */}
             <Card className="lg:sticky lg:top-24">
               <CardHeader className="pb-4">

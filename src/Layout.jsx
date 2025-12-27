@@ -150,16 +150,46 @@ export default function Layout({ children, currentPageName }) {
           --color-accent: #d4af37;
           --color-secondary: #1e293b;
         }
+
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
           body {
-            font-size: 14px;
+            font-size: 16px; /* Prevent auto-zoom on iOS */
+            -webkit-text-size-adjust: 100%;
+          }
+
+          /* Safe area for notch devices */
+          .safe-area-inset-top {
+            padding-top: env(safe-area-inset-top);
+          }
+
+          /* Touch feedback */
+          .active\\:scale-98:active {
+            transform: scale(0.98);
+          }
+
+          /* Smooth scrolling */
+          * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+          }
+
+          /* Better touch targets */
+          button, a, input, select, textarea {
+            min-height: 44px;
+          }
+
+          /* Prevent text selection on buttons */
+          button {
+            -webkit-user-select: none;
+            user-select: none;
           }
         }
-      `}</style>
+      `}
       
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-lg bg-white/95">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-lg bg-white/95 safe-area-inset-top">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex justify-between items-center h-14 sm:h-16 md:h-20">
+          <div className="flex justify-between items-center h-16 sm:h-16 md:h-20">
                     <Link to={createPageUrl("Home")} className="flex items-center gap-2 md:gap-3 group flex-shrink-0">
                       <img 
                         src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
@@ -246,36 +276,36 @@ export default function Layout({ children, currentPageName }) {
 
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                className="md:hidden p-2.5 rounded-lg hover:bg-slate-100 transition-colors active:bg-slate-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
               >
-                {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white">
-            <nav className="max-w-7xl mx-auto px-3 py-2 space-y-0.5">
+          <div className="md:hidden border-t border-slate-200 bg-white shadow-lg">
+            <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1 max-h-[calc(100vh-80px)] overflow-y-auto">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                  className={`flex items-center gap-4 px-4 py-4 rounded-xl font-medium text-base transition-all duration-200 min-h-[56px] active:scale-98 ${
                     location.pathname === item.path
-                      ? "bg-slate-900 text-white"
-                      : "text-slate-700 hover:bg-slate-100"
+                      ? "bg-slate-900 text-white shadow-md"
+                      : "text-slate-700 hover:bg-slate-100 active:bg-slate-200"
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
-                  {item.name}
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="flex-1">{item.name}</span>
                 </Link>
               ))}
               
               {user && (
-                <div className="px-3 py-2.5 border-t border-slate-200 mt-1.5 pt-3">
-                  <div className="flex items-center justify-between">
+                <div className="px-4 py-4 border-t border-slate-200 mt-2 pt-4 bg-slate-50 rounded-xl">
+                  <div className="flex items-center justify-between min-h-[56px]">
                     <div className="flex items-center gap-2.5">
                       {user.photo_url ? (
                         <img 
@@ -301,7 +331,7 @@ export default function Layout({ children, currentPageName }) {
                     </div>
                     <button
                       onClick={() => typeof base44 !== 'undefined' && base44.auth.logout()}
-                      className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[44px] active:bg-red-100"
                     >
                       Sair
                     </button>
@@ -312,7 +342,7 @@ export default function Layout({ children, currentPageName }) {
               {!user && (
                 <button
                   onClick={() => typeof base44 !== 'undefined' && base44.auth.redirectToLogin()}
-                  className="w-full px-3 py-2.5 bg-slate-900 text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-colors duration-200"
+                  className="w-full px-4 py-4 bg-slate-900 text-white rounded-xl font-medium text-base hover:bg-slate-800 transition-colors duration-200 min-h-[56px] active:bg-slate-700"
                 >
                   Entrar
                 </button>
