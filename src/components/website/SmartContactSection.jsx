@@ -9,8 +9,8 @@ import { motion } from "framer-motion";
  * Usa DynamicContactForm com tracking integrado
  */
 export default function SmartContactSection({
-  title = "Entre em Contacto",
-  subtitle = "Estamos aqui para o ajudar. Envie-nos a sua mensagem.",
+  title = "Fale Connosco",
+  subtitle = "Estamos disponíveis para esclarecer as suas dúvidas",
   variant = "default", // "default", "minimal", "featured"
   showContactInfo = true,
   className = ""
