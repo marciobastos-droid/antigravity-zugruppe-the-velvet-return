@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2 } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import ImportProperties from "../components/tools/ImportProperties";
@@ -72,6 +72,7 @@ import ExcelImportExport from "../components/tools/ExcelImportExport";
 import CRMIntegrations from "../components/tools/CRMIntegrations";
 import OCRProcessor from "../components/tools/OCRProcessor";
 import SEOAnalytics from "../components/seo/SEOAnalytics";
+import DataExporter from "../components/tools/DataExporter";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
@@ -171,7 +172,7 @@ export default function Tools() {
       { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
       { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
       { tools: ['leadManagement', 'leadNurturing'] },
-      { tools: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 'exportProperties', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 'externalSync', 'casafariSync'] },
+      { tools: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 'exportProperties', 'dataExporter', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 'externalSync', 'casafariSync'] },
       { tools: ['bulkScore', 'crmSync', 'duplicateChecker', 'duplicateClients', 'inconsistencyChecker', 'orphanCleaner', 'linkContacts', 'imageValidator', 'emailHub', 'gmailSync', 'gmailLinker', 'video', 'description', 'listingOptimizer', 'calendar'] },
       { tools: ['aiMatching', 'autoMatching', 'autoMatchingDashboard'] },
       { tools: ['marketIntelligence', 'propertyPerformance', 'pricing', 'creditSimulator', 'deedCosts'] },
@@ -213,6 +214,7 @@ export default function Tools() {
     importOpportunities: { description: "Importar oportunidades em massa" },
     importInvoices: { description: "Importar faturas do sistema" },
     exportProperties: { description: "Exportar imóveis em múltiplos formatos" },
+    dataExporter: { description: "Exportar dados para CSV/Excel" },
     reportsExporter: { description: "Gerar relatórios personalizados" },
     jsonProcessor: { description: "Processar JSON com IA para extração de dados" },
     propertyFeeds: { description: "Gerir feeds XML de imóveis" },
@@ -502,7 +504,7 @@ export default function Tools() {
                         </div>
                       </div>
                       <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                        11 ferramentas
+                        12 ferramentas
                       </Badge>
                     </div>
 
@@ -513,6 +515,7 @@ export default function Tools() {
                       <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" gridMode />
                       <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" gridMode />
                       <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" gridMode />
+                      <ToolButton toolId="dataExporter" icon={FileDown} label="Exportar CSV/Excel" gridMode />
                       <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" gridMode />
                       <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON" gridMode />
                       <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" gridMode />
@@ -793,6 +796,7 @@ export default function Tools() {
         {activeTab === "excelImport" && <ExcelImportExport />}
         {activeTab === "crmIntegrations" && <CRMIntegrations />}
         {activeTab === "seoAnalytics" && <SEOAnalytics />}
+        {activeTab === "dataExporter" && <DataExporter />}
         {activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
