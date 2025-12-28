@@ -23,6 +23,8 @@ export default function Layout({ children, currentPageName }) {
   const [userPermissions, setUserPermissions] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+  // Check if minimal layout BEFORE any hooks
+  const isMinimalLayout = MINIMAL_LAYOUT_PAGES.includes(currentPageName);
 
   React.useEffect(() => {
     if (typeof base44 !== 'undefined') {
@@ -36,19 +38,6 @@ export default function Layout({ children, currentPageName }) {
       setUserPermissions(user.permissions || null);
     }
   }, [user]);
-
-  // Render minimal layout for Home page
-  if (MINIMAL_LAYOUT_PAGES.includes(currentPageName)) {
-    return (
-      <PWAProvider>
-        <LocalizationProvider>
-          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-          <PWAInstaller />
-          {children}
-        </LocalizationProvider>
-      </PWAProvider>
-    );
-  }
 
   // Memoize calculated values to prevent infinite loops
   const { userTypeNormalized, isAdmin, isGestor, isConsultant, userType } = React.useMemo(() => {
