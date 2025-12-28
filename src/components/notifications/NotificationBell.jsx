@@ -32,7 +32,9 @@ export default function NotificationBell({ user }) {
   });
 
   // Fetch new leads (last 24h)
-  const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  const isAdmin = React.useMemo(() => {
+    return user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
+  }, [user]);
   
   const { data: newLeads = [] } = useQuery({
     queryKey: ['newLeads', user?.email],
