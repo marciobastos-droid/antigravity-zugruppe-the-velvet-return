@@ -2,17 +2,11 @@ import AddListing from './pages/AddListing';
 import AgentManagement from './pages/AgentManagement';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
-import Contracts from './pages/Contracts';
 import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
-import DocumentsHub from './pages/DocumentsHub';
-import Favorites from './pages/Favorites';
 import Franchising from './pages/Franchising';
-import GmailCallback from './pages/GmailCallback';
 import Home from './pages/Home';
-import InvestorSection from './pages/InvestorSection';
-import LandingPage from './pages/LandingPage';
 import ManageData from './pages/ManageData';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
@@ -20,7 +14,6 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
 import Subscriptions from './pages/Subscriptions';
-import Support from './pages/Support';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
@@ -37,17 +30,11 @@ export const PAGES = {
     "AgentManagement": AgentManagement,
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
-    "Contracts": Contracts,
     "CookiePolicy": CookiePolicy,
     "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
-    "DocumentsHub": DocumentsHub,
-    "Favorites": Favorites,
     "Franchising": Franchising,
-    "GmailCallback": GmailCallback,
     "Home": Home,
-    "InvestorSection": InvestorSection,
-    "LandingPage": LandingPage,
     "ManageData": ManageData,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
@@ -55,7 +42,6 @@ export const PAGES = {
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
     "Subscriptions": Subscriptions,
-    "Support": Support,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
     "Tools": Tools,
