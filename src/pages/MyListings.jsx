@@ -1647,6 +1647,10 @@ export default function MyListings() {
                   statusColors={statusColors}
                   setSelectedPropertyForAI={setSelectedPropertyForAI}
                   setAiEnhancerOpen={setAiEnhancerOpen}
+                  setSelectedPropertyForPublication={setSelectedPropertyForPublication}
+                  setPublicationHubOpen={setPublicationHubOpen}
+                  setSelectedPropertyForPlan={setSelectedPropertyForPlan}
+                  setMarketingPlanOpen={setMarketingPlanOpen}
                 />
               ))}
             </div>
