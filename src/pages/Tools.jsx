@@ -632,25 +632,44 @@ export default function Tools() {
           >
             <Card className="border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
+                <button
+                  onClick={() => setExpandedGroups(prev => ({ ...prev, leads: !prev.leads }))}
+                  className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-emerald-100 rounded-lg">
                       <Target className="w-6 h-6 text-emerald-600" />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <h3 className="font-bold text-emerald-900 text-lg">Gestão de Leads</h3>
                       <p className="text-sm text-emerald-600">Qualificar e nutrir leads</p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                    2 ferramentas
-                  </Badge>
-                </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+                      2 ferramentas
+                    </Badge>
+                    <motion.div
+                      animate={{ rotate: expandedGroups.leads ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Eye className="w-5 h-5 text-emerald-600" />
+                    </motion.div>
+                  </div>
+                </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" gridMode />
-                  <ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" gridMode />
-                </div>
+                {expandedGroups.leads && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                  >
+                    <div ref={el => toolRefs.current['leadManagement'] = el}><ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" gridMode /></div>
+                    <div ref={el => toolRefs.current['leadNurturing'] = el}><ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" gridMode /></div>
+                  </motion.div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -663,35 +682,54 @@ export default function Tools() {
               >
                 <Card className="border-blue-300 bg-gradient-to-r from-blue-50 to-cyan-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, import: !prev.import }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-blue-100 rounded-lg">
                           <Download className="w-6 h-6 text-blue-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-blue-900 text-lg">Importações e Exportações</h3>
                           <p className="text-sm text-blue-600">Gerir dados de entrada e saída</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                        12 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          12 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.import ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-blue-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode />
-                      <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode />
-                      <ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" gridMode />
-                      <ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" gridMode />
-                      <ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" gridMode />
-                      <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" gridMode />
-                      <ToolButton toolId="dataExporter" icon={FileDown} label="Exportar CSV/Excel" gridMode />
-                      <ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" gridMode />
-                      <ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON" gridMode />
-                      <ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" gridMode />
-                      <ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" gridMode />
-                      <ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" gridMode />
-                    </div>
+                    {expandedGroups.import && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['importProperties'] = el}><ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode /></div>
+                        <div ref={el => toolRefs.current['importLeads'] = el}><ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode /></div>
+                        <div ref={el => toolRefs.current['importContacts'] = el}><ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" gridMode /></div>
+                        <div ref={el => toolRefs.current['importOpportunities'] = el}><ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" gridMode /></div>
+                        <div ref={el => toolRefs.current['importInvoices'] = el}><ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" gridMode /></div>
+                        <div ref={el => toolRefs.current['exportProperties'] = el}><ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" gridMode /></div>
+                        <div ref={el => toolRefs.current['dataExporter'] = el}><ToolButton toolId="dataExporter" icon={FileDown} label="Exportar CSV/Excel" gridMode /></div>
+                        <div ref={el => toolRefs.current['reportsExporter'] = el}><ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" gridMode /></div>
+                        <div ref={el => toolRefs.current['jsonProcessor'] = el}><ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON" gridMode /></div>
+                        <div ref={el => toolRefs.current['propertyFeeds'] = el}><ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" gridMode /></div>
+                        <div ref={el => toolRefs.current['externalSync'] = el}><ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" gridMode /></div>
+                        <div ref={el => toolRefs.current['casafariSync'] = el}><ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -704,38 +742,57 @@ export default function Tools() {
               >
                 <Card className="border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, utilities: !prev.utilities }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-100 rounded-lg">
                           <Sparkles className="w-6 h-6 text-green-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-green-900 text-lg">Utilitários</h3>
                           <p className="text-sm text-green-600">Ferramentas auxiliares e otimização</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        14 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          14 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.utilities ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-green-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" gridMode />
-                      <ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" gridMode />
-                      <ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" gridMode />
-                      <ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" gridMode />
-                      <ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" gridMode />
-                      <ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" gridMode />
-                      <ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" gridMode />
-                      <ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" gridMode />
-                      <ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" gridMode />
-                      <ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" gridMode />
-                      <ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" gridMode />
-                      <ToolButton toolId="video" icon={Video} label="Criador de Vídeos" gridMode />
-                      <ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" gridMode />
-                      <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" gridMode />
-                      <ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" gridMode />
-                    </div>
+                    {expandedGroups.utilities && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['bulkScore'] = el}><ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" gridMode /></div>
+                        <div ref={el => toolRefs.current['crmSync'] = el}><ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" gridMode /></div>
+                        <div ref={el => toolRefs.current['duplicateChecker'] = el}><ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" gridMode /></div>
+                        <div ref={el => toolRefs.current['duplicateClients'] = el}><ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" gridMode /></div>
+                        <div ref={el => toolRefs.current['inconsistencyChecker'] = el}><ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" gridMode /></div>
+                        <div ref={el => toolRefs.current['orphanCleaner'] = el}><ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" gridMode /></div>
+                        <div ref={el => toolRefs.current['linkContacts'] = el}><ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" gridMode /></div>
+                        <div ref={el => toolRefs.current['imageValidator'] = el}><ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" gridMode /></div>
+                        <div ref={el => toolRefs.current['emailHub'] = el}><ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" gridMode /></div>
+                        <div ref={el => toolRefs.current['gmailSync'] = el}><ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" gridMode /></div>
+                        <div ref={el => toolRefs.current['gmailLinker'] = el}><ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" gridMode /></div>
+                        <div ref={el => toolRefs.current['video'] = el}><ToolButton toolId="video" icon={Video} label="Criador de Vídeos" gridMode /></div>
+                        <div ref={el => toolRefs.current['description'] = el}><ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" gridMode /></div>
+                        <div ref={el => toolRefs.current['listingOptimizer'] = el}><ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" gridMode /></div>
+                        <div ref={el => toolRefs.current['calendar'] = el}><ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -748,26 +805,45 @@ export default function Tools() {
               >
                 <Card className="border-indigo-300 bg-gradient-to-r from-indigo-50 to-purple-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, matching: !prev.matching }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-100 rounded-lg">
                           <Brain className="w-6 h-6 text-indigo-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-indigo-900 text-lg">Matching com IA</h3>
                           <p className="text-sm text-indigo-600">Conectar clientes a imóveis ideais</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
-                        3 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-indigo-100 text-indigo-700">
+                          3 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.matching ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-indigo-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" gridMode />
-                      <ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" gridMode />
-                      <ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" gridMode />
-                    </div>
+                    {expandedGroups.matching && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['aiMatching'] = el}><ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" gridMode /></div>
+                        <div ref={el => toolRefs.current['autoMatching'] = el}><ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" gridMode /></div>
+                        <div ref={el => toolRefs.current['autoMatchingDashboard'] = el}><ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -780,28 +856,47 @@ export default function Tools() {
               >
                 <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, market: !prev.market }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-amber-100 rounded-lg">
                           <TrendingUp className="w-6 h-6 text-amber-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-amber-900 text-lg">Mercado</h3>
                           <p className="text-sm text-amber-600">Análise e inteligência de mercado</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                        5 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                          5 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.market ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-amber-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" gridMode />
-                      <ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" gridMode />
-                      <ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" gridMode />
-                      <ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" gridMode />
-                      <ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" gridMode />
-                    </div>
+                    {expandedGroups.market && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['marketIntelligence'] = el}><ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" gridMode /></div>
+                        <div ref={el => toolRefs.current['propertyPerformance'] = el}><ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" gridMode /></div>
+                        <div ref={el => toolRefs.current['pricing'] = el}><ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" gridMode /></div>
+                        <div ref={el => toolRefs.current['creditSimulator'] = el}><ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" gridMode /></div>
+                        <div ref={el => toolRefs.current['deedCosts'] = el}><ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -814,25 +909,44 @@ export default function Tools() {
               >
                 <Card className="border-green-400 bg-gradient-to-r from-green-50 to-emerald-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, finance: !prev.finance }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-100 rounded-lg">
                           <DollarSign className="w-6 h-6 text-green-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-green-900 text-lg">Finanças</h3>
                           <p className="text-sm text-green-600">Gerir comissões e faturação</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        2 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          2 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.finance ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-green-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" gridMode />
-                      <ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" gridMode />
-                    </div>
+                    {expandedGroups.finance && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['commissions'] = el}><ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" gridMode /></div>
+                        <div ref={el => toolRefs.current['invoices'] = el}><ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -845,25 +959,44 @@ export default function Tools() {
               >
                 <Card className="border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, investors: !prev.investors }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-amber-100 rounded-lg">
                           <Lock className="w-6 h-6 text-amber-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-amber-900 text-lg">Secção de Investidores</h3>
                           <p className="text-sm text-amber-600">Portal exclusivo para investidores</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                        2 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+                          2 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.investors ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-amber-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" gridMode />
-                      <ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" gridMode />
-                    </div>
+                    {expandedGroups.investors && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['investorKeys'] = el}><ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" gridMode /></div>
+                        <div ref={el => toolRefs.current['investorProperties'] = el}><ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -876,31 +1009,50 @@ export default function Tools() {
               >
                 <Card className="border-slate-300 bg-gradient-to-r from-slate-50 to-gray-50">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, settings: !prev.settings }))}
+                      className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-slate-100 rounded-lg">
                           <Folder className="w-6 h-6 text-slate-600" />
                         </div>
-                        <div>
+                        <div className="text-left">
                           <h3 className="font-bold text-slate-900 text-lg">Definições e Conteúdos</h3>
                           <p className="text-sm text-slate-600">Configurações e gestão documental</p>
                         </div>
                       </div>
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                        8 ferramentas
-                      </Badge>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className="bg-slate-100 text-slate-700">
+                          8 ferramentas
+                        </Badge>
+                        <motion.div
+                          animate={{ rotate: expandedGroups.settings ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Eye className="w-5 h-5 text-slate-600" />
+                        </motion.div>
+                      </div>
+                    </button>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      <ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" gridMode />
-                      <ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" gridMode />
-                      <ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" gridMode />
-                      <ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" gridMode />
-                      <ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" gridMode />
-                      <ToolButton toolId="tagManager" icon={Target} label="Etiquetas" gridMode />
-                      <ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" gridMode />
-                      <ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" gridMode />
-                    </div>
+                    {expandedGroups.settings && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                      >
+                        <div ref={el => toolRefs.current['contractAutomation'] = el}><ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" gridMode /></div>
+                        <div ref={el => toolRefs.current['documents'] = el}><ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" gridMode /></div>
+                        <div ref={el => toolRefs.current['notificationsDashboard'] = el}><ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" gridMode /></div>
+                        <div ref={el => toolRefs.current['smtpConfig'] = el}><ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" gridMode /></div>
+                        <div ref={el => toolRefs.current['devNotes'] = el}><ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" gridMode /></div>
+                        <div ref={el => toolRefs.current['tagManager'] = el}><ToolButton toolId="tagManager" icon={Target} label="Etiquetas" gridMode /></div>
+                        <div ref={el => toolRefs.current['backupManager'] = el}><ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" gridMode /></div>
+                        <div ref={el => toolRefs.current['auditLog'] = el}><ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" gridMode /></div>
+                      </motion.div>
+                    )}
                   </CardContent>
                 </Card>
               </motion.div>
