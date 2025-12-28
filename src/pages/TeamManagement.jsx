@@ -9,7 +9,6 @@ import PermissionsManager from "../components/team/PermissionsManager";
 import UserManagementTab from "../components/team/UserManagementTab";
 import NotificationPreferences from "../components/notifications/NotificationPreferences";
 import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
-import AgentManagementTab from "../components/team/AgentManagementTab";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -52,12 +51,6 @@ export default function TeamManagement() {
               </TabsTrigger>
             )}
             {isAdmin && (
-              <TabsTrigger value="agents" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Agentes
-              </TabsTrigger>
-            )}
-            {isAdmin && (
               <TabsTrigger value="permissions" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 Permissões
@@ -86,12 +79,6 @@ export default function TeamManagement() {
           {isAdmin && (
             <TabsContent value="users">
               <UserManagementTab currentUser={user} />
-            </TabsContent>
-          )}
-
-          {isAdmin && (
-            <TabsContent value="agents">
-              <AgentManagementTab />
             </TabsContent>
           )}
 
