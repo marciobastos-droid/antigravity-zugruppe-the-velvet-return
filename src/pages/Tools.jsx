@@ -169,6 +169,7 @@ export default function Tools() {
   const allToolIds = React.useMemo(() => {
     const toolIds = [];
     const groups = [
+      { tools: ['errorLogs'] }, // System tools
       { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
       { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
       { tools: ['leadManagement', 'leadNurturing'] },
@@ -190,6 +191,7 @@ export default function Tools() {
 
   // Tool metadata with descriptions for tooltips
   const TOOL_METADATA = {
+    errorLogs: { description: "Visualizar e analisar logs de erro da aplicação" },
     marketingHub: { description: "Central unificada para gerir todas as campanhas de marketing" },
     marketingCampaigns: { description: "Criar e monitorizar campanhas de marketing digital" },
     socialMedia: { description: "Gerar conteúdo para redes sociais automaticamente" },
@@ -396,6 +398,38 @@ export default function Tools() {
         </div>
 
         <div className="space-y-6 mb-6">
+
+          {/* System & Monitoring Group - Admin Only */}
+          {isAdmin && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-slate-400 bg-gradient-to-r from-slate-100 to-gray-100">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-slate-200 rounded-lg">
+                        <Bug className="w-6 h-6 text-slate-700" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-lg">Sistema & Monitorização</h3>
+                        <p className="text-sm text-slate-600">Logs e análise de erros</p>
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                      1 ferramenta
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <ToolButton toolId="errorLogs" icon={Bug} label="Logs de Erro" gridMode />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           {/* Marketing Digital Group */}
           <motion.div
