@@ -61,16 +61,16 @@ export default function Layout({ children, currentPageName }) {
     if (user) {
       console.log('[Layout Debug]', {
         email: user.email,
-        userType,
-        userTypeNormalized,
+        userType: user?.user_type?.toLowerCase() || user?.role || 'user',
+        userTypeNormalized: user?.user_type?.toLowerCase() || '',
         role: user.role,
-        isAdmin,
-        isGestor,
-        isConsultant,
+        isAdmin: user && (user.role === 'admin' || user?.user_type?.toLowerCase() === 'admin' || user?.user_type?.toLowerCase() === 'gestor'),
+        isGestor: user && user?.user_type?.toLowerCase() === 'gestor',
+        isConsultant: user && (user?.user_type?.toLowerCase() === 'consultant' || user?.user_type?.toLowerCase() === 'agente'),
         rawUserType: user.user_type
       });
     }
-  }, [user, userType]);
+  }, [user]);
 
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
   // pagePermKey é usado para verificar permissões granulares
