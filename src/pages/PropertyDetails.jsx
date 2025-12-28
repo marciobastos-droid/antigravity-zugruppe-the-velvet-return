@@ -123,15 +123,7 @@ export default function PropertyDetails() {
     ...QUERY_CONFIG.user
   });
 
-  const { data: savedProperties = [] } = useQuery({
-    queryKey: ['savedProperties', user?.email],
-    queryFn: async () => {
-      if (!user) return [];
-      const all = await base44.entities.SavedProperty.list();
-      return all.filter(sp => sp.user_email === user.email);
-    },
-    enabled: !!user
-  });
+
 
   const { data: allProperties = [] } = useQuery({
     queryKey: ['properties'],
@@ -210,29 +202,7 @@ export default function PropertyDetails() {
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const saved = savedProperties.find(sp => sp.property_id === propertyId);
-      if (saved) {
-        await base44.entities.SavedProperty.delete(saved.id);
-      } else {
-        await base44.entities.SavedProperty.create({
-          property_id: propertyId,
-          property_title: property?.title || '',
-          property_image: property?.images?.[0] || '',
-          user_email: user?.email || ''
-        });
-        if (user?.email) {
-          trackAction('shortlisted', { user_email: user.email });
-        }
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['savedProperties'] });
-      const saved = savedProperties.find(sp => sp.property_id === propertyId);
-      toast.success(saved ? "Imóvel removido dos guardados" : "Imóvel guardado com sucesso!");
-    },
-  });
+
 
   // ALL MEMOIZED VALUES MUST BE BEFORE CONDITIONAL RETURNS
   const images = React.useMemo(() => {
