@@ -51,7 +51,11 @@ const PropertyCard = memo(function PropertyCard({
   statusLabels,
   statusColors,
   setSelectedPropertyForAI,
-  setAiEnhancerOpen
+  setAiEnhancerOpen,
+  setSelectedPropertyForPublication,
+  setPublicationHubOpen,
+  setSelectedPropertyForPlan,
+  setMarketingPlanOpen
 }) {
   const handleSelect = useCallback(() => {
     onToggleSelect(property.id);
