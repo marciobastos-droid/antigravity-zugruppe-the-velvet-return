@@ -39,17 +39,12 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleApiError } from "../components/errors/apiErrorHandler";
 import ErrorBoundary from "../components/errors/ErrorBoundary";
-import { Settings } from "lucide-react";
-import LandingPageBuilder from "../components/website/LandingPageBuilder";
-import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
-import SEOManager from "../components/website/SEOManager";
 import VisitorTracker from "../components/tracking/VisitorTracker";
 import SmartContactSection from "../components/website/SmartContactSection";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
 
 export default function Website() {
-  const [showWebsiteTools, setShowWebsiteTools] = React.useState(false);
   const { t, locale } = useLocalization();
   
   const { data: user } = useQuery({
@@ -543,10 +538,10 @@ export default function Website() {
     <ErrorBoundary name="Website Page">
       <HelmetProvider>
         <div className="min-h-screen bg-slate-50">
-        {/* Visitor Tracking */}
-        <VisitorTracker pageType="website" pageTitle="ZuGruppe - Browse Properties" />
-        
-        <SEOHead
+          {/* Visitor Tracking */}
+          <VisitorTracker pageType="website" pageTitle="ZuGruppe - Browse Properties" />
+
+          <SEOHead
           title={dynamicSEO.title}
           description={dynamicSEO.description}
           keywords={dynamicSEO.keywords}
@@ -573,52 +568,9 @@ export default function Website() {
             "email": "info@zuconnect.pt"
           }}
           alternateLanguages={alternateLanguages}
-        />
-      {/* Admin Tools - Floating Button */}
-      {isAdmin && (
-        <div className="fixed bottom-6 left-6 z-50">
-          <Button
-            onClick={() => setShowWebsiteTools(!showWebsiteTools)}
-            className="w-14 h-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
-          >
-            <Settings className="w-6 h-6" />
-          </Button>
-        </div>
-      )}
+          />
 
-      {/* Website Tools Panel */}
-      {showWebsiteTools && isAdmin && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-slate-200 p-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-900">Ferramentas do Website</h2>
-              <Button variant="ghost" onClick={() => setShowWebsiteTools(false)}>
-                Fechar
-              </Button>
-            </div>
-            <div className="p-6">
-              <Tabs defaultValue="landing" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="landing">Landing Pages</TabsTrigger>
-                  <TabsTrigger value="forms">Formulários Dinâmicos</TabsTrigger>
-                  <TabsTrigger value="seo">Gestor de SEO</TabsTrigger>
-                </TabsList>
-                <TabsContent value="landing" className="mt-6">
-                  <LandingPageBuilder />
-                </TabsContent>
-                <TabsContent value="forms" className="mt-6">
-                  <DynamicFormBuilder />
-                </TabsContent>
-                <TabsContent value="seo" className="mt-6">
-                  <SEOManager />
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
+          {/* Hero Section */}
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 
           ? "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#d22630]"

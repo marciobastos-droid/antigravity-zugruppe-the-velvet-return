@@ -74,6 +74,9 @@ import OCRProcessor from "../components/tools/OCRProcessor";
 import SEOAnalytics from "../components/seo/SEOAnalytics";
 import DataExporter from "../components/tools/DataExporter";
 import ErrorLogsAdmin from "../components/admin/ErrorLogsAdmin";
+import LandingPageBuilder from "../components/website/LandingPageBuilder";
+import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
+import SEOManager from "../components/website/SEOManager";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
@@ -171,7 +174,7 @@ export default function Tools() {
     const toolIds = [];
     const groups = [
       { tools: ['errorLogs'] }, // System tools
-      { tools: ['marketingHub', 'marketingCampaigns', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
+      { tools: ['marketingHub', 'marketingCampaigns', 'landingPages', 'dynamicForms', 'seoManager', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
       { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
       { tools: ['leadManagement', 'leadNurturing'] },
       { tools: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 'exportProperties', 'dataExporter', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 'externalSync', 'casafariSync'] },
@@ -195,6 +198,9 @@ export default function Tools() {
     errorLogs: { description: "Visualizar e analisar logs de erro da aplicação" },
     marketingHub: { description: "Central unificada para gerir todas as campanhas de marketing" },
     marketingCampaigns: { description: "Criar e monitorizar campanhas de marketing digital" },
+    landingPages: { description: "Criar e editar landing pages personalizadas" },
+    dynamicForms: { description: "Construir formulários dinâmicos para captação de leads" },
+    seoManager: { description: "Gerir SEO e meta tags de páginas" },
     socialMedia: { description: "Gerar conteúdo para redes sociais automaticamente" },
     socialAdCreator: { description: "Criar anúncios otimizados para redes sociais" },
     apiPublish: { description: "Publicar imóveis via API em múltiplos portais" },
@@ -451,13 +457,16 @@ export default function Tools() {
                     </div>
                   </div>
                   <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                    13 ferramentas
+                    16 ferramentas
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
                   <ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" gridMode />
                   <ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" gridMode />
+                  <ToolButton toolId="landingPages" icon={Globe} label="Landing Pages" gridMode />
+                  <ToolButton toolId="dynamicForms" icon={FileEdit} label="Formulários Dinâmicos" gridMode />
+                  <ToolButton toolId="seoManager" icon={TrendingUp} label="Gestor SEO" gridMode />
                   <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" gridMode />
                   <ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" gridMode />
                   <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" gridMode />
@@ -774,6 +783,9 @@ export default function Tools() {
         {activeTab === "errorLogs" && <ErrorLogsAdmin />}
         {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
+        {activeTab === "landingPages" && <LandingPageBuilder />}
+        {activeTab === "dynamicForms" && <DynamicFormBuilder />}
+        {activeTab === "seoManager" && <SEOManager />}
         {activeTab === "facebookCampaigns" && <FacebookCampaignDashboard />}
         {activeTab === "facebookLeads" && <FacebookLeadsIntegration />}
         {activeTab === "facebookForms" && <FacebookFormManager />}
