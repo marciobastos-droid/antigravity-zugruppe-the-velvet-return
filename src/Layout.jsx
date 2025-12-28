@@ -139,6 +139,19 @@ export default function Layout({ children, currentPageName }) {
     });
   }, [allNavItems, userType, isAdmin, isGestor, isConsultant, hasPagePermission]);
 
+  // Render minimal layout for Home page - AFTER all hooks
+  if (isMinimalLayout) {
+    return (
+      <PWAProvider>
+        <LocalizationProvider>
+          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
+          <PWAInstaller />
+          {children}
+        </LocalizationProvider>
+      </PWAProvider>
+    );
+  }
+
   return (
     <PWAProvider>
       <LocalizationProvider>
