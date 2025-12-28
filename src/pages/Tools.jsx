@@ -270,19 +270,16 @@ export default function Tools() {
 
   // Helper para expandir grupo e fazer scroll para ferramenta
   const scrollToTool = React.useCallback((toolId, groupId) => {
-    // Expandir o grupo
-    setExpandedGroups(prev => ({ ...prev, [groupId]: true }));
-    
     // Definir ferramenta ativa
     setActiveTab(toolId);
     
-    // Aguardar renderização e fazer scroll
+    // Aguardar renderização e fazer scroll até o conteúdo da ferramenta
     setTimeout(() => {
-      const element = toolRefs.current[toolId];
+      const element = toolRefs.current[`content-${toolId}`];
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-    }, 100);
+    }, 150);
   }, []);
 
   // Mapear ferramentas para grupos
@@ -1058,72 +1055,73 @@ export default function Tools() {
               </motion.div>
               </div>
 
-        {activeTab === "errorLogs" && <ErrorLogsAdmin />}
-        {activeTab === "marketingHub" && <MarketingHub />}
-        {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
-        {activeTab === "landingPages" && <LandingPageBuilder />}
-        {activeTab === "dynamicForms" && <DynamicFormBuilder />}
-        {activeTab === "seoManager" && <SEOManager />}
-        {activeTab === "facebookCampaigns" && <FacebookCampaignDashboard />}
-        {activeTab === "facebookLeads" && <FacebookLeadsIntegration />}
-        {activeTab === "facebookForms" && <FacebookFormManager />}
-        {activeTab === "leadManagement" && <LeadManagementHub />}
-        {activeTab === "duplicateChecker" && <DuplicateChecker />}
-        {activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}
-        {activeTab === "aiMatching" && <AIMatchingEngine />}
-        {activeTab === "autoMatching" && <AutomaticMatching />}
-        {activeTab === "autoMatchingDashboard" && <AutoMatchingDashboard />}
-        {activeTab === "listingOptimizer" && <ListingOptimizer />}
-        {activeTab === "marketIntelligence" && <MarketIntelligence />}
-        {activeTab === "emailHub" && <EmailHub />}
-        {activeTab === "importProperties" && <ImportProperties />}
-        {activeTab === "exportProperties" && <PropertyExporter />}
-        {activeTab === "apiPublish" && <DirectAPIExporter />}
-        {activeTab === "apiIntegrations" && <APIIntegrationsManager />}
-        {activeTab === "smtpConfig" && <SMTPConfiguration />}
-        {activeTab === "importLeads" && <ImportLeads />}
-        {activeTab === "description" && <PropertyDescriptionGenerator />}
-        {activeTab === "socialMedia" && <SocialMediaGenerator />}
-        {activeTab === "pricing" && <PriceSuggestion />}
-        {activeTab === "video" && <VideoMaker />}
-        {activeTab === "calendar" && <UnifiedCalendar />}
-        {activeTab === "documents" && <DocumentsAndContracts />}
-      {activeTab === "contractAutomation" && <ContractAutomation />}
-        {activeTab === "devNotes" && <DevelopmentNotes />}
-        {activeTab === "creditSimulator" && <CreditSimulator />}
-        {activeTab === "deedCosts" && <DeedCostsCalculator />}
-        {activeTab === "reportsExporter" && <ReportsExporter />}
-        {activeTab === "whatsapp" && <WhatsAppAgentConfig />}
-        {activeTab === "portalIntegrations" && <PortalIntegrations />}
-        {activeTab === "tagManager" && <TagManager />}
-        {activeTab === "importOpportunities" && <ImportOpportunities />}
-        {activeTab === "integrations" && <IntegrationsHub />}
-        {activeTab === "commissions" && <CommissionsManager />}
-        {activeTab === "invoices" && <InvoiceManager />}
-        {activeTab === "importInvoices" && <InvoiceManager />}
-        {activeTab === "orphanCleaner" && <OrphanDataCleaner />}
-        {activeTab === "duplicateClients" && <DuplicateClientsCleaner />}
-        {activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}
-        {activeTab === "imageValidator" && <ImageValidator />}
-        {activeTab === "imageExtractor" && <WebsiteImageExtractor />}
-        {activeTab === "socialAdCreator" && <SocialMediaAdCreator />}
-        {activeTab === "jsonProcessor" && <JSONProcessor />}
-        {activeTab === "propertyFeeds" && <PropertyFeedsManager />}
-        {activeTab === "externalSync" && <ExternalDataSync />}
-        {activeTab === "auditLog" && <AuditLogViewer />}
-        {activeTab === "casafariSync" && <CasafariSync />}
-        {activeTab === "notificationsDashboard" && <NotificationsDashboard />}
-        {activeTab === "investorKeys" && <InvestorKeysManager />}
-        {activeTab === "investorProperties" && <InvestorPropertiesManager />}
-        {activeTab === "bulkScore" && <BulkScoreCalculator />}
-        {activeTab === "crmSync" && <CRMSyncPanel />}
-        {activeTab === "gmailLinker" && <GmailLinker />}
-        {activeTab === "backupManager" && <BackupManager />}
-        {activeTab === "excelImport" && <ExcelImportExport />}
-        {activeTab === "crmIntegrations" && <CRMIntegrations />}
-        {activeTab === "seoAnalytics" && <SEOAnalytics />}
-        {activeTab === "dataExporter" && <DataExporter />}
+        <div ref={el => toolRefs.current['content-errorLogs'] = el}>{activeTab === "errorLogs" && <ErrorLogsAdmin />}</div>
+        <div ref={el => toolRefs.current['content-marketingHub'] = el}>{activeTab === "marketingHub" && <MarketingHub />}</div>
+        <div ref={el => toolRefs.current['content-marketingCampaigns'] = el}>{activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}</div>
+        <div ref={el => toolRefs.current['content-landingPages'] = el}>{activeTab === "landingPages" && <LandingPageBuilder />}</div>
+        <div ref={el => toolRefs.current['content-dynamicForms'] = el}>{activeTab === "dynamicForms" && <DynamicFormBuilder />}</div>
+        <div ref={el => toolRefs.current['content-seoManager'] = el}>{activeTab === "seoManager" && <SEOManager />}</div>
+        <div ref={el => toolRefs.current['content-facebookCampaigns'] = el}>{activeTab === "facebookCampaigns" && <FacebookCampaignDashboard />}</div>
+        <div ref={el => toolRefs.current['content-facebookLeads'] = el}>{activeTab === "facebookLeads" && <FacebookLeadsIntegration />}</div>
+        <div ref={el => toolRefs.current['content-facebookForms'] = el}>{activeTab === "facebookForms" && <FacebookFormManager />}</div>
+        <div ref={el => toolRefs.current['content-leadManagement'] = el}>{activeTab === "leadManagement" && <LeadManagementHub />}</div>
+        <div ref={el => toolRefs.current['content-duplicateChecker'] = el}>{activeTab === "duplicateChecker" && <DuplicateChecker />}</div>
+        <div ref={el => toolRefs.current['content-inconsistencyChecker'] = el}>{activeTab === "inconsistencyChecker" && <PropertyInconsistencyChecker />}</div>
+        <div ref={el => toolRefs.current['content-aiMatching'] = el}>{activeTab === "aiMatching" && <AIMatchingEngine />}</div>
+        <div ref={el => toolRefs.current['content-autoMatching'] = el}>{activeTab === "autoMatching" && <AutomaticMatching />}</div>
+        <div ref={el => toolRefs.current['content-autoMatchingDashboard'] = el}>{activeTab === "autoMatchingDashboard" && <AutoMatchingDashboard />}</div>
+        <div ref={el => toolRefs.current['content-listingOptimizer'] = el}>{activeTab === "listingOptimizer" && <ListingOptimizer />}</div>
+        <div ref={el => toolRefs.current['content-marketIntelligence'] = el}>{activeTab === "marketIntelligence" && <MarketIntelligence />}</div>
+        <div ref={el => toolRefs.current['content-emailHub'] = el}>{activeTab === "emailHub" && <EmailHub />}</div>
+        <div ref={el => toolRefs.current['content-importProperties'] = el}>{activeTab === "importProperties" && <ImportProperties />}</div>
+        <div ref={el => toolRefs.current['content-exportProperties'] = el}>{activeTab === "exportProperties" && <PropertyExporter />}</div>
+        <div ref={el => toolRefs.current['content-apiPublish'] = el}>{activeTab === "apiPublish" && <DirectAPIExporter />}</div>
+        <div ref={el => toolRefs.current['content-apiIntegrations'] = el}>{activeTab === "apiIntegrations" && <APIIntegrationsManager />}</div>
+        <div ref={el => toolRefs.current['content-smtpConfig'] = el}>{activeTab === "smtpConfig" && <SMTPConfiguration />}</div>
+        <div ref={el => toolRefs.current['content-importLeads'] = el}>{activeTab === "importLeads" && <ImportLeads />}</div>
+        <div ref={el => toolRefs.current['content-description'] = el}>{activeTab === "description" && <PropertyDescriptionGenerator />}</div>
+        <div ref={el => toolRefs.current['content-socialMedia'] = el}>{activeTab === "socialMedia" && <SocialMediaGenerator />}</div>
+        <div ref={el => toolRefs.current['content-pricing'] = el}>{activeTab === "pricing" && <PriceSuggestion />}</div>
+        <div ref={el => toolRefs.current['content-video'] = el}>{activeTab === "video" && <VideoMaker />}</div>
+        <div ref={el => toolRefs.current['content-calendar'] = el}>{activeTab === "calendar" && <UnifiedCalendar />}</div>
+        <div ref={el => toolRefs.current['content-documents'] = el}>{activeTab === "documents" && <DocumentsAndContracts />}</div>
+        <div ref={el => toolRefs.current['content-contractAutomation'] = el}>{activeTab === "contractAutomation" && <ContractAutomation />}</div>
+        <div ref={el => toolRefs.current['content-devNotes'] = el}>{activeTab === "devNotes" && <DevelopmentNotes />}</div>
+        <div ref={el => toolRefs.current['content-creditSimulator'] = el}>{activeTab === "creditSimulator" && <CreditSimulator />}</div>
+        <div ref={el => toolRefs.current['content-deedCosts'] = el}>{activeTab === "deedCosts" && <DeedCostsCalculator />}</div>
+        <div ref={el => toolRefs.current['content-reportsExporter'] = el}>{activeTab === "reportsExporter" && <ReportsExporter />}</div>
+        <div ref={el => toolRefs.current['content-whatsapp'] = el}>{activeTab === "whatsapp" && <WhatsAppAgentConfig />}</div>
+        <div ref={el => toolRefs.current['content-portalIntegrations'] = el}>{activeTab === "portalIntegrations" && <PortalIntegrations />}</div>
+        <div ref={el => toolRefs.current['content-tagManager'] = el}>{activeTab === "tagManager" && <TagManager />}</div>
+        <div ref={el => toolRefs.current['content-importOpportunities'] = el}>{activeTab === "importOpportunities" && <ImportOpportunities />}</div>
+        <div ref={el => toolRefs.current['content-integrations'] = el}>{activeTab === "integrations" && <IntegrationsHub />}</div>
+        <div ref={el => toolRefs.current['content-commissions'] = el}>{activeTab === "commissions" && <CommissionsManager />}</div>
+        <div ref={el => toolRefs.current['content-invoices'] = el}>{activeTab === "invoices" && <InvoiceManager />}</div>
+        <div ref={el => toolRefs.current['content-importInvoices'] = el}>{activeTab === "importInvoices" && <InvoiceManager />}</div>
+        <div ref={el => toolRefs.current['content-orphanCleaner'] = el}>{activeTab === "orphanCleaner" && <OrphanDataCleaner />}</div>
+        <div ref={el => toolRefs.current['content-duplicateClients'] = el}>{activeTab === "duplicateClients" && <DuplicateClientsCleaner />}</div>
+        <div ref={el => toolRefs.current['content-propertyPerformance'] = el}>{activeTab === "propertyPerformance" && <PropertyPerformanceDashboard />}</div>
+        <div ref={el => toolRefs.current['content-imageValidator'] = el}>{activeTab === "imageValidator" && <ImageValidator />}</div>
+        <div ref={el => toolRefs.current['content-imageExtractor'] = el}>{activeTab === "imageExtractor" && <WebsiteImageExtractor />}</div>
+        <div ref={el => toolRefs.current['content-socialAdCreator'] = el}>{activeTab === "socialAdCreator" && <SocialMediaAdCreator />}</div>
+        <div ref={el => toolRefs.current['content-jsonProcessor'] = el}>{activeTab === "jsonProcessor" && <JSONProcessor />}</div>
+        <div ref={el => toolRefs.current['content-propertyFeeds'] = el}>{activeTab === "propertyFeeds" && <PropertyFeedsManager />}</div>
+        <div ref={el => toolRefs.current['content-externalSync'] = el}>{activeTab === "externalSync" && <ExternalDataSync />}</div>
+        <div ref={el => toolRefs.current['content-auditLog'] = el}>{activeTab === "auditLog" && <AuditLogViewer />}</div>
+        <div ref={el => toolRefs.current['content-casafariSync'] = el}>{activeTab === "casafariSync" && <CasafariSync />}</div>
+        <div ref={el => toolRefs.current['content-notificationsDashboard'] = el}>{activeTab === "notificationsDashboard" && <NotificationsDashboard />}</div>
+        <div ref={el => toolRefs.current['content-investorKeys'] = el}>{activeTab === "investorKeys" && <InvestorKeysManager />}</div>
+        <div ref={el => toolRefs.current['content-investorProperties'] = el}>{activeTab === "investorProperties" && <InvestorPropertiesManager />}</div>
+        <div ref={el => toolRefs.current['content-bulkScore'] = el}>{activeTab === "bulkScore" && <BulkScoreCalculator />}</div>
+        <div ref={el => toolRefs.current['content-crmSync'] = el}>{activeTab === "crmSync" && <CRMSyncPanel />}</div>
+        <div ref={el => toolRefs.current['content-gmailLinker'] = el}>{activeTab === "gmailLinker" && <GmailLinker />}</div>
+        <div ref={el => toolRefs.current['content-backupManager'] = el}>{activeTab === "backupManager" && <BackupManager />}</div>
+        <div ref={el => toolRefs.current['content-excelImport'] = el}>{activeTab === "excelImport" && <ExcelImportExport />}</div>
+        <div ref={el => toolRefs.current['content-crmIntegrations'] = el}>{activeTab === "crmIntegrations" && <CRMIntegrations />}</div>
+        <div ref={el => toolRefs.current['content-seoAnalytics'] = el}>{activeTab === "seoAnalytics" && <SEOAnalytics />}</div>
+        <div ref={el => toolRefs.current['content-dataExporter'] = el}>{activeTab === "dataExporter" && <DataExporter />}</div>
         {activeTab === "gmailSync" && (
+        <div ref={el => toolRefs.current['content-gmailSync'] = el}>{activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
                   <div className="text-center py-8">
@@ -1167,8 +1165,8 @@ export default function Tools() {
                   </div>
                 </CardContent>
               </Card>
-            )}
-            {activeTab === "linkContacts" && (
+            )}</div>
+            <div ref={el => toolRefs.current['content-linkContacts'] = el}>{activeTab === "linkContacts" && (
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-8">
@@ -1208,8 +1206,8 @@ export default function Tools() {
               </div>
             </CardContent>
           </Card>
-        )}
-        {activeTab === "importContacts" && (
+        )}</div>
+        <div ref={el => toolRefs.current['content-importContacts'] = el}>{activeTab === "importContacts" && (
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-8">
@@ -1226,7 +1224,8 @@ export default function Tools() {
               </div>
             </CardContent>
           </Card>
-        )}
+        )}</div>
+        <div ref={el => toolRefs.current['content-leadNurturing'] = el}>{activeTab === "leadNurturing" && <div>Lead Nurturing placeholder</div>}</div>
 
         {/* Import Contacts Dialog */}
         <ImportContactsDialog
