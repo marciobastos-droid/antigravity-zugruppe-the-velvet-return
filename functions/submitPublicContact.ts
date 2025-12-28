@@ -203,7 +203,109 @@ Deno.serve(async (req) => {
       console.error('Error creating notification:', error);
     }
 
-    // 5. Enviar email de confirmação ao visitante
+    // 5. Enviar email ao agente responsável
+    try {
+      let agentEmail = null;
+      
+      // Se for sobre um imóvel específico, tentar encontrar o agente responsável
+      if (property_id) {
+        const properties = await base44.asServiceRole.entities.Property.filter({ id: property_id });
+        
+        if (properties.length > 0) {
+          const property = properties[0];
+          
+          // Prioridade 1: Buscar na entidade Agent pelo agent_id
+          if (property.agent_id) {
+            const agents = await base44.asServiceRole.entities.Agent.filter({ 
+              $or: [
+                { id: property.agent_id },
+                { agent_id: property.agent_id }
+              ]
+            });
+            
+            if (agents.length > 0 && agents[0].email) {
+              agentEmail = agents[0].email;
+            }
+          }
+          
+          // Prioridade 2: Usar assigned_consultant_email ou assigned_consultant
+          if (!agentEmail && property.assigned_consultant_email) {
+            agentEmail = property.assigned_consultant_email;
+          } else if (!agentEmail && property.assigned_consultant) {
+            agentEmail = property.assigned_consultant;
+          }
+        }
+      }
+      
+      // Enviar para o agente se encontrado, senão para email geral
+      const recipientEmail = agentEmail || 'info@zugruppe.com';
+      
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: recipientEmail,
+        from_name: 'ZuConnect - Website',
+        subject: `💬 Nova Mensagem${property_title ? ` - ${property_title}` : ''}`,
+        body: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 20px; border-radius: 12px 12px 0 0;">
+              <h2 style="margin: 0; color: white;">💬 Nova Mensagem de Contacto</h2>
+            </div>
+            
+            <div style="background: white; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
+              ${property_title ? `
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #d4af37;">
+                  <strong style="color: #0f172a;">📍 Imóvel:</strong> ${property_title}
+                </div>
+              ` : ''}
+              
+              <h3 style="color: #0f172a; margin-bottom: 15px;">Dados do Contacto:</h3>
+              <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;"><strong>Nome:</strong></td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;"><strong>Email:</strong></td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="mailto:${email}" style="color: #2563eb;">${email}</a></td>
+                </tr>
+                ${phone ? `
+                <tr>
+                  <td style="padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;"><strong>Telefone:</strong></td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><a href="tel:${phone}" style="color: #2563eb;">${phone}</a></td>
+                </tr>
+                ` : ''}
+                ${interest_type ? `
+                <tr>
+                  <td style="padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;"><strong>Interesse:</strong></td>
+                  <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${interest_type === 'visit' ? '🏠 Agendar Visita' : interest_type === 'financing' ? '💰 Financiamento' : 'ℹ️ Informações'}</td>
+                </tr>
+                ` : ''}
+              </table>
+              
+              <h3 style="color: #0f172a; margin-bottom: 10px;">Mensagem:</h3>
+              <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <p style="margin: 0; color: #334155; line-height: 1.6;">${message}</p>
+              </div>
+              
+              ${wants_appointment ? `
+                <div style="background: #fef3c7; border: 1px solid #fbbf24; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                  <strong style="color: #92400e;">⏰ Cliente quer agendar visita!</strong>
+                </div>
+              ` : ''}
+              
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #64748b; font-size: 12px; margin: 0;">
+                  Esta mensagem foi enviada através do formulário de contacto do website em ${new Date().toLocaleString('pt-PT')}
+                </p>
+              </div>
+            </div>
+          </div>
+        `
+      });
+    } catch (error) {
+      console.error('Error sending agent notification email:', error);
+    }
+
+    // 6. Enviar email de confirmação ao visitante
     try {
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: email,
