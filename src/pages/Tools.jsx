@@ -73,6 +73,7 @@ import CRMIntegrations from "../components/tools/CRMIntegrations";
 import OCRProcessor from "../components/tools/OCRProcessor";
 import SEOAnalytics from "../components/seo/SEOAnalytics";
 import DataExporter from "../components/tools/DataExporter";
+import ErrorLogsAdmin from "../components/admin/ErrorLogsAdmin";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
@@ -770,6 +771,7 @@ export default function Tools() {
               </motion.div>
               </div>
 
+        {activeTab === "errorLogs" && <ErrorLogsAdmin />}
         {activeTab === "marketingHub" && <MarketingHub />}
         {activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}
         {activeTab === "facebookCampaigns" && <FacebookCampaignDashboard />}
