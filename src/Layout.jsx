@@ -46,7 +46,8 @@ export default function Layout({ children, currentPageName }) {
     const admin = user && (user.role === 'admin' || normalized === 'admin' || normalized === 'gestor');
     const gestor = user && normalized === 'gestor';
     const consultant = user && (normalized === 'consultant' || normalized === 'agente');
-    const type = normalized || user?.role || 'user';
+    // Normalize agente to consultant for consistency
+    const type = normalized === 'agente' ? 'consultant' : (normalized || user?.role || 'user');
     
     return {
       userTypeNormalized: normalized,
@@ -81,7 +82,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
     { name: "CRM", path: createPageUrl("CRMAdvanced"), icon: Users, id: "nav-crm", visibility: 'all', pagePermKey: 'crm' },
     
-    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant', 'agente'], pagePermKey: 'tools' },
+    { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
     { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
   ], []);
@@ -124,7 +125,7 @@ export default function Layout({ children, currentPageName }) {
         const hasTypeAccess = item.visibility.includes(userType) || 
                               (isAdmin && item.visibility.includes('admin')) ||
                               (isGestor && item.visibility.includes('gestor')) ||
-                              (isConsultant && (item.visibility.includes('consultant') || item.visibility.includes('agente')));
+                              (isConsultant && item.visibility.includes('consultant'));
         
         if (hasTypeAccess) return true;
       } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
@@ -251,7 +252,7 @@ export default function Layout({ children, currentPageName }) {
                       <p className="text-xs text-slate-500">
                         {user.user_type === 'admin' ? 'Administrador' : 
                          user.user_type === 'gestor' ? 'Gestor' : 
-                         user.user_type === 'consultant' ? 'Consultor' : user.email}
+                         (user.user_type === 'consultant' || user.user_type === 'agente') ? 'Consultor' : user.email}
                       </p>
                     </div>
                     {user.photo_url ? (
@@ -334,7 +335,7 @@ export default function Layout({ children, currentPageName }) {
                         <p className="text-xs text-slate-500">
                           {user.user_type === 'admin' ? 'Admin' : 
                            user.user_type === 'gestor' ? 'Gestor' : 
-                           user.user_type === 'consultant' ? 'Consultor' : 'Utilizador'}
+                           (user.user_type === 'consultant' || user.user_type === 'agente') ? 'Consultor' : 'Utilizador'}
                         </p>
                       </div>
                     </div>

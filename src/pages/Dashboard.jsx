@@ -356,7 +356,7 @@ export default function Dashboard() {
 
   // Leads by agent (Admin only)
   const leadsPerAgent = isAdmin ? allUsers
-    .filter(u => u.user_type === 'agente' || u.user_type === 'gestor')
+    .filter(u => u.user_type === 'consultant' || u.user_type === 'agente' || u.user_type === 'gestor')
     .map(u => ({
       name: getAgentName(u.email, true),
       leads: opportunities.filter(o => o.assigned_to === u.email).length,
