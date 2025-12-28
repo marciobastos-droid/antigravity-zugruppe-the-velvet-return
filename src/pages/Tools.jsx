@@ -92,6 +92,8 @@ export default function Tools() {
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);
   const [syncingEmails, setSyncingEmails] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const toolRefs = React.useRef({});
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -266,6 +268,52 @@ export default function Tools() {
     auditLog: { description: "Visualizar logs de atividade do sistema" }
   };
 
+  // Helper para expandir grupo e fazer scroll para ferramenta
+  const scrollToTool = React.useCallback((toolId, groupId) => {
+    // Expandir o grupo
+    setExpandedGroups(prev => ({ ...prev, [groupId]: true }));
+    
+    // Definir ferramenta ativa
+    setActiveTab(toolId);
+    
+    // Aguardar renderização e fazer scroll
+    setTimeout(() => {
+      const element = toolRefs.current[toolId];
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
+  }, []);
+
+  // Mapear ferramentas para grupos
+  const toolToGroup = React.useMemo(() => ({
+    errorLogs: 'system',
+    marketingHub: 'marketing', marketingCampaigns: 'marketing', landingPages: 'marketing', 
+    dynamicForms: 'marketing', seoManager: 'marketing', socialMedia: 'marketing',
+    socialAdCreator: 'marketing', apiPublish: 'marketing', apiIntegrations: 'marketing',
+    portalIntegrations: 'marketing', whatsapp: 'marketing', integrations: 'marketing',
+    imageExtractor: 'marketing', excelImport: 'marketing', crmIntegrations: 'marketing', seoAnalytics: 'marketing',
+    facebookCampaigns: 'marketing', facebookLeads: 'marketing', facebookForms: 'marketing',
+    leadManagement: 'leads', leadNurturing: 'leads',
+    importProperties: 'import', importLeads: 'import', importContacts: 'import',
+    importOpportunities: 'import', importInvoices: 'import', exportProperties: 'import',
+    dataExporter: 'import', reportsExporter: 'import', jsonProcessor: 'import',
+    propertyFeeds: 'import', externalSync: 'import', casafariSync: 'import',
+    bulkScore: 'utilities', crmSync: 'utilities', duplicateChecker: 'utilities',
+    duplicateClients: 'utilities', inconsistencyChecker: 'utilities', orphanCleaner: 'utilities',
+    linkContacts: 'utilities', imageValidator: 'utilities', emailHub: 'utilities',
+    gmailSync: 'utilities', gmailLinker: 'utilities', video: 'utilities',
+    description: 'utilities', listingOptimizer: 'utilities', calendar: 'utilities',
+    aiMatching: 'matching', autoMatching: 'matching', autoMatchingDashboard: 'matching',
+    marketIntelligence: 'market', propertyPerformance: 'market', pricing: 'market',
+    creditSimulator: 'market', deedCosts: 'market',
+    commissions: 'finance', invoices: 'finance',
+    investorKeys: 'investors', investorProperties: 'investors',
+    contractAutomation: 'settings', documents: 'settings', notificationsDashboard: 'settings',
+    smtpConfig: 'settings', devNotes: 'settings', tagManager: 'settings',
+    backupManager: 'settings', auditLog: 'settings'
+  }), []);
+
   // Helper to render tool button with permission check - oculta se não permitido
   const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
     const allowed = isToolAllowed(toolId);
@@ -273,6 +321,15 @@ export default function Tools() {
 
     const description = TOOL_METADATA[toolId]?.description || label;
     const isActive = activeTab === toolId;
+
+    const handleClick = () => {
+      const groupId = toolToGroup[toolId];
+      if (groupId) {
+        scrollToTool(toolId, groupId);
+      } else {
+        setActiveTab(toolId);
+      }
+    };
 
     if (gridMode) {
       return (
@@ -285,7 +342,7 @@ export default function Tools() {
                 transition={{ duration: 0.2 }}
               >
                 <button
-                  onClick={() => setActiveTab(toolId)}
+                  onClick={handleClick}
                   className={`group relative p-4 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden ${
                     isActive 
                       ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-md' 
@@ -328,7 +385,7 @@ export default function Tools() {
     return (
       <Button
         variant={isActive ? "default" : (variant || "outline")}
-        onClick={() => setActiveTab(toolId)}
+        onClick={handleClick}
         className={`flex items-center gap-2 ${className || ''}`}
       >
         <Icon className="w-4 h-4" />
@@ -443,24 +500,45 @@ export default function Tools() {
             >
               <Card className="border-slate-400 bg-gradient-to-r from-slate-100 to-gray-100">
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-6">
+                  <button
+                    onClick={() => setExpandedGroups(prev => ({ ...prev, system: !prev.system }))}
+                    className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-slate-200 rounded-lg">
                         <Bug className="w-6 h-6 text-slate-700" />
                       </div>
-                      <div>
+                      <div className="text-left">
                         <h3 className="font-bold text-slate-900 text-lg">Sistema & Monitorização</h3>
                         <p className="text-sm text-slate-600">Logs e análise de erros</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                      1 ferramenta
-                    </Badge>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+                        1 ferramenta
+                      </Badge>
+                      <motion.div
+                        animate={{ rotate: expandedGroups.system ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Eye className="w-5 h-5 text-slate-600" />
+                      </motion.div>
+                    </div>
+                  </button>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <ToolButton toolId="errorLogs" icon={Bug} label="Logs de Erro" gridMode />
-                  </div>
+                  {expandedGroups.system && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                    >
+                      <div ref={el => toolRefs.current['errorLogs'] = el}>
+                        <ToolButton toolId="errorLogs" icon={Bug} label="Logs de Erro" gridMode />
+                      </div>
+                    </motion.div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -474,38 +552,56 @@ export default function Tools() {
           >
             <Card className="border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 overflow-hidden">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-6">
+                <button
+                  onClick={() => setExpandedGroups(prev => ({ ...prev, marketing: !prev.marketing }))}
+                  className="w-full flex items-center justify-between mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-100 rounded-lg">
                       <Megaphone className="w-6 h-6 text-purple-600" />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <h3 className="font-bold text-purple-900 text-lg">Marketing Digital</h3>
                       <p className="text-sm text-purple-600">Ferramentas de promoção e campanhas</p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                    16 ferramentas
-                  </Badge>
-                </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      16 ferramentas
+                    </Badge>
+                    <motion.div
+                      animate={{ rotate: expandedGroups.marketing ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Eye className="w-5 h-5 text-purple-600" />
+                    </motion.div>
+                  </div>
+                </button>
 
+                {expandedGroups.marketing && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
-                  <ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" gridMode />
-                  <ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" gridMode />
-                  <ToolButton toolId="landingPages" icon={Globe} label="Landing Pages" gridMode />
-                  <ToolButton toolId="dynamicForms" icon={FileEdit} label="Formulários Dinâmicos" gridMode />
-                  <ToolButton toolId="seoManager" icon={TrendingUp} label="Gestor SEO" gridMode />
-                  <ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" gridMode />
-                  <ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" gridMode />
-                  <ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" gridMode />
-                  <ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" gridMode />
-                  <ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" gridMode />
-                  <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" gridMode />
-                  <ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" gridMode />
-                  <ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode />
-                  <ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode />
-                  <ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode />
-                  <ToolButton toolId="seoAnalytics" icon={TrendingUp} label="SEO & Blog Analytics" gridMode />
+                  <div ref={el => toolRefs.current['marketingHub'] = el}><ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" gridMode /></div>
+                  <div ref={el => toolRefs.current['marketingCampaigns'] = el}><ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" gridMode /></div>
+                  <div ref={el => toolRefs.current['landingPages'] = el}><ToolButton toolId="landingPages" icon={Globe} label="Landing Pages" gridMode /></div>
+                  <div ref={el => toolRefs.current['dynamicForms'] = el}><ToolButton toolId="dynamicForms" icon={FileEdit} label="Formulários Dinâmicos" gridMode /></div>
+                  <div ref={el => toolRefs.current['seoManager'] = el}><ToolButton toolId="seoManager" icon={TrendingUp} label="Gestor SEO" gridMode /></div>
+                  <div ref={el => toolRefs.current['socialMedia'] = el}><ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" gridMode /></div>
+                  <div ref={el => toolRefs.current['socialAdCreator'] = el}><ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" gridMode /></div>
+                  <div ref={el => toolRefs.current['apiPublish'] = el}><ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" gridMode /></div>
+                  <div ref={el => toolRefs.current['apiIntegrations'] = el}><ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" gridMode /></div>
+                  <div ref={el => toolRefs.current['portalIntegrations'] = el}><ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" gridMode /></div>
+                  <div ref={el => toolRefs.current['whatsapp'] = el}><ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" gridMode /></div>
+                  <div ref={el => toolRefs.current['integrations'] = el}><ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" gridMode /></div>
+                  <div ref={el => toolRefs.current['imageExtractor'] = el}><ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode /></div>
+                  <div ref={el => toolRefs.current['excelImport'] = el}><ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode /></div>
+                  <div ref={el => toolRefs.current['crmIntegrations'] = el}><ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode /></div>
+                  <div ref={el => toolRefs.current['seoAnalytics'] = el}><ToolButton toolId="seoAnalytics" icon={TrendingUp} label="SEO & Blog Analytics" gridMode /></div>
                 </div>
 
               {/* Subgrupo Facebook */}
@@ -516,11 +612,13 @@ export default function Tools() {
                   <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">3 ferramentas</Badge>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" gridMode />
-                  <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode />
-                  <ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" gridMode />
+                  <div ref={el => toolRefs.current['facebookCampaigns'] = el}><ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" gridMode /></div>
+                  <div ref={el => toolRefs.current['facebookLeads'] = el}><ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode /></div>
+                  <div ref={el => toolRefs.current['facebookForms'] = el}><ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" gridMode /></div>
                 </div>
               </div>
+                  </motion.div>
+                )}
 
               </CardContent>
               </Card>

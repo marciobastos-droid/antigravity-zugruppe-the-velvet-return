@@ -15,11 +15,11 @@ import RGPDConsent from './pages/RGPDConsent';
 import Subscriptions from './pages/Subscriptions';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
-import Tools from './pages/Tools';
 import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import Tools from './pages/Tools';
 import __Layout from './Layout.jsx';
 
 
@@ -41,11 +41,11 @@ export const PAGES = {
     "Subscriptions": Subscriptions,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
-    "Tools": Tools,
     "UserManagement": UserManagement,
     "Website": Website,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "Tools": Tools,
 }
 
 export const pagesConfig = {
