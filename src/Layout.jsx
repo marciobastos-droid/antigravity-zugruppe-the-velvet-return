@@ -50,31 +50,42 @@ export default function Layout({ children, currentPageName }) {
     );
   }
 
-  const userTypeNormalized = user?.user_type?.toLowerCase() || '';
-  const isAdmin = user && (user.role === 'admin' || userTypeNormalized === 'admin' || userTypeNormalized === 'gestor');
-  const isGestor = user && userTypeNormalized === 'gestor';
-  const isConsultant = user && (userTypeNormalized === 'consultant' || userTypeNormalized === 'agente');
-  const userType = userTypeNormalized || user?.role || 'user';
+  // Memoize calculated values to prevent infinite loops
+  const { userTypeNormalized, isAdmin, isGestor, isConsultant, userType } = React.useMemo(() => {
+    const normalized = user?.user_type?.toLowerCase() || '';
+    const admin = user && (user.role === 'admin' || normalized === 'admin' || normalized === 'gestor');
+    const gestor = user && normalized === 'gestor';
+    const consultant = user && (normalized === 'consultant' || normalized === 'agente');
+    const type = normalized || user?.role || 'user';
+    
+    return {
+      userTypeNormalized: normalized,
+      isAdmin: admin,
+      isGestor: gestor,
+      isConsultant: consultant,
+      userType: type
+    };
+  }, [user]);
 
   // Debug: log user type info
   React.useEffect(() => {
     if (user) {
       console.log('[Layout Debug]', {
         email: user.email,
-        userType: user?.user_type?.toLowerCase() || user?.role || 'user',
-        userTypeNormalized: user?.user_type?.toLowerCase() || '',
+        userType,
+        userTypeNormalized,
         role: user.role,
-        isAdmin: user && (user.role === 'admin' || user?.user_type?.toLowerCase() === 'admin' || user?.user_type?.toLowerCase() === 'gestor'),
-        isGestor: user && user?.user_type?.toLowerCase() === 'gestor',
-        isConsultant: user && (user?.user_type?.toLowerCase() === 'consultant' || user?.user_type?.toLowerCase() === 'agente'),
+        isAdmin,
+        isGestor,
+        isConsultant,
         rawUserType: user.user_type
       });
     }
-  }, [user]);
+  }, [user, userType, userTypeNormalized, isAdmin, isGestor, isConsultant]);
 
   // Definir visibilidade por tipo de utilizador: 'all', 'admin', 'gestor', 'agente', ou array como ['admin', 'gestor']
   // pagePermKey é usado para verificar permissões granulares
-  const allNavItems = [
+  const allNavItems = React.useMemo(() => [
     { name: "Dashboard", path: createPageUrl("Dashboard"), icon: BarChart3, id: "nav-dashboard", visibility: 'all', pagePermKey: 'dashboard' },
     { name: "WebSite", path: createPageUrl("Website"), icon: Building2, id: "nav-website", visibility: 'all', pagePermKey: 'browse' },
     { name: "Imóveis", path: createPageUrl("MyListings"), icon: LayoutDashboard, id: "nav-properties", visibility: 'all', pagePermKey: 'my_listings' },
@@ -83,10 +94,10 @@ export default function Layout({ children, currentPageName }) {
     { name: "Tools", path: createPageUrl("Tools"), icon: Wrench, id: "nav-tools", visibility: ['admin', 'gestor', 'consultant', 'agente'], pagePermKey: 'tools' },
     { name: "Equipa", path: createPageUrl("TeamManagement"), icon: Users, id: "nav-team", visibility: ['admin', 'gestor'], pagePermKey: 'team' },
     { name: "Franchising", path: createPageUrl("Franchising"), icon: Building2, id: "nav-franchising", visibility: ['admin'], pagePermKey: 'franchising' },
-    ];
+  ], []);
 
   // Verificar se utilizador tem permissão para uma página específica
-  const hasPagePermission = (pagePermKey) => {
+  const hasPagePermission = React.useCallback((pagePermKey) => {
     // Admins e gestores têm acesso total
     if (isAdmin) return true;
     
@@ -110,32 +121,34 @@ export default function Layout({ children, currentPageName }) {
     }
     
     return false;
-  };
+  }, [isAdmin, user]);
 
   // Filtrar itens baseado na visibilidade e permissões
-  const navItems = allNavItems.filter(item => {
-    // Se é página com visibilidade 'all', sempre mostrar
-    if (item.visibility === 'all') return true;
+  const navItems = React.useMemo(() => {
+    return allNavItems.filter(item => {
+      // Se é página com visibilidade 'all', sempre mostrar
+      if (item.visibility === 'all') return true;
 
-    // Para páginas restritas, verificar tipo de utilizador primeiro
-    if (Array.isArray(item.visibility)) {
-      const hasTypeAccess = item.visibility.includes(userType) || 
-                            (isAdmin && item.visibility.includes('admin')) ||
-                            (isGestor && item.visibility.includes('gestor')) ||
-                            (isConsultant && (item.visibility.includes('consultant') || item.visibility.includes('agente')));
-      
-      if (hasTypeAccess) return true;
-    } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
-      return true;
-    }
+      // Para páginas restritas, verificar tipo de utilizador primeiro
+      if (Array.isArray(item.visibility)) {
+        const hasTypeAccess = item.visibility.includes(userType) || 
+                              (isAdmin && item.visibility.includes('admin')) ||
+                              (isGestor && item.visibility.includes('gestor')) ||
+                              (isConsultant && (item.visibility.includes('consultant') || item.visibility.includes('agente')));
+        
+        if (hasTypeAccess) return true;
+      } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
+        return true;
+      }
 
-    // Verificar permissões granulares como fallback
-    if (item.pagePermKey && hasPagePermission(item.pagePermKey)) {
-      return true;
-    }
+      // Verificar permissões granulares como fallback
+      if (item.pagePermKey && hasPagePermission(item.pagePermKey)) {
+        return true;
+      }
 
-    return false;
-  });
+      return false;
+    });
+  }, [allNavItems, userType, isAdmin, isGestor, isConsultant, hasPagePermission]);
 
   return (
     <PWAProvider>
