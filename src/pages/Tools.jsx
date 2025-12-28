@@ -1120,7 +1120,6 @@ export default function Tools() {
         <div ref={el => toolRefs.current['content-crmIntegrations'] = el}>{activeTab === "crmIntegrations" && <CRMIntegrations />}</div>
         <div ref={el => toolRefs.current['content-seoAnalytics'] = el}>{activeTab === "seoAnalytics" && <SEOAnalytics />}</div>
         <div ref={el => toolRefs.current['content-dataExporter'] = el}>{activeTab === "dataExporter" && <DataExporter />}</div>
-        {activeTab === "gmailSync" && (
         <div ref={el => toolRefs.current['content-gmailSync'] = el}>{activeTab === "gmailSync" && (
               <Card>
                 <CardContent className="p-6">
@@ -1166,7 +1165,7 @@ export default function Tools() {
                 </CardContent>
               </Card>
             )}</div>
-            <div ref={el => toolRefs.current['content-linkContacts'] = el}>{activeTab === "linkContacts" && (
+        <div ref={el => toolRefs.current['content-linkContacts'] = el}>{activeTab === "linkContacts" && (
           <Card>
             <CardContent className="p-6">
               <div className="text-center py-8">
