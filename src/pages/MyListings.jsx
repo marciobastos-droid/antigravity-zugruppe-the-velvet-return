@@ -35,6 +35,8 @@ import OptimizedImage from "../components/common/OptimizedImage";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { Home as HomeIcon } from "lucide-react";
 import QuickFilterBadges from "../components/listings/QuickFilterBadges";
+import ErrorBoundary from "../components/errors/ErrorBoundary";
+import { handleApiError } from "../components/errors/apiErrorHandler";
 
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
@@ -434,8 +436,9 @@ export default function MyListings() {
     queryFn: async () => {
       if (!user) return [];
       
-      // Fetch all properties once
-      const allProperties = await base44.entities.Property.list('-updated_date');
+      try {
+        // Fetch all properties once
+        const allProperties = await base44.entities.Property.list('-updated_date');
       
       const userType = user.user_type?.toLowerCase() || '';
       
@@ -459,15 +462,24 @@ export default function MyListings() {
         return allProperties;
       }
       
-      // Consultores vêem imóveis que criaram OU que lhes estão atribuídos
-      return allProperties.filter(p => 
-        p.created_by === user.email || 
-        p.assigned_consultant === user.email
-      );
+        // Consultores vêem imóveis que criaram OU que lhes estão atribuídos
+        return allProperties.filter(p => 
+          p.created_by === user.email || 
+          p.assigned_consultant === user.email
+        );
+      } catch (error) {
+        handleApiError(error, {
+          endpoint: 'Property.list',
+          customMessage: 'Erro ao carregar imóveis. Tente recarregar a página.',
+          showToast: true
+        });
+        return [];
+      }
     },
     enabled: !!user,
     staleTime: 30000, // Cache por 30s
-    gcTime: 60000
+    gcTime: 60000,
+    retry: 2
   });
 
   const deleteMutation = useMutation({
@@ -1291,7 +1303,8 @@ export default function MyListings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8 pb-24 sm:pb-8">
+    <ErrorBoundary name="MyListings Page">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-4 sm:py-8 pb-24 sm:pb-8">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 sm:mb-8">
           <div>
@@ -1753,5 +1766,6 @@ export default function MyListings() {
         )}
       </div>
     </div>
+    </ErrorBoundary>
   );
 }

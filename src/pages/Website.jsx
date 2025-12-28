@@ -1420,8 +1420,9 @@ export default function Website() {
           </Link>
         )}
         </HelmetProvider>
-        );
-        }
+      </ErrorBoundary>
+    );
+  }
 
 // Compact Card for Grid View - Highly Optimized Memoization
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
