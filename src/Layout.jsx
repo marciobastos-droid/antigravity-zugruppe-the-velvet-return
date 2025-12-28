@@ -10,7 +10,7 @@ import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import GlobalSearch from "./components/search/GlobalSearch";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
-import { useGuestFeatures } from "./components/visitors/useGuestFeatures";
+
 import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 import PWAProvider from "./components/pwa/PWAProvider";
 import PWAInstaller from "./components/pwa/PWAInstaller";
@@ -22,7 +22,7 @@ export default function Layout({ children, currentPageName }) {
   const [user, setUser] = React.useState(null);
   const [userPermissions, setUserPermissions] = React.useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { favoritesCount } = useGuestFeatures();
+
 
   React.useEffect(() => {
     if (typeof base44 !== 'undefined') {
@@ -222,17 +222,7 @@ export default function Layout({ children, currentPageName }) {
 
               <LanguageCurrencySelector variant="compact" />
 
-              {/* Favorites Icon with Badge */}
-              <Link to={createPageUrl("Favorites")} className="relative">
-                <Button variant="ghost" size="icon" className="relative">
-                  <Heart className="w-5 h-5 text-slate-600" />
-                  {favoritesCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 px-1 bg-red-500 text-white text-xs">
-                      {favoritesCount}
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
+
 
               {user && <NotificationBell user={user} />}
               {user ? (

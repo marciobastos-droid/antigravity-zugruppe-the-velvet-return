@@ -50,7 +50,7 @@ import {
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import SEOHead from "../components/seo/SEOHead";
-import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
+
 import { HelmetProvider } from "react-helmet-async";
 import VisitorTracker from "../components/tracking/VisitorTracker";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
@@ -196,7 +196,7 @@ export default function PropertyDetails() {
   });
 
   // ALL CUSTOM HOOKS MUST BE CALLED UNCONDITIONALLY BEFORE ANY RETURNS
-  const { addFavorite, removeFavorite, isFavorite, isGuest } = useGuestFeatures();
+
   const { trackAction } = usePropertyEngagement(propertyId, property?.title);
   useTrackView(propertyId, property, 'website');
   const translatedProperty = useTranslatedProperty(property);
@@ -385,10 +385,7 @@ export default function PropertyDetails() {
     { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
   ], [seoCanonicalUrl]);
 
-  const isSaved = React.useMemo(() => 
-    savedProperties.some(sp => sp.property_id === propertyId), 
-    [savedProperties, propertyId]
-  );
+
 
   // Callback functions - stable references
   const handleWhatsAppShare = React.useCallback(() => {
@@ -617,27 +614,7 @@ export default function PropertyDetails() {
               </Button>
             )}
             
-            <Button
-              variant="outline"
-              onClick={async () => {
-                if (isGuest) {
-                  if (isFavorite(propertyId)) {
-                    await removeFavorite(propertyId);
-                    toast.success("Imóvel removido dos favoritos");
-                  } else {
-                    const result = await addFavorite(property);
-                    toast.success("Imóvel guardado com sucesso!");
-                  }
-                } else {
-                  saveMutation.mutate();
-                }
-              }}
-              disabled={!isGuest && saveMutation.isPending}
-              className={`h-11 active:scale-95 ${(isSaved || isFavorite(propertyId)) ? "border-red-500 text-red-600" : ""}`}
-            >
-              <Heart className={`w-4 h-4 sm:mr-2 ${(isSaved || isFavorite(propertyId)) ? "fill-current" : ""}`} />
-              <span className="hidden sm:inline">{(isSaved || isFavorite(propertyId)) ? t('contact.savedProperty') : t('contact.saveProperty')}</span>
-            </Button>
+
             
             <Button
               variant="outline"
