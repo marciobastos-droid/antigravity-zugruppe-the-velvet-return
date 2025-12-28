@@ -18,7 +18,6 @@ import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
 import UserManagement from './pages/UserManagement';
-import VideoMaker from './pages/VideoMaker';
 import Website from './pages/Website';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
@@ -46,7 +45,6 @@ export const PAGES = {
     "TermsConditions": TermsConditions,
     "Tools": Tools,
     "UserManagement": UserManagement,
-    "VideoMaker": VideoMaker,
     "Website": Website,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
