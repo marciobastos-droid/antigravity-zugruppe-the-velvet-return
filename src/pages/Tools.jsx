@@ -92,6 +92,22 @@ export default function Tools() {
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);
   const [syncingEmails, setSyncingEmails] = useState(false);
+  const contentRef = React.useRef(null);
+
+  // Scroll to content when tab changes
+  React.useEffect(() => {
+    if (contentRef.current) {
+      const element = contentRef.current;
+      const offset = 100;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }, [activeTab]);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -432,7 +448,7 @@ export default function Tools() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6 mb-6">
+        <div ref={contentRef} className="space-y-6 mb-6">
 
           {/* System & Monitoring Group - Admin Only */}
           {isAdmin && (
