@@ -404,6 +404,34 @@ export default function Tools() {
           )}
         </div>
 
+        {/* Quick Access Shortcuts */}
+        <Card className="mb-6 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Zap className="w-5 h-5 text-blue-600" />
+              <h3 className="font-bold text-blue-900 text-lg">Atalhos Rápidos</h3>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                Ferramentas Frequentes
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+              <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode />
+              <ToolButton toolId="description" icon={FileText} label="Descrições IA" gridMode />
+              <ToolButton toolId="aiMatching" icon={Target} label="Matching IA" gridMode />
+              <ToolButton toolId="emailHub" icon={Mail} label="Email Hub" gridMode />
+              <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode />
+              <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar" gridMode />
+              <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador" gridMode />
+              <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações" gridMode />
+              <ToolButton toolId="socialMedia" icon={Share2} label="Redes Sociais" gridMode />
+              <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Mercado" gridMode />
+              <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp" gridMode />
+              <ToolButton toolId="calendar" icon={Calendar} label="Calendário" gridMode />
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="space-y-6 mb-6">
 
           {/* System & Monitoring Group - Admin Only */}
