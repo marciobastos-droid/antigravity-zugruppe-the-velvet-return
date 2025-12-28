@@ -1,4 +1,3 @@
-import AddListing from './pages/AddListing';
 import AgentManagement from './pages/AgentManagement';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
@@ -25,7 +24,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AddListing": AddListing,
     "AgentManagement": AgentManagement,
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
