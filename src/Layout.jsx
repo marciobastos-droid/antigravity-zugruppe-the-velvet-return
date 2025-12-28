@@ -14,6 +14,7 @@ import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 import PWAProvider from "./components/pwa/PWAProvider";
 import PWAInstaller from "./components/pwa/PWAInstaller";
+import ErrorBoundary from "./components/errors/ErrorBoundary";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal"];
 
@@ -142,22 +143,25 @@ export default function Layout({ children, currentPageName }) {
   // Render minimal layout for Home page - AFTER all hooks
   if (isMinimalLayout) {
     return (
-      <PWAProvider>
-        <LocalizationProvider>
-          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-          <PWAInstaller />
-          {children}
-        </LocalizationProvider>
-      </PWAProvider>
+      <ErrorBoundary name="App Root">
+        <PWAProvider>
+          <LocalizationProvider>
+            <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
+            <PWAInstaller />
+            {children}
+          </LocalizationProvider>
+        </PWAProvider>
+      </ErrorBoundary>
     );
   }
 
   return (
-    <PWAProvider>
-      <LocalizationProvider>
-        <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-        <PWAInstaller />
-        <div className="min-h-screen bg-slate-50">
+    <ErrorBoundary name="App Layout">
+      <PWAProvider>
+        <LocalizationProvider>
+          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
+          <PWAInstaller />
+          <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
           <style>{`
             :root {
@@ -357,9 +361,14 @@ export default function Layout({ children, currentPageName }) {
         )}
           </header>
 
-          <main className="pb-8">{children}</main>
-        </div>
-      </LocalizationProvider>
-    </PWAProvider>
-  );
-}
+          <main className="pb-8">
+            <ErrorBoundary name="Page Content">
+              {children}
+            </ErrorBoundary>
+          </main>
+          </div>
+          </LocalizationProvider>
+          </PWAProvider>
+          </ErrorBoundary>
+          );
+          }

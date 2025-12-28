@@ -37,6 +37,8 @@ import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { handleApiError } from "../components/errors/apiErrorHandler";
+import ErrorBoundary from "../components/errors/ErrorBoundary";
 import { Settings } from "lucide-react";
 import LandingPageBuilder from "../components/website/LandingPageBuilder";
 import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
@@ -63,10 +65,22 @@ export default function Website() {
 
   const isAdmin = user && (user.role === 'admin' || user.user_type === 'admin' || user.user_type === 'gestor');
   
-  const { data: properties = [], isLoading } = useQuery({
+  const { data: properties = [], isLoading, error: propertiesError } = useQuery({
     queryKey: ['properties', 'website'],
-    queryFn: () => base44.entities.Property.list('-created_date'),
-    staleTime: 0 // Force refresh on navigation
+    queryFn: async () => {
+      try {
+        return await base44.entities.Property.list('-created_date');
+      } catch (error) {
+        handleApiError(error, {
+          endpoint: 'Property.list',
+          customMessage: 'Erro ao carregar imóveis. Tente recarregar a página.',
+          showToast: true
+        });
+        throw error;
+      }
+    },
+    staleTime: 0, // Force refresh on navigation
+    retry: 2
   });
 
   // A/B Testing
@@ -526,8 +540,9 @@ export default function Website() {
   });
 
   return (
-    <HelmetProvider>
-      <div className="min-h-screen bg-slate-50">
+    <ErrorBoundary name="Website Page">
+      <HelmetProvider>
+        <div className="min-h-screen bg-slate-50">
         {/* Visitor Tracking */}
         <VisitorTracker pageType="website" pageTitle="ZuGruppe - Browse Properties" />
         
