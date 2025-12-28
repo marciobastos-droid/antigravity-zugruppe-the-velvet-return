@@ -311,14 +311,21 @@ export default function ClientDatabase() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      console.log('Creating contact with data:', data);
       const { data: refData } = await base44.functions.invoke('generateRefId', { entity_type: 'ClientContact' });
+      console.log('Generated ref_id:', refData);
       return base44.entities.ClientContact.create({ ...data, ref_id: refData.ref_id });
     },
     onSuccess: async (result) => {
+      console.log('Contact created successfully:', result);
       await logAction('create', 'ClientContact', result.id, result.full_name);
-      toast.success("Contacto criado");
+      toast.success("Contacto criado com sucesso");
       queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
       resetForm();
+    },
+    onError: (error) => {
+      console.error('Error creating contact:', error);
+      toast.error(`Erro ao criar contacto: ${error.message || 'Erro desconhecido'}`);
     }
   });
 
@@ -558,10 +565,19 @@ export default function ClientDatabase() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.full_name || formData.full_name.trim() === "") {
+      toast.error("Por favor, preencha o nome completo");
+      return;
+    }
+    
     const data = {
       ...formData,
       assigned_agent: editingClient ? formData.assigned_agent : (formData.assigned_agent || user?.email)
     };
+    
+    console.log('Submitting contact data:', data);
     
     if (editingClient) {
       updateMutation.mutate({ id: editingClient.id, data });
@@ -1011,8 +1027,14 @@ export default function ClientDatabase() {
                 <Button type="button" variant="outline" onClick={resetForm} className="flex-1">
                   Cancelar
                 </Button>
-                <Button type="submit" className="flex-1 bg-slate-900 hover:bg-slate-800">
-                  {editingClient ? "Atualizar" : "Criar Contacto"}
+                <Button 
+                  type="submit" 
+                  className="flex-1 bg-slate-900 hover:bg-slate-800"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {(createMutation.isPending || updateMutation.isPending) 
+                    ? "A guardar..." 
+                    : editingClient ? "Atualizar" : "Criar Contacto"}
                 </Button>
               </div>
             </form>
