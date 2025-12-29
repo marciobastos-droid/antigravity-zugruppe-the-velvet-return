@@ -56,8 +56,8 @@ export default function Home() {
     {
       title: "ZUHANDEL",
       subtitle: "IMOBILIÁRIA COMERCIAL",
-      link: createPageUrl("ZuHandel"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png"
+      link: "https://www.zuhaus.pt",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/4b8e979d6_ZUHANDEL_square.jpg"
     },
     {
       title: "ZU'PROJEKT",
