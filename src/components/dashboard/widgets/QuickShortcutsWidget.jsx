@@ -12,7 +12,7 @@ const defaultShortcuts = [
   { id: "addLead", label: "Novo Lead", icon: Users, path: "CRMAdvanced?tab=opportunities", color: "bg-purple-500" },
   { id: "calendar", label: "Calendário", icon: Calendar, path: "Tools", color: "bg-amber-500" },
   { id: "matching", label: "AI Matching", icon: Sparkles, path: "ClientPreferences", color: "bg-pink-500" },
-  { id: "reports", label: "Relatórios", icon: BarChart3, path: "Dashboard", color: "bg-emerald-500" },
+  { id: "importLeads", label: "Importar Leads", icon: FileText, path: "Tools", color: "bg-indigo-500" },
   { id: "tools", label: "Ferramentas", icon: Wrench, path: "Tools", color: "bg-slate-500" }
 ];
 
