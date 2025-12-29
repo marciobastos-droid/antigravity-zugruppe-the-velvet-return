@@ -5,6 +5,7 @@ import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
 import Franchising from './pages/Franchising';
+import Home from './pages/Home';
 import ManageData from './pages/ManageData';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
@@ -19,7 +20,6 @@ import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -31,6 +31,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
     "Franchising": Franchising,
+    "Home": Home,
     "ManageData": ManageData,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
@@ -45,7 +46,6 @@ export const PAGES = {
     "Website": Website,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "Home": Home,
 }
 
 export const pagesConfig = {

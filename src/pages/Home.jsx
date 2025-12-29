@@ -26,7 +26,7 @@ export default function Home() {
       title: "CRM",
       description: "Gestão de clientes e leads",
       icon: Users,
-      link: createPageUrl("CRMAdvanced"),
+      link: createPageUrl("CRMAdvanced") + "?tab=clients",
       color: "from-green-500 to-green-600"
     },
     {
