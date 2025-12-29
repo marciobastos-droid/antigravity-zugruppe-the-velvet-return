@@ -630,9 +630,14 @@ export default function MyListings() {
 
   const duplicatePropertyMutation = useMutation({
     mutationFn: async (property) => {
-      const { id, created_date, updated_date, created_by, ...propertyData } = property;
+      const { id, created_date, updated_date, created_by, ref_id, ...propertyData } = property;
+
+      // Gerar novo ref_id sequencial
+      const { data: newRefId } = await base44.functions.invoke('generateRefId', { entity: 'Property' });
+
       const newProperty = {
         ...propertyData,
+        ref_id: newRefId,
         title: `${property.title} (Cópia)`,
         status: 'pending'
       };
