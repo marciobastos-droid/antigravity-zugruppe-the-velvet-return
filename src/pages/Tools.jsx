@@ -102,6 +102,13 @@ export default function Tools() {
     return saved ? JSON.parse(saved) : {};
   });
 
+  // Estado para atalhos rápidos
+  const defaultShortcuts = ['importProperties', 'importLeads', 'listingOptimizer', 'aiMatching', 'facebookLeads', 'bulkScore', 'socialMedia', 'calendar'];
+  const [shortcuts, setShortcuts] = useState(() => {
+    const saved = localStorage.getItem('toolsShortcuts');
+    return saved ? JSON.parse(saved) : defaultShortcuts;
+  });
+
   // Função para lidar com drag end
   const handleDragEnd = (result, groupId) => {
     if (!result.destination) return;
@@ -114,6 +121,18 @@ export default function Tools() {
     const newOrder = { ...toolsOrder, [groupId]: reordered };
     setToolsOrder(newOrder);
     localStorage.setItem('toolsCardsOrder', JSON.stringify(newOrder));
+  };
+
+  // Função para drag dos atalhos rápidos
+  const handleShortcutsDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const reordered = Array.from(shortcuts);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+
+    setShortcuts(reordered);
+    localStorage.setItem('toolsShortcuts', JSON.stringify(reordered));
   };
 
   // Obter ferramentas de um grupo na ordem correta
@@ -522,16 +541,52 @@ export default function Tools() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-              <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode />
-              <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode />
-              <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador IA" gridMode />
-              <ToolButton toolId="aiMatching" icon={Target} label="Matching IA" gridMode />
-              <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode />
-              <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações" gridMode />
-              <ToolButton toolId="socialMedia" icon={Share2} label="Redes Sociais" gridMode />
-              <ToolButton toolId="calendar" icon={Calendar} label="Calendário" gridMode />
-            </div>
+            <DragDropContext onDragEnd={handleShortcutsDragEnd}>
+              <Droppable droppableId="shortcuts" direction="horizontal">
+                {(provided) => (
+                  <div 
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3"
+                  >
+                    {shortcuts.map((toolId, index) => {
+                      const toolMeta = {
+                        importProperties: { icon: Download, label: "Importar Imóveis" },
+                        importLeads: { icon: UserPlus, label: "Importar Leads" },
+                        listingOptimizer: { icon: Sparkles, label: "Otimizador IA" },
+                        aiMatching: { icon: Target, label: "Matching IA" },
+                        facebookLeads: { icon: Target, label: "Leads Facebook" },
+                        bulkScore: { icon: TrendingUp, label: "Pontuações" },
+                        socialMedia: { icon: Share2, label: "Redes Sociais" },
+                        calendar: { icon: Calendar, label: "Calendário" }
+                      }[toolId];
+                      
+                      if (!toolMeta) return null;
+                      
+                      return (
+                        <Draggable key={toolId} draggableId={`shortcut-${toolId}`} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                            >
+                              <ToolButton 
+                                toolId={toolId} 
+                                icon={toolMeta.icon} 
+                                label={toolMeta.label} 
+                                gridMode 
+                                dragHandleProps={provided.dragHandleProps}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           </CardContent>
         </Card>
 
