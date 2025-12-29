@@ -45,37 +45,42 @@ export default function Home() {
     }
   ];
 
-  // 5 Cards com logos das marcas ZU
+  // 5 Cards com logos das marcas ZU - todos mostram imagens agora
   const brandCards = [
     {
       title: "ZU'HAUS",
       subtitle: "IMOBILIÁRIA RESIDENCIAL",
       link: "https://www.zuhaus.pt",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c9093f98f_ZuHausA01.jpg"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c9093f98f_ZuHausA01.jpg",
+      isExternal: true
     },
     {
       title: "ZUHANDEL",
       subtitle: "IMOBILIÁRIA COMERCIAL",
       link: "https://www.zuhaus.pt",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/4b8e979d6_ZUHANDEL_square.jpg"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/4b8e979d6_ZUHANDEL_square.jpg",
+      isExternal: true
     },
     {
       title: "ZU'PROJEKT",
       subtitle: "DESENVOLVIMENTO E PROJETOS",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png",
+      isExternal: false
     },
     {
       title: "ZU'GARDEN",
       subtitle: "GESTÃO IMOBILIÁRIA INTERNACIONAL",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/bfb9390a5_LogoZuGarden.png"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/bfb9390a5_LogoZuGarden.png",
+      isExternal: false
     },
     {
       title: "ZU'FINANCE",
       subtitle: "INTERMEDIAÇÃO DE CRÉDITO",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/f3815d8b5_LogoZuFinance.jpg"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/f3815d8b5_LogoZuFinance.jpg",
+      isExternal: false
     }
   ];
 
@@ -170,11 +175,11 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                {brand.link.startsWith('http') ? (
+                {brand.isExternal ? (
                   <a href={brand.link} target="_blank" rel="noopener noreferrer">
                     <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
                       <CardContent className="p-6 flex flex-col items-center text-center">
-                        <div className="w-full h-32 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                        <div className="w-full h-32 flex items-center justify-center group-hover:scale-105 transition-transform">
                           <img 
                             src={brand.logo} 
                             alt={brand.title}
@@ -188,16 +193,12 @@ export default function Home() {
                   <Link to={brand.link}>
                     <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
                       <CardContent className="p-6 flex flex-col items-center text-center">
-                        <div className="w-full h-32 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                          <div className="text-center">
-                            <h3 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
-                              {brand.title}
-                            </h3>
-                            <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-2"></div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider">
-                              {brand.subtitle}
-                            </p>
-                          </div>
+                        <div className="w-full h-32 flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <img 
+                            src={brand.logo} 
+                            alt={brand.title}
+                            className="max-w-full max-h-full object-contain"
+                          />
                         </div>
                       </CardContent>
                     </Card>
