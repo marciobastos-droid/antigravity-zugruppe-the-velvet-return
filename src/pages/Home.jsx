@@ -69,7 +69,7 @@ export default function Home() {
       title: "ZU'GARDEN",
       subtitle: "GESTÃO IMOBILIÁRIA INTERNACIONAL",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/bfb9390a5_LogoZuGarden.png"
     },
     {
       title: "ZU'FINANCE",
