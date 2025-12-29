@@ -641,10 +641,11 @@ export default function MyListings() {
         title: `${property.title} (Cópia)`,
         status: 'pending'
       };
-      return await base44.entities.Property.create(newProperty);
+      const result = await base44.entities.Property.create(newProperty);
+      return { result, newRefId, originalTitle: property.title };
     },
-    onSuccess: () => {
-      toast.success("Imóvel duplicado com sucesso!");
+    onSuccess: ({ newRefId, originalTitle }) => {
+      toast.success(`✅ Imóvel "${originalTitle}" duplicado com sucesso! Novo ID: ${newRefId}`);
       queryClient.invalidateQueries({ queryKey: ['myProperties', 'properties'] });
     },
   });
