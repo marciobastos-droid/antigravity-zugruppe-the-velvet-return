@@ -4,39 +4,50 @@ Deno.serve(async (req) => {
   const syncStartTime = Date.now();
   try {
     // Ler o body do request primeiro
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     let { access_token, page_id, form_id, campaign_id, campaign_name, form_name, last_sync, start_date, end_date, assigned_to, campaign_budget, campaign_start_date, campaign_end_date, campaign_status, sync_type = 'manual' } = body;
 
-    // Limpar espaços em branco dos parâmetros recebidos
+    // Autenticar utilizador (pode ser null para sincronizações automáticas)
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+
+    // Se access_token ou form_id não fornecidos, carregar das configurações
+    if (!access_token || !form_id) {
+      const fbSettings = await base44.asServiceRole.entities.FacebookLeadSettings.list();
+      if (fbSettings.length > 0) {
+        const settings = fbSettings[0];
+        access_token = access_token || settings.access_token;
+        page_id = page_id || settings.page_id;
+        form_id = form_id || settings.form_id;
+        campaign_id = campaign_id || settings.campaign_id;
+        campaign_name = campaign_name || settings.campaign_name;
+        form_name = form_name || settings.form_name;
+        campaign_budget = campaign_budget || settings.campaign_budget;
+        campaign_start_date = campaign_start_date || settings.campaign_start_date;
+        campaign_end_date = campaign_end_date || settings.campaign_end_date;
+        campaign_status = campaign_status || settings.campaign_status;
+        assigned_to = assigned_to || settings.assigned_agent;
+      }
+    }
+
+    // Limpar espaços em branco
     access_token = access_token ? access_token.trim() : access_token;
     page_id = page_id ? page_id.trim() : page_id;
     form_id = form_id ? form_id.trim() : form_id;
 
-    console.log('Received parameters:', {
+    console.log('Processed parameters:', {
       has_access_token: !!access_token,
       has_form_id: !!form_id,
-      access_token_preview: access_token ? `${access_token.substring(0, 10)}...` : 'MISSING',
-      form_id: form_id || 'MISSING'
+      sync_type,
+      triggered_by: user?.email || 'system'
     });
 
     // Validar parâmetros obrigatórios
     if (!access_token || !form_id) {
-      console.error('Missing required parameters:', { 
-        has_access_token: !!access_token,
-        has_form_id: !!form_id 
-      });
       return Response.json({ 
-        error: 'Missing required parameters',
-        details: `access_token: ${!!access_token ? 'present' : 'MISSING'}, form_id: ${!!form_id ? 'present' : 'MISSING'}`
+        error: 'Missing Facebook credentials',
+        details: 'Configure Facebook Lead Settings primeiro'
       }, { status: 400 });
-    }
-
-    // Autenticar utilizador
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Buscar leads existentes para deduplicação (de TODOS os formulários para evitar duplicados globais)
@@ -262,7 +273,7 @@ Deno.serve(async (req) => {
       start_date: start_date || undefined,
       end_date: end_date || undefined,
       duration_seconds: durationSeconds,
-      triggered_by: user.email
+      triggered_by: user?.email || 'system'
     });
 
     return Response.json({
@@ -279,11 +290,11 @@ Deno.serve(async (req) => {
     // Criar log de erro
     try {
       const base44 = createClientFromRequest(req);
-      const user = await base44.auth.me();
-      const body = await req.json();
+      const user = await base44.auth.me().catch(() => null);
+      const body = await req.json().catch(() => ({}));
       
-      if (user && body.form_id) {
-        await base44.entities.FacebookSyncLog.create({
+      if (body.form_id) {
+        await base44.asServiceRole.entities.FacebookSyncLog.create({
           campaign_id: body.campaign_id || '',
           form_id: body.form_id,
           sync_type: body.start_date && body.end_date ? 'historical' : (body.sync_type || 'manual'),
@@ -293,7 +304,7 @@ Deno.serve(async (req) => {
           leads_duplicated: 0,
           error_message: error.message || error.toString(),
           duration_seconds: Math.floor((Date.now() - syncStartTime) / 1000),
-          triggered_by: user.email
+          triggered_by: user?.email || 'system'
         });
       }
     } catch (logError) {
