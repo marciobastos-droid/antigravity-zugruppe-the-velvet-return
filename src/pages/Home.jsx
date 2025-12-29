@@ -50,8 +50,8 @@ export default function Home() {
     {
       title: "ZU'HAUS",
       subtitle: "IMOBILIÁRIA RESIDENCIAL",
-      link: createPageUrl("ZuHaus"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png"
+      link: "https://www.zuhaus.pt",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c9093f98f_ZuHausA01.jpg"
     },
     {
       title: "ZUHANDEL",
@@ -170,23 +170,39 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
               >
-                <Link to={brand.link}>
-                  <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
-                    <CardContent className="p-6 flex flex-col items-center text-center">
-                      <div className="w-full h-32 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                        <div className="text-center">
-                          <h3 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
-                            {brand.title}
-                          </h3>
-                          <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-2"></div>
-                          <p className="text-xs text-slate-500 uppercase tracking-wider">
-                            {brand.subtitle}
-                          </p>
+                {brand.link.startsWith('http') ? (
+                  <a href={brand.link} target="_blank" rel="noopener noreferrer">
+                    <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
+                      <CardContent className="p-6 flex flex-col items-center text-center">
+                        <div className="w-full h-32 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <img 
+                            src={brand.logo} 
+                            alt={brand.title}
+                            className="max-w-full max-h-full object-contain"
+                          />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </CardContent>
+                    </Card>
+                  </a>
+                ) : (
+                  <Link to={brand.link}>
+                    <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
+                      <CardContent className="p-6 flex flex-col items-center text-center">
+                        <div className="w-full h-32 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                          <div className="text-center">
+                            <h3 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">
+                              {brand.title}
+                            </h3>
+                            <div className="h-1 w-12 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-2"></div>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider">
+                              {brand.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                )}
               </motion.div>
             ))}
           </div>
