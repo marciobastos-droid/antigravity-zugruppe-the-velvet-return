@@ -87,7 +87,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section com Logo */}
-      <section className="py-16 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-12 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -97,12 +97,12 @@ export default function Home() {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
               alt="Zugruppe"
-              className="h-24 mx-auto mb-8 object-contain"
+              className="h-16 mx-auto mb-6 object-contain"
             />
-            <h1 className="text-5xl font-bold text-slate-900 mb-4">
+            <h1 className="text-3xl font-bold text-slate-900 mb-3">
               Bem-vindo à ZuGruppe
             </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="text-base text-slate-600 max-w-2xl mx-auto">
               Plataforma Integrada de Gestão Imobiliária
             </p>
           </motion.div>
@@ -110,18 +110,18 @@ export default function Home() {
       </section>
 
       {/* Secção 1: Cards de Páginas da App */}
-      <section className="py-16 bg-white">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-3xl font-bold text-slate-900 text-center mb-12"
+            className="text-2xl font-bold text-slate-900 text-center mb-8"
           >
             Acesso Rápido
           </motion.h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {appCards.map((card, idx) => {
               const Icon = card.icon;
               return (
@@ -134,14 +134,14 @@ export default function Home() {
                 >
                   <Link to={card.link}>
                     <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-blue-400">
-                      <CardContent className="p-6 flex flex-col items-center text-center">
-                        <div className={`w-16 h-16 bg-gradient-to-br ${card.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-8 h-8 text-white" />
+                      <CardContent className="p-4 flex flex-col items-center text-center">
+                        <div className={`w-12 h-12 bg-gradient-to-br ${card.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                          <Icon className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-base font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">
                           {card.title}
                         </h3>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-xs text-slate-600">
                           {card.description}
                         </p>
                       </CardContent>
@@ -155,18 +155,18 @@ export default function Home() {
       </section>
 
       {/* Secção 2: Cards das Marcas ZU */}
-      <section className="py-16 bg-white border-t">
+      <section className="py-12 bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-3xl font-bold text-slate-900 text-center mb-12"
+            className="text-2xl font-bold text-slate-900 text-center mb-8"
           >
             As Nossas Marcas
           </motion.h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {brandCards.map((brand, idx) => (
               <motion.div
                 key={idx}
@@ -178,8 +178,8 @@ export default function Home() {
                 {brand.isExternal ? (
                   <a href={brand.link} target="_blank" rel="noopener noreferrer">
                     <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
-                      <CardContent className="p-6 flex flex-col items-center text-center">
-                        <div className="w-full h-32 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <CardContent className="p-4 flex flex-col items-center text-center">
+                        <div className="w-full h-24 flex items-center justify-center group-hover:scale-105 transition-transform">
                           <img 
                             src={brand.logo} 
                             alt={brand.title}
@@ -192,8 +192,8 @@ export default function Home() {
                 ) : (
                   <Link to={brand.link}>
                     <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer border-2 hover:border-slate-300">
-                      <CardContent className="p-6 flex flex-col items-center text-center">
-                        <div className="w-full h-32 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <CardContent className="p-4 flex flex-col items-center text-center">
+                        <div className="w-full h-24 flex items-center justify-center group-hover:scale-105 transition-transform">
                           <img 
                             src={brand.logo} 
                             alt={brand.title}
