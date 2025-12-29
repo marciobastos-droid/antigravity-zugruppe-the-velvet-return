@@ -471,16 +471,13 @@ export default function Tools() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
               <ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode />
+              <ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode />
               <ToolButton toolId="description" icon={FileText} label="Descrições IA" gridMode />
               <ToolButton toolId="aiMatching" icon={Target} label="Matching IA" gridMode />
-              <ToolButton toolId="emailHub" icon={Mail} label="Email Hub" gridMode />
               <ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode />
-              <ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar" gridMode />
               <ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador" gridMode />
               <ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações" gridMode />
               <ToolButton toolId="socialMedia" icon={Share2} label="Redes Sociais" gridMode />
-              <ToolButton toolId="marketIntelligence" icon={BarChart3} label="Mercado" gridMode />
-              <ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp" gridMode />
               <ToolButton toolId="calendar" icon={Calendar} label="Calendário" gridMode />
             </div>
           </CardContent>
