@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2, FileDown, Bug } from "lucide-react";
+import { Video, Calendar, Wrench, FileText, TrendingUp, Download, UserPlus, Folder, StickyNote, Share2, UploadCloud, Zap, Key, Facebook, BarChart3, Sparkles, Mail, LayoutDashboard, FileEdit, Server, Copy, Brain, Target, Calculator, Bell, MessageCircle, Globe, Users, Plug, DollarSign, Lock, Trash2, Eye, Image, Activity, Link2, Loader2, RefreshCw, FileJson, Building2, Megaphone, Database, CheckCircle2, FileDown, Bug, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ImportProperties from "../components/tools/ImportProperties";
 import ImportLeads from "../components/tools/ImportLeads";
 import ImportContactsDialog from "../components/crm/ImportContactsDialog";
@@ -94,6 +95,53 @@ export default function Tools() {
   const [syncingEmails, setSyncingEmails] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
   const toolRefs = React.useRef({});
+
+  // Ordem dos cards (salvando no localStorage)
+  const [toolsOrder, setToolsOrder] = useState(() => {
+    const saved = localStorage.getItem('toolsCardsOrder');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Função para lidar com drag end
+  const handleDragEnd = (result, groupId) => {
+    if (!result.destination) return;
+
+    const groupTools = getGroupTools(groupId);
+    const reordered = Array.from(groupTools);
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+
+    const newOrder = { ...toolsOrder, [groupId]: reordered };
+    setToolsOrder(newOrder);
+    localStorage.setItem('toolsCardsOrder', JSON.stringify(newOrder));
+  };
+
+  // Obter ferramentas de um grupo na ordem correta
+  const getGroupTools = (groupId) => {
+    const groupMap = {
+      system: ['errorLogs'],
+      marketing: ['marketingHub', 'marketingCampaigns', 'landingPages', 'dynamicForms', 'seoManager', 
+                  'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 
+                  'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'],
+      facebook: ['facebookCampaigns', 'facebookLeads', 'facebookForms'],
+      leads: ['leadManagement', 'leadNurturing'],
+      import: ['importProperties', 'importLeads', 'importContacts', 'importOpportunities', 'importInvoices', 
+               'exportProperties', 'dataExporter', 'reportsExporter', 'jsonProcessor', 'propertyFeeds', 
+               'externalSync', 'casafariSync'],
+      utilities: ['bulkScore', 'crmSync', 'duplicateChecker', 'duplicateClients', 'inconsistencyChecker', 
+                  'orphanCleaner', 'linkContacts', 'imageValidator', 'emailHub', 'gmailSync', 'gmailLinker', 
+                  'video', 'description', 'listingOptimizer', 'calendar'],
+      matching: ['aiMatching', 'autoMatching', 'autoMatchingDashboard'],
+      market: ['marketIntelligence', 'propertyPerformance', 'pricing', 'creditSimulator', 'deedCosts'],
+      finance: ['commissions', 'invoices'],
+      investors: ['investorKeys', 'investorProperties'],
+      settings: ['contractAutomation', 'documents', 'notificationsDashboard', 'smtpConfig', 'devNotes', 
+                 'tagManager', 'backupManager', 'auditLog']
+    };
+
+    const defaultTools = groupMap[groupId] || [];
+    return toolsOrder[groupId] || defaultTools;
+  };
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -312,7 +360,7 @@ export default function Tools() {
   }), []);
 
   // Helper to render tool button with permission check - oculta se não permitido
-  const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false }) => {
+  const ToolButton = ({ toolId, icon: Icon, label, variant, className, gridMode = false, dragHandleProps }) => {
     const allowed = isToolAllowed(toolId);
     if (!allowed) return null;
 
@@ -340,13 +388,18 @@ export default function Tools() {
               >
                 <button
                   onClick={handleClick}
-                  className={`group relative p-4 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                  className={`group relative p-4 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden w-full ${
                     isActive 
                       ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-md' 
                       : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-start gap-3">
+                    {dragHandleProps && (
+                      <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing pt-1">
+                        <GripVertical className="w-4 h-4 text-slate-400" />
+                      </div>
+                    )}
                     <div className={`p-2 rounded-lg transition-colors duration-300 ${
                       isActive ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-600'
                     }`}>
@@ -578,24 +631,63 @@ export default function Tools() {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
-                  <div ref={el => toolRefs.current['marketingHub'] = el}><ToolButton toolId="marketingHub" icon={LayoutDashboard} label="Hub de Marketing" gridMode /></div>
-                  <div ref={el => toolRefs.current['marketingCampaigns'] = el}><ToolButton toolId="marketingCampaigns" icon={BarChart3} label="Campanhas Marketing" gridMode /></div>
-                  <div ref={el => toolRefs.current['landingPages'] = el}><ToolButton toolId="landingPages" icon={Globe} label="Landing Pages" gridMode /></div>
-                  <div ref={el => toolRefs.current['dynamicForms'] = el}><ToolButton toolId="dynamicForms" icon={FileEdit} label="Formulários Dinâmicos" gridMode /></div>
-                  <div ref={el => toolRefs.current['seoManager'] = el}><ToolButton toolId="seoManager" icon={TrendingUp} label="Gestor SEO" gridMode /></div>
-                  <div ref={el => toolRefs.current['socialMedia'] = el}><ToolButton toolId="socialMedia" icon={Share2} label="Posts Sociais" gridMode /></div>
-                  <div ref={el => toolRefs.current['socialAdCreator'] = el}><ToolButton toolId="socialAdCreator" icon={Image} label="Criador de Anúncios" gridMode /></div>
-                  <div ref={el => toolRefs.current['apiPublish'] = el}><ToolButton toolId="apiPublish" icon={Zap} label="Publicação API" gridMode /></div>
-                  <div ref={el => toolRefs.current['apiIntegrations'] = el}><ToolButton toolId="apiIntegrations" icon={Key} label="Integrações API" gridMode /></div>
-                  <div ref={el => toolRefs.current['portalIntegrations'] = el}><ToolButton toolId="portalIntegrations" icon={Globe} label="Portais Imobiliários" gridMode /></div>
-                  <div ref={el => toolRefs.current['whatsapp'] = el}><ToolButton toolId="whatsapp" icon={MessageCircle} label="WhatsApp Business" gridMode /></div>
-                  <div ref={el => toolRefs.current['integrations'] = el}><ToolButton toolId="integrations" icon={Plug} label="Integrações Externas" gridMode /></div>
-                  <div ref={el => toolRefs.current['imageExtractor'] = el}><ToolButton toolId="imageExtractor" icon={Image} label="Extrator de Imagens" gridMode /></div>
-                  <div ref={el => toolRefs.current['excelImport'] = el}><ToolButton toolId="excelImport" icon={FileText} label="Excel & JSON" gridMode /></div>
-                  <div ref={el => toolRefs.current['crmIntegrations'] = el}><ToolButton toolId="crmIntegrations" icon={Database} label="CRM Externo" gridMode /></div>
-                  <div ref={el => toolRefs.current['seoAnalytics'] = el}><ToolButton toolId="seoAnalytics" icon={TrendingUp} label="SEO & Blog Analytics" gridMode /></div>
-                </div>
+                <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'marketing')}>
+                  <Droppable droppableId="marketing-tools" direction="horizontal">
+                    {(provided) => (
+                      <div 
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4"
+                      >
+                        {getGroupTools('marketing').map((toolId, index) => {
+                          const toolMeta = {
+                            marketingHub: { icon: LayoutDashboard, label: "Hub de Marketing" },
+                            marketingCampaigns: { icon: BarChart3, label: "Campanhas Marketing" },
+                            landingPages: { icon: Globe, label: "Landing Pages" },
+                            dynamicForms: { icon: FileEdit, label: "Formulários Dinâmicos" },
+                            seoManager: { icon: TrendingUp, label: "Gestor SEO" },
+                            socialMedia: { icon: Share2, label: "Posts Sociais" },
+                            socialAdCreator: { icon: Image, label: "Criador de Anúncios" },
+                            apiPublish: { icon: Zap, label: "Publicação API" },
+                            apiIntegrations: { icon: Key, label: "Integrações API" },
+                            portalIntegrations: { icon: Globe, label: "Portais Imobiliários" },
+                            whatsapp: { icon: MessageCircle, label: "WhatsApp Business" },
+                            integrations: { icon: Plug, label: "Integrações Externas" },
+                            imageExtractor: { icon: Image, label: "Extrator de Imagens" },
+                            excelImport: { icon: FileText, label: "Excel & JSON" },
+                            crmIntegrations: { icon: Database, label: "CRM Externo" },
+                            seoAnalytics: { icon: TrendingUp, label: "SEO & Blog Analytics" }
+                          }[toolId];
+                          
+                          if (!toolMeta) return null;
+                          
+                          return (
+                            <Draggable key={toolId} draggableId={toolId} index={index}>
+                              {(provided) => (
+                                <div
+                                  ref={(el) => {
+                                    provided.innerRef(el);
+                                    toolRefs.current[toolId] = el;
+                                  }}
+                                  {...provided.draggableProps}
+                                >
+                                  <ToolButton 
+                                    toolId={toolId} 
+                                    icon={toolMeta.icon} 
+                                    label={toolMeta.label} 
+                                    gridMode 
+                                    dragHandleProps={provided.dragHandleProps}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
 
               {/* Subgrupo Facebook */}
               <div className="mt-4 pt-4 border-t border-purple-200">
@@ -604,11 +696,50 @@ export default function Tools() {
                   <h4 className="font-semibold text-blue-900">Facebook</h4>
                   <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">3 ferramentas</Badge>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div ref={el => toolRefs.current['facebookCampaigns'] = el}><ToolButton toolId="facebookCampaigns" icon={Facebook} label="Facebook Ads" gridMode /></div>
-                  <div ref={el => toolRefs.current['facebookLeads'] = el}><ToolButton toolId="facebookLeads" icon={Target} label="Leads Facebook" gridMode /></div>
-                  <div ref={el => toolRefs.current['facebookForms'] = el}><ToolButton toolId="facebookForms" icon={FileEdit} label="Formulários Facebook" gridMode /></div>
-                </div>
+                <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'facebook')}>
+                  <Droppable droppableId="facebook-tools" direction="horizontal">
+                    {(provided) => (
+                      <div 
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                      >
+                        {getGroupTools('facebook').map((toolId, index) => {
+                          const toolMeta = {
+                            facebookCampaigns: { icon: Facebook, label: "Facebook Ads" },
+                            facebookLeads: { icon: Target, label: "Leads Facebook" },
+                            facebookForms: { icon: FileEdit, label: "Formulários Facebook" }
+                          }[toolId];
+                          
+                          if (!toolMeta) return null;
+                          
+                          return (
+                            <Draggable key={toolId} draggableId={toolId} index={index}>
+                              {(provided) => (
+                                <div
+                                  ref={(el) => {
+                                    provided.innerRef(el);
+                                    toolRefs.current[toolId] = el;
+                                  }}
+                                  {...provided.draggableProps}
+                                >
+                                  <ToolButton 
+                                    toolId={toolId} 
+                                    icon={toolMeta.icon} 
+                                    label={toolMeta.label} 
+                                    gridMode 
+                                    dragHandleProps={provided.dragHandleProps}
+                                  />
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
               </div>
                   </motion.div>
                 )}
@@ -657,10 +788,50 @@ export default function Tools() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-3"
                   >
-                    <div ref={el => toolRefs.current['leadManagement'] = el}><ToolButton toolId="leadManagement" icon={Target} label="Origens & Scoring" gridMode /></div>
-                    <div ref={el => toolRefs.current['leadNurturing'] = el}><ToolButton toolId="leadNurturing" icon={Zap} label="Nurturing Automático" gridMode /></div>
+                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'leads')}>
+                      <Droppable droppableId="leads-tools" direction="horizontal">
+                        {(provided) => (
+                          <div 
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                          >
+                            {getGroupTools('leads').map((toolId, index) => {
+                              const toolMeta = {
+                                leadManagement: { icon: Target, label: "Origens & Scoring" },
+                                leadNurturing: { icon: Zap, label: "Nurturing Automático" }
+                              }[toolId];
+                              
+                              if (!toolMeta) return null;
+                              
+                              return (
+                                <Draggable key={toolId} draggableId={toolId} index={index}>
+                                  {(provided) => (
+                                    <div
+                                      ref={(el) => {
+                                        provided.innerRef(el);
+                                        toolRefs.current[toolId] = el;
+                                      }}
+                                      {...provided.draggableProps}
+                                    >
+                                      <ToolButton 
+                                        toolId={toolId} 
+                                        icon={toolMeta.icon} 
+                                        label={toolMeta.label} 
+                                        gridMode 
+                                        dragHandleProps={provided.dragHandleProps}
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              );
+                            })}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
                   </motion.div>
                 )}
               </CardContent>
@@ -707,20 +878,60 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
                       >
-                        <div ref={el => toolRefs.current['importProperties'] = el}><ToolButton toolId="importProperties" icon={Download} label="Importar Imóveis" gridMode /></div>
-                        <div ref={el => toolRefs.current['importLeads'] = el}><ToolButton toolId="importLeads" icon={UserPlus} label="Importar Leads" gridMode /></div>
-                        <div ref={el => toolRefs.current['importContacts'] = el}><ToolButton toolId="importContacts" icon={Users} label="Importar Contactos" gridMode /></div>
-                        <div ref={el => toolRefs.current['importOpportunities'] = el}><ToolButton toolId="importOpportunities" icon={Target} label="Importar Oportunidades" gridMode /></div>
-                        <div ref={el => toolRefs.current['importInvoices'] = el}><ToolButton toolId="importInvoices" icon={FileText} label="Importar Faturas" gridMode /></div>
-                        <div ref={el => toolRefs.current['exportProperties'] = el}><ToolButton toolId="exportProperties" icon={UploadCloud} label="Exportar Ficheiros" gridMode /></div>
-                        <div ref={el => toolRefs.current['dataExporter'] = el}><ToolButton toolId="dataExporter" icon={FileDown} label="Exportar CSV/Excel" gridMode /></div>
-                        <div ref={el => toolRefs.current['reportsExporter'] = el}><ToolButton toolId="reportsExporter" icon={FileText} label="Relatórios" gridMode /></div>
-                        <div ref={el => toolRefs.current['jsonProcessor'] = el}><ToolButton toolId="jsonProcessor" icon={FileJson} label="Processador JSON" gridMode /></div>
-                        <div ref={el => toolRefs.current['propertyFeeds'] = el}><ToolButton toolId="propertyFeeds" icon={Link2} label="Feeds de Imóveis" gridMode /></div>
-                        <div ref={el => toolRefs.current['externalSync'] = el}><ToolButton toolId="externalSync" icon={Globe} label="Sincronização Externa" gridMode /></div>
-                        <div ref={el => toolRefs.current['casafariSync'] = el}><ToolButton toolId="casafariSync" icon={Building2} label="Casafari Sync" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'import')}>
+                          <Droppable droppableId="import-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                              >
+                                {getGroupTools('import').map((toolId, index) => {
+                                  const toolMeta = {
+                                    importProperties: { icon: Download, label: "Importar Imóveis" },
+                                    importLeads: { icon: UserPlus, label: "Importar Leads" },
+                                    importContacts: { icon: Users, label: "Importar Contactos" },
+                                    importOpportunities: { icon: Target, label: "Importar Oportunidades" },
+                                    importInvoices: { icon: FileText, label: "Importar Faturas" },
+                                    exportProperties: { icon: UploadCloud, label: "Exportar Ficheiros" },
+                                    dataExporter: { icon: FileDown, label: "Exportar CSV/Excel" },
+                                    reportsExporter: { icon: FileText, label: "Relatórios" },
+                                    jsonProcessor: { icon: FileJson, label: "Processador JSON" },
+                                    propertyFeeds: { icon: Link2, label: "Feeds de Imóveis" },
+                                    externalSync: { icon: Globe, label: "Sincronização Externa" },
+                                    casafariSync: { icon: Building2, label: "Casafari Sync" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -767,23 +978,63 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
                       >
-                        <div ref={el => toolRefs.current['bulkScore'] = el}><ToolButton toolId="bulkScore" icon={TrendingUp} label="Pontuações em Massa" gridMode /></div>
-                        <div ref={el => toolRefs.current['crmSync'] = el}><ToolButton toolId="crmSync" icon={RefreshCw} label="Sincronização CRM" gridMode /></div>
-                        <div ref={el => toolRefs.current['duplicateChecker'] = el}><ToolButton toolId="duplicateChecker" icon={Copy} label="Verificar Duplicados" gridMode /></div>
-                        <div ref={el => toolRefs.current['duplicateClients'] = el}><ToolButton toolId="duplicateClients" icon={Users} label="Clientes Duplicados" gridMode /></div>
-                        <div ref={el => toolRefs.current['inconsistencyChecker'] = el}><ToolButton toolId="inconsistencyChecker" icon={Brain} label="Verificar Inconsistências" gridMode /></div>
-                        <div ref={el => toolRefs.current['orphanCleaner'] = el}><ToolButton toolId="orphanCleaner" icon={Trash2} label="Limpar Dados Órfãos" gridMode /></div>
-                        <div ref={el => toolRefs.current['linkContacts'] = el}><ToolButton toolId="linkContacts" icon={Link2} label="Vincular Contactos" gridMode /></div>
-                        <div ref={el => toolRefs.current['imageValidator'] = el}><ToolButton toolId="imageValidator" icon={Image} label="Validador de Imagens" gridMode /></div>
-                        <div ref={el => toolRefs.current['emailHub'] = el}><ToolButton toolId="emailHub" icon={Mail} label="Centro de Email" gridMode /></div>
-                        <div ref={el => toolRefs.current['gmailSync'] = el}><ToolButton toolId="gmailSync" icon={RefreshCw} label="Sincronizar Gmail" gridMode /></div>
-                        <div ref={el => toolRefs.current['gmailLinker'] = el}><ToolButton toolId="gmailLinker" icon={Mail} label="Gmail Linker" gridMode /></div>
-                        <div ref={el => toolRefs.current['video'] = el}><ToolButton toolId="video" icon={Video} label="Criador de Vídeos" gridMode /></div>
-                        <div ref={el => toolRefs.current['description'] = el}><ToolButton toolId="description" icon={FileText} label="Gerador de Descrições" gridMode /></div>
-                        <div ref={el => toolRefs.current['listingOptimizer'] = el}><ToolButton toolId="listingOptimizer" icon={Sparkles} label="Otimizador de Anúncios" gridMode /></div>
-                        <div ref={el => toolRefs.current['calendar'] = el}><ToolButton toolId="calendar" icon={Calendar} label="Calendário Unificado" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'utilities')}>
+                          <Droppable droppableId="utilities-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                              >
+                                {getGroupTools('utilities').map((toolId, index) => {
+                                  const toolMeta = {
+                                    bulkScore: { icon: TrendingUp, label: "Pontuações em Massa" },
+                                    crmSync: { icon: RefreshCw, label: "Sincronização CRM" },
+                                    duplicateChecker: { icon: Copy, label: "Verificar Duplicados" },
+                                    duplicateClients: { icon: Users, label: "Clientes Duplicados" },
+                                    inconsistencyChecker: { icon: Brain, label: "Verificar Inconsistências" },
+                                    orphanCleaner: { icon: Trash2, label: "Limpar Dados Órfãos" },
+                                    linkContacts: { icon: Link2, label: "Vincular Contactos" },
+                                    imageValidator: { icon: Image, label: "Validador de Imagens" },
+                                    emailHub: { icon: Mail, label: "Centro de Email" },
+                                    gmailSync: { icon: RefreshCw, label: "Sincronizar Gmail" },
+                                    gmailLinker: { icon: Mail, label: "Gmail Linker" },
+                                    video: { icon: Video, label: "Criador de Vídeos" },
+                                    description: { icon: FileText, label: "Gerador de Descrições" },
+                                    listingOptimizer: { icon: Sparkles, label: "Otimizador de Anúncios" },
+                                    calendar: { icon: Calendar, label: "Calendário Unificado" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -830,11 +1081,51 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
                       >
-                        <div ref={el => toolRefs.current['aiMatching'] = el}><ToolButton toolId="aiMatching" icon={Target} label="Motor de Matching IA" gridMode /></div>
-                        <div ref={el => toolRefs.current['autoMatching'] = el}><ToolButton toolId="autoMatching" icon={Zap} label="Matching Automático" gridMode /></div>
-                        <div ref={el => toolRefs.current['autoMatchingDashboard'] = el}><ToolButton toolId="autoMatchingDashboard" icon={Bell} label="Alertas de Matching" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'matching')}>
+                          <Droppable droppableId="matching-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                              >
+                                {getGroupTools('matching').map((toolId, index) => {
+                                  const toolMeta = {
+                                    aiMatching: { icon: Target, label: "Motor de Matching IA" },
+                                    autoMatching: { icon: Zap, label: "Matching Automático" },
+                                    autoMatchingDashboard: { icon: Bell, label: "Alertas de Matching" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -881,13 +1172,53 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
                       >
-                        <div ref={el => toolRefs.current['marketIntelligence'] = el}><ToolButton toolId="marketIntelligence" icon={BarChart3} label="Inteligência de Mercado" gridMode /></div>
-                        <div ref={el => toolRefs.current['propertyPerformance'] = el}><ToolButton toolId="propertyPerformance" icon={Activity} label="Performance de Imóveis" gridMode /></div>
-                        <div ref={el => toolRefs.current['pricing'] = el}><ToolButton toolId="pricing" icon={TrendingUp} label="Sugestor de Preços" gridMode /></div>
-                        <div ref={el => toolRefs.current['creditSimulator'] = el}><ToolButton toolId="creditSimulator" icon={Calculator} label="Simulador de Crédito" gridMode /></div>
-                        <div ref={el => toolRefs.current['deedCosts'] = el}><ToolButton toolId="deedCosts" icon={Calculator} label="Custos de Escritura" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'market')}>
+                          <Droppable droppableId="market-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+                              >
+                                {getGroupTools('market').map((toolId, index) => {
+                                  const toolMeta = {
+                                    marketIntelligence: { icon: BarChart3, label: "Inteligência de Mercado" },
+                                    propertyPerformance: { icon: Activity, label: "Performance de Imóveis" },
+                                    pricing: { icon: TrendingUp, label: "Sugestor de Preços" },
+                                    creditSimulator: { icon: Calculator, label: "Simulador de Crédito" },
+                                    deedCosts: { icon: Calculator, label: "Custos de Escritura" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -934,10 +1265,50 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-3"
                       >
-                        <div ref={el => toolRefs.current['commissions'] = el}><ToolButton toolId="commissions" icon={DollarSign} label="Gestão de Comissões" gridMode /></div>
-                        <div ref={el => toolRefs.current['invoices'] = el}><ToolButton toolId="invoices" icon={FileText} label="Gestão de Faturas" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'finance')}>
+                          <Droppable droppableId="finance-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                              >
+                                {getGroupTools('finance').map((toolId, index) => {
+                                  const toolMeta = {
+                                    commissions: { icon: DollarSign, label: "Gestão de Comissões" },
+                                    invoices: { icon: FileText, label: "Gestão de Faturas" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -984,10 +1355,50 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-3"
                       >
-                        <div ref={el => toolRefs.current['investorKeys'] = el}><ToolButton toolId="investorKeys" icon={Key} label="Chaves de Acesso" gridMode /></div>
-                        <div ref={el => toolRefs.current['investorProperties'] = el}><ToolButton toolId="investorProperties" icon={Building2} label="Imóveis Publicados" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'investors')}>
+                          <Droppable droppableId="investors-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                              >
+                                {getGroupTools('investors').map((toolId, index) => {
+                                  const toolMeta = {
+                                    investorKeys: { icon: Key, label: "Chaves de Acesso" },
+                                    investorProperties: { icon: Building2, label: "Imóveis Publicados" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
@@ -1034,16 +1445,56 @@ export default function Tools() {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
                       >
-                        <div ref={el => toolRefs.current['contractAutomation'] = el}><ToolButton toolId="contractAutomation" icon={Sparkles} label="Automação de Contratos" gridMode /></div>
-                        <div ref={el => toolRefs.current['documents'] = el}><ToolButton toolId="documents" icon={Folder} label="Documentos e Contratos" gridMode /></div>
-                        <div ref={el => toolRefs.current['notificationsDashboard'] = el}><ToolButton toolId="notificationsDashboard" icon={Bell} label="Central de Notificações" gridMode /></div>
-                        <div ref={el => toolRefs.current['smtpConfig'] = el}><ToolButton toolId="smtpConfig" icon={Server} label="Config. Email" gridMode /></div>
-                        <div ref={el => toolRefs.current['devNotes'] = el}><ToolButton toolId="devNotes" icon={StickyNote} label="Notas & Sugestões" gridMode /></div>
-                        <div ref={el => toolRefs.current['tagManager'] = el}><ToolButton toolId="tagManager" icon={Target} label="Etiquetas" gridMode /></div>
-                        <div ref={el => toolRefs.current['backupManager'] = el}><ToolButton toolId="backupManager" icon={Database} label="Gestor de Backups" gridMode /></div>
-                        <div ref={el => toolRefs.current['auditLog'] = el}><ToolButton toolId="auditLog" icon={FileText} label="Logs de Atividade" gridMode /></div>
+                        <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'settings')}>
+                          <Droppable droppableId="settings-tools" direction="horizontal">
+                            {(provided) => (
+                              <div 
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+                              >
+                                {getGroupTools('settings').map((toolId, index) => {
+                                  const toolMeta = {
+                                    contractAutomation: { icon: Sparkles, label: "Automação de Contratos" },
+                                    documents: { icon: Folder, label: "Documentos e Contratos" },
+                                    notificationsDashboard: { icon: Bell, label: "Central de Notificações" },
+                                    smtpConfig: { icon: Server, label: "Config. Email" },
+                                    devNotes: { icon: StickyNote, label: "Notas & Sugestões" },
+                                    tagManager: { icon: Target, label: "Etiquetas" },
+                                    backupManager: { icon: Database, label: "Gestor de Backups" },
+                                    auditLog: { icon: FileText, label: "Logs de Atividade" }
+                                  }[toolId];
+                                  
+                                  if (!toolMeta) return null;
+                                  
+                                  return (
+                                    <Draggable key={toolId} draggableId={toolId} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={(el) => {
+                                            provided.innerRef(el);
+                                            toolRefs.current[toolId] = el;
+                                          }}
+                                          {...provided.draggableProps}
+                                        >
+                                          <ToolButton 
+                                            toolId={toolId} 
+                                            icon={toolMeta.icon} 
+                                            label={toolMeta.label} 
+                                            gridMode 
+                                            dragHandleProps={provided.dragHandleProps}
+                                          />
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </DragDropContext>
                       </motion.div>
                     )}
                   </CardContent>
