@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Upload, X, Image as ImageIcon, Sparkles, ExternalLink, Home, Building2, MapPin, Settings, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, Sparkles, ExternalLink, Home, Building2, MapPin, Settings, ChevronDown, ChevronRight, Languages } from "lucide-react";
 import PropertyTagger from "../property/PropertyTagger";
 import AIPropertyTools from "../property/AIPropertyTools";
 import LocationAutocomplete from "../property/LocationAutocomplete";
@@ -26,6 +26,8 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
   const [uploading, setUploading] = useState(false);
   const [improvingDescription, setImprovingDescription] = useState(false);
   const [improvingTitle, setImprovingTitle] = useState(false);
+  const [activeLanguage, setActiveLanguage] = useState("pt");
+  const [translating, setTranslating] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -77,6 +79,12 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
     publication_config: {
       auto_publish: false,
       exclude_from_feeds: false
+    },
+    translations: {
+      en: { title: "", description: "", amenities: [] },
+      es: { title: "", description: "", amenities: [] },
+      fr: { title: "", description: "", amenities: [] },
+      de: { title: "", description: "", amenities: [] }
     }
   });
 
@@ -198,6 +206,12 @@ export default function EditPropertyDialog({ property, open, onOpenChange }) {
         publication_config: property.publication_config || {
           auto_publish: false,
           exclude_from_feeds: false
+        },
+        translations: property.translations || {
+          en: { title: "", description: "", amenities: [] },
+          es: { title: "", description: "", amenities: [] },
+          fr: { title: "", description: "", amenities: [] },
+          de: { title: "", description: "", amenities: [] }
         }
       });
     }
@@ -281,6 +295,32 @@ Retorna APENAS a descrição melhorada, sem introduções ou comentários.`,
     }
 
     setImprovingDescription(false);
+  };
+
+  const handleAutoTranslate = async () => {
+    if (!formData.title || !formData.description) {
+      toast.error("Preencha o título e descrição em Português primeiro");
+      return;
+    }
+
+    setTranslating(true);
+    try {
+      const { data: translations } = await base44.functions.invoke('translatePropertyContent', {
+        title: formData.title,
+        description: formData.description,
+        amenities: formData.amenities
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        translations: translations
+      }));
+
+      toast.success("Traduções geradas com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao traduzir conteúdo: " + (error.message || ""));
+    }
+    setTranslating(false);
   };
 
   const handleImproveTitle = async () => {
@@ -454,7 +494,8 @@ Retorna APENAS o título melhorado, nada mais.`,
       owner_nif: formData.owner_nif || undefined,
       published_portals: formData.published_portals || [],
       published_pages: formData.published_pages || [],
-      publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false }
+      publication_config: formData.publication_config || { auto_publish: false, exclude_from_feeds: false },
+      translations: formData.translations
     };
 
     updateMutation.mutate(data);
@@ -530,33 +571,139 @@ Retorna APENAS o título melhorado, nada mais.`,
                 <div className="md:col-span-2">
                   <div className="flex items-center justify-between mb-2">
                     <Label>Título *</Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleImproveTitle}
-                      disabled={improvingTitle}
-                      className="text-purple-600 border-purple-300 hover:bg-purple-50"
-                    >
-                      {improvingTitle ? (
-                        <>
-                          <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                          A melhorar...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3 mr-2" />
-                          Melhorar com IA
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAutoTranslate}
+                        disabled={translating}
+                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                      >
+                        {translating ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                            A traduzir...
+                          </>
+                        ) : (
+                          <>
+                            <Languages className="w-3 h-3 mr-2" />
+                            Traduzir Tudo
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleImproveTitle}
+                        disabled={improvingTitle}
+                        className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                      >
+                        {improvingTitle ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                            A melhorar...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3 mr-2" />
+                            Melhorar com IA
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <Input
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="Ex: Apartamento T2 no Centro"
-                  />
+                  
+                  <div className="space-y-3">
+                    {/* Language Tabs */}
+                    <div className="flex gap-1 border-b">
+                      <button
+                        type="button"
+                        onClick={() => setActiveLanguage("pt")}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                          activeLanguage === "pt"
+                            ? "border-slate-900 text-slate-900"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        🇵🇹 Português
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveLanguage("en")}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                          activeLanguage === "en"
+                            ? "border-slate-900 text-slate-900"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        🇬🇧 English
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveLanguage("fr")}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                          activeLanguage === "fr"
+                            ? "border-slate-900 text-slate-900"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        🇫🇷 Français
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveLanguage("de")}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                          activeLanguage === "de"
+                            ? "border-slate-900 text-slate-900"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        🇩🇪 Deutsch
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveLanguage("es")}
+                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                          activeLanguage === "es"
+                            ? "border-slate-900 text-slate-900"
+                            : "border-transparent text-slate-500 hover:text-slate-700"
+                        }`}
+                      >
+                        🇪🇸 Español
+                      </button>
+                    </div>
+
+                    {/* Title Input */}
+                    {activeLanguage === "pt" ? (
+                      <Input
+                        required
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
+                        placeholder="Ex: Apartamento T2 no Centro"
+                      />
+                    ) : (
+                      <Input
+                        value={formData.translations?.[activeLanguage]?.title || ""}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          translations: {
+                            ...formData.translations,
+                            [activeLanguage]: {
+                              ...formData.translations[activeLanguage],
+                              title: e.target.value
+                            }
+                          }
+                        })}
+                        placeholder={`Título em ${activeLanguage.toUpperCase()}`}
+                      />
+                    )}
+                    
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span>{activeLanguage === "pt" ? formData.title.length : (formData.translations?.[activeLanguage]?.title?.length || 0)}/60</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -912,12 +1059,35 @@ Retorna APENAS o título melhorado, nada mais.`,
                     )}
                   </Button>
                 </div>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Descreva o imóvel..."
-                  rows={6}
-                />
+                
+                {activeLanguage === "pt" ? (
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Descreva o imóvel..."
+                    rows={6}
+                  />
+                ) : (
+                  <Textarea
+                    value={formData.translations?.[activeLanguage]?.description || ""}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      translations: {
+                        ...formData.translations,
+                        [activeLanguage]: {
+                          ...formData.translations[activeLanguage],
+                          description: e.target.value
+                        }
+                      }
+                    })}
+                    placeholder={`Descrição em ${activeLanguage.toUpperCase()}`}
+                    rows={6}
+                  />
+                )}
+                
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
+                  <span>{activeLanguage === "pt" ? formData.description.length : (formData.translations?.[activeLanguage]?.description?.length || 0)}/5000</span>
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>

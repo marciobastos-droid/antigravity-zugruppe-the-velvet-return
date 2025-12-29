@@ -9,76 +9,97 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { property_id, target_languages } = await req.json();
-    
-    if (!property_id) {
-      return Response.json({ error: 'property_id is required' }, { status: 400 });
+    const { title, description, amenities = [] } = await req.json();
+
+    if (!title || !description) {
+      return Response.json({ 
+        error: 'Missing required fields',
+        details: 'Title and description are required'
+      }, { status: 400 });
     }
 
-    // Fetch property
-    const properties = await base44.entities.Property.filter({ id: property_id });
-    if (!properties || properties.length === 0) {
-      return Response.json({ error: 'Property not found' }, { status: 404 });
-    }
+    // Traduzir para todos os idiomas
+    const languages = [
+      { code: 'en', name: 'English' },
+      { code: 'es', name: 'Spanish' },
+      { code: 'fr', name: 'French' },
+      { code: 'de', name: 'German' }
+    ];
 
-    const property = properties[0];
-    const languages = target_languages || ['en', 'es', 'fr', 'de'];
-    const translations = property.translations || {};
+    const translations = {
+      en: { title: "", description: "", amenities: [] },
+      es: { title: "", description: "", amenities: [] },
+      fr: { title: "", description: "", amenities: [] },
+      de: { title: "", description: "", amenities: [] }
+    };
 
-    // Translate to each language
+    // Traduzir cada idioma
     for (const lang of languages) {
-      if (translations[lang]) continue; // Skip if already translated
+      const prompt = `You are a professional real estate translator.
 
-      const languageNames = {
-        en: 'English',
-        es: 'Spanish',
-        fr: 'French',
-        de: 'German'
-      };
+TASK: Translate the following Portuguese property listing to ${lang.name}.
 
-      const prompt = `You are a professional real estate translator. Translate the following property details from Portuguese to ${languageNames[lang]}.
+ORIGINAL TITLE (Portuguese):
+${title}
 
-IMPORTANT: Maintain the professional real estate tone and appeal to international buyers interested in Portugal.
+ORIGINAL DESCRIPTION (Portuguese):
+${description}
 
-Original Title: ${property.title}
-Original Description: ${property.description || 'N/A'}
-Original Amenities: ${property.amenities?.join(', ') || 'N/A'}
+${amenities.length > 0 ? `AMENITIES (Portuguese):\n${amenities.join(', ')}\n\n` : ''}
 
-Please provide translations in JSON format:
+INSTRUCTIONS:
+1. Translate naturally and professionally for ${lang.name} real estate market
+2. Maintain the tone and style
+3. Keep property-specific terms accurate
+4. Return ONLY valid JSON with this exact structure:
 {
-  "title": "translated title",
-  "description": "translated description (maintain paragraph structure)",
-  "amenities": ["translated", "amenities", "list"]
+  "title": "translated title here",
+  "description": "translated description here",
+  "amenities": ["translated amenity 1", "translated amenity 2"]
 }
 
-Make the translation appealing and highlight Portugal's real estate appeal for international buyers.`;
+IMPORTANT: Return ONLY the JSON object, no additional text or formatting.`;
 
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            title: { type: "string" },
-            description: { type: "string" },
-            amenities: { type: "array", items: { type: "string" } }
+      try {
+        const translation = await base44.integrations.Core.InvokeLLM({
+          prompt: prompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              description: { type: "string" },
+              amenities: { 
+                type: "array",
+                items: { type: "string" }
+              }
+            },
+            required: ["title", "description"]
           }
-        }
-      });
+        });
 
-      translations[lang] = response;
+        translations[lang.code] = {
+          title: translation.title || "",
+          description: translation.description || "",
+          amenities: translation.amenities || []
+        };
+      } catch (error) {
+        console.error(`Failed to translate to ${lang.code}:`, error);
+        // Manter vazio em caso de erro
+        translations[lang.code] = {
+          title: "",
+          description: "",
+          amenities: []
+        };
+      }
     }
 
-    // Update property with translations
-    await base44.entities.Property.update(property_id, { translations });
-
-    return Response.json({ 
-      success: true, 
-      translations,
-      message: `Property translated to ${languages.length} languages`
-    });
+    return Response.json(translations);
 
   } catch (error) {
     console.error('Translation error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ 
+      error: 'Translation failed',
+      details: error.message 
+    }, { status: 500 });
   }
 });
