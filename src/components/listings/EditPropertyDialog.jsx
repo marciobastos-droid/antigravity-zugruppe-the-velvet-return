@@ -563,6 +563,92 @@ Retorna APENAS o título melhorado, nada mais.`,
             </div>
           )}
 
+          {/* Language Tabs - Global */}
+          <div className="sticky top-0 z-10 bg-white pb-3 border-b mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <Label className="text-sm font-semibold text-slate-700">Idioma de Edição</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoTranslate}
+                  disabled={translating}
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                >
+                  {translating ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                      A traduzir...
+                    </>
+                  ) : (
+                    <>
+                      <Languages className="w-3 h-3 mr-2" />
+                      Traduzir Tudo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveLanguage("pt")}
+                className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeLanguage === "pt"
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                🇵🇹 Português
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLanguage("en")}
+                className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeLanguage === "en"
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                🇬🇧 English
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLanguage("fr")}
+                className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeLanguage === "fr"
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                🇫🇷 Français
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLanguage("de")}
+                className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeLanguage === "de"
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                🇩🇪 Deutsch
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLanguage("es")}
+                className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
+                  activeLanguage === "es"
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                🇪🇸 Español
+              </button>
+            </div>
+          </div>
+
           {/* Basic Information */}
           <Collapsible open={openSections.basic} onOpenChange={() => toggleSection('basic')}>
             <SectionHeader section="basic" title="Informação Básica" icon={Home} />
@@ -572,26 +658,6 @@ Retorna APENAS o título melhorado, nada mais.`,
                   <div className="flex items-center justify-between mb-2">
                     <Label>Título *</Label>
                     <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAutoTranslate}
-                        disabled={translating}
-                        className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                      >
-                        {translating ? (
-                          <>
-                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
-                            A traduzir...
-                          </>
-                        ) : (
-                          <>
-                            <Languages className="w-3 h-3 mr-2" />
-                            Traduzir Tudo
-                          </>
-                        )}
-                      </Button>
                       <Button
                         type="button"
                         variant="outline"
@@ -616,64 +682,6 @@ Retorna APENAS o título melhorado, nada mais.`,
                   </div>
                   
                   <div className="space-y-3">
-                    {/* Language Tabs */}
-                    <div className="flex gap-1 border-b">
-                      <button
-                        type="button"
-                        onClick={() => setActiveLanguage("pt")}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
-                          activeLanguage === "pt"
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                      >
-                        🇵🇹 Português
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveLanguage("en")}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
-                          activeLanguage === "en"
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                      >
-                        🇬🇧 English
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveLanguage("fr")}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
-                          activeLanguage === "fr"
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                      >
-                        🇫🇷 Français
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveLanguage("de")}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
-                          activeLanguage === "de"
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                      >
-                        🇩🇪 Deutsch
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveLanguage("es")}
-                        className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors ${
-                          activeLanguage === "es"
-                            ? "border-slate-900 text-slate-900"
-                            : "border-transparent text-slate-500 hover:text-slate-700"
-                        }`}
-                      >
-                        🇪🇸 Español
-                      </button>
-                    </div>
 
                     {/* Title Input */}
                     {activeLanguage === "pt" ? (
