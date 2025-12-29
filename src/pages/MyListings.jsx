@@ -633,7 +633,8 @@ export default function MyListings() {
       const { id, created_date, updated_date, created_by, ref_id, ...propertyData } = property;
 
       // Gerar novo ref_id sequencial
-      const { data: newRefId } = await base44.functions.invoke('generateRefId', { entity: 'Property' });
+      const refIdResponse = await base44.functions.invoke('generateRefId', { entity_type: 'Property' });
+      const newRefId = refIdResponse.data.ref_id;
 
       const newProperty = {
         ...propertyData,
@@ -648,6 +649,10 @@ export default function MyListings() {
       toast.success(`✅ Imóvel "${originalTitle}" duplicado com sucesso! Novo ID: ${newRefId}`);
       queryClient.invalidateQueries({ queryKey: ['myProperties', 'properties'] });
     },
+    onError: (error) => {
+      console.error("Erro ao duplicar imóvel:", error);
+      toast.error("Erro ao duplicar imóvel: " + (error?.response?.data?.error || error.message || "Erro desconhecido"));
+    }
   });
 
   const handleDelete = useCallback(async (id) => {
