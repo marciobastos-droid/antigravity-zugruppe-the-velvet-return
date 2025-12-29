@@ -245,14 +245,23 @@ export default function OpportunitiesGrid({
                   {opp.assigned_to ? getAgentName(opp.assigned_to, true) : 'Sem agente'}
                 </div>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    onClick={() => onToggleImportant?.(opp)}
-                  >
-                    <Star className={`w-3.5 h-3.5 ${opp.priority === 'high' ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => onToggleImportant?.(opp)}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${opp.priority === 'high' ? 'text-amber-500 fill-amber-500' : 'text-slate-400'}`} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-xs">{opp.priority === 'high' ? 'Remover prioridade alta' : 'Marcar como prioridade alta'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <Button
                     variant="ghost"
                     size="sm"
