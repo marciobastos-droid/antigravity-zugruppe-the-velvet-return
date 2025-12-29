@@ -113,7 +113,14 @@ const PropertyCard = memo(function PropertyCard({
             </div>
           </div>
           <div className="p-3 flex-1 flex flex-col" onClick={() => onEdit(property)} style={{ cursor: 'pointer' }}>
-            <h3 className="font-semibold text-slate-900 line-clamp-2 mb-1 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[3rem]">{property.title}</h3>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <h3 className="font-semibold text-slate-900 line-clamp-2 text-sm sm:text-base min-h-[2.5rem] sm:min-h-[3rem] flex-1">{property.title}</h3>
+              {property.ref_id && (
+                <Badge variant="outline" className="text-[10px] font-mono flex-shrink-0">
+                  {property.ref_id}
+                </Badge>
+              )}
+            </div>
             <div className="flex items-center text-slate-600 mb-2 text-xs">
               <MapPin className="w-3 h-3 mr-1" />
               <span className="line-clamp-1">
