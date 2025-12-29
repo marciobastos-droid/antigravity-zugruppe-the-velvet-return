@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Building2, Users, Wrench, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Building2, Users, Wrench, BarChart3, Target } from "lucide-react";
 
 export default function Home() {
   // 5 Cards para páginas da app
