@@ -56,14 +56,14 @@ export default function Home() {
     {
       title: "ZUHANDEL",
       subtitle: "IMOBILIÁRIA COMERCIAL",
-      link: "https://www.zuhandel.pt",
+      link: "https://www.zuhaus.pt",
       logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/4b8e979d6_ZUHANDEL_square.jpg"
     },
     {
       title: "ZU'PROJEKT",
       subtitle: "DESENVOLVIMENTO E PROJETOS",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/da7bb604e_ZUPROJEKT.pdf"
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a9283178b_Linha5MarcasZU.png"
     },
     {
       title: "ZU'GARDEN",
