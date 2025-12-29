@@ -30,10 +30,10 @@ export default function Home() {
       color: "from-green-500 to-green-600"
     },
     {
-      title: "Website",
-      description: "Portal de imóveis público",
-      icon: Building2,
-      link: createPageUrl("Website"),
+      title: "Oportunidades",
+      description: "Gestão de oportunidades de negócio",
+      icon: Target,
+      link: createPageUrl("CRMAdvanced") + "?tab=opportunities",
       color: "from-amber-500 to-amber-600"
     },
     {
@@ -97,7 +97,7 @@ export default function Home() {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
               alt="Zugruppe"
-              className="h-16 mx-auto mb-6 object-contain"
+              className="h-24 mx-auto mb-6 object-contain"
             />
             <h1 className="text-3xl font-bold text-slate-900 mb-3">
               Bem-vindo à ZuGruppe
