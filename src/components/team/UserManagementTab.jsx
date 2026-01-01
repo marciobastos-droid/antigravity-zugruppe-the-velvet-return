@@ -65,7 +65,31 @@ export default function UserManagementTab({ currentUser }) {
     },
   });
 
-  const handleTypeChange = (userId, newType) => {
+  const handleTypeChange = async (userId, newType) => {
+    // Se mudar para consultor, criar ConsultorProfile
+    if (newType === 'consultor') {
+      const user = users.find(u => u.id === userId);
+      try {
+        // Verificar se já existe perfil
+        const existingProfiles = await base44.entities.ConsultorProfile.filter({ user_email: user.email });
+        
+        if (existingProfiles.length === 0) {
+          // Criar novo ConsultorProfile
+          await base44.entities.ConsultorProfile.create({
+            user_email: user.email,
+            display_name: user.display_name || user.full_name,
+            phone: user.phone || '',
+            photo_url: user.photo_url || '',
+            is_active: true
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao criar ConsultorProfile:', error);
+        toast.error('Erro ao criar perfil de consultor');
+        return;
+      }
+    }
+    
     updateUserMutation.mutate({ userId, data: { user_type: newType } });
   };
 
@@ -196,6 +220,7 @@ export default function UserManagementTab({ currentUser }) {
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="admin">Administradores</SelectItem>
                   <SelectItem value="gestor">Gestores</SelectItem>
+                  <SelectItem value="consultor">Consultores</SelectItem>
                   <SelectItem value="agente">Agentes</SelectItem>
                 </SelectContent>
               </Select>
@@ -301,6 +326,7 @@ export default function UserManagementTab({ currentUser }) {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="agente">🏠 Agente</SelectItem>
+                              <SelectItem value="consultor">👤 Consultor</SelectItem>
                               <SelectItem value="gestor">📊 Gestor</SelectItem>
                               <SelectItem value="admin">👑 Admin</SelectItem>
                             </SelectContent>
@@ -360,10 +386,12 @@ export default function UserManagementTab({ currentUser }) {
                   <Badge className={
                     user.user_type === 'admin' ? 'bg-purple-100 text-purple-800 text-xs' :
                     user.user_type === 'gestor' ? 'bg-blue-100 text-blue-800 text-xs' :
+                    user.user_type === 'consultor' ? 'bg-amber-100 text-amber-800 text-xs' :
                     'bg-green-100 text-green-800 text-xs'
                   }>
                     {user.user_type === 'admin' ? '👑 Admin' : 
-                     user.user_type === 'gestor' ? '📊 Gestor' : '🏠 Agente'}
+                     user.user_type === 'gestor' ? '📊 Gestor' : 
+                     user.user_type === 'consultor' ? '👤 Consultor' : '🏠 Agente'}
                   </Badge>
                 </div>
               </CardContent>
