@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell, TrendingUp } from "lucide-react";
+import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell, TrendingUp, CreditCard } from "lucide-react";
 import TaskManager from "../components/team/TaskManager";
 import TeamDashboard from "../components/team/TeamDashboard";
 import PermissionsManager from "../components/team/PermissionsManager";
 import UserManagementTab from "../components/team/UserManagementTab";
 import NotificationPreferences from "../components/notifications/NotificationPreferences";
 import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
+import SubscriptionManager from "../components/subscription/SubscriptionManager";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -66,6 +67,12 @@ export default function TeamManagement() {
               <Bell className="w-4 h-4" />
               Notificações
             </TabsTrigger>
+            {isFullAdmin && (
+              <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                Subscrições
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -97,6 +104,12 @@ export default function TeamManagement() {
           <TabsContent value="notifications">
             <NotificationPreferences user={user} />
           </TabsContent>
+
+          {isFullAdmin && (
+            <TabsContent value="subscriptions">
+              <SubscriptionManager />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

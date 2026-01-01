@@ -12,7 +12,6 @@ import PerformanceMonitor from './pages/PerformanceMonitor';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
-import Subscriptions from './pages/Subscriptions';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
@@ -38,7 +37,6 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
-    "Subscriptions": Subscriptions,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
     "Tools": Tools,
