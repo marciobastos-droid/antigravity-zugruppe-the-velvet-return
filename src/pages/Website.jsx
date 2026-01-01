@@ -43,6 +43,7 @@ import VisitorTracker from "../components/tracking/VisitorTracker";
 import SmartContactSection from "../components/website/SmartContactSection";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
+import BlogSection from "../components/blog/BlogSection";
 
 export default function Website() {
   const { t, locale } = useLocalization();
@@ -1306,6 +1307,9 @@ export default function Website() {
           </div>
         )}
       </div>
+
+      {/* Blog Section */}
+      <BlogSection maxPosts={3} showHeader={true} />
 
       {/* Contact Section */}
       <SmartContactSection

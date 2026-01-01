@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "../components/browse/PropertyCard";
+import SEOHead from "../components/seo/SEOHead";
+import { HelmetProvider } from "react-helmet-async";
 
 export default function PremiumLuxury() {
   const [cityFilter, setCityFilter] = React.useState("all");
@@ -66,8 +68,43 @@ export default function PremiumLuxury() {
     return filtered;
   }, [properties, cityFilter, priceFilter, sortBy]);
 
+  // SEO dinâmico baseado em filtros
+  const dynamicSEO = React.useMemo(() => {
+    const parts = ["Coleção Premium Luxo"];
+    const keywords = ["imóveis premium", "luxo", "portugal", "alto padrão"];
+    
+    if (cityFilter !== "all") {
+      parts.push(cityFilter);
+      keywords.push(cityFilter.toLowerCase());
+    }
+    
+    if (priceFilter !== "all") {
+      const [min, max] = priceFilter.split('-').map(Number);
+      if (max) {
+        parts.push(`€${(min/1000)}k-€${(max/1000000)}M`);
+      } else {
+        parts.push(`acima de €${(min/1000000)}M`);
+      }
+    }
+    
+    const title = parts.join(" | ") + " | Zugruppe";
+    const description = `${filteredProperties.length} imóveis de luxo premium ${cityFilter !== "all" ? `em ${cityFilter}` : 'em Portugal'}. Moradias, apartamentos e propriedades exclusivas com preços acima de €500.000. Qualidade, conforto e requinte.`;
+    const keywordsStr = keywords.join(", ");
+    
+    return { title, description, keywords: keywordsStr };
+  }, [filteredProperties.length, cityFilter, priceFilter]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-slate-50">
+    <HelmetProvider>
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-slate-50">
+      <SEOHead
+        title={dynamicSEO.title}
+        description={dynamicSEO.description}
+        keywords={dynamicSEO.keywords}
+        type="website"
+        image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,5 +235,6 @@ export default function PremiumLuxury() {
         )}
       </div>
     </div>
+    </HelmetProvider>
   );
 }

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "../components/browse/PropertyCard";
+import SEOHead from "../components/seo/SEOHead";
+import { HelmetProvider } from "react-helmet-async";
 
 export default function WorldWideProperties() {
   const [countryFilter, setCountryFilter] = React.useState("all");
@@ -68,6 +70,34 @@ export default function WorldWideProperties() {
     return filtered;
   }, [properties, countryFilter, listingTypeFilter, propertyTypeFilter, sortBy]);
 
+  // SEO dinâmico baseado em filtros
+  const dynamicSEO = React.useMemo(() => {
+    const parts = ["WorldWide Properties"];
+    const keywords = ["imóveis internacionais", "propriedades mundiais", "investimento internacional"];
+    
+    if (countryFilter !== "all") {
+      parts.push(countryFilter);
+      keywords.push(countryFilter.toLowerCase());
+    }
+    
+    if (propertyTypeFilter !== "all") {
+      const typeLabel = propertyTypeLabels[propertyTypeFilter];
+      parts.push(typeLabel);
+      keywords.push(typeLabel.toLowerCase());
+    }
+    
+    if (listingTypeFilter !== "all") {
+      parts.push(listingTypeFilter === "sale" ? "Venda" : "Arrendamento");
+      keywords.push(listingTypeFilter === "sale" ? "venda" : "arrendamento");
+    }
+    
+    const title = parts.join(" | ") + " | Zugruppe";
+    const description = `${filteredProperties.length} propriedades internacionais exclusivas ${countryFilter !== "all" ? `em ${countryFilter}` : 'ao redor do mundo'}. Apartamentos, moradias e imóveis de luxo em ${countries.length} países. Oportunidades de investimento global.`;
+    const keywordsStr = [...keywords, ...countries.map(c => c.toLowerCase())].join(", ");
+    
+    return { title, description, keywords: keywordsStr };
+  }, [filteredProperties.length, countryFilter, listingTypeFilter, propertyTypeFilter, countries]);
+
   const propertyTypeLabels = {
     apartment: "Apartamento",
     house: "Moradia",
@@ -80,7 +110,16 @@ export default function WorldWideProperties() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50">
+    <HelmetProvider>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50">
+      <SEOHead
+        title={dynamicSEO.title}
+        description={dynamicSEO.description}
+        keywords={dynamicSEO.keywords}
+        type="website"
+        image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+      />
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -231,5 +270,6 @@ export default function WorldWideProperties() {
         )}
       </div>
     </div>
+    </HelmetProvider>
   );
 }
