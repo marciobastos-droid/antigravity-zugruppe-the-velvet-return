@@ -57,6 +57,13 @@ const AVAILABLE_PAGES = [
     icon: FileText, 
     description: "Portfólio de propriedades de luxo",
     details: "Imóveis exclusivos com acabamentos premium (>€1M)"
+  },
+  { 
+    id: "worldwide_properties", 
+    name: "WorldWide Properties", 
+    icon: Globe, 
+    description: "Propriedades internacionais",
+    details: "Imóveis fora de Portugal para investidores globais"
   }
 ];
 
