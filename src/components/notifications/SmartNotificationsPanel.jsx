@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Bell, Flame, AlertCircle, Clock, Home, Target, 
   MessageCircle, Mail, Calendar, Brain, Zap, 
-  ChevronRight, RefreshCw, Sparkles
+  ChevronRight, RefreshCw, Sparkles, Check
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { toast } from "sonner";
 
 const priorityConfig = {
   urgent: { color: 'bg-red-100 text-red-800 border-red-300', icon: Flame, label: 'Urgente' },
@@ -39,6 +40,8 @@ const toolConfig = {
 
 export default function SmartNotificationsPanel({ user, compact = false }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [dismissedNotifications, setDismissedNotifications] = useState(new Set());
+  const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['smartNotifications', user?.email],
@@ -59,7 +62,13 @@ export default function SmartNotificationsPanel({ user, compact = false }) {
     setIsRefreshing(false);
   };
 
-  const notifications = data?.notifications || [];
+  const handleMarkAsRead = (idx) => {
+    setDismissedNotifications(prev => new Set([...prev, idx]));
+    toast.success("Notificação marcada como lida");
+  };
+
+  const allNotifications = data?.notifications || [];
+  const notifications = allNotifications.filter((_, idx) => !dismissedNotifications.has(idx));
   const summary = data?.summary || { total: 0, urgent: 0, high: 0 };
 
   if (compact) {
@@ -210,6 +219,18 @@ export default function SmartNotificationsPanel({ user, compact = false }) {
                             </Button>
                           </Link>
                         )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleMarkAsRead(idx);
+                          }}
+                        >
+                          <Check className="w-3 h-3 mr-1" />
+                          Marcar como lida
+                        </Button>
                       </div>
                     </div>
                   </div>
