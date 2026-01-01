@@ -361,7 +361,7 @@ export default function MatchingTab() {
                   </TabsTrigger>
                 </TabsList>
 
-                <ScrollArea className="h-[500px]">
+                <ScrollArea className="h-[600px]">
                   <div className="space-y-3 pr-4">
                     {loadingContacts ? (
                       <div className="text-center py-12">
