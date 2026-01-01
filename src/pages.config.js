@@ -19,6 +19,8 @@ import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import PremiumLuxury from './pages/PremiumLuxury';
+import WorldWideProperties from './pages/WorldWideProperties';
 import __Layout from './Layout.jsx';
 
 
@@ -44,6 +46,8 @@ export const PAGES = {
     "Website": Website,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "PremiumLuxury": PremiumLuxury,
+    "WorldWideProperties": WorldWideProperties,
 }
 
 export const pagesConfig = {
