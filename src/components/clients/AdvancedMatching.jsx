@@ -152,7 +152,7 @@ const calculateMatchScore = (profile, property, customWeights = null) => {
   return { score: Math.round(normalizedScore), details, rawScore: score, maxScore };
 };
 
-export default function AdvancedMatching({ profiles }) {
+export default function AdvancedMatching({ profiles = [] }) {
   const queryClient = useQueryClient();
   const [mode, setMode] = React.useState("auto");
   const [selectedProfileId, setSelectedProfileId] = React.useState(null);
@@ -188,8 +188,8 @@ export default function AdvancedMatching({ profiles }) {
     },
   });
 
-  const activeProfiles = profiles.filter(p => p.status === 'active');
-  const activeProperties = properties.filter(p => p.status === 'active');
+  const activeProfiles = (profiles || []).filter(p => p.status === 'active');
+  const activeProperties = (properties || []).filter(p => p.status === 'active');
 
   // Learn from feedback to adjust weights
   const learnedWeights = React.useMemo(() => {
