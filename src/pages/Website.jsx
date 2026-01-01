@@ -206,6 +206,15 @@ export default function Website() {
 
   const activeProperties = properties.filter(p => p.status === 'active');
   
+  // Redirect to dedicated pages for premium and worldwide
+  React.useEffect(() => {
+    if (activeTab === "premium") {
+      window.location.href = createPageUrl("PremiumLuxury");
+    } else if (activeTab === "worldwide") {
+      window.location.href = createPageUrl("WorldWideProperties");
+    }
+  }, [activeTab]);
+
   // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
@@ -608,21 +617,31 @@ export default function Website() {
               <CardContent className="p-3 sm:p-4 md:p-6">
                 {/* Tabs de Categoria */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
-                  <TabsList className="grid grid-cols-3 w-full h-auto">
+                  <TabsList className="grid grid-cols-5 w-full h-auto">
                     <TabsTrigger value="all" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">{t('pages.zugruppe.all')}</span>
-                      <span className="sm:hidden">{t('common.all')}</span>
+                      <span className="hidden lg:inline">{t('pages.zugruppe.all')}</span>
+                      <span className="lg:hidden">{t('common.all')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="residential" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Home className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">{t('pages.zugruppe.residential')}</span>
-                      <span className="sm:hidden">{locale === 'en' ? 'Home' : 'Residencial'}</span>
+                      <span className="hidden lg:inline">{t('pages.zugruppe.residential')}</span>
+                      <span className="lg:hidden">{locale === 'en' ? 'Home' : 'Casa'}</span>
                     </TabsTrigger>
                     <TabsTrigger value="commercial" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">{t('pages.zugruppe.commercial')}</span>
-                      <span className="sm:hidden">{locale === 'en' ? 'Shop' : 'Comercial'}</span>
+                      <span className="hidden lg:inline">{t('pages.zugruppe.commercial')}</span>
+                      <span className="lg:hidden">{locale === 'en' ? 'Shop' : 'Loja'}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="premium" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                      <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden lg:inline">Premium Luxo</span>
+                      <span className="lg:hidden">Premium</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="worldwide" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden lg:inline">Mundial</span>
+                      <span className="lg:hidden">World</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
