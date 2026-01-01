@@ -16,7 +16,7 @@ import PWAProvider from "./components/pwa/PWAProvider";
 import PWAInstaller from "./components/pwa/PWAInstaller";
 import ErrorBoundary from "./components/errors/ErrorBoundary";
 // Pages where layout should be minimal (no header/footer)
-const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal"];
+const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "PremiumLuxury", "WorldWideProperties", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
