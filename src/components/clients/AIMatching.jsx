@@ -651,7 +651,7 @@ Equipa Zugruppe`
           ) : (
             <div className="grid gap-4">
               {matches.items.map((client) => (
-                <Card key={client.id} className="hover:shadow-md transition-shadow">
+                <Card key={client.id} className="hover:shadow-md transition-shadow min-h-[320px]">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
