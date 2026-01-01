@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Bell, TrendingUp, MapPin, DollarSign, Bed, Maximize, Eye, RefreshCw, Send, Search, Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function AutomatedMatchingView({ profiles }) {
+export default function AutomatedMatchingView({ profiles = [] }) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [processingMatches, setProcessingMatches] = React.useState(false);
@@ -128,7 +128,7 @@ export default function AutomatedMatchingView({ profiles }) {
       let totalNewMatches = 0;
       const now = new Date().toISOString();
 
-      for (const profile of profiles) {
+      for (const profile of (profiles || [])) {
         const matches = getMatchesForProfile(profile);
         
         if (matches.length > 0) {
@@ -186,7 +186,7 @@ export default function AutomatedMatchingView({ profiles }) {
     }
   };
 
-  const filteredProfiles = profiles.filter(p => {
+  const filteredProfiles = (profiles || []).filter(p => {
     if (!searchTerm) return true;
     return p.buyer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
            p.buyer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
