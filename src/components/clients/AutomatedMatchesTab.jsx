@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 // Message formatting is now done in the backend function
 
-export default function AutomatedMatchesTab({ profiles }) {
+export default function AutomatedMatchesTab({ profiles = [] }) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [expandedProfile, setExpandedProfile] = React.useState(null);
@@ -236,7 +236,7 @@ Equipa Zugruppe`;
   };
 
   const profilesWithMatches = React.useMemo(() => {
-    return profiles
+    return (profiles || [])
       .filter(p => p.status === 'active')
       .filter(p => !searchTerm || 
         p.buyer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
