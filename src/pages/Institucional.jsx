@@ -233,8 +233,8 @@ export default function Institucional() {
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
               Um Grupo, Múltiplas Especialidades
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Cada marca do grupo ZuGruppe é especialista no seu segmento, garantindo o melhor serviço em cada área
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">Cada marca da ZuGruppe - The Velvet Return é especializada no seu segmento, garantindo o melhor serviço em cada área
+
             </p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
