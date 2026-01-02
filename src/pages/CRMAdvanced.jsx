@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Calendar, BarChart3, Brain, Target, Clock, Mail, UserCog } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
-import AppointmentScheduler from "../components/crm/AppointmentScheduler";
+import UnifiedCalendar from "../components/calendar/UnifiedCalendar";
 import CRMDashboard from "../components/crm/CRMDashboard";
 import MatchingTab from "@/components/crm/MatchingTab";
 import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
@@ -84,7 +84,7 @@ export default function CRMAdvanced() {
           </TabsContent>
 
           <TabsContent value="appointments">
-            <AppointmentScheduler />
+            <UnifiedCalendar />
           </TabsContent>
         </Tabs>
       </div>

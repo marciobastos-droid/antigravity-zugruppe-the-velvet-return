@@ -1,3 +1,4 @@
+import ActivityFeed from './pages/ActivityFeed';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import AgentManagement from './pages/AgentManagement';
@@ -7,10 +8,12 @@ import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
 import Franchising from './pages/Franchising';
+import Home from './pages/Home';
 import Institucional from './pages/Institucional';
 import ManageData from './pages/ManageData';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
+import PremiumLuxury from './pages/PremiumLuxury';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
@@ -22,16 +25,14 @@ import Tools from './pages/Tools';
 import UpgradePlan from './pages/UpgradePlan';
 import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
+import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import PremiumLuxury from './pages/PremiumLuxury';
-import WorldWideProperties from './pages/WorldWideProperties';
-import Home from './pages/Home';
-import ActivityFeed from './pages/ActivityFeed';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "ActivityFeed": ActivityFeed,
     "AdminDashboard": AdminDashboard,
     "AdminPanel": AdminPanel,
     "AgentManagement": AgentManagement,
@@ -41,10 +42,12 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
     "Franchising": Franchising,
+    "Home": Home,
     "Institucional": Institucional,
     "ManageData": ManageData,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
+    "PremiumLuxury": PremiumLuxury,
     "PrivacyPolicy": PrivacyPolicy,
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
@@ -56,12 +59,9 @@ export const PAGES = {
     "UpgradePlan": UpgradePlan,
     "UserManagement": UserManagement,
     "Website": Website,
+    "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "PremiumLuxury": PremiumLuxury,
-    "WorldWideProperties": WorldWideProperties,
-    "Home": Home,
-    "ActivityFeed": ActivityFeed,
 }
 
 export const pagesConfig = {
