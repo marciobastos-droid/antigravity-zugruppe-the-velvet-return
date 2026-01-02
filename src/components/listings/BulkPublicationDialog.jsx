@@ -24,7 +24,6 @@ const AVAILABLE_PORTALS = [
 ];
 
 const AVAILABLE_PAGES = [
-  { id: "zugruppe", name: "ZuGruppe", icon: Building2, description: "Listagem principal (tabs Todos/Residencial/Comercial)", color: "#4cb5f5" },
   { id: "zuhaus", name: "ZuHaus", icon: Home, description: "Plataforma residencial especializada", color: "#d22630" },
   { id: "zuhandel", name: "ZuHandel", icon: Building2, description: "Plataforma comercial especializada", color: "#75787b" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },

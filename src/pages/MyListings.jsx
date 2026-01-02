@@ -996,10 +996,11 @@ export default function MyListings() {
       field: "published_pages",
       options: uniquePages.map(p => ({ 
         value: p, 
-        label: p === 'zugruppe' ? 'ZuGruppe' :
-               p === 'zuhaus' ? 'ZuHaus' :
+        label: p === 'zuhaus' ? 'ZuHaus' :
                p === 'zuhandel' ? 'ZuHandel' :
-               p === 'investor_section' ? 'Investidores' : p
+               p === 'investor_section' ? 'Investidores' :
+               p === 'homepage_featured' ? 'Homepage' :
+               p === 'luxury_collection' ? 'Luxo' : p
       })),
       advanced: true,
       customFilter: true
