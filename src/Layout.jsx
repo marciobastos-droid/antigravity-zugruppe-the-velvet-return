@@ -118,8 +118,19 @@ export default function Layout({ children, currentPageName }) {
   // Filtrar itens baseado na visibilidade e permissões
   const navItems = React.useMemo(() => {
     return allNavItems.filter(item => {
-      // Se é página com visibilidade 'all', sempre mostrar
-      if (item.visibility === 'all') return true;
+      // Se é página com visibilidade 'all', verificar permissões se não for admin
+      if (item.visibility === 'all') {
+        // Admins veem tudo
+        if (isAdmin) return true;
+
+        // Se tem pagePermKey, verificar permissão granular
+        if (item.pagePermKey) {
+          return hasPagePermission(item.pagePermKey);
+        }
+
+        // Páginas sem pagePermKey são públicas
+        return true;
+      }
 
       // Para páginas restritas, verificar tipo de utilizador primeiro
       if (Array.isArray(item.visibility)) {
@@ -127,7 +138,7 @@ export default function Layout({ children, currentPageName }) {
                               (isAdmin && item.visibility.includes('admin')) ||
                               (isGestor && item.visibility.includes('gestor')) ||
                               (isConsultant && item.visibility.includes('consultant'));
-        
+
         if (hasTypeAccess) return true;
       } else if (item.visibility === userType || (isAdmin && item.visibility === 'admin')) {
         return true;
