@@ -67,7 +67,6 @@ export default function QuickFilterBadges({
       ).length,
       
       // Páginas específicas
-      zugruppe: properties.filter(p => p.published_pages?.includes('zugruppe')).length,
       zuhaus: properties.filter(p => p.published_pages?.includes('zuhaus')).length,
       zuhandel: properties.filter(p => p.published_pages?.includes('zuhandel')).length,
       luxury: properties.filter(p => p.published_pages?.includes('luxury_collection')).length,
@@ -168,20 +167,6 @@ export default function QuickFilterBadges({
 
         {/* Filtros de Páginas Publicadas - Segunda Linha */}
         <div className="flex flex-wrap gap-2 mb-2">
-          <Badge
-            onClick={() => togglePublishedPage('zugruppe')}
-            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-              filters.published_pages?.includes('zugruppe')
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-            }`}
-          >
-            <Building2 className="w-3 h-3" />
-            <span className="font-medium">ZuGruppe</span>
-            <span className="opacity-60">({stats.zugruppe})</span>
-            {filters.published_pages?.includes('zugruppe') && <X className="w-2.5 h-2.5 ml-0.5" />}
-          </Badge>
-          
           <Badge
             onClick={() => togglePublishedPage('zuhaus')}
             className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
