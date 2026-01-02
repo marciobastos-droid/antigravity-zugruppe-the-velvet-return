@@ -29,9 +29,15 @@ export default function Layout({ children, currentPageName }) {
 
   React.useEffect(() => {
     if (typeof base44 !== 'undefined') {
-      base44.auth.me().then(setUser).catch(() => {});
+      base44.auth.me().then(u => {
+        setUser(u);
+        // Redirecionar para Home se estiver na raiz e autenticado
+        if (u && location.pathname === '/') {
+          window.location.href = createPageUrl("Home");
+        }
+      }).catch(() => {});
     }
-  }, []);
+  }, [location.pathname]);
 
   // Permissões já vêm no objeto user
   React.useEffect(() => {
