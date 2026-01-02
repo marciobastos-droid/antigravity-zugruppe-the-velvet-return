@@ -126,9 +126,12 @@ export default function WorldWideProperties() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to={createPageUrl("Website")} className="inline-block mb-6">
-            <Button variant="outline" className="text-white border-white hover:bg-white/10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+            <Button 
+              variant="ghost" 
+              className="group gap-2 text-white/90 hover:text-white hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-300 px-6 py-6"
+            >
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              <span className="font-medium">Voltar</span>
             </Button>
           </Link>
           
