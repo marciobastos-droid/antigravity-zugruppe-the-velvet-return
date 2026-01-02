@@ -17,13 +17,6 @@ const AVAILABLE_PORTALS = [
 
 const AVAILABLE_PAGES = [
   { 
-    id: "zugruppe", 
-    name: "ZuGruppe", 
-    icon: Building2, 
-    description: "Listagem principal do website",
-    details: "Página de pesquisa com filtros e categorias (Todos, Residencial, Comercial, Terrenos)"
-  },
-  { 
     id: "zuhaus", 
     name: "ZuHaus", 
     icon: Home, 
@@ -81,13 +74,13 @@ const PublicationManagerComponent = ({ property, onChange }) => {
     
     onChange({
       published_portals: newPortals,
-      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+      published_pages: propertyRef.current?.published_pages || [],
       publication_config: propertyRef.current?.publication_config || { auto_publish: false, exclude_from_feeds: false }
     });
   }, [onChange]);
 
   const handlePageToggle = React.useCallback((pageId) => {
-    const currentPages = propertyRef.current?.published_pages || ["zugruppe"];
+    const currentPages = propertyRef.current?.published_pages || [];
     const isSelected = currentPages.includes(pageId);
     const newPages = isSelected
       ? currentPages.filter(p => p !== pageId)
@@ -103,7 +96,7 @@ const PublicationManagerComponent = ({ property, onChange }) => {
   const handleAutoPublishToggle = React.useCallback((checked) => {
     onChange({
       published_portals: propertyRef.current?.published_portals || [],
-      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+      published_pages: propertyRef.current?.published_pages || [],
       publication_config: {
         auto_publish: checked,
         exclude_from_feeds: propertyRef.current?.publication_config?.exclude_from_feeds || false
@@ -114,7 +107,7 @@ const PublicationManagerComponent = ({ property, onChange }) => {
   const handleExcludeToggle = React.useCallback((checked) => {
     onChange({
       published_portals: propertyRef.current?.published_portals || [],
-      published_pages: propertyRef.current?.published_pages || ["zugruppe"],
+      published_pages: propertyRef.current?.published_pages || [],
       publication_config: {
         auto_publish: propertyRef.current?.publication_config?.auto_publish || false,
         exclude_from_feeds: checked
@@ -123,7 +116,7 @@ const PublicationManagerComponent = ({ property, onChange }) => {
   }, [onChange]);
 
   const portals = property?.published_portals || [];
-  const pages = property?.published_pages || ["zugruppe"];
+  const pages = property?.published_pages || [];
   const autoPublish = property?.publication_config?.auto_publish || false;
   const excludeFromFeeds = property?.publication_config?.exclude_from_feeds || false;
 
