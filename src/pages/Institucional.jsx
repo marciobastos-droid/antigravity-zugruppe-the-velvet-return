@@ -98,7 +98,8 @@ export default function Institucional() {
         />
 
         {/* Hero Section */}
-        <div className="relative bg-white overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-10" />
           <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
             <div className="text-center">
               <img 
@@ -106,15 +107,21 @@ export default function Institucional() {
                 alt="ZuGruppe"
                 className="h-32 md:h-40 w-auto mx-auto mb-8"
               />
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                Construindo Sonhos,<br />Criando Oportunidades
+              </h1>
+              <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-10">
+                Somos um grupo imobiliário inovador, comprometido em transformar a forma como as pessoas compram, vendem e investem em imóveis.
+              </p>
               <div className="flex flex-wrap items-center justify-center gap-4">
                 <Link to={createPageUrl("Website")}>
-                  <Button size="lg" className="bg-slate-900 text-white hover:bg-slate-800">
+                  <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
                     <Building2 className="w-5 h-5 mr-2" />
                     Ver Imóveis
                   </Button>
                 </Link>
                 <a href="#contacto">
-                  <Button size="lg" variant="outline" className="border-slate-900 text-slate-900 hover:bg-slate-100">
+                  <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white/10">
                     <Phone className="w-5 h-5 mr-2" />
                     Fale Connosco
                   </Button>
