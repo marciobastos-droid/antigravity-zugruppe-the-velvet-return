@@ -76,12 +76,6 @@ export default function TeamManagement() {
                 Subscrições
               </TabsTrigger>
             )}
-            {isFullAdmin && (
-              <TabsTrigger value="admin" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Administração
-              </TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -116,20 +110,19 @@ export default function TeamManagement() {
 
           {isFullAdmin && (
             <TabsContent value="subscriptions">
-              <SubscriptionManager />
-            </TabsContent>
-          )}
-
-          {isFullAdmin && (
-            <TabsContent value="admin">
-              <Tabs defaultValue="pending-subscriptions" className="space-y-6">
+              <Tabs defaultValue="manage" className="space-y-6">
                 <TabsList>
-                  <TabsTrigger value="pending-subscriptions">Subscrições Pendentes</TabsTrigger>
+                  <TabsTrigger value="manage">Gerir Planos</TabsTrigger>
+                  <TabsTrigger value="pending">Pendentes</TabsTrigger>
                   <TabsTrigger value="properties">Imóveis</TabsTrigger>
                   <TabsTrigger value="users">Utilizadores</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="pending-subscriptions">
+                <TabsContent value="manage">
+                  <SubscriptionManager />
+                </TabsContent>
+
+                <TabsContent value="pending">
                   <PendingSubscriptions />
                 </TabsContent>
 
