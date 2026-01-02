@@ -23,6 +23,7 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import AdminDashboard from './pages/AdminDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "AdminDashboard": AdminDashboard,
 }
 
 export const pagesConfig = {

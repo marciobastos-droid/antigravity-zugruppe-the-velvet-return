@@ -67,7 +67,6 @@ const PLANS = [
 
 export default function SubscriptionManager() {
   const queryClient = useQueryClient();
-  const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [transferDetailsOpen, setTransferDetailsOpen] = useState(false);
   const [transferDetails, setTransferDetails] = useState(null);
@@ -91,7 +90,6 @@ export default function SubscriptionManager() {
       toast.info("Já está no plano gratuito");
       return;
     }
-    setSelectedPlan(planId);
     createBankTransfer(planId);
   };
 
