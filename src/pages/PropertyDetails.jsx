@@ -70,6 +70,7 @@ export default function PropertyDetails() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
+  const propertySlug = urlParams.get('slug');
   
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
@@ -89,16 +90,31 @@ export default function PropertyDetails() {
   const queryClient = useQueryClient();
   
   const { data: property, isLoading, error } = useQuery({
-    queryKey: ['property', propertyId],
+    queryKey: ['property', propertyId, propertySlug],
     queryFn: async () => {
-      console.log('[PropertyDetails] Fetching property with ID:', propertyId);
+      console.log('[PropertyDetails] Fetching property - ID:', propertyId, 'Slug:', propertySlug);
       try {
-        const properties = await base44.entities.Property.filter({ id: propertyId });
-        console.log('[PropertyDetails] Properties found:', properties?.length);
+        let properties;
+        
+        // Tentar primeiro por slug se disponível
+        if (propertySlug) {
+          properties = await base44.entities.Property.filter({ slug: propertySlug });
+          console.log('[PropertyDetails] Found by slug:', properties?.length);
+        }
+        
+        // Fallback para ID se slug não encontrou
         if (!properties || properties.length === 0) {
-          console.error('[PropertyDetails] No property found with ID:', propertyId);
+          if (propertyId) {
+            properties = await base44.entities.Property.filter({ id: propertyId });
+            console.log('[PropertyDetails] Found by ID:', properties?.length);
+          }
+        }
+        
+        if (!properties || properties.length === 0) {
+          console.error('[PropertyDetails] No property found');
           throw new Error('Property not found');
         }
+        
         console.log('[PropertyDetails] Property loaded:', properties[0].title);
         return properties[0];
       } catch (err) {
@@ -106,7 +122,7 @@ export default function PropertyDetails() {
         throw err;
       }
     },
-    enabled: !!propertyId,
+    enabled: !!(propertyId || propertySlug),
     retry: 1,
     ...QUERY_CONFIG.singleProperty
   });
@@ -456,11 +472,11 @@ export default function PropertyDetails() {
     );
   }
 
-  if (!propertyId) {
+  if (!propertyId && !propertySlug) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">ID do imóvel não especificado</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Imóvel não especificado</h2>
           <p className="text-slate-600 mb-4">O link está incompleto ou inválido</p>
           <Link to={createPageUrl("Website")}>
             <Button>Ver Imóveis</Button>

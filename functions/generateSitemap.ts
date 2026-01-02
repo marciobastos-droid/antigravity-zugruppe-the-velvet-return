@@ -21,19 +21,29 @@ Deno.serve(async (req) => {
       { loc: `${baseUrl}/terms-conditions`, priority: 0.3, changefreq: 'monthly' }
     ];
 
-    // URLs dinâmicas dos imóveis
+    // URLs dinâmicas dos imóveis (com slugs amigáveis)
     const propertyUrls = properties
       .filter(p => {
         const pages = Array.isArray(p.published_pages) ? p.published_pages : [];
-        return pages.length > 0; // Apenas imóveis publicados
+        return p.status === 'active' && p.visibility === 'public' && pages.length > 0;
       })
-      .map(p => ({
-        loc: `${baseUrl}/property-details?id=${p.id}`,
-        lastmod: p.updated_date ? new Date(p.updated_date).toISOString().split('T')[0] : today,
-        priority: p.featured ? 0.8 : 0.7,
-        changefreq: 'weekly',
-        image: p.images && p.images.length > 0 ? p.images[0] : null
-      }));
+      .map(p => {
+        // Usar slug se disponível, senão fallback para ID
+        const url = p.slug 
+          ? `${baseUrl}/property-details?slug=${p.slug}` 
+          : `${baseUrl}/property-details?id=${p.id}`;
+        
+        return {
+          loc: url,
+          lastmod: p.updated_date ? new Date(p.updated_date).toISOString().split('T')[0] : today,
+          priority: p.featured ? 0.9 : 0.8,
+          changefreq: 'weekly',
+          image: p.images && p.images.length > 0 ? p.images[0] : null,
+          title: p.title,
+          price: p.price,
+          city: p.city
+        };
+      });
 
     // Gerar XML do sitemap
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -52,7 +62,7 @@ ${propertyUrls.map(url => `  <url>
     <priority>${url.priority}</priority>${url.image ? `
     <image:image>
       <image:loc>${url.image}</image:loc>
-      <image:title>${url.loc.split('id=')[1]}</image:title>
+      <image:title>${url.title || 'Property'}</image:title>
     </image:image>` : ''}
   </url>`).join('\n')}
 </urlset>`;
