@@ -27,6 +27,7 @@ import ZuHaus from './pages/ZuHaus';
 import PremiumLuxury from './pages/PremiumLuxury';
 import WorldWideProperties from './pages/WorldWideProperties';
 import Home from './pages/Home';
+import ActivityFeed from './pages/ActivityFeed';
 import __Layout from './Layout.jsx';
 
 
@@ -60,6 +61,7 @@ export const PAGES = {
     "PremiumLuxury": PremiumLuxury,
     "WorldWideProperties": WorldWideProperties,
     "Home": Home,
+    "ActivityFeed": ActivityFeed,
 }
 
 export const pagesConfig = {
