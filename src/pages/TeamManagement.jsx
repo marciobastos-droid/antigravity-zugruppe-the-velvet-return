@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell, TrendingUp, CreditCard } from "lucide-react";
+import { Users, ClipboardList, Shield, BarChart3, UserPlus, Bell, TrendingUp, CreditCard, Settings } from "lucide-react";
 import TaskManager from "../components/team/TaskManager";
 import TeamDashboard from "../components/team/TeamDashboard";
 import PermissionsManager from "../components/team/PermissionsManager";
@@ -10,6 +10,9 @@ import UserManagementTab from "../components/team/UserManagementTab";
 import NotificationPreferences from "../components/notifications/NotificationPreferences";
 import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
 import SubscriptionManager from "../components/subscription/SubscriptionManager";
+import PendingSubscriptions from "../components/admin/PendingSubscriptions";
+import AdminPropertiesManager from "../components/admin/AdminPropertiesManager";
+import AdminUsersManager from "../components/admin/AdminUsersManager";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -73,6 +76,12 @@ export default function TeamManagement() {
                 Subscrições
               </TabsTrigger>
             )}
+            {isFullAdmin && (
+              <TabsTrigger value="admin" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                Administração
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -108,6 +117,30 @@ export default function TeamManagement() {
           {isFullAdmin && (
             <TabsContent value="subscriptions">
               <SubscriptionManager />
+            </TabsContent>
+          )}
+
+          {isFullAdmin && (
+            <TabsContent value="admin">
+              <Tabs defaultValue="pending-subscriptions" className="space-y-6">
+                <TabsList>
+                  <TabsTrigger value="pending-subscriptions">Subscrições Pendentes</TabsTrigger>
+                  <TabsTrigger value="properties">Imóveis</TabsTrigger>
+                  <TabsTrigger value="users">Utilizadores</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="pending-subscriptions">
+                  <PendingSubscriptions />
+                </TabsContent>
+
+                <TabsContent value="properties">
+                  <AdminPropertiesManager />
+                </TabsContent>
+
+                <TabsContent value="users">
+                  <AdminUsersManager />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
           )}
         </Tabs>
