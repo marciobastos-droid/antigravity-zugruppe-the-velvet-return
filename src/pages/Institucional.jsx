@@ -4,108 +4,108 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Building2, Users, Award, Globe, Heart, Target, 
-  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin
-} from "lucide-react";
+import {
+  Building2, Users, Award, Globe, Heart, Target,
+  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin } from
+"lucide-react";
 import SEOHead from "../components/seo/SEOHead";
 import { HelmetProvider } from "react-helmet-async";
 
 export default function Institucional() {
   const brands = [
-    {
-      name: "ZuHaus",
-      subtitle: "Imóveis Residenciais",
-      description: "Especialistas em encontrar o lar perfeito para cada família. Apartamentos, moradias e espaços que transformam sonhos em realidade.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/62bf6ee34_ZuHausA01.jpg",
-      link: createPageUrl("Website") + "?tab=residential"
-    },
-    {
-      name: "ZuHandel",
-      subtitle: "Espaços Comerciais",
-      description: "Soluções comerciais que impulsionam o seu negócio. Lojas, escritórios e armazéns estrategicamente localizados.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/46b20d014_ZUHANDEL_square.jpg",
-      link: createPageUrl("Website") + "?tab=commercial"
-    },
-    {
-      name: "Premium Luxo",
-      subtitle: "Imóveis de Luxo",
-      description: "Propriedades exclusivas para clientes exigentes. Luxo, conforto e exclusividade em cada detalhe.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/73d7d7694_ImagemImovelLuxo.jpg",
-      link: createPageUrl("PremiumLuxury")
-    },
-    {
-      name: "Worldwide",
-      subtitle: "Imóveis Internacionais",
-      description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/b8098af9d_WorldWide.jpg",
-      link: createPageUrl("WorldWideProperties")
-    }
-  ];
+  {
+    name: "ZuHaus",
+    subtitle: "Imóveis Residenciais",
+    description: "Especialistas em encontrar o lar perfeito para cada família. Apartamentos, moradias e espaços que transformam sonhos em realidade.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/62bf6ee34_ZuHausA01.jpg",
+    link: createPageUrl("Website") + "?tab=residential"
+  },
+  {
+    name: "ZuHandel",
+    subtitle: "Espaços Comerciais",
+    description: "Soluções comerciais que impulsionam o seu negócio. Lojas, escritórios e armazéns estrategicamente localizados.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/46b20d014_ZUHANDEL_square.jpg",
+    link: createPageUrl("Website") + "?tab=commercial"
+  },
+  {
+    name: "Premium Luxo",
+    subtitle: "Imóveis de Luxo",
+    description: "Propriedades exclusivas para clientes exigentes. Luxo, conforto e exclusividade em cada detalhe.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png",
+    link: createPageUrl("PremiumLuxury")
+  },
+  {
+    name: "Worldwide",
+    subtitle: "Imóveis Internacionais",
+    description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+    link: createPageUrl("WorldWideProperties")
+  }];
+
 
   const services = [
-    {
-      name: "ZuFinance",
-      subtitle: "Soluções Financeiras",
-      description: "Consultoria financeira especializada para investimentos imobiliários. Financiamento inteligente para os seus projetos.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a85a26869_LogoZuFinance.jpg",
-      link: createPageUrl("Website")
-    },
-    {
-      name: "ZuGarden",
-      subtitle: "Espaços Exteriores",
-      description: "Design e execução de jardins e espaços exteriores. Transformamos ambientes em experiências únicas.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/e079a713e_LogoZuGarden.png",
-      link: createPageUrl("Website")
-    },
-    {
-      name: "ZuProjekt",
-      subtitle: "Projetos de Arquitetura",
-      description: "Desenvolvimento e gestão de projetos imobiliários. Da conceção à execução com excelência.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359182f84_LogoZUPROJEKT_white_background2.jpg",
-      link: createPageUrl("Website")
-    }
-  ];
+  {
+    name: "ZuFinance",
+    subtitle: "Soluções Financeiras",
+    description: "Consultoria financeira especializada para investimentos imobiliários. Financiamento inteligente para os seus projetos.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a85a26869_LogoZuFinance.jpg",
+    link: createPageUrl("Website")
+  },
+  {
+    name: "ZuGarden",
+    subtitle: "Espaços Exteriores",
+    description: "Design e execução de jardins e espaços exteriores. Transformamos ambientes em experiências únicas.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/e079a713e_LogoZuGarden.png",
+    link: createPageUrl("Website")
+  },
+  {
+    name: "ZuProjekt",
+    subtitle: "Projetos de Arquitetura",
+    description: "Desenvolvimento e gestão de projetos imobiliários. Da conceção à execução com excelência.",
+    logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/b8697fed0_ZUPROJEKT.pdf",
+    link: createPageUrl("Website")
+  }];
+
 
   const values = [
-    {
-      icon: Heart,
-      title: "Paixão pelo que Fazemos",
-      description: "Cada imóvel é tratado com dedicação e comprometimento absoluto."
-    },
-    {
-      icon: Shield,
-      title: "Transparência Total",
-      description: "Processos claros, comunicação honesta e relações de confiança."
-    },
-    {
-      icon: Target,
-      title: "Foco no Cliente",
-      description: "O seu sucesso e satisfação são a nossa prioridade máxima."
-    },
-    {
-      icon: Sparkles,
-      title: "Inovação Constante",
-      description: "Tecnologia de ponta e métodos modernos ao serviço do imobiliário."
-    },
-    {
-      icon: TrendingUp,
-      title: "Excelência nos Resultados",
-      description: "Compromisso com a qualidade e superação de expectativas."
-    },
-    {
-      icon: Globe,
-      title: "Visão Global",
-      description: "Presença local com alcance internacional para melhor servir."
-    }
-  ];
+  {
+    icon: Heart,
+    title: "Paixão pelo que Fazemos",
+    description: "Cada imóvel é tratado com dedicação e comprometimento absoluto."
+  },
+  {
+    icon: Shield,
+    title: "Transparência Total",
+    description: "Processos claros, comunicação honesta e relações de confiança."
+  },
+  {
+    icon: Target,
+    title: "Foco no Cliente",
+    description: "O seu sucesso e satisfação são a nossa prioridade máxima."
+  },
+  {
+    icon: Sparkles,
+    title: "Inovação Constante",
+    description: "Tecnologia de ponta e métodos modernos ao serviço do imobiliário."
+  },
+  {
+    icon: TrendingUp,
+    title: "Excelência nos Resultados",
+    description: "Compromisso com a qualidade e superação de expectativas."
+  },
+  {
+    icon: Globe,
+    title: "Visão Global",
+    description: "Presença local com alcance internacional para melhor servir."
+  }];
+
 
   const stats = [
-    { number: "100+", label: "Imóveis Vendidos" },
-    { number: "500+", label: "Clientes Satisfeitos" },
-    { number: "15+", label: "Anos de Experiência" },
-    { number: "20+", label: "Consultores Especializados" }
-  ];
+  { number: "100+", label: "Imóveis Vendidos" },
+  { number: "500+", label: "Clientes Satisfeitos" },
+  { number: "15+", label: "Anos de Experiência" },
+  { number: "20+", label: "Consultores Especializados" }];
+
 
   return (
     <HelmetProvider>
@@ -114,19 +114,19 @@ export default function Institucional() {
           title="ZuGruppe - Sobre Nós | Imobiliária de Confiança em Portugal"
           description="Conheça a ZuGruppe, grupo imobiliário líder em Portugal. Com as marcas ZuHaus, ZuHandel e Premium Luxo, oferecemos soluções completas em imobiliário residencial, comercial e de luxo."
           keywords="zugruppe, imobiliária portugal, sobre zugruppe, zuhaus, zuhandel, imóveis luxo portugal, grupo imobiliário"
-          image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-        />
+          image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg" />
+
 
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-10" />
           <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
             <div className="text-center">
-              <img 
+              <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
                 alt="ZuGruppe"
-                className="h-32 md:h-40 w-auto mx-auto mb-24"
-              />
+                className="h-32 md:h-40 w-auto mx-auto mb-24" />
+
               <div className="flex flex-wrap items-center justify-center gap-4 mt-12">
                 <Link to={createPageUrl("Website")}>
                   <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
@@ -149,12 +149,12 @@ export default function Institucional() {
         <div className="bg-white py-12 border-b border-slate-200">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center">
+              {stats.map((stat, index) =>
+              <div key={index} className="text-center">
                   <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">{stat.number}</div>
                   <div className="text-slate-600">{stat.label}</div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -167,10 +167,10 @@ export default function Institucional() {
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
                 Transformar o Mercado Imobiliário
               </h2>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-                Na ZuGruppe, acreditamos que cada propriedade conta uma história e cada cliente tem um sonho único. 
-                A nossa missão é conectar pessoas aos espaços perfeitos, sejam lares acolhedores, escritórios estratégicos 
-                ou investimentos de alto valor.
+              <p className="text-lg text-slate-600 mb-6 leading-relaxed">Na ZuGruppe - The Velvet Return, acreditamos que cada propriedade conta uma história e cada cliente tem um sonho único. A nossa missão é conectar pessoas aos espaços perfeitos, sejam lares acolhedores, escritórios estratégicos ou investimentos de alto valor.
+
+
+
               </p>
               <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                 Com tecnologia de ponta, uma equipa experiente e um compromisso inabalável com a excelência, 
@@ -185,11 +185,11 @@ export default function Institucional() {
               </div>
             </div>
             <div className="relative">
-              <img 
+              <img
                 src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800"
                 alt="Equipa ZuGruppe"
-                className="rounded-2xl shadow-2xl"
-              />
+                className="rounded-2xl shadow-2xl" />
+
               <div className="absolute -bottom-6 -left-6 bg-blue-600 text-white p-6 rounded-xl shadow-xl">
                 <div className="text-3xl font-bold mb-1">15+</div>
                 <div className="text-sm">Anos de Experiência</div>
@@ -211,8 +211,8 @@ export default function Institucional() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {values.map((value, index) => (
-                <Card key={index} className="hover:shadow-lg transition-shadow">
+              {values.map((value, index) =>
+              <Card key={index} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                       <value.icon className="w-6 h-6 text-blue-600" />
@@ -221,7 +221,7 @@ export default function Institucional() {
                     <p className="text-slate-600">{value.description}</p>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -238,15 +238,15 @@ export default function Institucional() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
-            {brands.slice(0, 2).map((brand, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
+            {brands.slice(0, 2).map((brand, index) =>
+            <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
                 <CardContent className="p-8">
                   <div className="flex items-center justify-center mb-6 min-h-[120px]">
-                    <img 
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="max-h-24 w-auto object-contain"
-                    />
+                    <img
+                    src={brand.logo}
+                    alt={brand.name}
+                    className="max-h-24 w-auto object-contain" />
+
                   </div>
                   <p className="text-blue-600 text-sm font-medium mb-4">{brand.subtitle}</p>
                   <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
@@ -258,18 +258,18 @@ export default function Institucional() {
                   </Link>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {brands.slice(2).map((brand, index) => (
-              <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
+            {brands.slice(2).map((brand, index) =>
+            <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
                 <CardContent className="p-8">
                   <div className="flex items-center justify-center mb-6 min-h-[120px]">
-                    <img 
-                      src={brand.logo}
-                      alt={brand.name}
-                      className="max-h-24 w-auto object-contain"
-                    />
+                    <img
+                    src={brand.logo}
+                    alt={brand.name}
+                    className="max-h-24 w-auto object-contain" />
+
                   </div>
                   <p className="text-blue-600 text-sm font-medium mb-4">{brand.subtitle}</p>
                   <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
@@ -281,7 +281,7 @@ export default function Institucional() {
                   </Link>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
 
@@ -298,15 +298,15 @@ export default function Institucional() {
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              {services.map((service, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
+              {services.map((service, index) =>
+              <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
                   <CardContent className="p-8">
                     <div className="flex items-center justify-center mb-6 min-h-[120px]">
-                      <img 
-                        src={service.logo}
-                        alt={service.name}
-                        className="max-h-24 w-auto object-contain"
-                      />
+                      <img
+                      src={service.logo}
+                      alt={service.name}
+                      className="max-h-24 w-auto object-contain" />
+
                     </div>
                     <p className="text-green-600 text-sm font-medium mb-4">{service.subtitle}</p>
                     <p className="text-slate-600 mb-6 leading-relaxed text-sm">{service.description}</p>
@@ -318,7 +318,7 @@ export default function Institucional() {
                     </Link>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -375,59 +375,9 @@ export default function Institucional() {
                 </Button>
               </Link>
             </div>
-            </div>
-            </div>
-            </div>
+          </div>
+        </div>
+      </div>
+    </HelmetProvider>);
 
-            {/* Footer Legal */}
-            <footer className="bg-slate-900 text-white py-8 mt-0">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-center gap-4">
-            <div className="flex flex-wrap justify-center gap-3 text-xs text-slate-400">
-              <a
-                href="https://www.consumidor.gov.pt/resolucao-de-litigios.aspx"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                Resolução Alternativa de Litígios
-              </a>
-              <span>•</span>
-              <a
-                href="https://www.livroreclamacoes.pt/Inicio/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors"
-              >
-                Livro de Reclamações online
-              </a>
-              <span>•</span>
-              <Link to={createPageUrl("TermsConditions")} className="hover:text-white transition-colors">
-                Termos e Condições
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("PrivacyPolicy")} className="hover:text-white transition-colors">
-                Política de Privacidade
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("CookiePolicy")} className="hover:text-white transition-colors">
-                Política de Cookies
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("DenunciationChannel")} className="hover:text-white transition-colors">
-                Canal de Denúncias
-              </Link>
-              <span>•</span>
-              <Link to={createPageUrl("ManageData")} className="hover:text-white transition-colors">
-                Gerir Dados
-              </Link>
-            </div>
-            <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados. | Licença IMPIC 11355
-            </p>
-            </div>
-            </div>
-            </footer>
-            </HelmetProvider>
-            );
-            }
+}
