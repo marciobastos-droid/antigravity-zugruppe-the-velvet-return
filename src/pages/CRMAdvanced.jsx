@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Calendar, BarChart3, Brain, Target, Clock, Mail, UserCog } from "lucide-react";
+import { Users, Calendar, BarChart3, Brain, Target, Clock, Mail, UserCog, FileText } from "lucide-react";
 import ClientDatabase from "../components/crm/ClientDatabase";
 import UnifiedCalendar from "../components/calendar/UnifiedCalendar";
 import CRMDashboard from "../components/crm/CRMDashboard";
@@ -10,6 +10,7 @@ import CRMMetricsDashboard from "../components/crm/CRMMetricsDashboard";
 import OpportunitiesContent from "../components/crm/OpportunitiesContent";
 import ClientSegmentation from "../components/crm/ClientSegmentation";
 import FollowUpAutomation from "../components/crm/FollowUpAutomation";
+import EmailTemplateManager from "../components/email/EmailTemplateManager";
 
 
 export default function CRMAdvanced() {
@@ -61,6 +62,10 @@ export default function CRMAdvanced() {
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Follow-ups</span>
           </TabsTrigger>
+          <TabsTrigger value="templates" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+            <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>Templates</span>
+          </TabsTrigger>
           </TabsList>
 
           <TabsContent value="opportunities">
@@ -86,7 +91,11 @@ export default function CRMAdvanced() {
           <TabsContent value="followups">
             <FollowUpAutomation />
           </TabsContent>
-        </Tabs>
+
+          <TabsContent value="templates">
+            <EmailTemplateManager />
+          </TabsContent>
+          </Tabs>
       </div>
     </div>
   );
