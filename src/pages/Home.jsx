@@ -65,7 +65,7 @@ export default function Home() {
       title: "ZU'PROJEKT",
       subtitle: "DESENVOLVIMENTO E PROJETOS",
       link: createPageUrl("Website"),
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c9d32a40a_LogoZUPROJEKT_white_background2.jpg",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/89f917b54_LogoZUPROJEKT_white_background2.jpg",
       isExternal: false
     },
     {
