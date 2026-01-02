@@ -122,9 +122,9 @@ export default function Institucional() {
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
                 alt="ZuGruppe"
-                className="h-32 md:h-40 w-auto mx-auto mb-16"
+                className="h-32 md:h-40 w-auto mx-auto mb-24"
               />
-              <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-12">
                 <Link to={createPageUrl("Website")}>
                   <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
                     <Building2 className="w-5 h-5 mr-2" />
