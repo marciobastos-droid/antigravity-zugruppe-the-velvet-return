@@ -641,7 +641,7 @@ export default function Website() {
                     </TabsTrigger>
                     <TabsTrigger value="worldwide" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden lg:inline">Mundial</span>
+                      <span className="hidden lg:inline">Worldwide</span>
                       <span className="lg:hidden">World</span>
                     </TabsTrigger>
                   </TabsList>
