@@ -189,7 +189,13 @@ export default function FacebookSyncDashboard({
           const nextSync = getNextSync(campaign);
 
           return (
-            <Card key={campaign.form_id} className={`border-2 ${status.bgColor} transition-all hover:shadow-md`}>
+            <Card key={campaign.form_id} className={`border-2 transition-all hover:shadow-md ${
+              status.status === 'ok' ? 'border-green-200 bg-green-50' :
+              status.status === 'error' ? 'border-red-200 bg-red-50' :
+              status.status === 'overdue' ? 'border-orange-200 bg-orange-50' :
+              status.status === 'soon' ? 'border-blue-200 bg-blue-50' :
+              'border-slate-200 bg-slate-50'
+            }`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
