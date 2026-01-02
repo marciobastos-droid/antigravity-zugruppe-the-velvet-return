@@ -29,6 +29,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Subscription not found' }, { status: 404 });
     }
 
+    // Check if renewal
+    const isRenewal = subscription.current_period_end && new Date(subscription.current_period_end) < new Date();
+    
     // Ativar subscrição
     const now = new Date();
     const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 dias
@@ -38,7 +41,17 @@ Deno.serve(async (req) => {
       payment_confirmed_at: now.toISOString(),
       payment_confirmed_by: user.email,
       current_period_start: now.toISOString(),
-      current_period_end: periodEnd.toISOString()
+      current_period_end: periodEnd.toISOString(),
+      payment_history: [
+        ...(subscription.payment_history || []),
+        {
+          date: now.toISOString(),
+          amount: subscription.plan === 'premium' ? 49 : 149,
+          status: 'confirmed',
+          type: isRenewal ? 'renewal' : 'initial',
+          confirmed_by: user.email
+        }
+      ]
     });
 
     // Enviar email de confirmação
