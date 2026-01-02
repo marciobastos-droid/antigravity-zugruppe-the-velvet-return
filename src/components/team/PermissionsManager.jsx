@@ -25,7 +25,7 @@ const ROLE_TEMPLATES = {
     reports: { view_team: true, view_own: true, export: true },
     team: { view_members: true, manage_members: true, view_performance: true },
     settings: { manage_templates: true, manage_integrations: true, manage_tags: true },
-    pages: { dashboard: true, browse: true, my_listings: true, crm: true, reports: true, tools: true, team: true, franchising: true }
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, subscriptions: true, reports: true, tools: true, team: true, franchising: true }
   },
   gestor: {
     properties: { view_all: true, view_own: true, create: true, edit_all: true, edit_own: true, delete: false, export: true },
@@ -35,7 +35,7 @@ const ROLE_TEMPLATES = {
     reports: { view_team: true, view_own: true, export: true },
     team: { view_members: true, manage_members: false, view_performance: true },
     settings: { manage_templates: true, manage_integrations: false, manage_tags: true },
-    pages: { dashboard: true, browse: true, my_listings: true, crm: true, reports: true, tools: true, team: true, franchising: true }
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, subscriptions: true, reports: true, tools: true, team: true, franchising: true }
   },
   agente: {
     properties: { view_all: true, view_own: true, create: true, edit_all: false, edit_own: true, delete: false, export: false },
@@ -45,7 +45,7 @@ const ROLE_TEMPLATES = {
     reports: { view_team: false, view_own: true, export: false },
     team: { view_members: true, manage_members: false, view_performance: false },
     settings: { manage_templates: false, manage_integrations: false, manage_tags: false },
-    pages: { dashboard: true, browse: true, my_listings: true, crm: true, reports: true, tools: false, team: false, franchising: false }
+    pages: { dashboard: true, browse: true, my_listings: true, crm: true, subscriptions: true, reports: true, tools: false, team: false, franchising: false }
   },
   assistente: {
     properties: { view_all: true, view_own: true, create: false, edit_all: false, edit_own: false, delete: false, export: false },
@@ -55,7 +55,7 @@ const ROLE_TEMPLATES = {
     reports: { view_team: false, view_own: true, export: false },
     team: { view_members: true, manage_members: false, view_performance: false },
     settings: { manage_templates: false, manage_integrations: false, manage_tags: false },
-    pages: { dashboard: true, browse: true, my_listings: false, crm: true, reports: false, tools: false, team: false, franchising: false }
+    pages: { dashboard: true, browse: true, my_listings: false, crm: true, subscriptions: false, reports: false, tools: false, team: false, franchising: false }
   }
 };
 
@@ -146,6 +146,7 @@ const PERMISSION_LABELS = {
       browse: "Navegar",
       my_listings: "Imóveis",
       crm: "CRM",
+      subscriptions: "Subscrições",
       reports: "Relatórios",
       tools: "Ferramentas",
       team: "Equipa",
