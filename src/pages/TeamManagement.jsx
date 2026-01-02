@@ -16,6 +16,7 @@ import AdminSubscriptionsManager from "../components/admin/AdminSubscriptionsMan
 import AdminPlanConfigurator from "../components/admin/AdminPlanConfigurator";
 import AdminPropertiesManager from "../components/admin/AdminPropertiesManager";
 import AdminUsersManager from "../components/admin/AdminUsersManager";
+import EmailTemplatesManager from "../components/admin/EmailTemplatesManager";
 
 export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -114,13 +115,14 @@ export default function TeamManagement() {
           {isFullAdmin && (
             <TabsContent value="subscriptions">
               <Tabs defaultValue="metrics" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
                   <TabsTrigger value="metrics">Métricas</TabsTrigger>
                   <TabsTrigger value="subscriptions">Subscrições</TabsTrigger>
                   <TabsTrigger value="configurator">Configurador</TabsTrigger>
                   <TabsTrigger value="pending">Pendentes</TabsTrigger>
                   <TabsTrigger value="properties">Imóveis</TabsTrigger>
                   <TabsTrigger value="users">Utilizadores</TabsTrigger>
+                  <TabsTrigger value="email-templates">Templates</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="metrics">
@@ -145,6 +147,10 @@ export default function TeamManagement() {
 
                 <TabsContent value="users">
                   <AdminUsersManager />
+                </TabsContent>
+
+                <TabsContent value="email-templates">
+                  <EmailTemplatesManager />
                 </TabsContent>
               </Tabs>
             </TabsContent>
