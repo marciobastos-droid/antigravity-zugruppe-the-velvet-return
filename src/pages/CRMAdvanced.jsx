@@ -45,6 +45,10 @@ export default function CRMAdvanced() {
             <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Matching</span>
           </TabsTrigger>
+          <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>Agenda</span>
+          </TabsTrigger>
           <TabsTrigger value="clients" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Contactos</span>
@@ -57,14 +61,18 @@ export default function CRMAdvanced() {
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Follow-ups</span>
           </TabsTrigger>
-          <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3 min-w-fit">
-            <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>Agenda</span>
-          </TabsTrigger>
           </TabsList>
 
           <TabsContent value="opportunities">
             <OpportunitiesContent />
+          </TabsContent>
+
+          <TabsContent value="matching">
+            <MatchingTab />
+          </TabsContent>
+
+          <TabsContent value="appointments">
+            <UnifiedCalendar />
           </TabsContent>
 
           <TabsContent value="clients">
@@ -77,14 +85,6 @@ export default function CRMAdvanced() {
 
           <TabsContent value="followups">
             <FollowUpAutomation />
-          </TabsContent>
-
-          <TabsContent value="matching">
-            <MatchingTab />
-          </TabsContent>
-
-          <TabsContent value="appointments">
-            <UnifiedCalendar />
           </TabsContent>
         </Tabs>
       </div>
