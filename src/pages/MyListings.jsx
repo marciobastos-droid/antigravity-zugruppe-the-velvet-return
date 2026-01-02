@@ -1426,6 +1426,7 @@ export default function MyListings() {
             }}
             onBulkCreateDevelopment={() => setCreateDevelopmentDialogOpen(true)}
             onBulkPhotoAssign={() => setBulkPhotoDialogOpen(true)}
+            onBulkPublication={() => setBulkPublicationDialogOpen(true)}
             onBulkDelete={handleBulkDelete}
             onGenerateVisitRoute={() => setVisitRouteOpen(true)}
             consultants={consultants}
