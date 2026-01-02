@@ -20,17 +20,13 @@ export default function PremiumLuxury() {
   const { data: properties = [], isLoading } = useQuery({
     queryKey: ['premiumProperties'],
     queryFn: async () => {
-      const allProperties = await base44.entities.Property.filter({
-        status: 'active',
-        visibility: 'public',
-        country: 'Portugal'
-      });
+      const allProperties = await base44.entities.Property.list('-created_date');
       
-      // Filtrar apenas imóveis premium (featured ou preço > 500k)
+      // Filtrar apenas imóveis publicados na Coleção Premium Luxo
       return allProperties.filter(p => 
-        p.featured === true || 
-        (p.price && p.price >= 500000) ||
-        p.tags?.some(tag => tag.toLowerCase().includes('luxo') || tag.toLowerCase().includes('premium'))
+        p.status === 'active' &&
+        p.visibility === 'public' &&
+        p.published_pages?.includes('luxury_collection')
       );
     }
   });
