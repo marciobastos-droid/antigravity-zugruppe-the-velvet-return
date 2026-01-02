@@ -245,7 +245,6 @@ export default function Institucional() {
                       className="max-h-24 w-auto object-contain"
                     />
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-slate-900">{brand.name}</h3>
                   <p className="text-blue-600 text-sm font-medium mb-4">{brand.subtitle}</p>
                   <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
                   <Link to={brand.link}>
