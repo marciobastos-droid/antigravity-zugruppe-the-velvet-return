@@ -38,6 +38,9 @@ export default function AdminSubscriptionsManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allSubscriptions'] });
       toast.success("Subscrição eliminada!");
+    },
+    onError: (error) => {
+      toast.error(`Erro ao eliminar: ${error.message}`);
     }
   });
 
