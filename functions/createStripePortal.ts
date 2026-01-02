@@ -16,12 +16,18 @@ Deno.serve(async (req) => {
 
     const { user_email } = await req.json();
 
-    const subscriptions = await base44.entities.Subscription.filter({ user_email });
-    const customerId = subscriptions[0]?.stripe_customer_id;
+    const subscriptions = await base44.asServiceRole.entities.Subscription.filter({ user_email });
+    const subscription = subscriptions[0];
 
-    if (!customerId) {
+    if (!subscription) {
       return Response.json({ error: 'No subscription found' }, { status: 404 });
     }
+
+    if (!subscription.stripe_customer_id) {
+      return Response.json({ error: 'No Stripe customer ID found. Cannot access portal for bank transfer subscriptions.' }, { status: 400 });
+    }
+
+    const customerId = subscription.stripe_customer_id;
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
