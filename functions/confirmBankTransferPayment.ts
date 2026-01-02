@@ -55,16 +55,19 @@ Deno.serve(async (req) => {
     });
 
     // Enviar email de confirmação
-    await base44.asServiceRole.functions.invoke('sendResendEmail', {
+    await base44.asServiceRole.integrations.Core.SendEmail({
       to: subscription.user_email,
       subject: 'Subscrição Ativada com Sucesso!',
-      html: `
-        <h2>A sua subscrição foi ativada!</h2>
-        <p>Confirmámos o recebimento do seu pagamento.</p>
-        <p><strong>Plano:</strong> ${subscription.plan}</p>
-        <p><strong>Válido até:</strong> ${periodEnd.toLocaleDateString('pt-PT')}</p>
-        <p>Obrigado por confiar em nós!</p>
-      `
+      body: `A sua subscrição foi ativada!
+      
+Confirmámos o recebimento do seu pagamento.
+
+Plano: ${subscription.plan}
+Válido até: ${periodEnd.toLocaleDateString('pt-PT')}
+
+Obrigado por confiar em nós!
+
+Equipa Zugruppe`
     });
 
     return Response.json({
