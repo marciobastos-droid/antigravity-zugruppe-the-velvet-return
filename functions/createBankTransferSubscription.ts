@@ -12,6 +12,162 @@ const PLAN_PRICES = {
   enterprise: 149
 };
 
+// Definir ferramentas e features por plano
+const PLAN_CONFIG = {
+  free: {
+    features: {
+      unlimited_properties: false,
+      advanced_analytics: false,
+      priority_support: false,
+      early_access: false,
+      market_reports: false,
+      api_access: false
+    },
+    tools_access: {
+      importProperties: true,
+      importLeads: true,
+      importContacts: true,
+      exportProperties: true,
+      dataExporter: true,
+      calendar: true,
+      description: true,
+      creditSimulator: true,
+      deedCosts: true
+    }
+  },
+  premium: {
+    features: {
+      unlimited_properties: true,
+      advanced_analytics: true,
+      priority_support: true,
+      early_access: true,
+      market_reports: true,
+      api_access: true
+    },
+    tools_access: {
+      importProperties: true,
+      importLeads: true,
+      importContacts: true,
+      importOpportunities: true,
+      exportProperties: true,
+      dataExporter: true,
+      reportsExporter: true,
+      bulkScore: true,
+      crmSync: true,
+      duplicateChecker: true,
+      duplicateClients: true,
+      inconsistencyChecker: true,
+      linkContacts: true,
+      imageValidator: true,
+      emailHub: true,
+      video: true,
+      description: true,
+      listingOptimizer: true,
+      calendar: true,
+      aiMatching: true,
+      autoMatching: true,
+      autoMatchingDashboard: true,
+      marketIntelligence: true,
+      propertyPerformance: true,
+      pricing: true,
+      creditSimulator: true,
+      deedCosts: true,
+      documents: true,
+      notificationsDashboard: true,
+      tagManager: true,
+      marketingHub: true,
+      socialMedia: true,
+      portalIntegrations: true,
+      propertyFeeds: true,
+      seoAnalytics: true,
+      facebookLeads: true,
+      leadManagement: true
+    }
+  },
+  enterprise: {
+    features: {
+      unlimited_properties: true,
+      advanced_analytics: true,
+      priority_support: true,
+      early_access: true,
+      market_reports: true,
+      api_access: true,
+      unlimited_users: true,
+      white_label: true,
+      dedicated_account_manager: true
+    },
+    tools_access: {
+      importProperties: true,
+      importLeads: true,
+      importContacts: true,
+      importOpportunities: true,
+      exportProperties: true,
+      dataExporter: true,
+      reportsExporter: true,
+      bulkScore: true,
+      crmSync: true,
+      duplicateChecker: true,
+      duplicateClients: true,
+      inconsistencyChecker: true,
+      orphanCleaner: true,
+      linkContacts: true,
+      imageValidator: true,
+      emailHub: true,
+      gmailSync: true,
+      gmailLinker: true,
+      video: true,
+      description: true,
+      listingOptimizer: true,
+      calendar: true,
+      aiMatching: true,
+      autoMatching: true,
+      autoMatchingDashboard: true,
+      marketIntelligence: true,
+      propertyPerformance: true,
+      pricing: true,
+      creditSimulator: true,
+      deedCosts: true,
+      commissions: true,
+      invoices: true,
+      investorKeys: true,
+      investorProperties: true,
+      contractAutomation: true,
+      documents: true,
+      notificationsDashboard: true,
+      smtpConfig: true,
+      devNotes: true,
+      tagManager: true,
+      backupManager: true,
+      auditLog: true,
+      marketingHub: true,
+      marketingCampaigns: true,
+      landingPages: true,
+      dynamicForms: true,
+      seoManager: true,
+      socialMedia: true,
+      socialAdCreator: true,
+      apiPublish: true,
+      apiIntegrations: true,
+      portalIntegrations: true,
+      whatsapp: true,
+      integrations: true,
+      imageExtractor: true,
+      excelImport: true,
+      crmIntegrations: true,
+      seoAnalytics: true,
+      facebookCampaigns: true,
+      facebookLeads: true,
+      facebookForms: true,
+      leadManagement: true,
+      leadNurturing: true,
+      jsonProcessor: true,
+      propertyFeeds: true,
+      externalSync: true,
+      casafariSync: true
+    }
+  }
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -29,17 +185,20 @@ Deno.serve(async (req) => {
 
     const amount = PLAN_PRICES[plan];
     const reference = `SUB-${user.email.split('@')[0].toUpperCase()}-${Date.now()}`;
+    const planConfig = PLAN_CONFIG[plan];
 
-    // Criar registo pendente de subscrição
+    // Criar registo pendente de subscrição com features e tools
     await base44.asServiceRole.entities.Subscription.create({
       user_email: user.email,
       plan: plan,
       status: 'pending_payment',
       payment_method: 'bank_transfer',
-      amount: amount,
-      transfer_reference: reference,
-      transfer_created_at: new Date().toISOString(),
-      transfer_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 dias
+      payment_reference: reference,
+      payment_details: BANK_DETAILS,
+      features: planConfig.features,
+      tools_access: planConfig.tools_access,
+      current_period_start: new Date().toISOString(),
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     });
 
     // Enviar email com detalhes usando Core.SendEmail
