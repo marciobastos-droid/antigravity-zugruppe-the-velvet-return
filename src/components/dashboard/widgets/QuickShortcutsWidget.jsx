@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   Plus, Users, Building2, Calendar, FileText, 
-  Target, Mail, Phone, Sparkles, BarChart3, Wrench, Image
+  Target, Mail, Phone, Sparkles, BarChart3, Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,7 +12,6 @@ const defaultShortcuts = [
   { id: "addLead", label: "Novo Lead", icon: Users, path: "CRMAdvanced?tab=opportunities", color: "bg-purple-500" },
   { id: "calendar", label: "Calendário", icon: Calendar, path: "Tools", color: "bg-amber-500" },
   { id: "matching", label: "AI Matching", icon: Sparkles, path: "ClientPreferences", color: "bg-pink-500" },
-  { id: "imageExtractor", label: "Extrator de Imagens", icon: Image, path: "Tools", color: "bg-cyan-500" },
   { id: "reports", label: "Relatórios", icon: BarChart3, path: "Dashboard", color: "bg-emerald-500" },
   { id: "tools", label: "Ferramentas", icon: Wrench, path: "Tools", color: "bg-slate-500" }
 ];
