@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp, Download, Store, Crown } from "lucide-react";
 
 export default function QuickFilterBadges({ 
   properties, 
@@ -66,6 +66,12 @@ export default function QuickFilterBadges({
         (!p.published_pages || p.published_pages.length === 0)
       ).length,
       
+      // Páginas específicas
+      zugruppe: properties.filter(p => p.published_pages?.includes('zugruppe')).length,
+      zuhaus: properties.filter(p => p.published_pages?.includes('zuhaus')).length,
+      zuhandel: properties.filter(p => p.published_pages?.includes('zuhandel')).length,
+      luxury: properties.filter(p => p.published_pages?.includes('luxury_collection')).length,
+      
       // Empreendimentos
       withDevelopment: properties.filter(p => p.development_id).length,
       withoutDevelopment: properties.filter(p => !p.development_id).length,
@@ -99,6 +105,14 @@ export default function QuickFilterBadges({
     } else {
       onFilterChange({ ...filters, [filterKey]: value });
     }
+  };
+
+  const togglePublishedPage = (page) => {
+    const current = filters.published_pages || [];
+    const newPages = current.includes(page) 
+      ? current.filter(p => p !== page)
+      : [...current, page];
+    onFilterChange({ ...filters, published_pages: newPages });
   };
 
   const isActive = (filterKey, value) => {
@@ -149,9 +163,69 @@ export default function QuickFilterBadges({
           <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" />
           <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
           <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
-          <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
-          <FilterBadge filterKey="has_images" value={false} label="Sem Imagens" count={stats.withoutImages} color="red" icon={Image} />
           <FilterBadge filterKey="last_import" value={true} label="Última Importação" count={stats.lastImport} color="indigo" icon={Download} />
+        </div>
+
+        {/* Filtros de Páginas Publicadas - Segunda Linha */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Badge
+            onClick={() => togglePublishedPage('zugruppe')}
+            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+              filters.published_pages?.includes('zugruppe')
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+            }`}
+          >
+            <Building2 className="w-3 h-3" />
+            <span className="font-medium">ZuGruppe</span>
+            <span className="opacity-60">({stats.zugruppe})</span>
+            {filters.published_pages?.includes('zugruppe') && <X className="w-2.5 h-2.5 ml-0.5" />}
+          </Badge>
+          
+          <Badge
+            onClick={() => togglePublishedPage('zuhaus')}
+            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+              filters.published_pages?.includes('zuhaus')
+                ? "bg-red-600 text-white border-red-600"
+                : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+            }`}
+          >
+            <Home className="w-3 h-3" />
+            <span className="font-medium">ZuHaus</span>
+            <span className="opacity-60">({stats.zuhaus})</span>
+            {filters.published_pages?.includes('zuhaus') && <X className="w-2.5 h-2.5 ml-0.5" />}
+          </Badge>
+          
+          <Badge
+            onClick={() => togglePublishedPage('zuhandel')}
+            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+              filters.published_pages?.includes('zuhandel')
+                ? "bg-slate-600 text-white border-slate-600"
+                : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
+            }`}
+          >
+            <Store className="w-3 h-3" />
+            <span className="font-medium">ZuHandel</span>
+            <span className="opacity-60">({stats.zuhandel})</span>
+            {filters.published_pages?.includes('zuhandel') && <X className="w-2.5 h-2.5 ml-0.5" />}
+          </Badge>
+          
+          <Badge
+            onClick={() => togglePublishedPage('luxury_collection')}
+            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+              filters.published_pages?.includes('luxury_collection')
+                ? "bg-amber-600 text-white border-amber-600"
+                : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+            }`}
+          >
+            <Crown className="w-3 h-3" />
+            <span className="font-medium">Premium Luxo</span>
+            <span className="opacity-60">({stats.luxury})</span>
+            {filters.published_pages?.includes('luxury_collection') && <X className="w-2.5 h-2.5 ml-0.5" />}
+          </Badge>
+
+          <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
+          <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
         </div>
 
         {/* Botão Expandir */}
