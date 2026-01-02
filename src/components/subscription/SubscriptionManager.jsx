@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
   Crown, Check, Zap, TrendingUp, Shield, Sparkles, 
-  Calendar, CreditCard, AlertCircle, Loader2, Building2, Copy
+  Calendar, AlertCircle, Loader2, Building2, Copy
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
@@ -68,7 +68,6 @@ export default function SubscriptionManager() {
   const queryClient = useQueryClient();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [transferDetailsOpen, setTransferDetailsOpen] = useState(false);
   const [transferDetails, setTransferDetails] = useState(null);
 
@@ -92,31 +91,13 @@ export default function SubscriptionManager() {
       return;
     }
     setSelectedPlan(planId);
-    setCheckoutOpen(true);
+    createBankTransfer(planId);
   };
 
-  const createCheckoutSession = async (planId) => {
-    setLoading(true);
-    setCheckoutOpen(false);
-    try {
-      const response = await base44.functions.invoke('createStripeCheckout', {
-        plan: planId,
-        user_email: user.email
-      });
 
-      if (response.data.url) {
-        window.location.href = response.data.url;
-      }
-    } catch (error) {
-      toast.error("Erro ao criar sessão de pagamento");
-      console.error(error);
-    }
-    setLoading(false);
-  };
 
   const createBankTransfer = async (planId) => {
     setLoading(true);
-    setCheckoutOpen(false);
     try {
       const response = await base44.functions.invoke('createBankTransferSubscription', {
         plan: planId
@@ -139,22 +120,7 @@ export default function SubscriptionManager() {
     toast.success("Copiado!");
   };
 
-  const manageSubscription = async () => {
-    setLoading(true);
-    try {
-      const response = await base44.functions.invoke('createStripePortal', {
-        user_email: user.email
-      });
 
-      if (response.data.url) {
-        window.location.href = response.data.url;
-      }
-    } catch (error) {
-      toast.error("Erro ao aceder ao portal");
-      console.error(error);
-    }
-    setLoading(false);
-  };
 
   const currentPlan = subscription?.plan || 'free';
   const isActive = subscription?.status === 'active' || subscription?.status === 'trial';
@@ -187,7 +153,7 @@ export default function SubscriptionManager() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <div className="text-2xl font-bold capitalize">{currentPlan}</div>
                 {subscription.current_period_end && (
                   <p className="text-sm text-slate-600">
@@ -195,13 +161,12 @@ export default function SubscriptionManager() {
                     {new Date(subscription.current_period_end).toLocaleDateString('pt-PT')}
                   </p>
                 )}
+                {subscription.payment_method === 'bank_transfer' && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Pagamento por transferência bancária
+                  </p>
+                )}
               </div>
-              {currentPlan !== 'free' && (
-                <Button onClick={manageSubscription} disabled={loading}>
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4 mr-2" />}
-                  Gerir Subscrição
-                </Button>
-              )}
             </div>
 
             {/* Features */}
@@ -321,50 +286,11 @@ export default function SubscriptionManager() {
             <p className="text-sm text-slate-600">Sim, pode alterar o seu plano a qualquer momento. O valor será ajustado proporcionalmente.</p>
           </div>
           <div>
-            <h4 className="font-semibold mb-1">Aceitam transferência bancária?</h4>
-            <p className="text-sm text-slate-600">Sim! Ao selecionar um plano, pode escolher pagar por cartão de crédito ou transferência bancária. A ativação por transferência pode demorar 1-2 dias úteis.</p>
+            <h4 className="font-semibold mb-1">Como funciona o pagamento?</h4>
+            <p className="text-sm text-slate-600">Pagamento por transferência bancária. Após selecionar um plano, receberá os dados bancários. A ativação ocorre em 1-2 dias úteis após confirmação do pagamento.</p>
           </div>
         </CardContent>
       </Card>
-
-      {/* Payment Method Selection Dialog */}
-      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Escolha o Método de Pagamento</DialogTitle>
-            <DialogDescription>
-              Como prefere pagar a sua subscrição?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-4">
-            <Button
-              className="w-full h-auto py-4 flex-col gap-2"
-              variant="outline"
-              onClick={() => createCheckoutSession(selectedPlan)}
-              disabled={loading}
-            >
-              <CreditCard className="w-6 h-6" />
-              <div>
-                <div className="font-semibold">Cartão de Crédito/Débito</div>
-                <div className="text-xs text-slate-500">Ativação imediata via Stripe</div>
-              </div>
-            </Button>
-
-            <Button
-              className="w-full h-auto py-4 flex-col gap-2"
-              variant="outline"
-              onClick={() => createBankTransfer(selectedPlan)}
-              disabled={loading}
-            >
-              <Building2 className="w-6 h-6" />
-              <div>
-                <div className="font-semibold">Transferência Bancária</div>
-                <div className="text-xs text-slate-500">Ativação em 1-2 dias úteis</div>
-              </div>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Bank Transfer Details Dialog */}
       <Dialog open={transferDetailsOpen} onOpenChange={setTransferDetailsOpen}>
