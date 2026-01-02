@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
   Crown, Check, Zap, TrendingUp, Shield, Sparkles, 
-  Calendar, AlertCircle, Loader2, Building2, Copy
+  Calendar, AlertCircle, Loader2, Building2, Copy, Info
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import SubscriptionFeaturesConfig from "./SubscriptionFeaturesConfig";
 
 const PLANS = [
   {
@@ -266,6 +267,9 @@ export default function SubscriptionManager() {
           })}
         </div>
       </div>
+
+      {/* Features Comparison */}
+      <SubscriptionFeaturesConfig />
 
       {/* FAQ Section */}
       <Card>

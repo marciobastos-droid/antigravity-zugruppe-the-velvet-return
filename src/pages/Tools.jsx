@@ -170,18 +170,43 @@ export default function Tools() {
   // Check if user is admin/gestor (has full access) or needs permission check
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
 
-  // Get user's tool permissions directly from user object
+  // Get subscription data
+  const { data: subscription } = useQuery({
+    queryKey: ['subscription', currentUser?.email],
+    queryFn: async () => {
+      const subs = await base44.asServiceRole.entities.Subscription.filter({ 
+        user_email: currentUser.email 
+      });
+      return subs[0] || null;
+    },
+    enabled: !!currentUser?.email && !isAdmin,
+    staleTime: 5 * 60 * 1000
+  });
+
+  // Get user's tool permissions: prioriza user.permissions.tools, depois subscription.tools_access
   const userToolPermissions = React.useMemo(() => {
     // Admin has all permissions
     if (isAdmin) return {};
     
-    // Get from user.permissions.tools
-    const tools = currentUser?.permissions?.tools;
-    if (!tools || typeof tools !== 'object') return {};
+    // Priority 1: Manual permissions from admin (user.permissions.tools)
+    const manualTools = currentUser?.permissions?.tools;
     
-    console.log('[Tools] User tool permissions loaded:', tools);
-    return tools;
-  }, [currentUser, isAdmin]);
+    // Priority 2: Subscription tools
+    const subscriptionTools = subscription?.tools_access;
+    
+    // Merge: manual permissions override subscription
+    const mergedTools = { ...(subscriptionTools || {}), ...(manualTools || {}) };
+    
+    console.log('[Tools] Tool permissions loaded:', {
+      manual: manualTools,
+      subscription: subscriptionTools,
+      merged: mergedTools,
+      subscriptionPlan: subscription?.plan,
+      subscriptionStatus: subscription?.status
+    });
+    
+    return mergedTools;
+  }, [currentUser, isAdmin, subscription]);
 
   const hasToolsPageAccess = React.useMemo(() => {
     // Admin sempre tem acesso
