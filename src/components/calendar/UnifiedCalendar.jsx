@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Filter, Eye, CheckCircle2, FileText, Home, List, Grid3X3, AlertTriangle, Clock } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, FileText, List, Grid3X3, AlertTriangle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { format, addDays, startOfWeek, endOfWeek, isSameDay, isWithinInterval, parseISO } from "date-fns";
+import { format, addDays, startOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import CreateAppointmentDialog from "./CreateAppointmentDialog";
 import AppointmentDetailsDialog from "./AppointmentDetailsDialog";
@@ -22,7 +22,7 @@ export default function UnifiedCalendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterAgent, setFilterAgent] = useState("all");
   const [filterType, setFilterType] = useState("all");
-  const [viewMode, setViewMode] = useState("month"); // month, week, list
+  const [viewMode, setViewMode] = useState("month");
   const [draggedEvent, setDraggedEvent] = useState(null);
 
   const { data: appointments = [] } = useQuery({
@@ -45,16 +45,10 @@ export default function UnifiedCalendar() {
     queryFn: () => base44.entities.User.list()
   });
 
-  const { data: currentUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me()
-  });
-
   // Build unified events from all sources
   const allEvents = React.useMemo(() => {
     const events = [];
 
-    // Appointments
     appointments.forEach(apt => {
       events.push({
         id: apt.id,
@@ -71,7 +65,6 @@ export default function UnifiedCalendar() {
       });
     });
 
-    // Contract signatures
     contracts.forEach(contract => {
       if (contract.signature_date) {
         events.push({
@@ -117,7 +110,6 @@ export default function UnifiedCalendar() {
       }
     });
 
-    // Follow-up reminders
     opportunities.filter(opp => opp.next_followup_date).forEach(opp => {
       events.push({
         id: opp.id,
@@ -137,7 +129,6 @@ export default function UnifiedCalendar() {
     return events;
   }, [appointments, contracts, opportunities]);
 
-  // Filter events
   const filteredEvents = allEvents.filter(event => {
     if (filterAgent !== "all" && event.agent !== filterAgent) return false;
     if (filterType !== "all" && event.type !== filterType) return false;
@@ -151,7 +142,6 @@ export default function UnifiedCalendar() {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
     return { daysInMonth, startingDayOfWeek, year, month };
   };
 
@@ -174,9 +164,6 @@ export default function UnifiedCalendar() {
     orange: "bg-orange-100 text-orange-700 border-orange-300"
   };
 
-  const selectedDateEvents = getEventsForDate(selectedDate);
-
-  // Get week days for week view
   const getWeekDays = (date) => {
     const start = startOfWeek(date, { weekStartsOn: 0 });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -184,7 +171,6 @@ export default function UnifiedCalendar() {
 
   const weekDays = getWeekDays(currentDate);
 
-  // Drag and drop handlers
   const updateAppointmentMutation = useMutation({
     mutationFn: ({ id, newDate }) => {
       return base44.entities.Appointment.update(id, {
@@ -228,7 +214,6 @@ export default function UnifiedCalendar() {
     }
   };
 
-  // Detect conflicts
   const getConflictsForEvent = (event) => {
     if (event.type !== 'appointment') return [];
     
@@ -246,7 +231,6 @@ export default function UnifiedCalendar() {
     });
   };
 
-  // Get upcoming events
   const upcomingEvents = React.useMemo(() => {
     const now = new Date();
     return filteredEvents
@@ -254,72 +238,6 @@ export default function UnifiedCalendar() {
       .sort((a, b) => a.date - b.date)
       .slice(0, 10);
   }, [filteredEvents]);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900">Calendário Unificado</h2>
-          <p className="text-slate-600">Visitas, contratos, assinaturas e follow-ups</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Tabs value={viewMode} onValueChange={setViewMode} className="w-auto">
-            <TabsList>
-              <TabsTrigger value="month" className="gap-2">
-                <Grid3X3 className="w-4 h-4" />
-                Mês
-              </TabsTrigger>
-              <TabsTrigger value="week" className="gap-2">
-                <Calendar className="w-4 h-4" />
-                Semana
-              </TabsTrigger>
-              <TabsTrigger value="list" className="gap-2">
-                <List className="w-4 h-4" />
-                Lista
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button onClick={() => setCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Visita
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <Select value={filterAgent} onValueChange={setFilterAgent}>
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="Todos os agentes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Agentes</SelectItem>
-                {users.map(user => (
-                  <SelectItem key={user.id} value={user.email}>
-                    {user.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="Todos os tipos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Tipos</SelectItem>
-                <SelectItem value="appointment">📅 Visitas</SelectItem>
-                <SelectItem value="signature">📝 Assinaturas</SelectItem>
-                <SelectItem value="deed">📄 Escrituras</SelectItem>
-                <SelectItem value="renewal">🔄 Renovações</SelectItem>
-                <SelectItem value="followup">🔔 Follow-ups</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
   const selectedDateEvents = getEventsForDate(selectedDate);
 
@@ -483,7 +401,6 @@ export default function UnifiedCalendar() {
             </Card>
           </div>
 
-          {/* Selected Day Events */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -574,7 +491,6 @@ export default function UnifiedCalendar() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-8 gap-2">
-              {/* Time column */}
               <div className="space-y-12 pt-8">
                 {Array.from({ length: 12 }, (_, i) => i + 8).map(hour => (
                   <div key={hour} className="text-xs text-slate-500 text-right pr-2">
@@ -583,9 +499,8 @@ export default function UnifiedCalendar() {
                 ))}
               </div>
 
-              {/* Day columns */}
               {weekDays.map((day, dayIdx) => {
-                const isToday = isSameDay(day, new Date());
+                const isToday = day.toDateString() === new Date().toDateString();
                 const dayEvents = getEventsForDate(day);
                 
                 return (
@@ -605,12 +520,10 @@ export default function UnifiedCalendar() {
                     </div>
                     
                     <div className="relative h-[600px]">
-                      {/* Hour grid lines */}
                       {Array.from({ length: 12 }).map((_, i) => (
                         <div key={i} className="absolute w-full border-b border-slate-100" style={{ top: `${i * 50}px`, height: '50px' }} />
                       ))}
                       
-                      {/* Events */}
                       {dayEvents.map((event, idx) => {
                         const hour = event.date.getHours();
                         const minute = event.date.getMinutes();
@@ -755,7 +668,6 @@ export default function UnifiedCalendar() {
             </Card>
           </div>
 
-          {/* Stats Sidebar */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Estatísticas</CardTitle>
@@ -785,7 +697,6 @@ export default function UnifiedCalendar() {
                 </div>
               </div>
 
-              {/* Conflicts Alert */}
               {filteredEvents.some(e => getConflictsForEvent(e).length > 0) && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-start gap-2">
@@ -793,7 +704,7 @@ export default function UnifiedCalendar() {
                     <div>
                       <p className="text-sm font-semibold text-red-900">Conflitos Detetados</p>
                       <p className="text-xs text-red-700">
-                        {filteredEvents.filter(e => getConflictsForEvent(e).length > 0).length} eventos com sobreposição de horários
+                        {filteredEvents.filter(e => getConflictsForEvent(e).length > 0).length} eventos com sobreposição
                       </p>
                     </div>
                   </div>
