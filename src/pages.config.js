@@ -7,26 +7,26 @@ import CookiePolicy from './pages/CookiePolicy';
 import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
 import Franchising from './pages/Franchising';
-import Home from './pages/Home';
 import Institucional from './pages/Institucional';
 import ManageData from './pages/ManageData';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
-import PremiumLuxury from './pages/PremiumLuxury';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
+import SitemapXML from './pages/SitemapXML';
+import Subscriptions from './pages/Subscriptions';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
+import UpgradePlan from './pages/UpgradePlan';
 import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
-import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import SitemapXML from './pages/SitemapXML';
-import Subscriptions from './pages/Subscriptions';
-import UpgradePlan from './pages/UpgradePlan';
+import PremiumLuxury from './pages/PremiumLuxury';
+import WorldWideProperties from './pages/WorldWideProperties';
+import Home from './pages/Home';
 import __Layout from './Layout.jsx';
 
 
@@ -40,26 +40,26 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
     "Franchising": Franchising,
-    "Home": Home,
     "Institucional": Institucional,
     "ManageData": ManageData,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
-    "PremiumLuxury": PremiumLuxury,
     "PrivacyPolicy": PrivacyPolicy,
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
+    "SitemapXML": SitemapXML,
+    "Subscriptions": Subscriptions,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
     "Tools": Tools,
+    "UpgradePlan": UpgradePlan,
     "UserManagement": UserManagement,
     "Website": Website,
-    "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "SitemapXML": SitemapXML,
-    "Subscriptions": Subscriptions,
-    "UpgradePlan": UpgradePlan,
+    "PremiumLuxury": PremiumLuxury,
+    "WorldWideProperties": WorldWideProperties,
+    "Home": Home,
 }
 
 export const pagesConfig = {

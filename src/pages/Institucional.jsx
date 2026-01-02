@@ -31,14 +31,14 @@ export default function Institucional() {
       name: "Premium Luxo",
       subtitle: "Imóveis de Luxo",
       description: "Propriedades exclusivas para clientes exigentes. Luxo, conforto e exclusividade em cada detalhe.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/73d7d7694_ImagemImovelLuxo.jpg",
       link: createPageUrl("PremiumLuxury")
     },
     {
       name: "Worldwide",
       subtitle: "Imóveis Internacionais",
       description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/b8098af9d_WorldWide.jpg",
       link: createPageUrl("WorldWideProperties")
     }
   ];
@@ -62,7 +62,7 @@ export default function Institucional() {
       name: "ZuProjekt",
       subtitle: "Projetos de Arquitetura",
       description: "Desenvolvimento e gestão de projetos imobiliários. Da conceção à execução com excelência.",
-      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/b8697fed0_ZUPROJEKT.pdf",
+      logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359182f84_LogoZUPROJEKT_white_background2.jpg",
       link: createPageUrl("Website")
     }
   ];
