@@ -1,10 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const BANK_DETAILS = {
-  bank_name: "Banco Exemplo",
-  iban: "PT50 0000 0000 0000 0000 0000 0",
-  swift: "ABCDPTPL",
-  account_holder: "Zugruppe Unipessoal Lda"
+  bank_name: "Bankinter",
+  iban: "PT50 0269 0736 0020 9397 5683 6",
+  swift: "BKBKPTPLXXX",
+  account_holder: "Privileged Approach Unip Lda"
 };
 
 const PLAN_PRICES = {
