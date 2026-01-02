@@ -54,20 +54,22 @@ Deno.serve(async (req) => {
       ]
     });
 
-    // Enviar email de confirmação
+    // Enviar email de confirmação usando template
+    const emailTemplate = await base44.asServiceRole.functions.invoke('getEmailTemplate', {
+      event_type: 'subscription_confirmed',
+      variables: {
+        user_name: subscription.user_email.split('@')[0],
+        user_email: subscription.user_email,
+        plan: subscription.plan,
+        valid_until: periodEnd.toLocaleDateString('pt-PT'),
+        amount: subscription.plan === 'premium' ? '49' : '149'
+      }
+    });
+
     await base44.asServiceRole.integrations.Core.SendEmail({
       to: subscription.user_email,
-      subject: 'Subscrição Ativada com Sucesso!',
-      body: `A sua subscrição foi ativada!
-      
-Confirmámos o recebimento do seu pagamento.
-
-Plano: ${subscription.plan}
-Válido até: ${periodEnd.toLocaleDateString('pt-PT')}
-
-Obrigado por confiar em nós!
-
-Equipa Zugruppe`
+      subject: emailTemplate.data.subject,
+      body: emailTemplate.data.body
     });
 
     return Response.json({

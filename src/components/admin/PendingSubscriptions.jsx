@@ -53,15 +53,21 @@ export default function PendingSubscriptions() {
         rejected_at: new Date().toISOString()
       });
 
-      await base44.functions.invoke('sendResendEmail', {
+      // Enviar email usando template
+      const emailTemplate = await base44.functions.invoke('getEmailTemplate', {
+        event_type: 'subscription_rejected',
+        variables: {
+          user_name: subscription.user_email.split('@')[0],
+          user_email: subscription.user_email,
+          plan: subscription.plan,
+          reason: reason || 'Não especificado'
+        }
+      });
+
+      await base44.integrations.Core.SendEmail({
         to: subscription.user_email,
-        subject: 'Atualização sobre a sua Subscrição',
-        html: `
-          <h2>Informação sobre o seu pedido de subscrição</h2>
-          <p>Infelizmente não conseguimos confirmar o seu pagamento por transferência bancária.</p>
-          ${reason ? `<p><strong>Motivo:</strong> ${reason}</p>` : ''}
-          <p>Por favor contacte-nos se tiver alguma dúvida ou tente novamente.</p>
-        `
+        subject: emailTemplate.data.subject,
+        body: emailTemplate.data.body
       });
 
       return { success: true };
