@@ -25,6 +25,7 @@ import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
 import SitemapXML from './pages/SitemapXML';
+import Subscriptions from './pages/Subscriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
     "SitemapXML": SitemapXML,
+    "Subscriptions": Subscriptions,
 }
 
 export const pagesConfig = {
