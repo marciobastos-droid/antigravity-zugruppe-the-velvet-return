@@ -110,16 +110,26 @@ export default function TeamManagement() {
 
           {isFullAdmin && (
             <TabsContent value="subscriptions">
-              <Tabs defaultValue="manage" className="space-y-6">
-                <TabsList>
-                  <TabsTrigger value="manage">Gerir Planos</TabsTrigger>
+              <Tabs defaultValue="metrics" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+                  <TabsTrigger value="metrics">Métricas</TabsTrigger>
+                  <TabsTrigger value="subscriptions">Subscrições</TabsTrigger>
+                  <TabsTrigger value="configurator">Configurador</TabsTrigger>
                   <TabsTrigger value="pending">Pendentes</TabsTrigger>
                   <TabsTrigger value="properties">Imóveis</TabsTrigger>
                   <TabsTrigger value="users">Utilizadores</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="manage">
-                  <SubscriptionManager />
+                <TabsContent value="metrics">
+                  <AdminMetrics />
+                </TabsContent>
+
+                <TabsContent value="subscriptions">
+                  <AdminSubscriptionsManager />
+                </TabsContent>
+
+                <TabsContent value="configurator">
+                  <AdminPlanConfigurator />
                 </TabsContent>
 
                 <TabsContent value="pending">
