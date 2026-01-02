@@ -41,6 +41,53 @@ export default function OpportunityKanban({
 }) {
   const [scheduleDialogOpen, setScheduleDialogOpen] = React.useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = React.useState(null);
+  const [pendingStatusChange, setPendingStatusChange] = React.useState(null);
+
+  const handleDragEnd = (result) => {
+    const { destination, draggableId } = result;
+    
+    if (!destination) return;
+    
+    const newStatus = destination.droppableId;
+    const opportunity = opportunities.find(o => o.id === draggableId);
+    
+    // Se mover para "visit_scheduled", abrir dialog para agendar
+    if (newStatus === 'visit_scheduled' && opportunity) {
+      setPendingStatusChange({ opportunity, newStatus });
+      setSelectedOpportunity(opportunity);
+      setScheduleDialogOpen(true);
+    } else {
+      // Processar normalmente
+      onDragEnd(result);
+    }
+  };
+
+  const handleAppointmentCreated = () => {
+    // Processar a mudança de status pendente
+    if (pendingStatusChange) {
+      const { opportunity, newStatus } = pendingStatusChange;
+      
+      // Criar resultado fake para passar ao onDragEnd
+      const fakeResult = {
+        draggableId: opportunity.id,
+        destination: { droppableId: newStatus }
+      };
+      
+      onDragEnd(fakeResult);
+      setPendingStatusChange(null);
+    }
+    
+    setScheduleDialogOpen(false);
+    setSelectedOpportunity(null);
+    toast.success("Visita agendada e oportunidade atualizada!");
+  };
+
+  const handleAppointmentCancelled = () => {
+    // Cancelar a mudança de status
+    setPendingStatusChange(null);
+    setScheduleDialogOpen(false);
+    setSelectedOpportunity(null);
+  };
 
   const getOpportunitiesByStage = (stageId) => {
     return opportunities.filter(o => o.status === stageId);
@@ -88,7 +135,7 @@ export default function OpportunityKanban({
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext onDragEnd={handleDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4">
         {STAGES.map((stage) => {
           const stageOpportunities = getOpportunitiesByStage(stage.id);
@@ -347,14 +394,16 @@ export default function OpportunityKanban({
       {selectedOpportunity && (
         <CreateAppointmentDialog
           open={scheduleDialogOpen}
-          onOpenChange={setScheduleDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleAppointmentCancelled();
+            } else {
+              setScheduleDialogOpen(open);
+            }
+          }}
           opportunityId={selectedOpportunity.id}
           propertyId={selectedOpportunity.property_id}
-          onSuccess={() => {
-            toast.success("Visita agendada com sucesso!");
-            setScheduleDialogOpen(false);
-            setSelectedOpportunity(null);
-          }}
+          onSuccess={handleAppointmentCreated}
         />
       )}
     </DragDropContext>
