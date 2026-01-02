@@ -7,9 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
   Crown, Check, Zap, TrendingUp, Shield, Sparkles, 
-  Calendar, CreditCard, AlertCircle, Loader2
+  Calendar, CreditCard, AlertCircle, Loader2, Building2, Copy
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const PLANS = [
   {
@@ -69,6 +69,8 @@ export default function SubscriptionManager() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [transferDetailsOpen, setTransferDetailsOpen] = useState(false);
+  const [transferDetails, setTransferDetails] = useState(null);
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -84,13 +86,18 @@ export default function SubscriptionManager() {
     enabled: !!user?.email
   });
 
-  const createCheckoutSession = async (planId) => {
+  const handleSelectPlan = (planId) => {
     if (planId === 'free') {
       toast.info("Já está no plano gratuito");
       return;
     }
+    setSelectedPlan(planId);
+    setCheckoutOpen(true);
+  };
 
+  const createCheckoutSession = async (planId) => {
     setLoading(true);
+    setCheckoutOpen(false);
     try {
       const response = await base44.functions.invoke('createStripeCheckout', {
         plan: planId,
@@ -105,6 +112,31 @@ export default function SubscriptionManager() {
       console.error(error);
     }
     setLoading(false);
+  };
+
+  const createBankTransfer = async (planId) => {
+    setLoading(true);
+    setCheckoutOpen(false);
+    try {
+      const response = await base44.functions.invoke('createBankTransferSubscription', {
+        plan: planId
+      });
+
+      if (response.data.success) {
+        setTransferDetails(response.data);
+        setTransferDetailsOpen(true);
+        toast.success("Detalhes da transferência enviados por email");
+      }
+    } catch (error) {
+      toast.error("Erro ao criar pedido de transferência");
+      console.error(error);
+    }
+    setLoading(false);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copiado!");
   };
 
   const manageSubscription = async () => {
@@ -251,7 +283,7 @@ export default function SubscriptionManager() {
                     className="w-full"
                     variant={plan.popular ? "default" : "outline"}
                     disabled={isCurrent || loading}
-                    onClick={() => createCheckoutSession(plan.id)}
+                    onClick={() => handleSelectPlan(plan.id)}
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -288,8 +320,156 @@ export default function SubscriptionManager() {
             <h4 className="font-semibold mb-1">Posso fazer upgrade/downgrade?</h4>
             <p className="text-sm text-slate-600">Sim, pode alterar o seu plano a qualquer momento. O valor será ajustado proporcionalmente.</p>
           </div>
+          <div>
+            <h4 className="font-semibold mb-1">Aceitam transferência bancária?</h4>
+            <p className="text-sm text-slate-600">Sim! Ao selecionar um plano, pode escolher pagar por cartão de crédito ou transferência bancária. A ativação por transferência pode demorar 1-2 dias úteis.</p>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Payment Method Selection Dialog */}
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Escolha o Método de Pagamento</DialogTitle>
+            <DialogDescription>
+              Como prefere pagar a sua subscrição?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <Button
+              className="w-full h-auto py-4 flex-col gap-2"
+              variant="outline"
+              onClick={() => createCheckoutSession(selectedPlan)}
+              disabled={loading}
+            >
+              <CreditCard className="w-6 h-6" />
+              <div>
+                <div className="font-semibold">Cartão de Crédito/Débito</div>
+                <div className="text-xs text-slate-500">Ativação imediata via Stripe</div>
+              </div>
+            </Button>
+
+            <Button
+              className="w-full h-auto py-4 flex-col gap-2"
+              variant="outline"
+              onClick={() => createBankTransfer(selectedPlan)}
+              disabled={loading}
+            >
+              <Building2 className="w-6 h-6" />
+              <div>
+                <div className="font-semibold">Transferência Bancária</div>
+                <div className="text-xs text-slate-500">Ativação em 1-2 dias úteis</div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bank Transfer Details Dialog */}
+      <Dialog open={transferDetailsOpen} onOpenChange={setTransferDetailsOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Transferência Bancária</DialogTitle>
+            <DialogDescription>
+              Efetue a transferência com os seguintes dados. Os detalhes também foram enviados por email.
+            </DialogDescription>
+          </DialogHeader>
+          {transferDetails && (
+            <div className="space-y-4 py-4">
+              <div className="bg-slate-50 rounded-lg p-4 space-y-3 border border-slate-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Banco</div>
+                    <div className="font-semibold">{transferDetails.bank_details.bank_name}</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-500 mb-1">IBAN</div>
+                    <div className="font-mono text-sm">{transferDetails.bank_details.iban}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyToClipboard(transferDetails.bank_details.iban)}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">SWIFT/BIC</div>
+                    <div className="font-mono text-sm">{transferDetails.bank_details.swift}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyToClipboard(transferDetails.bank_details.swift)}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div>
+                  <div className="text-xs text-slate-500 mb-1">Titular</div>
+                  <div className="font-semibold">{transferDetails.bank_details.account_holder}</div>
+                </div>
+
+                <div className="border-t pt-3 mt-3">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="text-xs text-slate-500 mb-1">Montante</div>
+                      <div className="text-2xl font-bold text-blue-600">€{transferDetails.amount}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded p-3">
+                  <div className="text-xs font-semibold text-amber-900 mb-2">REFERÊNCIA OBRIGATÓRIA</div>
+                  <div className="flex justify-between items-center">
+                    <code className="text-sm font-mono bg-white px-2 py-1 rounded border">
+                      {transferDetails.reference}
+                    </code>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyToClipboard(transferDetails.reference)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-amber-800 mt-2">
+                    Por favor inclua esta referência para identificarmos o seu pagamento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2">Próximos Passos</h4>
+                <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+                  <li>Efetue a transferência com os dados acima</li>
+                  <li>Inclua a referência na transferência</li>
+                  <li>Aguarde 1-2 dias úteis pela confirmação</li>
+                  <li>Receberá um email quando a subscrição for ativada</li>
+                </ol>
+                <p className="text-xs text-blue-700 mt-3">
+                  Validade: {new Date(transferDetails.expires_at).toLocaleDateString('pt-PT')}
+                </p>
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={() => setTransferDetailsOpen(false)}
+              >
+                Entendido
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
