@@ -313,7 +313,7 @@ export default function TeamDashboard({ user }) {
                   </div>
                 </div>
 
-                <div className="flex-1 grid grid-cols-5 gap-4 text-center">
+                <div className="flex-1 grid grid-cols-6 gap-3 text-center">
                   <div>
                     <p className="text-xs text-slate-500">Tarefas</p>
                     <p className="font-semibold">{member.completedTasks}/{member.totalTasks}</p>
@@ -327,6 +327,10 @@ export default function TeamDashboard({ user }) {
                   <div>
                     <p className="text-xs text-slate-500">Leads</p>
                     <p className="font-semibold">{member.closedLeads}/{member.totalLeads}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500">Imóveis</p>
+                    <p className="font-semibold text-purple-600">{member.totalProperties}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500">Conversão</p>
