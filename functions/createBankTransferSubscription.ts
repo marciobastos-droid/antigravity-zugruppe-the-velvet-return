@@ -42,11 +42,11 @@ Deno.serve(async (req) => {
       transfer_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 dias
     });
 
-    // Enviar email com detalhes
-    await base44.asServiceRole.functions.invoke('sendResendEmail', {
+    // Enviar email com detalhes usando Core.SendEmail
+    await base44.asServiceRole.integrations.Core.SendEmail({
       to: user.email,
       subject: `Detalhes de Pagamento - Subscrição ${plan}`,
-      html: `
+      body: `
         <h2>Obrigado pelo seu interesse no plano ${plan}!</h2>
         <p>Para ativar a sua subscrição, por favor efetue a transferência bancária com os seguintes dados:</p>
         
