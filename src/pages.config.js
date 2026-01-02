@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import ManageData from './pages/ManageData';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
+import PremiumLuxury from './pages/PremiumLuxury';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
@@ -17,10 +18,9 @@ import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
 import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
+import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import PremiumLuxury from './pages/PremiumLuxury';
-import WorldWideProperties from './pages/WorldWideProperties';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +36,7 @@ export const PAGES = {
     "ManageData": ManageData,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
+    "PremiumLuxury": PremiumLuxury,
     "PrivacyPolicy": PrivacyPolicy,
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
@@ -44,10 +45,9 @@ export const PAGES = {
     "Tools": Tools,
     "UserManagement": UserManagement,
     "Website": Website,
+    "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "PremiumLuxury": PremiumLuxury,
-    "WorldWideProperties": WorldWideProperties,
 }
 
 export const pagesConfig = {
