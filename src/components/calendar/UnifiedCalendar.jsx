@@ -22,7 +22,7 @@ export default function UnifiedCalendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterAgent, setFilterAgent] = useState("all");
   const [filterType, setFilterType] = useState("all");
-  const [viewMode, setViewMode] = useState("month");
+  const [viewMode, setViewMode] = useState("list");
   const [draggedEvent, setDraggedEvent] = useState(null);
 
   const { data: appointments = [] } = useQuery({
@@ -45,11 +45,23 @@ export default function UnifiedCalendar() {
     queryFn: () => base44.entities.User.list()
   });
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[UnifiedCalendar Debug]', {
+      appointments: appointments.length,
+      contracts: contracts.length,
+      opportunities: opportunities.length,
+      filterAgent,
+      filterType
+    });
+  }, [appointments, contracts, opportunities, filterAgent, filterType]);
+
   // Build unified events from all sources
   const allEvents = React.useMemo(() => {
     const events = [];
 
     appointments.forEach(apt => {
+      console.log('[Appointment]', apt.title, apt.appointment_date, apt.assigned_agent);
       events.push({
         id: apt.id,
         type: 'appointment',
@@ -126,6 +138,7 @@ export default function UnifiedCalendar() {
       });
     });
 
+    console.log('[AllEvents]', events.length, 'total events');
     return events;
   }, [appointments, contracts, opportunities]);
 
@@ -134,6 +147,8 @@ export default function UnifiedCalendar() {
     if (filterType !== "all" && event.type !== filterType) return false;
     return true;
   });
+
+  console.log('[FilteredEvents]', filteredEvents.length, 'after filters');
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -233,10 +248,13 @@ export default function UnifiedCalendar() {
 
   const upcomingEvents = React.useMemo(() => {
     const now = new Date();
-    return filteredEvents
+    const upcoming = filteredEvents
       .filter(e => e.date >= now)
       .sort((a, b) => a.date - b.date)
       .slice(0, 10);
+    
+    console.log('[UpcomingEvents]', upcoming.length, 'upcoming events');
+    return upcoming;
   }, [filteredEvents]);
 
   const selectedDateEvents = getEventsForDate(selectedDate);
@@ -303,6 +321,14 @@ export default function UnifiedCalendar() {
                 <SelectItem value="followup">🔔 Follow-ups</SelectItem>
               </SelectContent>
             </Select>
+            {(filterAgent !== "all" || filterType !== "all") && (
+              <Button variant="ghost" size="sm" onClick={() => {
+                setFilterAgent("all");
+                setFilterType("all");
+              }}>
+                Limpar Filtros
+              </Button>
+            )}
             <div className="flex-1" />
             <Badge variant="outline" className="gap-1">
               <Calendar className="w-3 h-3" />
@@ -596,7 +622,21 @@ export default function UnifiedCalendar() {
               </CardHeader>
               <CardContent>
                 {upcomingEvents.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-12">Sem eventos próximos</p>
+                  <div className="text-center py-12">
+                    <p className="text-sm text-slate-500 mb-2">
+                      {allEvents.length === 0 
+                        ? "Sem eventos agendados" 
+                        : "Nenhum evento encontrado com os filtros atuais"}
+                    </p>
+                    {allEvents.length > 0 && filteredEvents.length === 0 && (
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setFilterAgent("all");
+                        setFilterType("all");
+                      }}>
+                        Limpar Filtros
+                      </Button>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {upcomingEvents.map((event, idx) => {
