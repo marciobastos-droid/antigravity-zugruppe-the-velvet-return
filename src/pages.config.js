@@ -16,17 +16,17 @@ import PremiumLuxury from './pages/PremiumLuxury';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PropertyDetails from './pages/PropertyDetails';
 import RGPDConsent from './pages/RGPDConsent';
-import SitemapXML from './pages/SitemapXML';
-import Subscriptions from './pages/Subscriptions';
 import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
-import UpgradePlan from './pages/UpgradePlan';
 import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import SitemapXML from './pages/SitemapXML';
+import Subscriptions from './pages/Subscriptions';
+import UpgradePlan from './pages/UpgradePlan';
 import __Layout from './Layout.jsx';
 
 
@@ -49,17 +49,17 @@ export const PAGES = {
     "PrivacyPolicy": PrivacyPolicy,
     "PropertyDetails": PropertyDetails,
     "RGPDConsent": RGPDConsent,
-    "SitemapXML": SitemapXML,
-    "Subscriptions": Subscriptions,
     "TeamManagement": TeamManagement,
     "TermsConditions": TermsConditions,
     "Tools": Tools,
-    "UpgradePlan": UpgradePlan,
     "UserManagement": UserManagement,
     "Website": Website,
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "SitemapXML": SitemapXML,
+    "Subscriptions": Subscriptions,
+    "UpgradePlan": UpgradePlan,
 }
 
 export const pagesConfig = {

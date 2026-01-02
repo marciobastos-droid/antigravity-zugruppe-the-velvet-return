@@ -103,7 +103,7 @@ export default function PremiumLuxury() {
       />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-amber-900 via-amber-800 to-amber-900 text-white py-16 sm:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a5ff8a306_ImagemImovelLuxo.jpg)' }} />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: 'url(https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c3bc69b1d_ImagemImovelLuxo.jpg)' }} />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link to={createPageUrl("Website")} className="inline-block mb-6">
