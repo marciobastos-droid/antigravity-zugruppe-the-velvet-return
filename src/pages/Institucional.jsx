@@ -40,7 +40,10 @@ export default function Institucional() {
       description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional.",
       logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
       link: createPageUrl("WorldWideProperties")
-    },
+    }
+  ];
+
+  const services = [
     {
       name: "ZuFinance",
       subtitle: "Soluções Financeiras",
@@ -234,8 +237,8 @@ export default function Institucional() {
               Cada marca do grupo ZuGruppe é especialista no seu segmento, garantindo o melhor serviço em cada área
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {brands.map((brand, index) => (
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
+            {brands.slice(0, 2).map((brand, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
                 <CardContent className="p-8">
                   <div className="flex items-center justify-center mb-6 min-h-[120px]">
@@ -256,6 +259,67 @@ export default function Institucional() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {brands.slice(2).map((brand, index) => (
+              <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-center mb-6 min-h-[120px]">
+                    <img 
+                      src={brand.logo}
+                      alt={brand.name}
+                      className="max-h-24 w-auto object-contain"
+                    />
+                  </div>
+                  <p className="text-blue-600 text-sm font-medium mb-4">{brand.subtitle}</p>
+                  <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
+                  <Link to={brand.link}>
+                    <Button className="w-full group-hover:bg-blue-600 transition-colors">
+                      Explorar {brand.name}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Services Section */}
+        <div className="bg-slate-100 py-16 md:py-24">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <Badge className="mb-4 bg-green-100 text-green-800">Nossos Serviços</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Soluções Completas para o Seu Projeto
+              </h2>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                Serviços especializados que complementam a sua experiência imobiliária
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {services.map((service, index) => (
+                <Card key={index} className="overflow-hidden hover:shadow-xl transition-all group bg-white">
+                  <CardContent className="p-8">
+                    <div className="flex items-center justify-center mb-6 min-h-[120px]">
+                      <img 
+                        src={service.logo}
+                        alt={service.name}
+                        className="max-h-24 w-auto object-contain"
+                      />
+                    </div>
+                    <p className="text-green-600 text-sm font-medium mb-4">{service.subtitle}</p>
+                    <p className="text-slate-600 mb-6 leading-relaxed text-sm">{service.description}</p>
+                    <Link to={service.link}>
+                      <Button variant="outline" className="w-full group-hover:bg-green-50 transition-colors">
+                        Saber Mais
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
 
