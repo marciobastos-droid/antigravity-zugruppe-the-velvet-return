@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Crown, CheckCircle, Clock, XCircle, Edit, Trash2, Eye } from "lucide-react";
+import { Search, Crown, CheckCircle, Clock, XCircle, Edit, Trash2, Eye, RefreshCw, Mail, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import PendingSubscriptions from "./PendingSubscriptions";
+import { Label } from "@/components/ui/label";
 
 export default function AdminSubscriptionsManager() {
   const queryClient = useQueryClient();
@@ -37,6 +38,35 @@ export default function AdminSubscriptionsManager() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allSubscriptions'] });
       toast.success("Subscrição eliminada!");
+    }
+  });
+
+  const renewSubscriptionMutation = useMutation({
+    mutationFn: (subscriptionId) => base44.functions.invoke('renewSubscription', { subscription_id: subscriptionId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allSubscriptions'] });
+      toast.success("Email de renovação enviado!");
+    }
+  });
+
+  const sendReminderMutation = useMutation({
+    mutationFn: (subscriptionId) => base44.functions.invoke('sendPaymentReminder', { subscription_id: subscriptionId }),
+    onSuccess: () => {
+      toast.success("Lembrete enviado!");
+    }
+  });
+
+  const changePlanMutation = useMutation({
+    mutationFn: ({ subscriptionId, newPlan }) => 
+      base44.functions.invoke('changePlanProrated', { subscription_id: subscriptionId, new_plan: newPlan }),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['allSubscriptions'] });
+      if (response.data.prorated_amount > 0) {
+        toast.success(`Plano alterado! Valor proporcional: €${response.data.prorated_amount.toFixed(2)}`);
+      } else {
+        toast.success("Plano alterado com sucesso!");
+      }
+      setEditingSubscription(null);
     }
   });
 
@@ -190,11 +220,32 @@ export default function AdminSubscriptionsManager() {
                         {new Date(sub.created_date).toLocaleDateString('pt-PT')}
                       </td>
                       <td className="py-3 px-2">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1">
+                          {sub.status === 'active' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => renewSubscriptionMutation.mutate(sub.id)}
+                              title="Renovar subscrição"
+                            >
+                              <RefreshCw className="w-4 h-4 text-green-600" />
+                            </Button>
+                          )}
+                          {sub.status === 'pending_payment' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => sendReminderMutation.mutate(sub.id)}
+                              title="Enviar lembrete"
+                            >
+                              <Mail className="w-4 h-4 text-blue-600" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => setEditingSubscription(sub)}
+                            title="Editar"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -207,6 +258,7 @@ export default function AdminSubscriptionsManager() {
                               }
                             }}
                             className="text-red-600 hover:text-red-700"
+                            title="Eliminar"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -256,7 +308,7 @@ export default function AdminSubscriptionsManager() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Estado</label>
+                <Label className="text-sm font-medium mb-2 block">Estado</Label>
                 <Select
                   value={editingSubscription.status}
                   onValueChange={(value) => setEditingSubscription({ ...editingSubscription, status: value })}
@@ -273,6 +325,38 @@ export default function AdminSubscriptionsManager() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Change Plan with Proration */}
+              {editingSubscription.plan !== 'free' && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-4 h-4 text-blue-600" />
+                    <Label className="font-semibold text-blue-900">Alterar Plano com Cálculo Proporcional</Label>
+                  </div>
+                  <p className="text-xs text-blue-700 mb-3">
+                    O sistema calculará automaticamente o valor proporcional baseado nos dias restantes
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newPlan = editingSubscription.plan === 'premium' ? 'enterprise' : 'premium';
+                      if (confirm(`Alterar plano para ${newPlan}? Será calculado o valor proporcional.`)) {
+                        changePlanMutation.mutate({ 
+                          subscriptionId: editingSubscription.id, 
+                          newPlan 
+                        });
+                      }
+                    }}
+                    disabled={changePlanMutation.isPending}
+                    className="w-full"
+                  >
+                    {changePlanMutation.isPending ? 'A processar...' : 
+                     `Alterar para ${editingSubscription.plan === 'premium' ? 'Enterprise' : 'Premium'}`}
+                  </Button>
+                </div>
+              )}
+
               <div className="flex gap-2 pt-4">
                 <Button
                   onClick={() => {
