@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, Check, Eye, Trash2, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2, Circle, CheckCircle } from "lucide-react";
+import { Bell, Check, Eye, Trash2, X, UserPlus, Target, Phone, Mail, MapPin, Euro, Clock, ChevronRight, CheckCheck, Loader2, Circle, CheckCircle, Filter, Volume2, VolumeX, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -13,8 +14,16 @@ import { createPageUrl } from "@/utils";
 
 export default function NotificationBell({ user }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('notificationSoundEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const previousCountRef = useRef(0);
+  const audioRef = useRef(null);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications', user?.email],
@@ -28,8 +37,38 @@ export default function NotificationBell({ user }) {
       return notifs;
     },
     enabled: !!user && typeof base44 !== 'undefined',
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 5000, // Refresh every 5 seconds (real-time simulation)
   });
+
+  // Play sound and vibrate on new notifications
+  useEffect(() => {
+    if (!notifications || notifications.length === 0) return;
+    
+    const currentUnreadCount = notifications.filter(n => !n.is_read).length;
+    
+    if (currentUnreadCount > previousCountRef.current && previousCountRef.current > 0) {
+      // New notification arrived
+      if (soundEnabled) {
+        // Play notification sound
+        try {
+          if (!audioRef.current) {
+            audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZRA0PVqzn77BdGAg+ltzy0H4qBCp+zPLaizsIGGS57OihUBELTKXh8bllHAU2jtHz1YU2Bhxqve7mnEoPD1Om5O+zYhsGPJPY8tGAKwUnfsvx3Y4+CRZiuevsn08PC0yj4/K8aB8FM4nU8tiIOQcZaLrr7aJNDQ5TpuXvtGMeCjyS1/HQfywFKH3L8dyNPgkWYrjr7J9OEAtMo+PyvmccBTOJ1PLYiDkHGWi76+2iTQ0OU6Xl77RjHgo8ktfx0H8sBSh9y/HcjT4JFmK46+yfThALTKPj8r5nHAUzidTy2Ig5Bxlouer');
+            audioRef.current.volume = 0.5;
+          }
+          audioRef.current.play().catch(() => {});
+        } catch (error) {
+          console.error('Error playing notification sound:', error);
+        }
+        
+        // Vibrate on mobile devices
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200, 100, 200]);
+        }
+      }
+    }
+    
+    previousCountRef.current = currentUnreadCount;
+  }, [notifications, soundEnabled]);
 
   // Fetch new leads (last 24h)
   const isAdmin = React.useMemo(() => {
@@ -161,6 +200,51 @@ export default function NotificationBell({ user }) {
   const totalAlerts = unreadCount + newLeads.length + unreadLeadsCount;
   const [activeTab, setActiveTab] = useState("leads");
 
+  // Toggle sound
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('notificationSoundEnabled', JSON.stringify(newValue));
+  };
+
+  // Group notifications by type and similarity
+  const groupedNotifications = React.useMemo(() => {
+    const groups = {};
+    
+    notifications.forEach(notif => {
+      // Create a grouping key based on type and similar content
+      const groupKey = `${notif.type}_${notif.title}`;
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          ...notif,
+          count: 1,
+          items: [notif],
+          latestDate: notif.created_date
+        };
+      } else {
+        groups[groupKey].count++;
+        groups[groupKey].items.push(notif);
+        if (new Date(notif.created_date) > new Date(groups[groupKey].latestDate)) {
+          groups[groupKey].latestDate = notif.created_date;
+        }
+      }
+    });
+    
+    return Object.values(groups).sort((a, b) => 
+      new Date(b.latestDate) - new Date(a.latestDate)
+    );
+  }, [notifications]);
+
+  // Apply filters to notifications
+  const filteredNotifications = React.useMemo(() => {
+    return groupedNotifications.filter(group => {
+      const typeMatch = typeFilter === "all" || group.type === typeFilter;
+      const priorityMatch = priorityFilter === "all" || group.priority === priorityFilter;
+      return typeMatch && priorityMatch;
+    });
+  }, [groupedNotifications, typeFilter, priorityFilter]);
+
   const handleNotificationClick = (notification) => {
     markAsReadMutation.mutate(notification.id);
     
@@ -219,12 +303,25 @@ export default function NotificationBell({ user }) {
           <div className="absolute right-0 mt-2 w-[420px] bg-white rounded-lg shadow-xl border border-slate-200 z-50">
             <div className="flex items-center justify-between p-3 border-b">
               <h3 className="font-semibold text-slate-900">Notificações</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-slate-100 rounded"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleSound}
+                  className="p-1.5 hover:bg-slate-100 rounded transition-colors"
+                  title={soundEnabled ? "Desativar sons" : "Ativar sons"}
+                >
+                  {soundEnabled ? (
+                    <Volume2 className="w-4 h-4 text-slate-600" />
+                  ) : (
+                    <VolumeX className="w-4 h-4 text-slate-400" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 hover:bg-slate-100 rounded"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -496,7 +593,39 @@ export default function NotificationBell({ user }) {
               </TabsContent>
 
               <TabsContent value="notifications" className="mt-0">
-                <div className="flex items-center justify-end px-3 py-1 border-b">
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-slate-50">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-3 h-3 text-slate-500" />
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="h-7 w-28 text-xs">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="lead">Leads</SelectItem>
+                        <SelectItem value="opportunity">Oportunidades</SelectItem>
+                        <SelectItem value="appointment">Reuniões</SelectItem>
+                        <SelectItem value="contract">Contratos</SelectItem>
+                        <SelectItem value="matching">Matching</SelectItem>
+                        <SelectItem value="ai_tool">IA</SelectItem>
+                        <SelectItem value="system">Sistema</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                      <SelectTrigger className="h-7 w-28 text-xs">
+                        <SelectValue placeholder="Prioridade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="urgent">Urgente</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="low">Baixa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   {unreadCount > 0 && (
                     <Button
                       variant="ghost"
@@ -504,63 +633,89 @@ export default function NotificationBell({ user }) {
                       onClick={() => markAllAsReadMutation.mutate()}
                       className="text-xs h-7"
                     >
-                      <Check className="w-3 h-3 mr-1" />
+                      <CheckCheck className="w-3 h-3 mr-1" />
                       Marcar todas
                     </Button>
                   )}
                 </div>
                 
                 <ScrollArea className="h-72">
-                  {notifications.length === 0 ? (
+                  {filteredNotifications.length === 0 ? (
                     <div className="p-8 text-center text-slate-500">
                       <Bell className="w-12 h-12 mx-auto mb-2 opacity-20" />
                       <p>Sem notificações</p>
+                      {(typeFilter !== "all" || priorityFilter !== "all") && (
+                        <p className="text-xs mt-1">Ajuste os filtros</p>
+                      )}
                     </div>
                   ) : (
                     <div className="divide-y">
-                      {notifications.map((notif) => (
+                      {filteredNotifications.map((group) => (
                         <div
-                          key={notif.id}
-                          className={`p-3 hover:bg-slate-50 transition-colors cursor-pointer ${
-                            !notif.is_read ? 'bg-blue-50/50' : ''
-                          } ${getPriorityColor(notif.priority)}`}
-                          onClick={() => handleNotificationClick(notif)}
+                          key={group.id}
+                          className={`p-3 hover:bg-slate-50 transition-colors ${
+                            group.items.some(n => !n.is_read) ? 'bg-blue-50/50' : ''
+                          } ${getPriorityColor(group.priority)}`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-lg">{getNotificationIcon(notif.type)}</span>
+                                <span className="text-lg">{getNotificationIcon(group.type)}</span>
                                 <p className="font-semibold text-sm text-slate-900">
-                                  {notif.title}
+                                  {group.title}
+                                  {group.count > 1 && (
+                                    <Badge className="ml-2 bg-blue-600 text-white text-xs h-4 px-1.5">
+                                      {group.count}
+                                    </Badge>
+                                  )}
                                 </p>
-                                {!notif.is_read && (
+                                {group.items.some(n => !n.is_read) && (
                                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                                 )}
                               </div>
                               <p className="text-sm text-slate-600 mb-2">
-                                {notif.message}
+                                {group.count > 1 
+                                  ? `${group.count} notificações similares`
+                                  : group.message}
                               </p>
                               <p className="text-xs text-slate-400">
-                                {format(new Date(notif.created_date), "dd/MM/yyyy HH:mm")}
+                                {formatDistanceToNow(new Date(group.latestDate), { addSuffix: true, locale: ptBR })}
                               </p>
                             </div>
-                            <div className="flex gap-1">
-                              {!notif.is_read && (
+                            <div className="flex flex-col gap-1">
+                              {group.action_url && (
+                                <button
+                                  onClick={() => {
+                                    group.items.forEach(n => {
+                                      if (!n.is_read) markAsReadMutation.mutate(n.id);
+                                    });
+                                    navigate(group.action_url);
+                                    setIsOpen(false);
+                                  }}
+                                  className="p-1 hover:bg-blue-100 rounded"
+                                  title="Ver detalhes"
+                                >
+                                  <ExternalLink className="w-3 h-3 text-blue-500" />
+                                </button>
+                              )}
+                              {group.items.some(n => !n.is_read) && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    markAsReadMutation.mutate(notif.id);
+                                    group.items.forEach(n => {
+                                      if (!n.is_read) markAsReadMutation.mutate(n.id);
+                                    });
                                   }}
                                   className="p-1 hover:bg-slate-200 rounded"
                                   title="Marcar como lida"
                                 >
-                                  <Eye className="w-3 h-3 text-slate-500" />
+                                  <CheckCircle className="w-3 h-3 text-slate-500" />
                                 </button>
                               )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteMutation.mutate(notif.id);
+                                  group.items.forEach(n => deleteMutation.mutate(n.id));
                                 }}
                                 className="p-1 hover:bg-red-100 rounded"
                                 title="Eliminar"
