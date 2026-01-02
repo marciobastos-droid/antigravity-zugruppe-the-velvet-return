@@ -11,6 +11,9 @@ import NotificationPreferences from "../components/notifications/NotificationPre
 import MarketingTeamManager from "../components/marketing/MarketingTeamManager";
 import SubscriptionManager from "../components/subscription/SubscriptionManager";
 import PendingSubscriptions from "../components/admin/PendingSubscriptions";
+import AdminMetrics from "../components/admin/AdminMetrics";
+import AdminSubscriptionsManager from "../components/admin/AdminSubscriptionsManager";
+import AdminPlanConfigurator from "../components/admin/AdminPlanConfigurator";
 import AdminPropertiesManager from "../components/admin/AdminPropertiesManager";
 import AdminUsersManager from "../components/admin/AdminUsersManager";
 
