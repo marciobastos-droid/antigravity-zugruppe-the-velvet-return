@@ -262,29 +262,22 @@ export default function OpportunitiesContent() {
   };
 
   const handleAssign = async (lead, email) => {
-        // Update opportunity
+        // Update opportunity and sync with contact
         updateMutation.mutate({
           id: lead.id,
           data: { assigned_to: email }
         });
 
-        // Also update associated contact if exists
-        if (lead.contact_id) {
-          try {
-            await base44.entities.ClientContact.update(lead.contact_id, { assigned_agent: email });
-          } catch (e) {
-            console.error('Error updating contact agent:', e);
-          }
-        } else if (lead.buyer_email) {
-          // Try to find contact by email and update
-          try {
-            const contacts = await base44.entities.ClientContact.filter({ email: lead.buyer_email });
-            if (contacts.length > 0) {
-              await base44.entities.ClientContact.update(contacts[0].id, { assigned_agent: email });
-            }
-          } catch (e) {
-            console.error('Error updating contact agent by email:', e);
-          }
+        // Sync with contact
+        try {
+          await base44.functions.invoke('syncAgentBetweenContactAndOpportunity', {
+            entityType: 'opportunity',
+            entityId: lead.id,
+            newAgent: email
+          });
+          queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+        } catch (e) {
+          console.error('Error syncing agent:', e);
         }
       };
 
@@ -303,26 +296,21 @@ export default function OpportunitiesContent() {
 
   const bulkAssignMutation = useMutation({
         mutationFn: async ({ leadIds, agentEmail }) => {
-          const leadsToUpdate = opportunities.filter(o => leadIds.includes(o.id));
-
           // Update opportunities
           await Promise.all(leadIds.map(id => 
             base44.entities.Opportunity.update(id, { assigned_to: agentEmail })
           ));
 
-          // Update associated contacts
-          for (const lead of leadsToUpdate) {
+          // Sync with contacts for each opportunity
+          for (const leadId of leadIds) {
             try {
-              if (lead.contact_id) {
-                await base44.entities.ClientContact.update(lead.contact_id, { assigned_agent: agentEmail });
-              } else if (lead.buyer_email) {
-                const contacts = await base44.entities.ClientContact.filter({ email: lead.buyer_email });
-                if (contacts.length > 0) {
-                  await base44.entities.ClientContact.update(contacts[0].id, { assigned_agent: agentEmail });
-                }
-              }
+              await base44.functions.invoke('syncAgentBetweenContactAndOpportunity', {
+                entityType: 'opportunity',
+                entityId: leadId,
+                newAgent: agentEmail
+              });
             } catch (e) {
-              console.error('Error updating contact agent:', e);
+              console.error('Error syncing agent for lead:', leadId, e);
             }
           }
         },
