@@ -137,35 +137,35 @@ export default function Website() {
   const [showMapView, setShowMapView] = React.useState(false);
 
   // Initialize ranges when data loads
+  const [rangesInitialized, setRangesInitialized] = React.useState(false);
   React.useEffect(() => {
-    if (properties.length > 0 && pricePerSqmRange[1] === 0) {
+    if (properties.length > 0 && !rangesInitialized) {
       setPricePerSqmRange([0, dataRanges.maxPricePerSqm]);
       setYearBuiltRange([dataRanges.minYear, dataRanges.maxYear]);
       setDebouncedPricePerSqm([0, dataRanges.maxPricePerSqm]);
       setDebouncedYearBuilt([dataRanges.minYear, dataRanges.maxYear]);
+      setRangesInitialized(true);
     }
-  }, [properties, dataRanges]);
+  }, [properties.length, rangesInitialized, dataRanges.maxPricePerSqm, dataRanges.maxYear, dataRanges.minYear]);
   
   const ITEMS_PER_PAGE = 12;
   
   // Debounce price per sqm
   React.useEffect(() => {
-    const handler = debounce(() => {
+    const handler = setTimeout(() => {
       setDebouncedPricePerSqm(pricePerSqmRange);
       setCurrentPage(1);
     }, 500);
-    handler();
-    return () => handler.cancel();
+    return () => clearTimeout(handler);
   }, [pricePerSqmRange]);
   
   // Debounce year built
   React.useEffect(() => {
-    const handler = debounce(() => {
+    const handler = setTimeout(() => {
       setDebouncedYearBuilt(yearBuiltRange);
       setCurrentPage(1);
     }, 500);
-    handler();
-    return () => handler.cancel();
+    return () => clearTimeout(handler);
   }, [yearBuiltRange]);
   
   // Common amenities for filtering
@@ -195,12 +195,11 @@ export default function Website() {
   ];
 
   React.useEffect(() => {
-    const debouncedUpdate = debounce(() => {
+    const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm);
       setCurrentPage(1);
     }, 400);
-    debouncedUpdate();
-    return () => debouncedUpdate.cancel();
+    return () => clearTimeout(handler);
   }, [searchTerm]);
 
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
