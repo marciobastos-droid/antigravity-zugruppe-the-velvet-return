@@ -10,34 +10,37 @@ import {
 "lucide-react";
 import SEOHead from "../components/seo/SEOHead";
 import { HelmetProvider } from "react-helmet-async";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function Institucional() {
+  const { t, locale } = useLocalization();
+
   const brands = [
   {
-    name: "ZuHaus",
-    subtitle: "Imóveis Residenciais",
-    description: "Especialistas em encontrar o lar perfeito para cada família. Apartamentos, moradias e espaços que transformam sonhos em realidade.",
+    name: t('institutional.brandsData.zuhaus.name'),
+    subtitle: t('institutional.brandsData.zuhaus.subtitle'),
+    description: t('institutional.brandsData.zuhaus.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/62bf6ee34_ZuHausA01.jpg",
     link: createPageUrl("Website") + "?tab=residential"
   },
   {
-    name: "ZuHandel",
-    subtitle: "Espaços Comerciais",
-    description: "Soluções comerciais que impulsionam o seu negócio. Lojas, escritórios e armazéns estrategicamente localizados.",
+    name: t('institutional.brandsData.zuhandel.name'),
+    subtitle: t('institutional.brandsData.zuhandel.subtitle'),
+    description: t('institutional.brandsData.zuhandel.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/46b20d014_ZUHANDEL_square.jpg",
     link: createPageUrl("Website") + "?tab=commercial"
   },
   {
-    name: "Premium Luxo",
-    subtitle: "Imóveis de Luxo",
-    description: "Propriedades exclusivas para clientes exigentes. Luxo, conforto e exclusividade em cada detalhe.",
+    name: t('institutional.brandsData.premium.name'),
+    subtitle: t('institutional.brandsData.premium.subtitle'),
+    description: t('institutional.brandsData.premium.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png",
     link: createPageUrl("PremiumLuxury")
   },
   {
-    name: "Worldwide",
-    subtitle: "Imóveis Internacionais",
-    description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional.",
+    name: t('institutional.brandsData.worldwide.name'),
+    subtitle: t('institutional.brandsData.worldwide.subtitle'),
+    description: t('institutional.brandsData.worldwide.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
     link: createPageUrl("WorldWideProperties")
   }];
@@ -45,23 +48,23 @@ export default function Institucional() {
 
   const services = [
   {
-    name: "ZuFinance",
-    subtitle: "Soluções Financeiras",
-    description: "Consultoria financeira especializada para investimentos imobiliários. Financiamento inteligente para os seus projetos.",
+    name: t('institutional.servicesData.finance.name'),
+    subtitle: t('institutional.servicesData.finance.subtitle'),
+    description: t('institutional.servicesData.finance.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a85a26869_LogoZuFinance.jpg",
     link: createPageUrl("Website")
   },
   {
-    name: "ZuGarden",
-    subtitle: "Espaços Exteriores",
-    description: "Design e execução de jardins e espaços exteriores. Transformamos ambientes em experiências únicas.",
+    name: t('institutional.servicesData.garden.name'),
+    subtitle: t('institutional.servicesData.garden.subtitle'),
+    description: t('institutional.servicesData.garden.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/e079a713e_LogoZuGarden.png",
     link: createPageUrl("Website")
   },
   {
-    name: "ZuProjekt",
-    subtitle: "Projetos de Arquitetura",
-    description: "Desenvolvimento e gestão de projetos imobiliários. Da conceção à execução com excelência.",
+    name: t('institutional.servicesData.projekt.name'),
+    subtitle: t('institutional.servicesData.projekt.subtitle'),
+    description: t('institutional.servicesData.projekt.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/b8697fed0_ZUPROJEKT.pdf",
     link: createPageUrl("Website")
   }];
@@ -70,49 +73,55 @@ export default function Institucional() {
   const values = [
   {
     icon: Heart,
-    title: "Paixão pelo que Fazemos",
-    description: "Cada imóvel é tratado com dedicação e comprometimento absoluto."
+    title: t('institutional.valuesList.passion'),
+    description: t('institutional.valuesList.passionDesc')
   },
   {
     icon: Shield,
-    title: "Transparência Total",
-    description: "Processos claros, comunicação honesta e relações de confiança."
+    title: t('institutional.valuesList.transparency'),
+    description: t('institutional.valuesList.transparencyDesc')
   },
   {
     icon: Target,
-    title: "Foco no Cliente",
-    description: "O seu sucesso e satisfação são a nossa prioridade máxima."
+    title: t('institutional.valuesList.clientFocus'),
+    description: t('institutional.valuesList.clientFocusDesc')
   },
   {
     icon: Sparkles,
-    title: "Inovação Constante",
-    description: "Tecnologia de ponta e métodos modernos ao serviço do imobiliário."
+    title: t('institutional.valuesList.innovation'),
+    description: t('institutional.valuesList.innovationDesc')
   },
   {
     icon: TrendingUp,
-    title: "Excelência nos Resultados",
-    description: "Compromisso com a qualidade e superação de expectativas."
+    title: t('institutional.valuesList.excellence'),
+    description: t('institutional.valuesList.excellenceDesc')
   },
   {
     icon: Globe,
-    title: "Visão Global",
-    description: "Presença local com alcance internacional para melhor servir."
+    title: t('institutional.valuesList.globalVision'),
+    description: t('institutional.valuesList.globalVisionDesc')
   }];
 
 
   const stats = [
-  { number: "100+", label: "Imóveis Vendidos" },
-  { number: "500+", label: "Clientes Satisfeitos" },
-  { number: "15+", label: "Anos de Experiência" },
-  { number: "20+", label: "Consultores Especializados" }];
+  { number: "100+", label: t('institutional.stats.propertiesSold') },
+  { number: "500+", label: t('institutional.stats.satisfiedClients') },
+  { number: "15+", label: t('institutional.stats.yearsExperience') },
+  { number: "20+", label: t('institutional.stats.consultants') }];
 
 
   return (
     <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
         <SEOHead
-          title="ZuGruppe - Sobre Nós | Imobiliária de Confiança em Portugal"
-          description="Conheça a ZuGruppe, grupo imobiliário líder em Portugal. Com as marcas ZuHaus, ZuHandel e Premium Luxo, oferecemos soluções completas em imobiliário residencial, comercial e de luxo."
+          title={`ZuGruppe - ${t('institutional.title')} | ${locale === 'en' ? 'Trusted Real Estate in Portugal' : locale === 'es' ? 'Inmobiliaria de Confianza en Portugal' : locale === 'fr' ? 'Immobilier de Confiance au Portugal' : 'Imobiliária de Confiança em Portugal'}`}
+          description={locale === 'en' 
+            ? "Meet ZuGruppe, leading real estate group in Portugal. With brands ZuHaus, ZuHandel and Premium Luxury, we offer complete solutions in residential, commercial and luxury real estate."
+            : locale === 'es'
+            ? "Conozca ZuGruppe, grupo inmobiliario líder en Portugal. Con las marcas ZuHaus, ZuHandel y Premium Lujo, ofrecemos soluciones completas en inmobiliaria residencial, comercial y de lujo."
+            : locale === 'fr'
+            ? "Découvrez ZuGruppe, groupe immobilier leader au Portugal. Avec les marques ZuHaus, ZuHandel et Premium Luxe, nous proposons des solutions complètes en immobilier résidentiel, commercial et de luxe."
+            : "Conheça a ZuGruppe, grupo imobiliário líder em Portugal. Com as marcas ZuHaus, ZuHandel e Premium Luxo, oferecemos soluções completas em imobiliário residencial, comercial e de luxo."}
           keywords="zugruppe, imobiliária portugal, sobre zugruppe, zuhaus, zuhandel, imóveis luxo portugal, grupo imobiliário"
           image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg" />
 
