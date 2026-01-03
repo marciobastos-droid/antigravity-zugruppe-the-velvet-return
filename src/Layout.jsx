@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
 import GlobalSearch from "./components/search/GlobalSearch";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
+import PublicLanguageSwitcher from "./components/i18n/PublicLanguageSwitcher";
 
 import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 import PWAProvider from "./components/pwa/PWAProvider";
@@ -167,6 +168,7 @@ export default function Layout({ children, currentPageName }) {
           <LocalizationProvider>
             <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
             <PWAInstaller />
+            <PublicLanguageSwitcher />
             {children}
           </LocalizationProvider>
         </PWAProvider>
