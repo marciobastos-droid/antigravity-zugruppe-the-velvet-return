@@ -34,7 +34,7 @@ import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
-import { useMutation } from "@tantml:react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleApiError } from "../components/errors/apiErrorHandler";
 import ErrorBoundary from "../components/errors/ErrorBoundary";
