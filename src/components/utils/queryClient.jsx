@@ -7,11 +7,11 @@ import { QueryClient } from "@tanstack/react-query";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Cache por 10 minutos antes de considerar dados stale
-      staleTime: 10 * 60 * 1000,
+      // Cache agressivo - 20 minutos antes de considerar dados stale
+      staleTime: 20 * 60 * 1000,
       
-      // Manter cache por 30 minutos
-      gcTime: 30 * 60 * 1000,
+      // Manter cache por 1 hora
+      gcTime: 60 * 60 * 1000,
       
       // Não refetch automaticamente em vários cenários
       refetchOnWindowFocus: false,
@@ -20,10 +20,18 @@ export const queryClient = new QueryClient({
       
       // Retry apenas uma vez em caso de erro
       retry: 1,
+      retryDelay: 1000,
       
-      // Timeout de 30 segundos
+      // Network mode
       networkMode: 'online',
+      
+      // Structured data clone
+      structuralSharing: true,
     },
+    mutations: {
+      retry: 1,
+      retryDelay: 1000,
+    }
   },
 });
 
@@ -31,22 +39,43 @@ export const queryClient = new QueryClient({
  * Configurações específicas por tipo de query
  */
 export const QUERY_CONFIG = {
-  // Properties - cache mais longo (mudam raramente)
+  // Properties - cache ultra agressivo (mudam raramente)
   properties: {
-    staleTime: 15 * 60 * 1000, // 15 minutos
+    staleTime: 30 * 60 * 1000, // 30 minutos
+    gcTime: 2 * 60 * 60 * 1000, // 2 horas
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  },
+  
+  // Single property - cache agressivo
+  singleProperty: {
+    staleTime: 20 * 60 * 1000, // 20 minutos
     gcTime: 60 * 60 * 1000, // 1 hora
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   },
   
   // User data - cache moderado
   user: {
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 10 * 60 * 1000, // 10 minutos
     gcTime: 30 * 60 * 1000, // 30 minutos
+    refetchOnMount: false,
   },
   
-  // Agents - cache longo
+  // Agents - cache muito longo
   agents: {
-    staleTime: 20 * 60 * 1000, // 20 minutos
-    gcTime: 60 * 60 * 1000, // 1 hora
+    staleTime: 30 * 60 * 1000, // 30 minutos
+    gcTime: 2 * 60 * 60 * 1000, // 2 horas
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  },
+  
+  // Consultor profiles - cache longo
+  consultorProfiles: {
+    staleTime: 30 * 60 * 1000, // 30 minutos
+    gcTime: 2 * 60 * 60 * 1000, // 2 horas
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   },
   
   // Analytics - cache curto (dados dinâmicos)
@@ -55,9 +84,11 @@ export const QUERY_CONFIG = {
     gcTime: 10 * 60 * 1000, // 10 minutos
   },
   
-  // Static data - cache muito longo
+  // Static data - cache máximo
   static: {
     staleTime: 60 * 60 * 1000, // 1 hora
     gcTime: 24 * 60 * 60 * 1000, // 24 horas
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   },
 };

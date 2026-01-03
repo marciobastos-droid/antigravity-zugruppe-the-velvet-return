@@ -22,7 +22,6 @@ import { debounce } from "lodash";
 import { ALL_DISTRICTS, getMunicipalitiesByDistrict } from "../components/common/PortugalLocations";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
-import PropertiesMap from "../components/maps/PropertiesMap";
 import OptimizedImage from "../components/common/OptimizedImage";
 import ImagePreloader from "../components/seo/ImagePreloader";
 import ExitIntentPopup from "../components/website/ExitIntentPopup";
@@ -35,7 +34,7 @@ import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
 import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tantml:react-query";
 import { toast } from "sonner";
 import { handleApiError } from "../components/errors/apiErrorHandler";
 import ErrorBoundary from "../components/errors/ErrorBoundary";
@@ -43,7 +42,10 @@ import VisitorTracker from "../components/tracking/VisitorTracker";
 import SmartContactSection from "../components/website/SmartContactSection";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
-import BlogSection from "../components/blog/BlogSection";
+
+// Lazy load non-critical sections
+const BlogSection = React.lazy(() => import("../components/blog/BlogSection"));
+const PropertiesMap = React.lazy(() => import("../components/maps/PropertiesMap"));
 
 export default function Website() {
   const { t, locale } = useLocalization();
@@ -75,8 +77,7 @@ export default function Website() {
         throw error;
       }
     },
-    staleTime: 0, // Force refresh on navigation
-    retry: 2
+    ...QUERY_CONFIG.properties
   });
 
   // A/B Testing
@@ -1199,15 +1200,24 @@ export default function Website() {
         {/* Map View */}
         {showMapView && paginatedProperties.length > 0 && (
           <div className="mb-8">
-            <PropertiesMap 
-              properties={sortedProperties} 
-              brandColor={
-                activeTab === "residential" ? "#d22630" : 
-                activeTab === "commercial" ? "#75787b" : 
-                "#3b82f6"
-              }
-              height="600px"
-            />
+            <React.Suspense fallback={
+              <div className="h-[600px] bg-slate-100 rounded-xl flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2" />
+                  <p className="text-sm text-slate-600">A carregar mapa...</p>
+                </div>
+              </div>
+            }>
+              <PropertiesMap 
+                properties={sortedProperties} 
+                brandColor={
+                  activeTab === "residential" ? "#d22630" : 
+                  activeTab === "commercial" ? "#75787b" : 
+                  "#3b82f6"
+                }
+                height="600px"
+              />
+            </React.Suspense>
           </div>
         )}
 
@@ -1313,7 +1323,9 @@ export default function Website() {
       </div>
 
       {/* Blog Section */}
-      <BlogSection maxPosts={3} showHeader={true} />
+      <React.Suspense fallback={<div className="h-64" />}>
+        <BlogSection maxPosts={3} showHeader={true} />
+      </React.Suspense>
 
       {/* Contact Section */}
       <SmartContactSection

@@ -165,7 +165,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000
+    ...QUERY_CONFIG.consultorProfiles
   });
 
   const { data: agents = [] } = useQuery({
@@ -180,7 +180,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
-    staleTime: 5 * 60 * 1000
+    ...QUERY_CONFIG.agents
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -199,8 +199,7 @@ export default function PropertyDetails() {
         return [];
       }
     },
-    staleTime: 0,
-    cacheTime: 60000
+    ...QUERY_CONFIG.agents
   });
 
   // ALL CUSTOM HOOKS MUST BE CALLED UNCONDITIONALLY BEFORE ANY RETURNS

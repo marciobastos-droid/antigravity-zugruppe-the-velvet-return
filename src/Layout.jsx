@@ -16,6 +16,8 @@ import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
 import PWAProvider from "./components/pwa/PWAProvider";
 import PWAInstaller from "./components/pwa/PWAInstaller";
 import ErrorBoundary from "./components/errors/ErrorBoundary";
+import DataPrefetcher from "./components/performance/DataPrefetcher";
+import CriticalCSS from "./components/performance/CriticalCSS";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "PremiumLuxury", "WorldWideProperties", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal", "Institucional"];
 
@@ -166,22 +168,25 @@ export default function Layout({ children, currentPageName }) {
       <ErrorBoundary name="App Root">
         <PWAProvider>
           <LocalizationProvider>
+            <CriticalCSS />
             <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
             <PWAInstaller />
             <PublicLanguageSwitcher />
             {children}
           </LocalizationProvider>
         </PWAProvider>
-      </ErrorBoundary>
-    );
+        </ErrorBoundary>
+        );
   }
 
   return (
     <ErrorBoundary name="App Layout">
       <PWAProvider>
         <LocalizationProvider>
+          <CriticalCSS />
           <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
           <PWAInstaller />
+          <DataPrefetcher />
           <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
           <style>{`
