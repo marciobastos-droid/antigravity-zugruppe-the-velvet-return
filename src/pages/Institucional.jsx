@@ -4,16 +4,52 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Building2, Users, Award, Globe, Heart, Target,
-  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin } from
+  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin, Send, Loader2, CheckCircle2 } from
 "lucide-react";
 import SEOHead from "../components/seo/SEOHead";
 import { HelmetProvider } from "react-helmet-async";
 import { useLocalization } from "../components/i18n/LocalizationContext";
+import { base44 } from "@/api/base44Client";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function Institucional() {
   const { t, locale } = useLocalization();
+  const [formData, setFormData] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [submitSuccess, setSubmitSuccess] = React.useState(false);
+
+  const sendContactMutation = useMutation({
+    mutationFn: async (data) => {
+      await base44.integrations.Core.SendEmail({
+        to: "info@zugruppe.com",
+        subject: `Novo Contacto: ${data.name}`,
+        body: `Nome: ${data.name}\nEmail: ${data.email}\nTelefone: ${data.phone}\n\nMensagem:\n${data.message}`
+      });
+    },
+    onSuccess: () => {
+      setSubmitSuccess(true);
+      setFormData({ name: '', email: '', phone: '', message: '' });
+      toast.success(locale === 'en' ? 'Message sent successfully!' : locale === 'es' ? '¡Mensaje enviado con éxito!' : locale === 'fr' ? 'Message envoyé avec succès!' : 'Mensagem enviada com sucesso!');
+      setTimeout(() => setSubmitSuccess(false), 5000);
+    },
+    onError: () => {
+      toast.error(locale === 'en' ? 'Error sending message' : locale === 'es' ? 'Error al enviar mensaje' : locale === 'fr' ? 'Erreur lors de l\'envoi' : 'Erro ao enviar mensagem');
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    sendContactMutation.mutate(formData);
+  };
 
   const brands = [
   {
@@ -337,38 +373,142 @@ export default function Institucional() {
                 {t('institutional.contactSubtitle')}
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+              {/* Contact Info Cards */}
+              <div className="space-y-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-1">{t('common.phone')}</h3>
+                        <a href="tel:+351234026615" className="text-blue-600 hover:underline">
+                          +351 234 026 615
+                        </a>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-1">{t('common.email')}</h3>
+                        <a href="mailto:info@zugruppe.com" className="text-blue-600 hover:underline">
+                          info@zugruppe.com
+                        </a>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-slate-900 mb-1">
+                          {locale === 'en' ? 'Location' : locale === 'es' ? 'Ubicación' : locale === 'fr' ? 'Emplacement' : 'Localização'}
+                        </h3>
+                        <p className="text-slate-600 text-sm">Aveiro, Porto e Lisboa</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Contact Form */}
               <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">{t('common.phone')}</h3>
-                  <a href="tel:+351234026615" className="text-blue-600 hover:underline">
-                    +351 234 026 615
-                  </a>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mail className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">{t('common.email')}</h3>
-                  <a href="mailto:info@zugruppe.com" className="text-blue-600 hover:underline">
-                    info@zugruppe.com
-                  </a>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MapPin className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">
-                    {locale === 'en' ? 'Location' : locale === 'es' ? 'Ubicación' : locale === 'fr' ? 'Emplacement' : 'Localização'}
-                  </h3>
-                  <p className="text-slate-600 text-sm">Aveiro, Porto e Lisboa</p>
+                <CardContent className="p-6">
+                  {submitSuccess ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                        {locale === 'en' ? 'Message sent!' : locale === 'es' ? '¡Mensaje enviado!' : locale === 'fr' ? 'Message envoyé!' : 'Mensagem enviada!'}
+                      </h3>
+                      <p className="text-slate-600">
+                        {locale === 'en' ? 'We will contact you soon.' : locale === 'es' ? 'Nos pondremos en contacto pronto.' : locale === 'fr' ? 'Nous vous recontacterons bientôt.' : 'Entraremos em contacto em breve.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-2">
+                          {t('contact.name')} *
+                        </label>
+                        <Input
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          placeholder={locale === 'en' ? 'Your name' : locale === 'es' ? 'Su nombre' : locale === 'fr' ? 'Votre nom' : 'O seu nome'}
+                          required
+                          className="bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-2">
+                          {t('common.email')} *
+                        </label>
+                        <Input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          placeholder={locale === 'en' ? 'your-email@example.com' : 'o-seu-email@exemplo.com'}
+                          required
+                          className="bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-2">
+                          {t('common.phone')}
+                        </label>
+                        <Input
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          placeholder="+351 9XX XXX XXX"
+                          className="bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-2">
+                          {t('contact.message')} *
+                        </label>
+                        <Textarea
+                          value={formData.message}
+                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                          placeholder={t('contact.messagePlaceholder')}
+                          rows={5}
+                          required
+                          className="bg-white"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-white text-blue-600 hover:bg-blue-50"
+                        disabled={sendContactMutation.isPending}
+                      >
+                        {sendContactMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {t('contact.sending')}
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            {t('contact.send')}
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  )}
                 </CardContent>
               </Card>
             </div>
