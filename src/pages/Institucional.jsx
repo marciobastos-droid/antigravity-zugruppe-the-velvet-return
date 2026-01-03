@@ -140,13 +140,13 @@ export default function Institucional() {
                 <Link to={createPageUrl("Website")}>
                   <Button size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
                     <Building2 className="w-5 h-5 mr-2" />
-                    Ver Imóveis
+                    {locale === 'en' ? 'View Properties' : locale === 'es' ? 'Ver Propiedades' : locale === 'fr' ? 'Voir Propriétés' : 'Ver Imóveis'}
                   </Button>
                 </Link>
                 <a href="#contacto">
                   <Button size="lg" variant="outline" className="bg-transparent text-white border-white hover:bg-white/10">
                     <Phone className="w-5 h-5 mr-2" />
-                    Fale Connosco
+                    {locale === 'en' ? 'Contact Us' : locale === 'es' ? 'Contáctenos' : locale === 'fr' ? 'Contactez-nous' : 'Fale Connosco'}
                   </Button>
                 </a>
               </div>
@@ -172,24 +172,27 @@ export default function Institucional() {
         <div className="max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <Badge className="mb-4 bg-blue-100 text-blue-800">Nossa Missão</Badge>
+              <Badge className="mb-4 bg-blue-100 text-blue-800">
+                {locale === 'en' ? 'Our Mission' : locale === 'es' ? 'Nuestra Misión' : locale === 'fr' ? 'Notre Mission' : 'Nossa Missão'}
+              </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-                Transformar o Mercado Imobiliário
+                {t('institutional.mission')}
               </h2>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">Na ZuGruppe - The Velvet Return, acreditamos que cada propriedade conta uma história e cada cliente tem um sonho único. A nossa missão é conectar pessoas aos espaços perfeitos, sejam lares acolhedores, escritórios estratégicos ou investimentos de alto valor.
-
-
-
+              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                {t('institutional.missionText')}
               </p>
               <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                Com tecnologia de ponta, uma equipa experiente e um compromisso inabalável com a excelência, 
-                redefinimos o que significa trabalhar com imobiliário em Portugal e no mundo.
+                {t('institutional.commitment')}
               </p>
               <div className="flex items-center gap-4">
                 <Award className="w-12 h-12 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-slate-900">Licença IMPIC 11355</div>
-                  <div className="text-sm text-slate-600">Certificação Oficial</div>
+                  <div className="font-semibold text-slate-900">
+                    {locale === 'en' ? 'License' : locale === 'es' ? 'Licencia' : locale === 'fr' ? 'Licence' : 'Licença'} IMPIC 11355
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    {locale === 'en' ? 'Official Certification' : locale === 'es' ? 'Certificación Oficial' : locale === 'fr' ? 'Certification Officielle' : 'Certificação Oficial'}
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,7 +204,7 @@ export default function Institucional() {
 
               <div className="absolute -bottom-6 -left-6 bg-blue-600 text-white p-6 rounded-xl shadow-xl">
                 <div className="text-3xl font-bold mb-1">15+</div>
-                <div className="text-sm">Anos de Experiência</div>
+                <div className="text-sm">{t('institutional.stats.yearsExperience')}</div>
               </div>
             </div>
           </div>
@@ -211,12 +214,14 @@ export default function Institucional() {
         <div className="bg-slate-100 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-blue-100 text-blue-800">Nossos Valores</Badge>
+              <Badge className="mb-4 bg-blue-100 text-blue-800">
+                {locale === 'en' ? 'Our Values' : locale === 'es' ? 'Nuestros Valores' : locale === 'fr' ? 'Nos Valeurs' : 'Nossos Valores'}
+              </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                O Que Nos Define
+                {t('institutional.values')}
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Princípios que guiam cada decisão e cada interação com os nossos clientes
+                {t('institutional.valuesSubtitle')}
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -238,12 +243,14 @@ export default function Institucional() {
         {/* Brands Section */}
         <div className="max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-blue-100 text-blue-800">Nossas Marcas</Badge>
+            <Badge className="mb-4 bg-blue-100 text-blue-800">
+              {locale === 'en' ? 'Our Brands' : locale === 'es' ? 'Nuestras Marcas' : locale === 'fr' ? 'Nos Marques' : 'Nossas Marcas'}
+            </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Um Grupo, Múltiplas Especialidades
+              {t('institutional.brands')}
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">Cada marca da ZuGruppe - The Velvet Return é especializada no seu segmento, garantindo o melhor serviço em cada área
-
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              {t('institutional.brandsSubtitle')}
             </p>
           </div>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16">
@@ -261,7 +268,7 @@ export default function Institucional() {
                   <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
                   <Link to={brand.link}>
                     <Button className="w-full group-hover:bg-blue-600 transition-colors">
-                      Explorar {brand.name}
+                      {locale === 'en' ? 'Explore' : locale === 'es' ? 'Explorar' : locale === 'fr' ? 'Explorer' : 'Explorar'} {brand.name}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>
@@ -284,7 +291,7 @@ export default function Institucional() {
                   <p className="text-slate-600 mb-6 leading-relaxed text-sm">{brand.description}</p>
                   <Link to={brand.link}>
                     <Button className="w-full group-hover:bg-blue-600 transition-colors">
-                      Explorar {brand.name}
+                      {locale === 'en' ? 'Explore' : locale === 'es' ? 'Explorar' : locale === 'fr' ? 'Explorer' : 'Explorar'} {brand.name}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>
@@ -298,12 +305,14 @@ export default function Institucional() {
         <div className="bg-slate-100 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-green-100 text-green-800">Nossos Serviços</Badge>
+              <Badge className="mb-4 bg-green-100 text-green-800">
+                {locale === 'en' ? 'Our Services' : locale === 'es' ? 'Nuestros Servicios' : locale === 'fr' ? 'Nos Services' : 'Nossos Serviços'}
+              </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                Soluções Completas para o Seu Projeto
+                {t('institutional.services')}
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                Serviços especializados que complementam a sua experiência imobiliária
+                {t('institutional.servicesSubtitle')}
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
@@ -321,7 +330,7 @@ export default function Institucional() {
                     <p className="text-slate-600 mb-6 leading-relaxed text-sm">{service.description}</p>
                     <Link to={service.link}>
                       <Button variant="outline" className="w-full group-hover:bg-green-50 transition-colors">
-                        Saber Mais
+                        {locale === 'en' ? 'Learn More' : locale === 'es' ? 'Saber Más' : locale === 'fr' ? 'En Savoir Plus' : 'Saber Mais'}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </Link>
@@ -337,10 +346,10 @@ export default function Institucional() {
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Vamos Trabalhar Juntos?
+                {t('institutional.contact')}
               </h2>
               <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-                Entre em contacto connosco e descubra como podemos ajudá-lo a alcançar os seus objetivos
+                {t('institutional.contactSubtitle')}
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -349,7 +358,7 @@ export default function Institucional() {
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Phone className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">Telefone</h3>
+                  <h3 className="font-semibold text-slate-900 mb-2">{t('common.phone')}</h3>
                   <a href="tel:+351234026615" className="text-blue-600 hover:underline">
                     +351 234 026 615
                   </a>
@@ -360,7 +369,7 @@ export default function Institucional() {
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">Email</h3>
+                  <h3 className="font-semibold text-slate-900 mb-2">{t('common.email')}</h3>
                   <a href="mailto:info@zugruppe.com" className="text-blue-600 hover:underline">
                     info@zugruppe.com
                   </a>
@@ -371,7 +380,9 @@ export default function Institucional() {
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <MapPin className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">Localização</h3>
+                  <h3 className="font-semibold text-slate-900 mb-2">
+                    {locale === 'en' ? 'Location' : locale === 'es' ? 'Ubicación' : locale === 'fr' ? 'Emplacement' : 'Localização'}
+                  </h3>
                   <p className="text-slate-600 text-sm">Aveiro, Porto e Lisboa</p>
                 </CardContent>
               </Card>
@@ -380,7 +391,7 @@ export default function Institucional() {
               <Link to={createPageUrl("Website")}>
                 <Button size="lg" className="bg-white text-blue-600 hover:bg-slate-100">
                   <Building2 className="w-5 h-5 mr-2" />
-                  Ver Todos os Imóveis
+                  {locale === 'en' ? 'View All Properties' : locale === 'es' ? 'Ver Todas las Propiedades' : locale === 'fr' ? 'Voir Toutes les Propriétés' : 'Ver Todos os Imóveis'}
                 </Button>
               </Link>
             </div>
