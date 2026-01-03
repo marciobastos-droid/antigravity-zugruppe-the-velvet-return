@@ -207,17 +207,6 @@ export default function Website() {
 
   const activeProperties = properties.filter(p => p.status === 'active');
   
-  // Redirect to dedicated pages for premium and worldwide
-  React.useEffect(() => {
-    if (activeTab === "premium") {
-      window.location.href = createPageUrl("PremiumLuxury");
-    } else if (activeTab === "worldwide") {
-      window.location.href = createPageUrl("WorldWideProperties");
-    } else if (activeTab === "institutional") {
-      window.location.href = createPageUrl("Institucional");
-    }
-  }, [activeTab]);
-
   // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
@@ -621,11 +610,13 @@ export default function Website() {
                 {/* Tabs de Categoria */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
                   <TabsList className="grid grid-cols-5 w-full h-auto">
-                    <TabsTrigger value="institutional" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
-                      <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden lg:inline">Sobre Nós</span>
-                      <span className="lg:hidden">Sobre</span>
-                    </TabsTrigger>
+                    <Link to={createPageUrl("Institucional")} className="flex-1">
+                      <TabsTrigger value="institutional" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                        <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden lg:inline">Sobre Nós</span>
+                        <span className="lg:hidden">Sobre</span>
+                      </TabsTrigger>
+                    </Link>
                     <TabsTrigger value="residential" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Home className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden lg:inline">{t('pages.zugruppe.residential')}</span>
@@ -636,16 +627,20 @@ export default function Website() {
                       <span className="hidden lg:inline">{t('pages.zugruppe.commercial')}</span>
                       <span className="lg:hidden">{locale === 'en' ? 'Shop' : 'Loja'}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="premium" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
-                      <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden lg:inline">Premium Luxo</span>
-                      <span className="lg:hidden">Premium</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="worldwide" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
-                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden lg:inline">Worldwide</span>
-                      <span className="lg:hidden">World</span>
-                    </TabsTrigger>
+                    <Link to={createPageUrl("PremiumLuxury")} className="flex-1">
+                      <TabsTrigger value="premium" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                        <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden lg:inline">Premium Luxo</span>
+                        <span className="lg:hidden">Premium</span>
+                      </TabsTrigger>
+                    </Link>
+                    <Link to={createPageUrl("WorldWideProperties")} className="flex-1">
+                      <TabsTrigger value="worldwide" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden lg:inline">Worldwide</span>
+                        <span className="lg:hidden">World</span>
+                      </TabsTrigger>
+                    </Link>
                   </TabsList>
                 </Tabs>
 
