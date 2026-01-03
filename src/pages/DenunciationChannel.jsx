@@ -10,8 +10,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { UploadCloud, Loader2, FileText, CheckCircle2, AlertCircle, Shield, ArrowLeft } from 'lucide-react';
 import { createPageUrl } from '@/utils';
+import { useLocalization } from '../components/i18n/LocalizationContext';
+import { Link } from 'react-router-dom';
 
 export default function DenunciationChannel() {
+  const { t, locale } = useLocalization();
   const [formData, setFormData] = useState({
     subject: '',
     description: '',
@@ -31,8 +34,8 @@ export default function DenunciationChannel() {
       
       await base44.integrations.Core.SendEmail({
         to: "info@zugruppe.com",
-        subject: `Nova Denúncia: ${data.subject}`,
-        body: `Uma nova denúncia foi submetida.\n\nAssunto: ${data.subject}\nDescrição: ${data.description}\nAnónimo: ${data.is_anonymous ? 'Sim' : 'Não'}\n${data.email ? `Email: ${data.email}\n` : ''}${data.phone ? `Telefone: ${data.phone}\n` : ''}${data.attachment_urls?.length > 0 ? `Anexos: ${data.attachment_urls.join(', ')}` : ''}`,
+        subject: `${locale === 'en' ? 'New Report' : locale === 'es' ? 'Nueva Denuncia' : locale === 'fr' ? 'Nouvelle Dénonciation' : 'Nova Denúncia'}: ${data.subject}`,
+        body: `${locale === 'en' ? 'A new report has been submitted.' : locale === 'es' ? 'Se ha enviado una nueva denuncia.' : locale === 'fr' ? 'Une nouvelle dénonciation a été soumise.' : 'Uma nova denúncia foi submetida.'}\n\n${locale === 'en' ? 'Subject' : locale === 'es' ? 'Asunto' : locale === 'fr' ? 'Sujet' : 'Assunto'}: ${data.subject}\n${locale === 'en' ? 'Description' : locale === 'es' ? 'Descripción' : locale === 'fr' ? 'Description' : 'Descrição'}: ${data.description}\n${locale === 'en' ? 'Anonymous' : locale === 'es' ? 'Anónimo' : locale === 'fr' ? 'Anonyme' : 'Anónimo'}: ${data.is_anonymous ? (locale === 'en' ? 'Yes' : locale === 'es' ? 'Sí' : locale === 'fr' ? 'Oui' : 'Sim') : 'No'}\n${data.email ? `Email: ${data.email}\n` : ''}${data.phone ? `${locale === 'en' ? 'Phone' : locale === 'es' ? 'Teléfono' : locale === 'fr' ? 'Téléphone' : 'Telefone'}: ${data.phone}\n` : ''}${data.attachment_urls?.length > 0 ? `${locale === 'en' ? 'Attachments' : locale === 'es' ? 'Adjuntos' : locale === 'fr' ? 'Pièces jointes' : 'Anexos'}: ${data.attachment_urls.join(', ')}` : ''}`,
       });
 
       return denunciation;
@@ -66,7 +69,7 @@ export default function DenunciationChannel() {
     setSubmissionError(false);
 
     if (!formData.termsAccepted) {
-      toast.error('Por favor, aceite os termos e condições.');
+      toast.error(t('legal.acceptTerms'));
       return;
     }
 
@@ -79,7 +82,7 @@ export default function DenunciationChannel() {
           uploadedUrls.push(file_url);
         }
       } catch (error) {
-        toast.error('Erro ao carregar arquivos');
+        toast.error(locale === 'en' ? 'Error uploading files' : locale === 'es' ? 'Error al cargar archivos' : locale === 'fr' ? 'Erreur lors du téléchargement des fichiers' : 'Erro ao carregar arquivos');
         setIsUploading(false);
         return;
       }
@@ -101,12 +104,12 @@ export default function DenunciationChannel() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <a href="https://zuhaus.pt/">
+        <Link to={createPageUrl("Website")}>
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
+            {t('common.back')}
           </Button>
-        </a>
+        </Link>
         
         <Card className="shadow-xl border-slate-200">
           <CardContent className="p-8 md:p-12">
@@ -114,18 +117,22 @@ export default function DenunciationChannel() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
                 <Shield className="w-8 h-8 text-blue-600" />
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">Canal de Denúncias</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">{t('legal.denunciationTitle')}</h1>
               <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-                A sua denúncia será tratada ao abrigo da Lei{' '}
-                <a 
-                  href="https://diariodarepublica.pt/dr/detalhe/lei/93-2021-176147929" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-blue-600 hover:underline font-medium"
-                >
-                  n.º 93/2021, 20 de dezembro
-                </a>.
-                <br />Garantimos a total confidencialidade e proteção dos seus dados.
+                {t('legal.denunciationIntro')}
+                {locale === 'pt' && (
+                  <>
+                    {' '}
+                    <a 
+                      href="https://diariodarepublica.pt/dr/detalhe/lei/93-2021-176147929" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      Lei n.º 93/2021, 20 de dezembro
+                    </a>.
+                  </>
+                )}
               </p>
             </div>
 
@@ -133,8 +140,13 @@ export default function DenunciationChannel() {
               <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-4 rounded-lg mb-6 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold">Denúncia enviada com sucesso!</p>
-                  <p className="text-sm mt-1">Agradecemos o seu contributo. A denúncia será analisada em breve.</p>
+                  <p className="font-semibold">{t('legal.denunciationSuccess')}</p>
+                  <p className="text-sm mt-1">
+                    {locale === 'en' ? 'Thank you for your contribution. The report will be analyzed shortly.' 
+                      : locale === 'es' ? 'Gracias por su contribución. La denuncia será analizada en breve.'
+                      : locale === 'fr' ? 'Merci pour votre contribution. La dénonciation sera analysée sous peu.'
+                      : 'Agradecemos o seu contributo. A denúncia será analisada em breve.'}
+                  </p>
                 </div>
               </div>
             )}
@@ -143,33 +155,38 @@ export default function DenunciationChannel() {
               <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-4 rounded-lg mb-6 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold">Erro ao enviar denúncia</p>
-                  <p className="text-sm mt-1">Por favor, tente novamente ou contacte-nos diretamente.</p>
+                  <p className="font-semibold">{t('legal.denunciationError')}</p>
+                  <p className="text-sm mt-1">
+                    {locale === 'en' ? 'Please try again or contact us directly.'
+                      : locale === 'es' ? 'Por favor, intente nuevamente o contáctenos directamente.'
+                      : locale === 'fr' ? 'Veuillez réessayer ou nous contacter directement.'
+                      : 'Por favor, tente novamente ou contacte-nos diretamente.'}
+                  </p>
                 </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="subject" className="text-base font-semibold">Assunto da Denúncia *</Label>
+                <Label htmlFor="subject" className="text-base font-semibold">{t('legal.subject')} *</Label>
                 <Input
                   id="subject"
                   type="text"
                   value={formData.subject}
                   onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                  placeholder="Ex: Irregularidades na gestão de dados"
+                  placeholder={locale === 'en' ? 'e.g.: Data management irregularities' : locale === 'es' ? 'Ej: Irregularidades en la gestión de datos' : locale === 'fr' ? 'Ex: Irrégularités dans la gestion des données' : 'Ex: Irregularidades na gestão de dados'}
                   required
                   className="mt-2"
                 />
               </div>
 
               <div>
-                <Label htmlFor="description" className="text-base font-semibold">Descrição Detalhada *</Label>
+                <Label htmlFor="description" className="text-base font-semibold">{t('legal.description')} *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva a situação com o máximo de detalhes possível..."
+                  placeholder={t('legal.descriptionPlaceholder')}
                   rows={7}
                   required
                   className="mt-2"
@@ -183,26 +200,26 @@ export default function DenunciationChannel() {
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_anonymous: checked }))}
                 />
                 <div className="flex-1">
-                  <Label htmlFor="anonymous" className="font-semibold cursor-pointer">Enviar denúncia anonimamente</Label>
-                  <p className="text-sm text-slate-600 mt-1">Ao selecionar esta opção, a sua identidade não será registada.</p>
+                  <Label htmlFor="anonymous" className="font-semibold cursor-pointer">{t('legal.anonymous')}</Label>
+                  <p className="text-sm text-slate-600 mt-1">{t('legal.anonymousText')}</p>
                 </div>
               </div>
 
               {!formData.is_anonymous && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div>
-                    <Label htmlFor="email" className="font-semibold">O seu Email</Label>
+                    <Label htmlFor="email" className="font-semibold">{t('common.email')}</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="o-seu-email@exemplo.com"
+                      placeholder={locale === 'en' ? 'your-email@example.com' : 'o-seu-email@exemplo.com'}
                       className="mt-2"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone" className="font-semibold">O seu Telefone</Label>
+                    <Label htmlFor="phone" className="font-semibold">{t('common.phone')}</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -212,14 +229,12 @@ export default function DenunciationChannel() {
                       className="mt-2"
                     />
                   </div>
-                  <p className="text-xs text-slate-600 col-span-2">
-                    Forneça pelo menos um meio de contacto (email ou telefone) para denúncias não anónimas.
-                  </p>
+                  <p className="text-xs text-slate-600 col-span-2">{t('legal.contactDetails')}</p>
                 </div>
               )}
 
               <div>
-                <Label htmlFor="attachment" className="text-base font-semibold">Anexar Ficheiro(s)</Label>
+                <Label htmlFor="attachment" className="text-base font-semibold">{t('legal.attachments')}</Label>
                 <div className="mt-2 flex items-center justify-center w-full">
                   <label
                     htmlFor="attachment"
@@ -231,9 +246,11 @@ export default function DenunciationChannel() {
                       <UploadCloud className="w-8 h-8 text-slate-500" />
                     )}
                     <p className="mt-2 text-sm text-slate-600">
-                      <span className="font-semibold">Clique para carregar</span> ou arraste e solte
+                      <span className="font-semibold">
+                        {locale === 'en' ? 'Click to upload' : locale === 'es' ? 'Clic para cargar' : locale === 'fr' ? 'Cliquer pour télécharger' : 'Clique para carregar'}
+                      </span> {locale === 'en' ? 'or drag and drop' : locale === 'es' ? 'o arrastre y suelte' : locale === 'fr' ? 'ou glisser-déposer' : 'ou arraste e solte'}
                     </p>
-                    <p className="text-xs text-slate-500">PDF, JPG, PNG (máx. 5MB por ficheiro)</p>
+                    <p className="text-xs text-slate-500">PDF, JPG, PNG ({locale === 'en' ? 'max. 5MB per file' : locale === 'es' ? 'máx. 5MB por archivo' : locale === 'fr' ? 'max. 5MB par fichier' : 'máx. 5MB por ficheiro'})</p>
                   </label>
                   <input
                     id="attachment"
@@ -267,14 +284,7 @@ export default function DenunciationChannel() {
                 />
                 <div className="flex-1">
                   <Label htmlFor="terms_conditions" className="text-sm cursor-pointer">
-                    Declaro que li, compreendi e aceito os{' '}
-                    <a href={createPageUrl("PrivacyPolicy")} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                      Termos e condições
-                    </a>
-                    {' '}e a{' '}
-                    <a href={createPageUrl("PrivacyPolicy")} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                      Política de Privacidade
-                    </a>
+                    {t('legal.acceptTerms')}
                   </Label>
                 </div>
               </div>
@@ -287,15 +297,18 @@ export default function DenunciationChannel() {
                 {createDenunciationMutation.isPending || isUploading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    A enviar...
+                    {t('contact.sending')}
                   </>
                 ) : (
-                  'Enviar Denúncia'
+                  t('legal.submitDenunciation')
                 )}
               </Button>
 
               <p className="text-xs text-slate-500 text-center">
-                As denúncias são tratadas de forma confidencial e de acordo com a legislação vigente.
+                {locale === 'en' ? 'Reports are treated confidentially and in accordance with current legislation.'
+                  : locale === 'es' ? 'Las denuncias se tratan de forma confidencial y de acuerdo con la legislación vigente.'
+                  : locale === 'fr' ? 'Les dénonciations sont traitées de manière confidentielle et conformément à la législation en vigueur.'
+                  : 'As denúncias são tratadas de forma confidencial e de acordo com a legislação vigente.'}
               </p>
             </form>
           </CardContent>
