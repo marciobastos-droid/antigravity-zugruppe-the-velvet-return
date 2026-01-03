@@ -214,6 +214,8 @@ export default function Website() {
       window.location.href = createPageUrl("PremiumLuxury");
     } else if (activeTab === "worldwide") {
       window.location.href = createPageUrl("WorldWideProperties");
+    } else if (activeTab === "institutional") {
+      window.location.href = createPageUrl("Institucional");
     }
   }, [activeTab]);
 
@@ -620,11 +622,7 @@ export default function Website() {
                 {/* Tabs de Categoria */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
                   <TabsList className="grid grid-cols-5 w-full h-auto">
-                    <TabsTrigger 
-                      value="all" 
-                      className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm"
-                      onClick={() => window.location.href = createPageUrl("Institucional")}
-                    >
+                    <TabsTrigger value="institutional" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden lg:inline">Sobre Nós</span>
                       <span className="lg:hidden">Sobre</span>

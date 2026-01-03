@@ -24,10 +24,10 @@ import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
 import UpgradePlan from './pages/UpgradePlan';
 import UserManagement from './pages/UserManagement';
-import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import Website from './pages/Website';
 import __Layout from './Layout.jsx';
 
 
@@ -58,10 +58,10 @@ export const PAGES = {
     "Tools": Tools,
     "UpgradePlan": UpgradePlan,
     "UserManagement": UserManagement,
-    "Website": Website,
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "Website": Website,
 }
 
 export const pagesConfig = {
