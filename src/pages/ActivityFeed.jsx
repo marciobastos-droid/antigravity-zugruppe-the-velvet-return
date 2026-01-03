@@ -10,7 +10,7 @@ import {
   Activity, Search, Filter, User, Home, Users, FileText, 
   Calendar, CheckCircle, AlertCircle, Clock, Upload, Download,
   Repeat, Settings, Layers, ExternalLink, Eye, Edit, Trash2,
-  Plus, RefreshCw, LogIn
+  Plus, RefreshCw, LogIn, X
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
