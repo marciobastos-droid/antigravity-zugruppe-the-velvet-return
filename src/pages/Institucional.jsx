@@ -167,12 +167,12 @@ export default function Institucional() {
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-10" />
-          <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-16">
+          <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-32 lg:py-40">
             <div className="text-center">
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
                 alt="ZuGruppe"
-                className="h-32 md:h-40 lg:h-48 w-auto mx-auto" />
+                className="h-24 md:h-28 lg:h-32 w-auto mx-auto" />
             </div>
           </div>
         </div>
@@ -198,13 +198,13 @@ export default function Institucional() {
               <Badge className="mb-4 bg-blue-100 text-blue-800">
                 {locale === 'en' ? 'Our Mission' : locale === 'es' ? 'Nuestra Misión' : locale === 'fr' ? 'Notre Mission' : 'Nossa Missão'}
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-6">
                 {t('institutional.mission')}
               </h2>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+              <p className="text-base text-slate-600 mb-6 leading-relaxed">
                 {t('institutional.missionText')}
               </p>
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+              <p className="text-base text-slate-600 mb-8 leading-relaxed">
                 {t('institutional.commitment')}
               </p>
               <div className="flex items-center gap-4">
@@ -226,8 +226,8 @@ export default function Institucional() {
                 className="rounded-2xl shadow-2xl" />
 
               <div className="absolute -bottom-6 -left-6 bg-blue-600 text-white p-6 rounded-xl shadow-xl">
-                <div className="text-3xl font-bold mb-1">15+</div>
-                <div className="text-sm">{t('institutional.stats.yearsExperience')}</div>
+                <div className="text-2xl font-bold mb-1">15+</div>
+                <div className="text-xs">{t('institutional.stats.yearsExperience')}</div>
               </div>
             </div>
           </div>
@@ -240,10 +240,10 @@ export default function Institucional() {
               <Badge className="mb-4 bg-blue-100 text-blue-800">
                 {locale === 'en' ? 'Our Values' : locale === 'es' ? 'Nuestros Valores' : locale === 'fr' ? 'Nos Valeurs' : 'Nossos Valores'}
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
                 {t('institutional.values')}
               </h2>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              <p className="text-base text-slate-600 max-w-2xl mx-auto">
                 {t('institutional.valuesSubtitle')}
               </p>
             </div>
@@ -269,10 +269,10 @@ export default function Institucional() {
             <Badge className="mb-4 bg-blue-100 text-blue-800">
               {locale === 'en' ? 'Our Brands' : locale === 'es' ? 'Nuestras Marcas' : locale === 'fr' ? 'Nos Marques' : 'Nossas Marcas'}
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
               {t('institutional.brands')}
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-base text-slate-600 max-w-2xl mx-auto">
               {t('institutional.brandsSubtitle')}
             </p>
           </div>
@@ -337,10 +337,10 @@ export default function Institucional() {
               <Badge className="mb-4 bg-green-100 text-green-800">
                 {locale === 'en' ? 'Our Services' : locale === 'es' ? 'Nuestros Servicios' : locale === 'fr' ? 'Nos Services' : 'Nossos Serviços'}
               </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
                 {t('institutional.services')}
               </h2>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              <p className="text-base text-slate-600 max-w-2xl mx-auto">
                 {t('institutional.servicesSubtitle')}
               </p>
             </div>
@@ -374,10 +374,10 @@ export default function Institucional() {
         <div id="contacto" className="bg-gradient-to-br from-blue-600 to-indigo-700 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 {t('institutional.contact')}
               </h2>
-              <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+              <p className="text-base text-blue-100 max-w-2xl mx-auto">
                 {t('institutional.contactSubtitle')}
               </p>
             </div>
