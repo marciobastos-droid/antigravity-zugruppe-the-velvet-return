@@ -430,14 +430,14 @@ export default function Website() {
   };
 
   const countries = ["Portugal", "United Arab Emirates", "United Kingdom", "Angola"];
-  const municipalitiesForDistrict = getMunicipalitiesByDistrict(district);
+  const municipalitiesForDistrict = React.useMemo(() => getMunicipalitiesByDistrict(district), [district]);
 
   // Reset city when district changes
   React.useEffect(() => {
     if (district !== "all" && city !== "all" && !municipalitiesForDistrict.includes(city)) {
       setCity("all");
     }
-  }, [district]);
+  }, [district, city, municipalitiesForDistrict]);
 
   // Handle toggle favorite
   const handleToggleFavorite = async (property) => {
