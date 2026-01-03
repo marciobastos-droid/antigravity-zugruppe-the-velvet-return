@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Building2, Users, Award, Globe, Heart, Target,
-  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin, Send, Loader2, CheckCircle2 } from
+  TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin, Send, Loader2, CheckCircle2, AlertCircle } from
 "lucide-react";
 import SEOHead from "../components/seo/SEOHead";
 import { HelmetProvider } from "react-helmet-async";
@@ -23,31 +25,78 @@ export default function Institucional() {
     name: '',
     email: '',
     phone: '',
+    department: 'general',
     message: ''
   });
+  const [formErrors, setFormErrors] = React.useState({});
   const [submitSuccess, setSubmitSuccess] = React.useState(false);
+
+  const departmentLabels = {
+    general: locale === 'en' ? 'General' : locale === 'es' ? 'General' : locale === 'fr' ? 'Général' : 'Geral',
+    sales: locale === 'en' ? 'Sales' : locale === 'es' ? 'Ventas' : locale === 'fr' ? 'Ventes' : 'Vendas',
+    support: locale === 'en' ? 'Support' : locale === 'es' ? 'Soporte' : locale === 'fr' ? 'Support' : 'Suporte'
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!formData.name.trim()) {
+      errors.name = locale === 'en' ? 'Name is required' : locale === 'es' ? 'El nombre es obligatorio' : locale === 'fr' ? 'Le nom est requis' : 'Nome é obrigatório';
+    } else if (formData.name.trim().length < 2) {
+      errors.name = locale === 'en' ? 'Name must be at least 2 characters' : locale === 'es' ? 'El nombre debe tener al menos 2 caracteres' : locale === 'fr' ? 'Le nom doit contenir au moins 2 caractères' : 'Nome deve ter pelo menos 2 caracteres';
+    }
+    
+    if (!formData.email.trim()) {
+      errors.email = locale === 'en' ? 'Email is required' : locale === 'es' ? 'El email es obligatorio' : locale === 'fr' ? 'L\'email est requis' : 'Email é obrigatório';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = locale === 'en' ? 'Invalid email format' : locale === 'es' ? 'Formato de email inválido' : locale === 'fr' ? 'Format d\'email invalide' : 'Formato de email inválido';
+    }
+    
+    if (formData.phone && !/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/.test(formData.phone)) {
+      errors.phone = locale === 'en' ? 'Invalid phone number' : locale === 'es' ? 'Número de teléfono inválido' : locale === 'fr' ? 'Numéro de téléphone invalide' : 'Número de telefone inválido';
+    }
+    
+    if (!formData.message.trim()) {
+      errors.message = locale === 'en' ? 'Message is required' : locale === 'es' ? 'El mensaje es obligatorio' : locale === 'fr' ? 'Le message est requis' : 'Mensagem é obrigatória';
+    } else if (formData.message.trim().length < 10) {
+      errors.message = locale === 'en' ? 'Message must be at least 10 characters' : locale === 'es' ? 'El mensaje debe tener al menos 10 caracteres' : locale === 'fr' ? 'Le message doit contenir au moins 10 caractères' : 'Mensagem deve ter pelo menos 10 caracteres';
+    }
+    
+    return errors;
+  };
 
   const sendContactMutation = useMutation({
     mutationFn: async (data) => {
       await base44.integrations.Core.SendEmail({
         to: "info@zugruppe.com",
-        subject: `Novo Contacto: ${data.name}`,
-        body: `Nome: ${data.name}\nEmail: ${data.email}\nTelefone: ${data.phone}\n\nMensagem:\n${data.message}`
+        subject: `Novo Contacto [${departmentLabels[data.department]}]: ${data.name}`,
+        body: `Departamento: ${departmentLabels[data.department]}\nNome: ${data.name}\nEmail: ${data.email}\nTelefone: ${data.phone || 'Não fornecido'}\n\nMensagem:\n${data.message}`
       });
     },
     onSuccess: () => {
       setSubmitSuccess(true);
-      setFormData({ name: '', email: '', phone: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', department: 'general', message: '' });
+      setFormErrors({});
       toast.success(locale === 'en' ? 'Message sent successfully!' : locale === 'es' ? '¡Mensaje enviado con éxito!' : locale === 'fr' ? 'Message envoyé avec succès!' : 'Mensagem enviada com sucesso!');
       setTimeout(() => setSubmitSuccess(false), 5000);
     },
-    onError: () => {
-      toast.error(locale === 'en' ? 'Error sending message' : locale === 'es' ? 'Error al enviar mensaje' : locale === 'fr' ? 'Erreur lors de l\'envoi' : 'Erro ao enviar mensagem');
+    onError: (error) => {
+      console.error('Error sending message:', error);
+      toast.error(locale === 'en' ? 'Error sending message. Please try again.' : locale === 'es' ? 'Error al enviar mensaje. Inténtalo de nuevo.' : locale === 'fr' ? 'Erreur lors de l\'envoi. Veuillez réessayer.' : 'Erro ao enviar mensagem. Tente novamente.');
     }
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormErrors({});
+    
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.error(locale === 'en' ? 'Please fix the errors in the form' : locale === 'es' ? 'Por favor corrige los errores en el formulario' : locale === 'fr' ? 'Veuillez corriger les erreurs dans le formulaire' : 'Por favor corrija os erros no formulário');
+      return;
+    }
+    
     sendContactMutation.mutate(formData);
   };
 
@@ -448,18 +497,33 @@ export default function Institucional() {
                     </div>
                   ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
+                      {Object.keys(formErrors).length > 0 && (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            {locale === 'en' ? 'Please correct the errors below' : locale === 'es' ? 'Por favor corrige los errores a continuación' : locale === 'fr' ? 'Veuillez corriger les erreurs ci-dessous' : 'Por favor corrija os erros abaixo'}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
                       <div>
                         <label className="block text-sm font-medium text-slate-900 mb-2">
                           {t('contact.name')} *
                         </label>
                         <Input
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, name: e.target.value});
+                            if (formErrors.name) setFormErrors({...formErrors, name: undefined});
+                          }}
                           placeholder={locale === 'en' ? 'Your name' : locale === 'es' ? 'Su nombre' : locale === 'fr' ? 'Votre nom' : 'O seu nome'}
-                          required
-                          className="bg-white"
+                          className={`bg-white ${formErrors.name ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.name && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>
+                        )}
                       </div>
+
                       <div>
                         <label className="block text-sm font-medium text-slate-900 mb-2">
                           {t('common.email')} *
@@ -467,12 +531,18 @@ export default function Institucional() {
                         <Input
                           type="email"
                           value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, email: e.target.value});
+                            if (formErrors.email) setFormErrors({...formErrors, email: undefined});
+                          }}
                           placeholder={locale === 'en' ? 'your-email@example.com' : 'o-seu-email@exemplo.com'}
-                          required
-                          className="bg-white"
+                          className={`bg-white ${formErrors.email ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.email && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>
+                        )}
                       </div>
+
                       <div>
                         <label className="block text-sm font-medium text-slate-900 mb-2">
                           {t('common.phone')}
@@ -480,24 +550,56 @@ export default function Institucional() {
                         <Input
                           type="tel"
                           value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, phone: e.target.value});
+                            if (formErrors.phone) setFormErrors({...formErrors, phone: undefined});
+                          }}
                           placeholder="+351 9XX XXX XXX"
-                          className="bg-white"
+                          className={`bg-white ${formErrors.phone ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.phone && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.phone}</p>
+                        )}
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-900 mb-2">
+                          {locale === 'en' ? 'Department' : locale === 'es' ? 'Departamento' : locale === 'fr' ? 'Département' : 'Departamento'} *
+                        </label>
+                        <Select 
+                          value={formData.department} 
+                          onValueChange={(value) => setFormData({...formData, department: value})}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">{departmentLabels.general}</SelectItem>
+                            <SelectItem value="sales">{departmentLabels.sales}</SelectItem>
+                            <SelectItem value="support">{departmentLabels.support}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <div>
                         <label className="block text-sm font-medium text-slate-900 mb-2">
                           {t('contact.message')} *
                         </label>
                         <Textarea
                           value={formData.message}
-                          onChange={(e) => setFormData({...formData, message: e.target.value})}
+                          onChange={(e) => {
+                            setFormData({...formData, message: e.target.value});
+                            if (formErrors.message) setFormErrors({...formErrors, message: undefined});
+                          }}
                           placeholder={t('contact.messagePlaceholder')}
                           rows={5}
-                          required
-                          className="bg-white"
+                          className={`bg-white ${formErrors.message ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.message && (
+                          <p className="text-red-500 text-xs mt-1">{formErrors.message}</p>
+                        )}
                       </div>
+
                       <Button
                         type="submit"
                         className="w-full bg-white text-blue-600 hover:bg-blue-50"
