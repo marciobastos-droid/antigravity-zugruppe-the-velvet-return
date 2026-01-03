@@ -237,7 +237,157 @@ export const translations = {
       license: "Licença IMPIC",
       terms: "Termos e Condições",
       privacy: "Política de Privacidade",
-      cookies: "Política de Cookies"
+      cookies: "Política de Cookies",
+      disputeResolution: "Resolução Alternativa de Litígios",
+      complaintsBook: "Livro de Reclamações online",
+      denunciationChannel: "Canal de Denúncias",
+      manageData: "Gerir Dados"
+    },
+    institutional: {
+      title: "Sobre Nós",
+      subtitle: "Conheça a ZuGruppe - The Velvet Return",
+      mission: "Transformar o Mercado Imobiliário",
+      missionText: "Na ZuGruppe - The Velvet Return, acreditamos que cada propriedade conta uma história e cada cliente tem um sonho único. A nossa missão é conectar pessoas aos espaços perfeitos, sejam lares acolhedores, escritórios estratégicos ou investimentos de alto valor.",
+      commitment: "Com tecnologia de ponta, uma equipa experiente e um compromisso inabalável com a excelência, tornamos cada transação imobiliária numa experiência memorável e bem-sucedida.",
+      values: "Os Nossos Valores",
+      valuesSubtitle: "Princípios que nos guiam em cada negócio",
+      brands: "Um Grupo, Múltiplas Especialidades",
+      brandsSubtitle: "Cada marca da ZuGruppe - The Velvet Return é especializada no seu segmento, garantindo o melhor serviço em cada área",
+      services: "Serviços Complementares",
+      servicesSubtitle: "Soluções completas para todas as suas necessidades imobiliárias",
+      contact: "Vamos Trabalhar Juntos",
+      contactSubtitle: "Entre em contacto connosco e descubra como podemos ajudá-lo a alcançar os seus objetivos imobiliários",
+      stats: {
+        propertiesSold: "Imóveis Vendidos",
+        satisfiedClients: "Clientes Satisfeitos",
+        yearsExperience: "Anos de Experiência",
+        consultants: "Consultores Especializados"
+      },
+      valuesList: {
+        passion: "Paixão pelo que Fazemos",
+        passionDesc: "Cada imóvel é tratado com dedicação e comprometimento absoluto.",
+        transparency: "Transparência Total",
+        transparencyDesc: "Processos claros, comunicação honesta e relações de confiança.",
+        clientFocus: "Foco no Cliente",
+        clientFocusDesc: "O seu sucesso e satisfação são a nossa prioridade máxima.",
+        innovation: "Inovação Constante",
+        innovationDesc: "Tecnologia de ponta e métodos modernos ao serviço do imobiliário.",
+        excellence: "Excelência nos Resultados",
+        excellenceDesc: "Compromisso com a qualidade e superação de expectativas.",
+        globalVision: "Visão Global",
+        globalVisionDesc: "Presença local com alcance internacional para melhor servir."
+      },
+      brandsData: {
+        zuhaus: {
+          name: "ZuHaus",
+          subtitle: "Imóveis Residenciais",
+          description: "Especialistas em encontrar o lar perfeito para cada família. Apartamentos, moradias e espaços que transformam sonhos em realidade."
+        },
+        zuhandel: {
+          name: "ZuHandel",
+          subtitle: "Espaços Comerciais",
+          description: "Soluções comerciais que impulsionam o seu negócio. Lojas, escritórios e armazéns estrategicamente localizados."
+        },
+        premium: {
+          name: "Premium Luxo",
+          subtitle: "Imóveis de Luxo",
+          description: "Propriedades exclusivas para clientes exigentes. Luxo, conforto e exclusividade em cada detalhe."
+        },
+        worldwide: {
+          name: "Worldwide",
+          subtitle: "Imóveis Internacionais",
+          description: "O mundo é o nosso mercado. Propriedades nos destinos mais procurados a nível internacional."
+        }
+      },
+      servicesData: {
+        finance: {
+          name: "ZuFinance",
+          subtitle: "Soluções Financeiras",
+          description: "Consultoria financeira especializada para investimentos imobiliários. Financiamento inteligente para os seus projetos."
+        },
+        garden: {
+          name: "ZuGarden",
+          subtitle: "Espaços Exteriores",
+          description: "Design e execução de jardins e espaços exteriores. Transformamos ambientes em experiências únicas."
+        },
+        projekt: {
+          name: "ZuProjekt",
+          subtitle: "Projetos de Arquitetura",
+          description: "Desenvolvimento e gestão de projetos imobiliários. Da conceção à execução com excelência."
+        }
+      }
+    },
+    legal: {
+      termsTitle: "Termos e Condições",
+      termsUpdated: "Última atualização",
+      termsAcceptance: "Aceitação dos Termos",
+      termsAcceptanceText: "Ao utilizar a nossa plataforma, concorda com estes termos e condições.",
+      acceptableUse: "Uso Aceitável",
+      acceptableUseText: "Compromete-se a utilizar a plataforma de forma legal e adequada. É proibido:",
+      prohibitedActions: {
+        illegal: "Atividades ilegais ou fraudulentas",
+        spam: "Envio de spam ou conteúdo não solicitado",
+        harm: "Prejudicar outros utilizadores ou a plataforma",
+        violation: "Violar direitos de propriedade intelectual"
+      },
+      applicableLaw: "Lei Aplicável",
+      applicableLawText: "Estes termos são regidos pela lei portuguesa.",
+      contact: "Contacto",
+      privacyTitle: "Política de Privacidade",
+      privacyIntro: "Esta Política de Privacidade descreve como recolhemos, utilizamos e protegemos os seus dados pessoais.",
+      dataCollection: "Recolha de Dados",
+      dataCollectionText: "Recolhemos dados pessoais que nos fornece diretamente, incluindo nome, email, telefone e preferências de imóveis.",
+      dataUse: "Utilização de Dados",
+      dataUseText: "Utilizamos os seus dados para fornecer e melhorar os nossos serviços, processar pedidos e comunicar consigo sobre imóveis que possam interessar.",
+      dataSharing: "Partilha de Dados",
+      dataSharingText: "Não vendemos os seus dados. Podemos partilhar informações com prestadores de serviços que nos ajudam a operar a plataforma.",
+      dataSecurity: "Segurança",
+      dataSecurityText: "Implementamos medidas de segurança para proteger os seus dados contra acesso não autorizado.",
+      yourRights: "Os Seus Direitos",
+      yourRightsText: "Tem direito a aceder, corrigir ou eliminar os seus dados pessoais. Contacte-nos para exercer estes direitos.",
+      cookies: "Cookies",
+      cookiesText: "Utilizamos cookies para melhorar a sua experiência. Veja a nossa Política de Cookies para mais detalhes.",
+      dataRetention: "Retenção de Dados",
+      dataRetentionText: "Mantemos os seus dados apenas pelo tempo necessário para cumprir as finalidades descritas.",
+      thirdParty: "Integrações com Terceiros",
+      thirdPartyText: "Podemos integrar com serviços de terceiros como Google Maps e fornecedores de pagamento.",
+      cookiePolicyTitle: "Política de Cookies",
+      whatAreCookies: "O que são Cookies?",
+      whatAreCookiesText: "Cookies são pequenos ficheiros de texto armazenados no seu dispositivo quando visita o nosso website.",
+      howWeUseCookies: "Como Utilizamos Cookies",
+      howWeUseCookiesText: "Utilizamos cookies para melhorar a funcionalidade do site, analisar o tráfego e personalizar conteúdo.",
+      cookieTypes: {
+        essential: "Cookies Essenciais: Necessários para o funcionamento do site",
+        analytics: "Cookies Analíticos: Ajudam-nos a entender como utiliza o site",
+        marketing: "Cookies de Marketing: Utilizados para publicidade personalizada"
+      },
+      denunciationTitle: "Canal de Denúncias",
+      denunciationIntro: "Este canal permite-lhe reportar irregularidades de forma segura e confidencial.",
+      anonymous: "Submissão Anónima",
+      anonymousText: "Pode submeter a sua denúncia de forma anónima",
+      subject: "Assunto",
+      description: "Descrição",
+      descriptionPlaceholder: "Descreva a situação com o máximo de detalhes possível...",
+      attachments: "Anexos",
+      contactDetails: "Detalhes de Contacto (Opcional)",
+      acceptTerms: "Aceito os termos e condições",
+      submitDenunciation: "Submeter Denúncia",
+      denunciationSuccess: "Denúncia submetida com sucesso",
+      denunciationError: "Erro ao submeter denúncia",
+      manageDataTitle: "Gerir os Seus Dados",
+      manageDataIntro: "De acordo com o RGPD, tem direito a gerir os seus dados pessoais.",
+      yourRightsList: {
+        access: "Acesso: Pode solicitar uma cópia dos seus dados",
+        rectification: "Retificação: Pode corrigir dados inexatos",
+        erasure: "Eliminação: Pode solicitar a eliminação dos seus dados",
+        portability: "Portabilidade: Pode receber os seus dados num formato estruturado",
+        objection: "Oposição: Pode opor-se ao processamento dos seus dados"
+      },
+      exerciseRights: "Para exercer estes direitos, contacte-nos através de:",
+      rgpdConsentTitle: "Consentimento RGPD",
+      rgpdConsentText: "Ao utilizar esta plataforma, consente o tratamento dos seus dados pessoais de acordo com a nossa Política de Privacidade.",
+      acceptConsent: "Aceito a Política de Privacidade",
+      readPolicy: "Ler Política de Privacidade"
     }
   },
   en: {
