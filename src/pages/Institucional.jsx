@@ -71,7 +71,7 @@ export default function Institucional() {
     subtitle: t('institutional.brandsData.premium.subtitle'),
     description: t('institutional.brandsData.premium.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png",
-    bgImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/4e6f195ab_ImagemImovelLuxo.jpg",
+    bgImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/0293a1bc6_ImagemImovelLuxo.jpg",
     link: createPageUrl("PremiumLuxury")
   },
   {
