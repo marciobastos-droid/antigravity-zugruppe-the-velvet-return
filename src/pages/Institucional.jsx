@@ -120,7 +120,7 @@ export default function Institucional() {
     subtitle: t('institutional.brandsData.premium.subtitle'),
     description: t('institutional.brandsData.premium.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png",
-    bgImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/f31ddb452_ImagemImovelLuxo.jpg",
+    bgImage: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&q=80",
     link: createPageUrl("PremiumLuxury")
   },
   {
@@ -128,7 +128,7 @@ export default function Institucional() {
     subtitle: t('institutional.brandsData.worldwide.subtitle'),
     description: t('institutional.brandsData.worldwide.description'),
     logo: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
-    bgImage: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/237424dae_WorldWide.jpg",
+    bgImage: "https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1200&q=80",
     link: createPageUrl("WorldWideProperties")
   }];
 
