@@ -165,12 +165,12 @@ export default function Institucional() {
         {/* Hero Section */}
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')] bg-cover bg-center opacity-10" />
-          <div className="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
+          <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-16">
             <div className="text-center">
               <img
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
                 alt="ZuGruppe"
-                className="h-48 md:h-64 lg:h-80 w-auto mx-auto" />
+                className="h-32 md:h-40 lg:h-48 w-auto mx-auto" />
             </div>
           </div>
         </div>
