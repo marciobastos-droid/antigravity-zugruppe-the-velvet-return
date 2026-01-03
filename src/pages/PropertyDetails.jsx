@@ -1050,39 +1050,7 @@ export default function PropertyDetails() {
 
                 {assignedConsultant ? (
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      {assignedConsultant.photo_url ? (
-                        <img
-                          src={assignedConsultant.photo_url}
-                          alt={assignedConsultant.display_name || assignedConsultant.full_name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 flex-shrink-0"
-                          crossOrigin="anonymous"
-                          onError={(e) => {
-                            console.error('[PropertyDetails] Erro ao carregar foto do consultor:', assignedConsultant.photo_url);
-                            e.target.onerror = null;
-                            e.target.src = '';
-                            e.target.style.display = 'none';
-                            const parent = e.target.parentElement;
-                            if (parent) {
-                              const fallback = document.createElement('div');
-                              fallback.className = 'w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300';
-                              fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
-                              parent.appendChild(fallback);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
-                          <User className="w-8 h-8 text-slate-500" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-slate-900 truncate">{assignedConsultant.display_name || assignedConsultant.full_name}</h4>
-                        {assignedConsultant.specialization && (
-                          <p className="text-sm text-slate-600 truncate">{assignedConsultant.specialization}</p>
-                        )}
-                      </div>
-                    </div>
+                    <ConsultantAvatar consultant={assignedConsultant} />
 
                     <div className="space-y-2">
                       {assignedConsultant.whatsapp && (
@@ -1340,3 +1308,38 @@ const PropertyMap = React.memo(({ property }) => {
     </div>
   );
 }, (prev, next) => prev.property.id === next.property.id);
+
+// Consultant Avatar Component with proper error handling
+const ConsultantAvatar = React.memo(({ consultant }) => {
+  const [imageError, setImageError] = React.useState(false);
+  
+  React.useEffect(() => {
+    setImageError(false);
+  }, [consultant.photo_url]);
+
+  return (
+    <div className="flex items-center gap-4">
+      {consultant.photo_url && !imageError ? (
+        <img
+          src={consultant.photo_url}
+          alt={consultant.display_name || consultant.full_name}
+          className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 flex-shrink-0"
+          onError={() => {
+            console.error('[ConsultantAvatar] Failed to load photo:', consultant.photo_url);
+            setImageError(true);
+          }}
+        />
+      ) : (
+        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center border-2 border-slate-300 flex-shrink-0">
+          <User className="w-8 h-8 text-slate-500" />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <h4 className="font-semibold text-slate-900 truncate">{consultant.display_name || consultant.full_name}</h4>
+        {consultant.specialization && (
+          <p className="text-sm text-slate-600 truncate">{consultant.specialization}</p>
+        )}
+      </div>
+    </div>
+  );
+});
