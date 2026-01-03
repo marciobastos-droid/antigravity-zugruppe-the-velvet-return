@@ -2,121 +2,61 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, Shield } from "lucide-react";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function PrivacyPolicy() {
+  const { t, locale } = useLocalization();
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <a 
-          href="https://zuhaus.pt/" 
-          className="inline-flex items-center text-slate-600 hover:text-slate-900 mb-8"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
-        </a>
+        <Link to={createPageUrl("Website")}>
+          <Button variant="ghost" className="mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {t('common.back')}
+          </Button>
+        </Link>
 
-        <div className="bg-white rounded-xl shadow-sm p-8 md:p-12">
-          <div className="flex items-center gap-3 mb-8">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-slate-900">Política de Privacidade</h1>
+        <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
+          <div className="flex items-center gap-3 mb-6">
+            <FileText className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+              {t('legal.termsTitle')}
+            </h1>
           </div>
 
-          <div className="prose prose-slate max-w-none">
-            <p className="text-slate-600 mb-6">
-              Última atualização: {new Date().toLocaleDateString('pt-PT')}
-            </p>
+          <p className="text-sm text-slate-600 mb-8">
+            {t('legal.termsUpdated')}: {new Date().toLocaleDateString(locale === 'en' ? 'en-US' : locale === 'es' ? 'es-ES' : locale === 'fr' ? 'fr-FR' : 'pt-PT', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
 
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">1. Introdução</h2>
-            <p className="text-slate-600 mb-4">
-              A Privileged Approach Unipessoal Lda ("Zugruppe", "nós" ou "nosso") está comprometida em proteger a sua privacidade. 
-              Esta Política de Privacidade explica como recolhemos, usamos, divulgamos e protegemos as suas informações pessoais 
-              quando utiliza os nossos serviços e plataforma.
-            </p>
+          <div className="space-y-6 text-slate-700">
+            <section>
+              <h2 className="text-xl font-bold text-slate-900 mb-3">1. {t('legal.termsAcceptance')}</h2>
+              <p>{t('legal.termsAcceptanceText')}</p>
+            </section>
 
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">2. Informações que Recolhemos</h2>
-            <p className="text-slate-600 mb-4">Podemos recolher os seguintes tipos de informações:</p>
-            <ul className="list-disc pl-6 text-slate-600 mb-4 space-y-2">
-              <li><strong>Dados de identificação:</strong> nome, email, telefone, morada</li>
-              <li><strong>Dados profissionais:</strong> empresa, cargo, NIF</li>
-              <li><strong>Dados de utilização:</strong> informações sobre como utiliza a nossa plataforma</li>
-              <li><strong>Dados de comunicação:</strong> mensagens trocadas através da plataforma</li>
-              <li><strong>Dados de imóveis:</strong> preferências e requisitos de imóveis</li>
-            </ul>
+            <section>
+              <h2 className="text-xl font-bold text-slate-900 mb-3">2. {t('legal.acceptableUse')}</h2>
+              <p>{t('legal.acceptableUseText')}</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>{t('legal.prohibitedActions.illegal')}</li>
+                <li>{t('legal.prohibitedActions.spam')}</li>
+                <li>{t('legal.prohibitedActions.harm')}</li>
+                <li>{t('legal.prohibitedActions.violation')}</li>
+              </ul>
+            </section>
 
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">3. Como Utilizamos as Suas Informações</h2>
-            <p className="text-slate-600 mb-4">Utilizamos as suas informações para:</p>
-            <ul className="list-disc pl-6 text-slate-600 mb-4 space-y-2">
-              <li>Fornecer e melhorar os nossos serviços</li>
-              <li>Comunicar consigo sobre imóveis e oportunidades</li>
-              <li>Processar transações e pedidos</li>
-              <li>Enviar informações sobre novos imóveis que correspondam às suas preferências</li>
-              <li>Cumprir obrigações legais e regulamentares</li>
-              <li>Proteger os nossos direitos e propriedade</li>
-            </ul>
+            <section>
+              <h2 className="text-xl font-bold text-slate-900 mb-3">3. {t('legal.applicableLaw')}</h2>
+              <p>{t('legal.applicableLawText')}</p>
+            </section>
 
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">4. Partilha de Informações</h2>
-            <p className="text-slate-600 mb-4">
-              Podemos partilhar as suas informações com:
-            </p>
-            <ul className="list-disc pl-6 text-slate-600 mb-4 space-y-2">
-              <li>Agentes e consultores imobiliários autorizados</li>
-              <li>Prestadores de serviços que nos auxiliam nas operações</li>
-              <li>Autoridades quando exigido por lei</li>
-            </ul>
-            <p className="text-slate-600 mb-4">
-              Não vendemos as suas informações pessoais a terceiros.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">5. Segurança dos Dados</h2>
-            <p className="text-slate-600 mb-4">
-              Implementamos medidas de segurança técnicas e organizacionais adequadas para proteger as suas informações 
-              contra acesso não autorizado, alteração, divulgação ou destruição.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">6. Os Seus Direitos</h2>
-            <p className="text-slate-600 mb-4">Ao abrigo do RGPD, tem direito a:</p>
-            <ul className="list-disc pl-6 text-slate-600 mb-4 space-y-2">
-              <li>Aceder às suas informações pessoais</li>
-              <li>Retificar dados incorretos</li>
-              <li>Solicitar a eliminação dos seus dados</li>
-              <li>Opor-se ao tratamento dos seus dados</li>
-              <li>Portabilidade dos dados</li>
-              <li>Retirar o consentimento a qualquer momento</li>
-            </ul>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">7. Cookies</h2>
-            <p className="text-slate-600 mb-4">
-              Utilizamos cookies e tecnologias similares para melhorar a sua experiência na plataforma. 
-              Pode gerir as suas preferências de cookies através das definições do seu navegador.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">8. Retenção de Dados</h2>
-            <p className="text-slate-600 mb-4">
-              Mantemos as suas informações pessoais apenas pelo tempo necessário para cumprir os fins para os quais 
-              foram recolhidas, ou conforme exigido por lei.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">9. Integrações com Terceiros</h2>
-            <p className="text-slate-600 mb-4">
-              A nossa plataforma pode integrar-se com serviços de terceiros (como Google, Facebook, WhatsApp). 
-              Estas integrações estão sujeitas às políticas de privacidade desses serviços.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">10. Alterações a Esta Política</h2>
-            <p className="text-slate-600 mb-4">
-              Podemos atualizar esta Política de Privacidade periodicamente. Notificá-lo-emos sobre alterações 
-              significativas através da plataforma ou por email.
-            </p>
-
-            <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">11. Contacto</h2>
-            <p className="text-slate-600 mb-4">
-              Para questões sobre esta Política de Privacidade ou sobre os seus dados pessoais, contacte-nos:
-            </p>
-            <div className="bg-slate-50 p-4 rounded-lg text-slate-600">
-              <p><strong>Privileged Approach Unipessoal Lda</strong></p>
-              <p>Email: privacidade@zugruppe.com</p>
-              <p>Portugal</p>
-            </div>
+            <section className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+              <h2 className="text-xl font-bold text-slate-900 mb-3">{t('legal.contact')}</h2>
+              <p className="font-medium">Email: info@zugruppe.com</p>
+              <p className="font-medium">
+                {locale === 'en' ? 'Company' : locale === 'es' ? 'Empresa' : locale === 'fr' ? 'Entreprise' : 'Empresa'}: Privileged Approach Unipessoal Lda
+              </p>
+            </section>
           </div>
         </div>
 
