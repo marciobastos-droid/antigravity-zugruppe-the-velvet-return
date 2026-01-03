@@ -628,7 +628,157 @@ export const translations = {
       license: "License IMPIC",
       terms: "Terms and Conditions",
       privacy: "Privacy Policy",
-      cookies: "Cookie Policy"
+      cookies: "Cookie Policy",
+      disputeResolution: "Alternative Dispute Resolution",
+      complaintsBook: "Online Complaints Book",
+      denunciationChannel: "Whistleblowing Channel",
+      manageData: "Manage Data"
+    },
+    institutional: {
+      title: "About Us",
+      subtitle: "Meet ZuGruppe - The Velvet Return",
+      mission: "Transforming the Real Estate Market",
+      missionText: "At ZuGruppe - The Velvet Return, we believe that every property tells a story and every client has a unique dream. Our mission is to connect people to the perfect spaces, whether cozy homes, strategic offices, or high-value investments.",
+      commitment: "With cutting-edge technology, an experienced team, and an unwavering commitment to excellence, we turn every real estate transaction into a memorable and successful experience.",
+      values: "Our Values",
+      valuesSubtitle: "Principles that guide us in every deal",
+      brands: "One Group, Multiple Specialties",
+      brandsSubtitle: "Each brand of ZuGruppe - The Velvet Return specializes in its segment, ensuring the best service in each area",
+      services: "Complementary Services",
+      servicesSubtitle: "Complete solutions for all your real estate needs",
+      contact: "Let's Work Together",
+      contactSubtitle: "Contact us and discover how we can help you achieve your real estate goals",
+      stats: {
+        propertiesSold: "Properties Sold",
+        satisfiedClients: "Satisfied Clients",
+        yearsExperience: "Years of Experience",
+        consultants: "Specialized Consultants"
+      },
+      valuesList: {
+        passion: "Passion for What We Do",
+        passionDesc: "Every property is treated with dedication and absolute commitment.",
+        transparency: "Total Transparency",
+        transparencyDesc: "Clear processes, honest communication, and trust-based relationships.",
+        clientFocus: "Client Focus",
+        clientFocusDesc: "Your success and satisfaction are our top priority.",
+        innovation: "Constant Innovation",
+        innovationDesc: "Cutting-edge technology and modern methods serving real estate.",
+        excellence: "Excellence in Results",
+        excellenceDesc: "Commitment to quality and exceeding expectations.",
+        globalVision: "Global Vision",
+        globalVisionDesc: "Local presence with international reach to better serve."
+      },
+      brandsData: {
+        zuhaus: {
+          name: "ZuHaus",
+          subtitle: "Residential Properties",
+          description: "Experts in finding the perfect home for every family. Apartments, houses, and spaces that turn dreams into reality."
+        },
+        zuhandel: {
+          name: "ZuHandel",
+          subtitle: "Commercial Spaces",
+          description: "Commercial solutions that drive your business. Stores, offices, and strategically located warehouses."
+        },
+        premium: {
+          name: "Premium Luxury",
+          subtitle: "Luxury Properties",
+          description: "Exclusive properties for demanding clients. Luxury, comfort, and exclusivity in every detail."
+        },
+        worldwide: {
+          name: "Worldwide",
+          subtitle: "International Properties",
+          description: "The world is our market. Properties in the most sought-after destinations internationally."
+        }
+      },
+      servicesData: {
+        finance: {
+          name: "ZuFinance",
+          subtitle: "Financial Solutions",
+          description: "Specialized financial consulting for real estate investments. Smart financing for your projects."
+        },
+        garden: {
+          name: "ZuGarden",
+          subtitle: "Outdoor Spaces",
+          description: "Design and execution of gardens and outdoor spaces. We transform environments into unique experiences."
+        },
+        projekt: {
+          name: "ZuProjekt",
+          subtitle: "Architecture Projects",
+          description: "Development and management of real estate projects. From conception to execution with excellence."
+        }
+      }
+    },
+    legal: {
+      termsTitle: "Terms and Conditions",
+      termsUpdated: "Last updated",
+      termsAcceptance: "Acceptance of Terms",
+      termsAcceptanceText: "By using our platform, you agree to these terms and conditions.",
+      acceptableUse: "Acceptable Use",
+      acceptableUseText: "You agree to use the platform legally and appropriately. Prohibited:",
+      prohibitedActions: {
+        illegal: "Illegal or fraudulent activities",
+        spam: "Sending spam or unsolicited content",
+        harm: "Harming other users or the platform",
+        violation: "Violating intellectual property rights"
+      },
+      applicableLaw: "Applicable Law",
+      applicableLawText: "These terms are governed by Portuguese law.",
+      contact: "Contact",
+      privacyTitle: "Privacy Policy",
+      privacyIntro: "This Privacy Policy describes how we collect, use, and protect your personal data.",
+      dataCollection: "Data Collection",
+      dataCollectionText: "We collect personal data you provide directly to us, including name, email, phone, and property preferences.",
+      dataUse: "Data Use",
+      dataUseText: "We use your data to provide and improve our services, process requests, and communicate with you about properties that may interest you.",
+      dataSharing: "Data Sharing",
+      dataSharingText: "We do not sell your data. We may share information with service providers who help us operate the platform.",
+      dataSecurity: "Security",
+      dataSecurityText: "We implement security measures to protect your data against unauthorized access.",
+      yourRights: "Your Rights",
+      yourRightsText: "You have the right to access, correct, or delete your personal data. Contact us to exercise these rights.",
+      cookies: "Cookies",
+      cookiesText: "We use cookies to improve your experience. See our Cookie Policy for more details.",
+      dataRetention: "Data Retention",
+      dataRetentionText: "We keep your data only for as long as necessary to fulfill the purposes described.",
+      thirdParty: "Third-Party Integrations",
+      thirdPartyText: "We may integrate with third-party services such as Google Maps and payment providers.",
+      cookiePolicyTitle: "Cookie Policy",
+      whatAreCookies: "What Are Cookies?",
+      whatAreCookiesText: "Cookies are small text files stored on your device when you visit our website.",
+      howWeUseCookies: "How We Use Cookies",
+      howWeUseCookiesText: "We use cookies to improve site functionality, analyze traffic, and personalize content.",
+      cookieTypes: {
+        essential: "Essential Cookies: Necessary for site functionality",
+        analytics: "Analytics Cookies: Help us understand how you use the site",
+        marketing: "Marketing Cookies: Used for personalized advertising"
+      },
+      denunciationTitle: "Whistleblowing Channel",
+      denunciationIntro: "This channel allows you to report irregularities safely and confidentially.",
+      anonymous: "Anonymous Submission",
+      anonymousText: "You can submit your report anonymously",
+      subject: "Subject",
+      description: "Description",
+      descriptionPlaceholder: "Describe the situation with as much detail as possible...",
+      attachments: "Attachments",
+      contactDetails: "Contact Details (Optional)",
+      acceptTerms: "I accept the terms and conditions",
+      submitDenunciation: "Submit Report",
+      denunciationSuccess: "Report submitted successfully",
+      denunciationError: "Error submitting report",
+      manageDataTitle: "Manage Your Data",
+      manageDataIntro: "According to GDPR, you have the right to manage your personal data.",
+      yourRightsList: {
+        access: "Access: You can request a copy of your data",
+        rectification: "Rectification: You can correct inaccurate data",
+        erasure: "Erasure: You can request deletion of your data",
+        portability: "Portability: You can receive your data in a structured format",
+        objection: "Objection: You can object to the processing of your data"
+      },
+      exerciseRights: "To exercise these rights, contact us at:",
+      rgpdConsentTitle: "GDPR Consent",
+      rgpdConsentText: "By using this platform, you consent to the processing of your personal data in accordance with our Privacy Policy.",
+      acceptConsent: "I accept the Privacy Policy",
+      readPolicy: "Read Privacy Policy"
     }
   },
   es: {
