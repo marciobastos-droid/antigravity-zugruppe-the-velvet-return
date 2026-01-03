@@ -327,6 +327,20 @@ export default function ClientDatabase() {
       console.log('Updating contact:', id, data);
       const result = await base44.entities.ClientContact.update(id, data);
       console.log('Update result:', result);
+      
+      // Se o assigned_agent mudou, sincronizar com oportunidades
+      if (data.assigned_agent !== undefined) {
+        try {
+          await base44.functions.invoke('syncAgentBetweenContactAndOpportunity', {
+            entityType: 'contact',
+            entityId: id,
+            newAgent: data.assigned_agent
+          });
+        } catch (err) {
+          console.error('Erro ao sincronizar agente:', err);
+        }
+      }
+      
       return result;
     },
     onSuccess: async (_, variables) => {
@@ -337,6 +351,7 @@ export default function ClientDatabase() {
       
       toast.success("Contacto atualizado");
       await queryClient.invalidateQueries({ queryKey: ['clientContacts'] });
+      await queryClient.invalidateQueries({ queryKey: ['opportunities'] });
 
       // Refresh selectedClient with updated data from the server
       if (selectedClient && selectedClient.id === variables.id) {

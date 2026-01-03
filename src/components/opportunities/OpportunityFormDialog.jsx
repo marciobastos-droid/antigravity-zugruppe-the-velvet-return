@@ -207,14 +207,16 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
         }
       }
       
-      // Atualizar o assigned_agent do contacto se estiver definido assigned_to
-      if (data.assigned_to && contactId) {
+      // Sincronizar assigned_agent entre oportunidade e contacto
+      if (contactId) {
         try {
-          await base44.entities.ClientContact.update(contactId, { 
-            assigned_agent: data.assigned_to 
+          await base44.functions.invoke('syncAgentBetweenContactAndOpportunity', {
+            entityType: 'opportunity',
+            entityId: isEditing ? opportunity.id : result.id,
+            newAgent: data.assigned_to || null
           });
         } catch (err) {
-          console.error("Erro ao atualizar contacto com assigned_agent:", err);
+          console.error("Erro ao sincronizar agente:", err);
         }
       }
       
