@@ -42,7 +42,6 @@ import VisitorTracker from "../components/tracking/VisitorTracker";
 import SmartContactSection from "../components/website/SmartContactSection";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
-import InstitucionalContent from "../components/website/InstitucionalContent";
 
 // Lazy load non-critical sections
 const BlogSection = React.lazy(() => import("../components/blog/BlogSection"));
@@ -209,7 +208,14 @@ export default function Website() {
 
   const activeProperties = properties.filter(p => p.status === 'active');
   
-  // Remove redirect logic - now handled within tabs
+  // Redirect to dedicated pages for premium and worldwide
+  React.useEffect(() => {
+    if (activeTab === "premium") {
+      window.location.href = createPageUrl("PremiumLuxury");
+    } else if (activeTab === "worldwide") {
+      window.location.href = createPageUrl("WorldWideProperties");
+    }
+  }, [activeTab]);
 
   // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
@@ -617,6 +623,7 @@ export default function Website() {
                     <TabsTrigger 
                       value="all" 
                       className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm"
+                      onClick={() => window.location.href = createPageUrl("Institucional")}
                     >
                       <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden lg:inline">Sobre Nós</span>
@@ -1098,13 +1105,6 @@ export default function Website() {
       {/* AI Chat Widget */}
       <AIChatWidget />
 
-      {/* Tab Content - Institucional */}
-      {activeTab === "all" && (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <InstitucionalContent />
-        </div>
-      )}
-
       {/* Register Prompt for Guests */}
       <RegisterPromptDialog 
         open={showRegisterPrompt} 
@@ -1112,8 +1112,8 @@ export default function Website() {
         favoritesCount={favoritesCount}
       />
 
-      {/* Featured Properties - only show for property tabs */}
-      {(activeTab === "residential" || activeTab === "commercial" || activeTab === "premium" || activeTab === "worldwide") && layout.showFeatured && featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
+      {/* Featured Properties */}
+      {layout.showFeatured && featuredProperties.length > 0 && !hasActiveFilters && !debouncedSearch && (
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-8 sm:py-12">
           <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <div className="p-1.5 sm:p-2 bg-amber-100 rounded-lg">
@@ -1141,8 +1141,7 @@ export default function Website() {
         </div>
       )}
 
-      {/* Results Section - only show for property tabs */}
-      {(activeTab === "residential" || activeTab === "commercial" || activeTab === "premium" || activeTab === "worldwide") && (
+      {/* Results Section */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
         {/* Results Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -1321,37 +1320,32 @@ export default function Website() {
             </Button>
           </div>
         )}
-        </div>
-        )}
+      </div>
 
-        {/* Blog Section - only show for property tabs */}
-        {(activeTab === "residential" || activeTab === "commercial" || activeTab === "premium" || activeTab === "worldwide") && (
-        <React.Suspense fallback={<div className="h-64" />}>
-          <BlogSection maxPosts={3} showHeader={true} />
-        </React.Suspense>
-        )}
+      {/* Blog Section */}
+      <React.Suspense fallback={<div className="h-64" />}>
+        <BlogSection maxPosts={3} showHeader={true} />
+      </React.Suspense>
 
-      {/* Contact Section - only show for property tabs */}
-      {(activeTab === "residential" || activeTab === "commercial" || activeTab === "premium" || activeTab === "worldwide") && (
-        <SmartContactSection
-          title={activeTab === "residential" 
-            ? "Encontre o Seu Lar Ideal"
-            : activeTab === "commercial"
-            ? "O Espaço Perfeito para o Seu Negócio"
-            : "Como Podemos Ajudar?"}
-          subtitle={activeTab === "residential"
-            ? "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos"
-            : activeTab === "commercial"
-            ? "Soluções comerciais personalizadas para o seu sucesso"
-            : "Preencha o formulário e entraremos em contacto consigo"}
-          showContactInfo={true}
-          className={activeTab === "residential"
-            ? "bg-gradient-to-br from-red-50 to-pink-50"
-            : activeTab === "commercial"
-            ? "bg-gradient-to-br from-slate-50 to-gray-100"
-            : "bg-gradient-to-br from-blue-50 to-indigo-50"}
-        />
-      )}
+      {/* Contact Section */}
+      <SmartContactSection
+        title={activeTab === "residential" 
+          ? "Encontre o Seu Lar Ideal"
+          : activeTab === "commercial"
+          ? "O Espaço Perfeito para o Seu Negócio"
+          : "Como Podemos Ajudar?"}
+        subtitle={activeTab === "residential"
+          ? "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos"
+          : activeTab === "commercial"
+          ? "Soluções comerciais personalizadas para o seu sucesso"
+          : "Preencha o formulário e entraremos em contacto consigo"}
+        showContactInfo={true}
+        className={activeTab === "residential"
+          ? "bg-gradient-to-br from-red-50 to-pink-50"
+          : activeTab === "commercial"
+          ? "bg-gradient-to-br from-slate-50 to-gray-100"
+          : "bg-gradient-to-br from-blue-50 to-indigo-50"}
+      />
 
           {/* Footer Legal */}
           <footer className="bg-slate-900 text-white py-8 mt-0">
