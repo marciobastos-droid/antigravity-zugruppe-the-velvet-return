@@ -920,7 +920,8 @@ export default function MyListings() {
         { value: "Brazil", label: "🇧🇷 Brasil" },
         { value: "Angola", label: "🇦🇴 Angola" }
       ],
-      advanced: true
+      advanced: true,
+      customFilter: true
     },
     state: {
       type: FILTER_TYPES.select,
@@ -1172,6 +1173,15 @@ export default function MyListings() {
         if (!p.published_pages || p.published_pages.length === 0) return false;
         return filters.published_pages.some(page => p.published_pages.includes(page));
       });
+    }
+    
+    // Filtro de país (suporte para "international")
+    if (filters.country && filters.country !== "all") {
+      if (filters.country === "international") {
+        filtered = filtered.filter(p => p.country && p.country !== "Portugal");
+      } else {
+        filtered = filtered.filter(p => p.country === filters.country);
+      }
     }
     
     // Aplicar ordenação

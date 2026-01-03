@@ -71,6 +71,9 @@ export default function QuickFilterBadges({
       zuhandel: properties.filter(p => p.published_pages?.includes('zuhandel')).length,
       luxury: properties.filter(p => p.published_pages?.includes('luxury_collection')).length,
       
+      // Internacionais
+      international: properties.filter(p => p.country && p.country !== 'Portugal').length,
+      
       // Empreendimentos
       withDevelopment: properties.filter(p => p.development_id).length,
       withoutDevelopment: properties.filter(p => !p.development_id).length,
@@ -207,6 +210,20 @@ export default function QuickFilterBadges({
             <span className="font-medium">Premium Luxo</span>
             <span className="opacity-60">({stats.luxury})</span>
             {filters.published_pages?.includes('luxury_collection') && <X className="w-2.5 h-2.5 ml-0.5" />}
+          </Badge>
+
+          <Badge
+            onClick={() => toggleFilter('country', 'international')}
+            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+              filters.country === 'international'
+                ? "bg-blue-600 text-white border-blue-600"
+                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+            }`}
+          >
+            <Globe className="w-3 h-3" />
+            <span className="font-medium">Imóveis Internacionais</span>
+            <span className="opacity-60">({stats.international})</span>
+            {filters.country === 'international' && <X className="w-2.5 h-2.5 ml-0.5" />}
           </Badge>
 
           <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
