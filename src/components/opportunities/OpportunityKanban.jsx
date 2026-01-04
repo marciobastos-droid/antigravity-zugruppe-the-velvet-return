@@ -351,7 +351,7 @@ export default function OpportunityKanban({
                                 )}
 
                                 {/* Associated Properties */}
-                                {opp.associated_properties?.length > 0 && (
+                                {Array.isArray(opp.associated_properties) && opp.associated_properties.length > 0 && (
                                   <div className={`${opp.property_id ? 'mt-0.5' : 'mt-1 pt-1 border-t'}`}>
                                     <div className="flex items-center gap-1 text-[0.65rem] text-slate-500">
                                       <Building2 className="w-3 h-3" />
