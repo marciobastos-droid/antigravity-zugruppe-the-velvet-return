@@ -720,12 +720,22 @@ Extrai:
   };
 
   const handleAssociateProperty = async (propertyId) => {
-    const property = properties.find(p => p.id === propertyId);
-    if (property) {
+    if (!propertyId) {
+      // Remover associação
       await onUpdate(lead.id, { 
-        property_id: propertyId,
-        property_title: property.title
+        property_id: null,
+        property_title: null
       });
+      toast.success('Imóvel principal removido');
+    } else {
+      const property = properties.find(p => p.id === propertyId);
+      if (property) {
+        await onUpdate(lead.id, { 
+          property_id: propertyId,
+          property_title: property.title
+        });
+        toast.success('Imóvel principal associado');
+      }
     }
   };
 
