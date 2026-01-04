@@ -78,6 +78,7 @@ import ErrorLogsAdmin from "../components/admin/ErrorLogsAdmin";
 import LandingPageBuilder from "../components/website/LandingPageBuilder";
 import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
 import SEOManager from "../components/website/SEOManager";
+import ActivityFeedViewer from "../components/admin/ActivityFeedViewer";
 
 export default function Tools() {
   // Auth check - redirect to login if not authenticated
@@ -155,7 +156,7 @@ export default function Tools() {
       finance: ['commissions', 'invoices'],
       investors: ['investorKeys', 'investorProperties'],
       settings: ['contractAutomation', 'documents', 'notificationsDashboard', 'smtpConfig', 'devNotes', 
-                 'tagManager', 'backupManager', 'auditLog']
+                 'tagManager', 'backupManager', 'auditLog', 'activityFeed']
     };
 
     const defaultTools = groupMap[groupId] || [];
@@ -357,7 +358,8 @@ export default function Tools() {
     devNotes: { description: "Notas e sugestões de desenvolvimento" },
     tagManager: { description: "Gerir etiquetas e categorias" },
     backupManager: { description: "Criar e restaurar backups de dados" },
-    auditLog: { description: "Visualizar logs de atividade do sistema" }
+    auditLog: { description: "Visualizar logs de atividade do sistema" },
+    activityFeed: { description: "Feed cronológico de todas as atividades do sistema" }
   };
 
   // Helper para expandir grupo e fazer scroll para ferramenta
@@ -400,7 +402,7 @@ export default function Tools() {
     investorKeys: 'investors', investorProperties: 'investors',
     contractAutomation: 'settings', documents: 'settings', notificationsDashboard: 'settings',
     smtpConfig: 'settings', devNotes: 'settings', tagManager: 'settings',
-    backupManager: 'settings', auditLog: 'settings'
+    backupManager: 'settings', auditLog: 'settings', activityFeed: 'settings'
   }), []);
 
   // Helper to render tool button with permission check - oculta se não permitido
@@ -1508,7 +1510,7 @@ export default function Tools() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-slate-100 text-slate-700">
-                          8 ferramentas
+                          9 ferramentas
                         </Badge>
                         <motion.div
                           animate={{ rotate: expandedGroups.settings ? 180 : 0 }}
@@ -1543,7 +1545,8 @@ export default function Tools() {
                                     devNotes: { icon: StickyNote, label: "Notas & Sugestões" },
                                     tagManager: { icon: Target, label: "Etiquetas" },
                                     backupManager: { icon: Database, label: "Gestor de Backups" },
-                                    auditLog: { icon: FileText, label: "Logs de Atividade" }
+                                    auditLog: { icon: FileText, label: "Logs de Atividade" },
+                                    activityFeed: { icon: Activity, label: "Feed de Atividades" }
                                   }[toolId];
                                   
                                   if (!toolMeta) return null;
@@ -1635,6 +1638,7 @@ export default function Tools() {
         <div ref={el => toolRefs.current['content-propertyFeeds'] = el}>{activeTab === "propertyFeeds" && <PropertyFeedsManager />}</div>
         <div ref={el => toolRefs.current['content-externalSync'] = el}>{activeTab === "externalSync" && <ExternalDataSync />}</div>
         <div ref={el => toolRefs.current['content-auditLog'] = el}>{activeTab === "auditLog" && <AuditLogViewer />}</div>
+        <div ref={el => toolRefs.current['content-activityFeed'] = el}>{activeTab === "activityFeed" && <ActivityFeedViewer />}</div>
         <div ref={el => toolRefs.current['content-casafariSync'] = el}>{activeTab === "casafariSync" && <CasafariSync />}</div>
         <div ref={el => toolRefs.current['content-notificationsDashboard'] = el}>{activeTab === "notificationsDashboard" && <NotificationsDashboard />}</div>
         <div ref={el => toolRefs.current['content-investorKeys'] = el}>{activeTab === "investorKeys" && <InvestorKeysManager />}</div>
