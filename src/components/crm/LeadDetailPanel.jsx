@@ -1235,6 +1235,24 @@ Extrai:
                       </Button>
                       <Button
                         size="sm"
+                        variant="destructive"
+                        onClick={async () => {
+                          if (window.confirm(`Remover ${selectedPropertyIndexes.length} imóve${selectedPropertyIndexes.length > 1 ? 'is' : 'l'} selecionado${selectedPropertyIndexes.length > 1 ? 's' : ''}?`)) {
+                            const updated = [...(lead.associated_properties || [])];
+                            // Ordenar índices de forma decrescente para remover corretamente
+                            const sortedIndexes = [...selectedPropertyIndexes].sort((a, b) => b - a);
+                            sortedIndexes.forEach(idx => updated.splice(idx, 1));
+                            await onUpdate(lead.id, { associated_properties: updated });
+                            setSelectedPropertyIndexes([]);
+                            toast.success(`${selectedPropertyIndexes.length} imóve${selectedPropertyIndexes.length > 1 ? 'is removidos' : 'l removido'}`);
+                          }
+                        }}
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Eliminar
+                      </Button>
+                      <Button
+                        size="sm"
                         variant="outline"
                         onClick={() => setSelectedPropertyIndexes([])}
                       >
