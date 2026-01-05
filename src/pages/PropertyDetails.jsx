@@ -882,19 +882,23 @@ export default function PropertyDetails() {
                   </div>
                 )}
 
-                {/* Tags */}
-                {property.tags && property.tags.length > 0 && (
-                  <div className="py-6">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('property.details.tags')}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {property.tags.map((tag, idx) => (
-                        <Badge key={idx} variant="outline" className="text-sm">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* WhatsApp Contact */}
+                <div className="py-6">
+                  <a
+                    href={`https://wa.me/351910239889?text=${encodeURIComponent(`Olá, tenho interesse neste imóvel ${property.ref_id || property.id}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button className="w-full bg-green-500 hover:bg-green-600 text-white h-14 text-lg">
+                      <MessageCircle className="w-6 h-6 mr-2" />
+                      Contactar via WhatsApp
+                    </Button>
+                  </a>
+                  <p className="text-xs text-slate-500 text-center mt-2">
+                    {property.ref_id ? `Ref: ${property.ref_id}` : `ID: ${property.id}`}
+                  </p>
+                </div>
                 </CardContent>
                 </Card>
 
