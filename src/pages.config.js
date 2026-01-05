@@ -12,7 +12,6 @@ import Home from './pages/Home';
 import Institucional from './pages/Institucional';
 import ManageData from './pages/ManageData';
 import MetaAdsCreator from './pages/MetaAdsCreator';
-import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
 import PremiumLuxury from './pages/PremiumLuxury';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -29,6 +28,7 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import MyListings from './pages/MyListings';
 import __Layout from './Layout.jsx';
 
 
@@ -47,7 +47,6 @@ export const PAGES = {
     "Institucional": Institucional,
     "ManageData": ManageData,
     "MetaAdsCreator": MetaAdsCreator,
-    "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
     "PremiumLuxury": PremiumLuxury,
     "PrivacyPolicy": PrivacyPolicy,
@@ -64,6 +63,7 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "MyListings": MyListings,
 }
 
 export const pagesConfig = {
