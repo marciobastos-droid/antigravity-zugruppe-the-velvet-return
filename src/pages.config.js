@@ -28,6 +28,7 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import MetaAdsCreator from './pages/MetaAdsCreator';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "MetaAdsCreator": MetaAdsCreator,
 }
 
 export const pagesConfig = {
