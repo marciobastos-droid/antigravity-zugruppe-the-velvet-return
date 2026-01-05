@@ -1553,25 +1553,24 @@ return (
          prevProps.locale === nextProps.locale;
     });
 
-    // List Card for List View - Highly Optimized Memoization
-    const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
-    const image = property.images?.[0];
-    const translatedProperty = useTranslatedProperty(property);
+// List Card for List View - Highly Optimized Memoization
+const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
+  const image = property.images?.[0];
+  const translatedProperty = useTranslatedProperty(property);
 
-    const handleCardClick = () => {
-      if (!property.id) {
-        console.error('[PropertyCard] Missing property ID:', property);
-        return;
-      }
-      window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
-    };
+  const handleCardClick = () => {
+    if (!property.id) {
+      console.error('[PropertyCard] Missing property ID:', property);
+      return;
+    }
+    window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
+  };
 
-    return (
+  return (
     <div 
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative cursor-pointer"
       onClick={handleCardClick}
     >
-      <div className="flex flex-1">
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
         {image ? (
