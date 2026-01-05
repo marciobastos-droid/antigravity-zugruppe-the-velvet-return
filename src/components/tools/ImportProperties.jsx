@@ -330,6 +330,10 @@ export default function ImportProperties() {
   const [selectedRows, setSelectedRows] = React.useState([]);
   const [editingRow, setEditingRow] = React.useState(null);
   const [showPreview, setShowPreview] = React.useState(false);
+  const [extractedData, setExtractedData] = React.useState([]);
+  const [showExtractedPreview, setShowExtractedPreview] = React.useState(false);
+  const [editingProperty, setEditingProperty] = React.useState(null);
+  const [duplicateCheck, setDuplicateCheck] = React.useState({ checked: false, duplicates: [] });
   
   const [useImageExtractor, setUseImageExtractor] = React.useState(true);
   const [extractingImages, setExtractingImages] = React.useState(false);
@@ -741,6 +745,25 @@ export default function ImportProperties() {
 
 
 
+  const checkDuplicates = async (properties) => {
+    const existingProperties = await base44.entities.Property.list('-created_date', 2000);
+    const duplicates = [];
+    
+    properties.forEach(prop => {
+      if (prop.source_url) {
+        const existing = existingProperties.find(ep => ep.source_url === prop.source_url);
+        if (existing) {
+          duplicates.push({
+            new: prop,
+            existing: existing
+          });
+        }
+      }
+    });
+    
+    return duplicates;
+  };
+
   const importFromURL = async () => {
     if (!url || !url.trim()) {
       toast.error("Por favor, cole um link válido");
@@ -750,6 +773,7 @@ export default function ImportProperties() {
     setImporting(true);
     setValidationDetails(null);
     setResults(null);
+    setDuplicateCheck({ checked: false, duplicates: [] });
     const portal = detectPortal(url);
     setProgress(`A analisar página de ${portal.name}...`);
     toast.info(`A processar link de ${portal.name}...`);
@@ -984,13 +1008,31 @@ IMPORTANTE:
       const propertiesWithTags = await Promise.all(
         processedProperties.map(async (p) => {
           const tags = await generatePropertyTags(p);
-          // Adicionar tag "Porta da Frente" se for desta rede
           const finalTags = portal.name === "Porta da Frente" 
             ? [...(tags || []), "porta da frente"]
             : tags;
           return { ...p, tags: finalTags };
         })
       );
+
+      // Check for duplicates
+      setProgress("A verificar duplicatas...");
+      const duplicates = await checkDuplicates(propertiesWithTags);
+      
+      if (duplicates.length > 0) {
+        setDuplicateCheck({ checked: true, duplicates });
+        toast.warning(`${duplicates.length} duplicado(s) encontrado(s)!`);
+      }
+
+      // Show preview for editing before saving
+      setExtractedData(propertiesWithTags.map((p, idx) => ({
+        ...p,
+        isDuplicate: duplicates.some(d => d.new.source_url === p.source_url),
+        _tempId: `temp_${idx}`
+      })));
+      setShowExtractedPreview(true);
+      setImporting(false);
+      return;
 
       setProgress("A guardar no sistema...");
 
@@ -2100,6 +2142,314 @@ Retorna array de imóveis com o máximo de detalhes possível.`,
       </Card>
 
       {/* CSV Preview Dialog */}
+      {/* Preview Extracted Data Dialog */}
+      <Dialog open={showExtractedPreview} onOpenChange={setShowExtractedPreview}>
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Preview de Dados Extraídos ({extractedData.length} imóveis)</span>
+              {duplicateCheck.duplicates.length > 0 && (
+                <Badge className="bg-amber-500">
+                  {duplicateCheck.duplicates.length} duplicado(s)
+                </Badge>
+              )}
+            </DialogTitle>
+            <p className="text-sm text-slate-500">Reveja e edite os dados antes de importar</p>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto space-y-3">
+            {extractedData.map((prop, idx) => (
+              <Card key={prop._tempId} className={prop.isDuplicate ? "border-2 border-amber-400 bg-amber-50/30" : ""}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-slate-900">{prop.title}</h4>
+                        {prop.isDuplicate && (
+                          <Badge className="bg-amber-500 text-white">Duplicado</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {prop.city} • {prop.property_type} • {prop.listing_type}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEditingProperty({ ...prop, _index: idx })}
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setExtractedData(extractedData.filter((_, i) => i !== idx))}
+                        className="text-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <div>
+                      <span className="text-slate-500 text-xs">Preço:</span>
+                      <p className="font-medium">€{prop.price?.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">Quartos:</span>
+                      <p className="font-medium">{prop.bedrooms || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">Área:</span>
+                      <p className="font-medium">{prop.square_feet || prop.useful_area || '-'}m²</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">Imagens:</span>
+                      <p className="font-medium">{prop.images?.length || 0}</p>
+                    </div>
+                  </div>
+
+                  {prop.source_url && (
+                    <div className="mt-2 text-xs text-blue-600 flex items-center gap-1 truncate">
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      <a href={prop.source_url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">
+                        {prop.source_url}
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex gap-2 justify-end pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowExtractedPreview(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={async () => {
+                if (extractedData.length === 0) {
+                  toast.error("Nenhum imóvel para importar");
+                  return;
+                }
+
+                setImporting(true);
+                setProgress("A guardar imóveis...");
+
+                try {
+                  const { data: refData } = await base44.functions.invoke('generateRefId', { 
+                    entity_type: 'Property', 
+                    count: extractedData.length 
+                  });
+                  const refIds = refData.ref_ids || [refData.ref_id];
+
+                  const propertiesWithRefIds = extractedData.map((p, index) => {
+                    const { _tempId, isDuplicate, _index, ...cleanProp } = p;
+                    return {
+                      ...cleanProp,
+                      ref_id: refIds[index],
+                      status: "active",
+                      address: cleanProp.address || cleanProp.city,
+                      state: cleanProp.state || cleanProp.city,
+                      is_partner_property: propertyOwnership === "partner",
+                      partner_id: propertyOwnership === "partner" ? selectedPartner?.id : undefined,
+                      partner_name: propertyOwnership === "partner" ? selectedPartner?.name : 
+                                    propertyOwnership === "private" ? privateOwnerName : undefined,
+                      internal_notes: propertyOwnership === "private" && privateOwnerPhone ? 
+                                     `Proprietário particular: ${privateOwnerName} - Tel: ${privateOwnerPhone}` : undefined
+                    };
+                  });
+
+                  const importResults = await bulkCreateOrUpdate(base44, propertiesWithRefIds);
+                  const totalProcessed = importResults.created.length + importResults.updated.length;
+
+                  setResults({
+                    success: true,
+                    count: totalProcessed,
+                    properties: [...importResults.created, ...importResults.updated],
+                    message: `✅ ${totalProcessed} imóveis processados!\n📥 ${importResults.created.length} criados\n🔄 ${importResults.updated.length} atualizados`
+                  });
+
+                  await queryClient.invalidateQueries({ queryKey: ['properties'] });
+                  await queryClient.invalidateQueries({ queryKey: ['myProperties'] });
+                  toast.success(`${totalProcessed} imóveis importados!`);
+                  setShowExtractedPreview(false);
+                  setExtractedData([]);
+                } catch (error) {
+                  toast.error("Erro ao guardar imóveis");
+                }
+                setImporting(false);
+              }}
+              disabled={importing || extractedData.length === 0}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  A guardar...
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Importar {extractedData.length} Imóveis
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Property Dialog */}
+      <Dialog open={!!editingProperty} onOpenChange={(open) => !open && setEditingProperty(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Imóvel</DialogTitle>
+          </DialogHeader>
+          {editingProperty && (
+            <div className="space-y-4">
+              <div>
+                <Label>Título</Label>
+                <Input
+                  value={editingProperty.title}
+                  onChange={(e) => setEditingProperty({...editingProperty, title: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Descrição</Label>
+                <Textarea
+                  value={editingProperty.description || ""}
+                  onChange={(e) => setEditingProperty({...editingProperty, description: e.target.value})}
+                  rows={4}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Preço (€)</Label>
+                  <Input
+                    type="number"
+                    value={editingProperty.price || ""}
+                    onChange={(e) => setEditingProperty({...editingProperty, price: parseFloat(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>Área (m²)</Label>
+                  <Input
+                    type="number"
+                    value={editingProperty.square_feet || editingProperty.useful_area || ""}
+                    onChange={(e) => setEditingProperty({...editingProperty, square_feet: parseFloat(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label>Quartos</Label>
+                  <Input
+                    type="number"
+                    value={editingProperty.bedrooms || ""}
+                    onChange={(e) => setEditingProperty({...editingProperty, bedrooms: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>WCs</Label>
+                  <Input
+                    type="number"
+                    value={editingProperty.bathrooms || ""}
+                    onChange={(e) => setEditingProperty({...editingProperty, bathrooms: parseInt(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <Label>Ano</Label>
+                  <Input
+                    type="number"
+                    value={editingProperty.year_built || ""}
+                    onChange={(e) => setEditingProperty({...editingProperty, year_built: parseInt(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Cidade</Label>
+                <Input
+                  value={editingProperty.city || ""}
+                  onChange={(e) => setEditingProperty({...editingProperty, city: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Distrito</Label>
+                <Input
+                  value={editingProperty.state || ""}
+                  onChange={(e) => setEditingProperty({...editingProperty, state: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Morada</Label>
+                <Input
+                  value={editingProperty.address || ""}
+                  onChange={(e) => setEditingProperty({...editingProperty, address: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Tipo de Imóvel</Label>
+                  <Select
+                    value={editingProperty.property_type}
+                    onValueChange={(value) => setEditingProperty({...editingProperty, property_type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="apartment">Apartamento</SelectItem>
+                      <SelectItem value="house">Moradia</SelectItem>
+                      <SelectItem value="land">Terreno</SelectItem>
+                      <SelectItem value="building">Prédio</SelectItem>
+                      <SelectItem value="farm">Quinta</SelectItem>
+                      <SelectItem value="store">Loja</SelectItem>
+                      <SelectItem value="warehouse">Armazém</SelectItem>
+                      <SelectItem value="office">Escritório</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Tipo de Negócio</Label>
+                  <Select
+                    value={editingProperty.listing_type}
+                    onValueChange={(value) => setEditingProperty({...editingProperty, listing_type: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sale">Venda</SelectItem>
+                      <SelectItem value="rent">Arrendamento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setEditingProperty(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => {
+                    const updated = [...extractedData];
+                    updated[editingProperty._index] = editingProperty;
+                    setExtractedData(updated);
+                    setEditingProperty(null);
+                    toast.success("Dados atualizados");
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Guardar Alterações
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showPreview} onOpenChange={setShowPreview}>
         <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
           <DialogHeader>
