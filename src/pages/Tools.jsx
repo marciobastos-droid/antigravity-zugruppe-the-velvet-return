@@ -81,15 +81,6 @@ import SEOManager from "../components/website/SEOManager";
 import ActivityFeedViewer from "../components/admin/ActivityFeedViewer";
 
 export default function Tools() {
-  // Auth check - redirect to login if not authenticated
-  React.useEffect(() => {
-    base44.auth.isAuthenticated().then(isAuth => {
-      if (!isAuth) {
-        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
-      }
-    });
-  }, []);
-
   const [activeTab, setActiveTab] = useState("importProperties");
   const [importContactsOpen, setImportContactsOpen] = useState(false);
   const [linkingContacts, setLinkingContacts] = useState(false);

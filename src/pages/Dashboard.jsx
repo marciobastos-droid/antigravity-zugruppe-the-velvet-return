@@ -48,15 +48,6 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { getAgentName } = useAgentNames();
 
-  // Auth check - redirect to login if not authenticated
-  React.useEffect(() => {
-    base44.auth.isAuthenticated().then(isAuth => {
-      if (!isAuth) {
-        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
-      }
-    });
-  }, []);
-
   // Load user's widget preferences
   const defaultWidgets = AVAILABLE_WIDGETS.filter(w => w.default).map(w => w.id);
   const [activeWidgets, setActiveWidgets] = React.useState(defaultWidgets);
