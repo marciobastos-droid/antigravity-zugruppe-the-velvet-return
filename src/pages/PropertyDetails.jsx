@@ -57,6 +57,7 @@ import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
 import InternationalSEO from "../components/seo/InternationalSEO";
 import AutoTranslateButton from "../components/property/AutoTranslateButton";
+import SendWhatsAppDialog from "../components/whatsapp/SendWhatsAppDialog";
 
 export default function PropertyDetails() {
   const { t, locale } = useLocalization();
@@ -85,6 +86,7 @@ export default function PropertyDetails() {
   const [sendingMessage, setSendingMessage] = React.useState(false);
   const [messageSent, setMessageSent] = React.useState(false);
   const [appointmentScheduled, setAppointmentScheduled] = React.useState(false);
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = React.useState(false);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const queryClient = useQueryClient();
@@ -1053,15 +1055,25 @@ export default function PropertyDetails() {
 
                     <div className="space-y-2">
                       {assignedConsultant.whatsapp && (
-                        <a 
-                          href={`https://wa.me/${assignedConsultant.whatsapp.replace(/[^0-9]/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-green-700 hover:text-green-600 transition-colors"
-                        >
-                          <MessageCircle className="w-4 h-4 flex-shrink-0" />
-                          <span className="truncate">WhatsApp</span>
-                        </a>
+                        <>
+                          <a 
+                            href={`https://wa.me/${assignedConsultant.whatsapp.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-green-700 hover:text-green-600 transition-colors"
+                          >
+                            <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                            <span className="truncate">WhatsApp</span>
+                          </a>
+                          <Button
+                            size="sm"
+                            onClick={() => setShowWhatsAppDialog(true)}
+                            className="bg-green-600 hover:bg-green-700 w-full mt-2"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Enviar Mensagem
+                          </Button>
+                        </>
                       )}
                       {assignedConsultant.phone && (
                         <a 
@@ -1236,6 +1248,17 @@ export default function PropertyDetails() {
             />
           </React.Suspense>
         )}
+
+        <SendWhatsAppDialog
+          open={showWhatsAppDialog}
+          onOpenChange={setShowWhatsAppDialog}
+          recipient={{ 
+            phone: assignedConsultant?.whatsapp || assignedConsultant?.phone,
+            name: assignedConsultant?.display_name || assignedConsultant?.full_name
+          }}
+          property={property}
+          context="property"
+        />
         </div>
       </div>
     </HelmetProvider>
