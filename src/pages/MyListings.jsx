@@ -820,8 +820,7 @@ export default function MyListings() {
       type: FILTER_TYPES.text,
       label: "Pesquisar",
       placeholder: "Título, cidade, morada, ref...",
-      searchFields: ["title", "city", "address", "ref_id", "description"],
-      customFilter: true
+      searchFields: ["title", "city", "address", "ref_id", "description"]
     },
     status: {
       type: FILTER_TYPES.select,
@@ -1089,37 +1088,10 @@ export default function MyListings() {
 
   // Aplicar filtros avançados
   const baseFilteredProperties = useAdvancedFilters(properties, filters, filterConfig, filterLogic);
-
+  
   // Aplicar filtros customizados e ordenação
   const filteredProperties = useMemo(() => {
     let filtered = baseFilteredProperties;
-
-    // Filtro de pesquisa personalizado - incluir imóveis de empreendimentos pesquisados
-    if (filters.search && filters.search.trim()) {
-      const searchTerm = filters.search.toLowerCase().trim();
-
-      // Encontrar empreendimentos que correspondem à pesquisa
-      const matchingDevelopments = developments.filter(dev => 
-        dev.name?.toLowerCase().includes(searchTerm)
-      );
-
-      if (matchingDevelopments.length > 0) {
-        // Adicionar imóveis desses empreendimentos aos resultados
-        const developmentPropertyIds = matchingDevelopments.flatMap(dev => 
-          properties
-            .filter(p => p.development_id === dev.id)
-            .map(p => p.id)
-        );
-
-        // Mesclar com resultados existentes (sem duplicados)
-        const existingIds = new Set(filtered.map(p => p.id));
-        const additionalProperties = properties.filter(p => 
-          developmentPropertyIds.includes(p.id) && !existingIds.has(p.id)
-        );
-
-        filtered = [...filtered, ...additionalProperties];
-      }
-    }
     
     // Filtro de última importação
     const isLastImportActive = filters.last_import === true || filters.last_import === "true";
