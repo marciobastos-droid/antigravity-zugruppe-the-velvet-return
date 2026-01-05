@@ -39,9 +39,9 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // IDs da conta (substitua pelos seus valores reais)
-    const AD_ACCOUNT_ID = 'act_YOUR_AD_ACCOUNT_ID'; // TODO: Configurar
-    const PAGE_ID = 'YOUR_PAGE_ID'; // TODO: Configurar
+    // IDs da conta Zuhaus
+    const AD_ACCOUNT_ID = 'act_696259693360633';
+    const PAGE_ID = '103869062065954';
     
     console.log('🚀 Iniciando criação de campanha Meta...');
 
