@@ -1417,25 +1417,20 @@ const [imgIndex, setImgIndex] = React.useState(0);
 const images = property.images?.length > 0 ? property.images : [];
 const translatedProperty = useTranslatedProperty(property);
 
-const handleClick = (e) => {
-  e.preventDefault();
-  console.log('[PropertyCard] Clicking property:', property.id, property.ref_id, property.title);
+const handleCardClick = () => {
   if (!property.id) {
     console.error('[PropertyCard] Missing property ID:', property);
     return;
   }
-  const url = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
-  console.log('[PropertyCard] Navigating to:', url);
-  window.location.href = url;
+  window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
 };
 
 return (
-  <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative">
-    <a 
-      href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      onClick={handleClick}
-      className="block"
-    >
+  <div 
+    className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative cursor-pointer"
+    onClick={handleCardClick}
+  >
+    <div className="block">
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {images[imgIndex] ? (
@@ -1464,7 +1459,7 @@ return (
               {images.slice(0, 5).map((_, i) => (
                 <button
                   key={i}
-                  onClick={(e) => { e.preventDefault(); setImgIndex(i); }}
+                  onClick={(e) => { e.stopPropagation(); setImgIndex(i); }}
                   className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
                 />
               ))}
@@ -1564,8 +1559,7 @@ return (
     const image = property.images?.[0];
     const translatedProperty = useTranslatedProperty(property);
 
-    const handleClick = (e) => {
-      e.preventDefault();
+    const handleCardClick = () => {
       if (!property.id) {
         console.error('[PropertyCard] Missing property ID:', property);
         return;
@@ -1574,12 +1568,11 @@ return (
     };
 
     return (
-    <div className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative">
-      <a 
-        href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-        onClick={handleClick}
-        className="flex flex-1"
-      >
+    <div 
+      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="flex flex-1">
       {/* Image */}
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
         {image ? (
@@ -1677,12 +1670,11 @@ return (
           </div>
         </div>
       </div>
-      </a>
+      </div>
 
       {/* Favorite Button */}
       <button
         onClick={(e) => {
-          e.preventDefault();
           e.stopPropagation();
           onToggleFavorite?.(property);
         }}
