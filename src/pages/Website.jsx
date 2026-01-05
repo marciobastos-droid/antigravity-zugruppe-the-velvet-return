@@ -1668,11 +1668,6 @@ export default function Website() {
     </ErrorBoundary>
   );
 }
-
-
-
-// List Card for List View - Highly Optimized Memoization
-const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
   const image = property.images?.[0];
   const translatedProperty = useTranslatedProperty(property);
 
