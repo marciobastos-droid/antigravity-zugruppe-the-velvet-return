@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, ArrowRight, BookOpen } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { pt } from "date-fns/locale";
 import OptimizedImage from "../common/OptimizedImage";
 
 export default function BlogSection({ maxPosts = 3, showHeader = true }) {
@@ -100,7 +100,7 @@ export default function BlogSection({ maxPosts = 3, showHeader = true }) {
                   {post.published_date && (
                     <div className="flex items-center gap-1 text-xs text-slate-500">
                       <Calendar className="w-3 h-3" />
-                      {format(new Date(post.published_date), "d MMM yyyy", { locale: ptBR })}
+                      {format(new Date(post.published_date), "d MMM yyyy", { locale: pt })}
                     </div>
                   )}
                 </div>
