@@ -1091,11 +1091,17 @@ export default function Website() {
         </div>
       </div>
 
-      {/* Exit Intent Popup */}
-      <ExitIntentPopup />
+      {/* Exit Intent Popup - Desktop only */}
+      {typeof window !== 'undefined' && window.innerWidth >= 768 && (
+        <React.Suspense fallback={null}>
+          <ExitIntentPopup />
+        </React.Suspense>
+      )}
 
-      {/* AI Chat Widget */}
-      <AIChatWidget />
+      {/* AI Chat Widget - Lazy load */}
+      <React.Suspense fallback={null}>
+        <AIChatWidget />
+      </React.Suspense>
 
       {/* Register Prompt for Guests */}
       <RegisterPromptDialog 
@@ -1180,7 +1186,7 @@ export default function Website() {
                 variant={showMapView ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setShowMapView(!showMapView)}
-                className="rounded-none h-9 w-9 p-0"
+                className="rounded-none h-9 w-9 p-0 hidden sm:flex"
                 title="Vista Mapa"
               >
                 <MapPin className="w-4 h-4" />
@@ -1189,9 +1195,9 @@ export default function Website() {
           </div>
         </div>
 
-        {/* Map View */}
+        {/* Map View - Desktop only */}
         {showMapView && paginatedProperties.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8 hidden sm:block">
             <React.Suspense fallback={
               <div className="h-[600px] bg-slate-100 rounded-xl flex items-center justify-center">
                 <div className="text-center">
