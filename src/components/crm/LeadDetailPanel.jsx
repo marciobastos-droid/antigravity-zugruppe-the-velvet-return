@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { 
   X, User, Mail, Phone, MapPin, Building2, Calendar, MessageSquare, 
   Plus, CheckCircle2, Clock, Target, UserPlus, Search, Sparkles, Loader2, 
@@ -1113,12 +1115,18 @@ Extrai:
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-blue-900">{lead.property_title}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <Link 
+                      to={`${createPageUrl("PropertyDetails")}?id=${lead.property_id}`}
+                      className="font-medium text-blue-900 hover:text-blue-600 flex items-center gap-1 group flex-1 truncate"
+                    >
+                      <span className="truncate">{lead.property_title}</span>
+                      <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-xs text-red-600 hover:text-red-700"
+                      className="text-xs text-red-600 hover:text-red-700 flex-shrink-0"
                       onClick={() => handleAssociateProperty("")}
                     >
                       Remover
@@ -1325,7 +1333,13 @@ Extrai:
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{ap.property_title}</p>
+                          <Link 
+                            to={`${createPageUrl("PropertyDetails")}?id=${ap.property_id}`}
+                            className="text-sm font-medium truncate hover:text-blue-600 flex items-center gap-1 group"
+                          >
+                            <span className="truncate">{ap.property_title}</span>
+                            <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
                           <div className="flex flex-wrap gap-1 mt-1">
                             <Badge variant="outline" className="text-xs">
                               {ap.status === 'interested' ? 'Interessado' :
