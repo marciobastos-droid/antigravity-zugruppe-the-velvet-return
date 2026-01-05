@@ -31,6 +31,7 @@ import CommunicationPanel from "./CommunicationPanel";
 import AICommunicationAssistant from "./AICommunicationAssistant";
 import SendEmailDialog from "../email/SendEmailDialog";
 import EmailHistoryPanel from "../email/EmailHistoryPanel";
+import SendWhatsAppDialog from "../whatsapp/SendWhatsAppDialog";
 import LeadPropertyMatching from "./LeadPropertyMatching";
 import AILeadScoring from "../opportunities/AILeadScoring";
 import DocumentUploader from "../documents/DocumentUploader";
@@ -116,6 +117,7 @@ export default function LeadDetailPanel({ lead, onClose, onUpdate, properties = 
   const [visitRouteOpen, setVisitRouteOpen] = React.useState(false);
   const [pdfGeneratorOpen, setPdfGeneratorOpen] = React.useState(false);
   const [selectedPropertyIndexes, setSelectedPropertyIndexes] = React.useState([]);
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = React.useState(false);
 
   const { data: communications = [] } = useQuery({
     queryKey: ['communicationLogs', lead.id],
@@ -898,12 +900,15 @@ Extrai:
             </Button>
           )}
           {lead.buyer_phone && (
-            <a href={`https://wa.me/${lead.buyer_phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-              <Button size="sm" variant="secondary" className="bg-green-600/80 hover:bg-green-600 text-white border-0">
-                <MessageSquare className="w-4 h-4 mr-1" />
-                WhatsApp
-              </Button>
-            </a>
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-green-600/80 hover:bg-green-600 text-white border-0"
+              onClick={() => setShowWhatsAppDialog(true)}
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              WhatsApp
+            </Button>
           )}
           <Button 
             size="sm" 
@@ -1689,6 +1694,20 @@ Extrai:
         recipientEmail={lead.buyer_email}
         recipientName={lead.buyer_name}
         opportunityId={lead.id}
+      />
+
+      {/* WhatsApp Dialog */}
+      <SendWhatsAppDialog
+        open={showWhatsAppDialog}
+        onOpenChange={setShowWhatsAppDialog}
+        recipient={{ 
+          phone: lead.buyer_phone, 
+          name: lead.buyer_name,
+          buyer_name: lead.buyer_name 
+        }}
+        property={properties.find(p => p.id === lead.property_id)}
+        lead={lead}
+        context="lead"
       />
     </div>
   );
