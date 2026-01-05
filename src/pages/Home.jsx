@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { LayoutDashboard, Building2, Users, Wrench, BarChart3, Target, ArrowRight, Phone } from "lucide-react";
+import { LayoutDashboard, Building2, Users, Wrench, BarChart3, Target } from "lucide-react";
 
 export default function Home() {
   // 5 Cards para páginas da app
@@ -86,87 +86,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - Foco Emocional */}
-      <section className="relative py-20 sm:py-28 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-40" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      {/* Hero Section com Logo */}
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           >
-            {/* Logo */}
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
               alt="Zugruppe"
-              className="h-20 sm:h-28 mx-auto mb-8 object-contain drop-shadow-2xl"
+              className="h-24 mx-auto mb-6 object-contain"
             />
-            
-            {/* Título Emocional */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              A Casa dos Seus Sonhos,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-                Construída com Excelência
-              </span>
+            <h1 className="text-3xl font-bold text-slate-900 mb-3">
+              Bem-vindo à ZuGruppe
             </h1>
-            
-            {/* Subtítulo */}
-            <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed">
-              Transformamos a sua visão em realidade com <strong className="text-white">rapidez</strong>, 
-              <strong className="text-white"> qualidade superior</strong> e um 
-              <strong className="text-white"> acompanhamento dedicado</strong> em cada etapa do projeto.
+            <p className="text-base text-slate-600 max-w-2xl mx-auto">
+              Plataforma Integrada de Gestão Imobiliária
             </p>
-            
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {/* CTA Principal */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Link to={createPageUrl("Website")}>
-                  <button className="group flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-2xl shadow-blue-900/50 transition-all duration-300">
-                    <Phone className="w-5 h-5" />
-                    Pedir Orçamento Gratuito
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </Link>
-              </motion.div>
-              
-              {/* CTA Secundário */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Link to={createPageUrl("Website")}>
-                  <button className="group flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-semibold text-lg border-2 border-white/30 hover:border-white/50 transition-all duration-300">
-                    <Building2 className="w-5 h-5" />
-                    Ver Projetos Recentes
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </Link>
-              </motion.div>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="mt-12 pt-8 border-t border-white/20">
-              <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-                <div>
-                  <div className="text-3xl font-bold text-blue-400 mb-1">+500</div>
-                  <div className="text-sm text-slate-400">Projetos Concluídos</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-400 mb-1">98%</div>
-                  <div className="text-sm text-slate-400">Clientes Satisfeitos</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-400 mb-1">25+</div>
-                  <div className="text-sm text-slate-400">Anos de Experiência</div>
-                </div>
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>
