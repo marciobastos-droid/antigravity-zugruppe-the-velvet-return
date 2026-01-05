@@ -303,6 +303,10 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
       </button>
     </div>
   );
+}, (prevProps, nextProps) => {
+  return prevProps.property.id === nextProps.property.id &&
+         prevProps.isFavorited === nextProps.isFavorited &&
+         prevProps.locale === nextProps.locale;
 });
 
 export default function Website() {
