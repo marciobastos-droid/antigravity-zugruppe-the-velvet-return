@@ -43,9 +43,9 @@ import SmartContactSection from "../components/website/SmartContactSection";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
 
-// Lazy load non-critical sections
-const BlogSection = React.lazy(() => import("../components/blog/BlogSection"));
+// Lazy load heavy components only
 const PropertiesMap = React.lazy(() => import("../components/maps/PropertiesMap"));
+import BlogSection from "../components/blog/BlogSection";
 
 export default function Website() {
   const { t, locale } = useLocalization();
@@ -1321,9 +1321,7 @@ export default function Website() {
       </div>
 
       {/* Blog Section */}
-      <React.Suspense fallback={<div className="h-64" />}>
-        <BlogSection maxPosts={3} showHeader={true} />
-      </React.Suspense>
+      <BlogSection maxPosts={3} showHeader={true} />
 
       {/* Contact Section */}
       <SmartContactSection
