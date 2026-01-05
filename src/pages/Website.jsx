@@ -1419,11 +1419,14 @@ const translatedProperty = useTranslatedProperty(property);
 
 const handleClick = (e) => {
   e.preventDefault();
+  console.log('[PropertyCard] Clicking property:', property.id, property.ref_id, property.title);
   if (!property.id) {
     console.error('[PropertyCard] Missing property ID:', property);
     return;
   }
-  window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
+  const url = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
+  console.log('[PropertyCard] Navigating to:', url);
+  window.location.href = url;
 };
 
 return (
