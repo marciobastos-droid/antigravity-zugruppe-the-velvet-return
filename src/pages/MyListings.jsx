@@ -277,15 +277,6 @@ const PropertyCard = memo(function PropertyCard({
 });
 
 export default function MyListings() {
-  // Auth check - redirect to login if not authenticated
-  React.useEffect(() => {
-    base44.auth.isAuthenticated().then(isAuth => {
-      if (!isAuth) {
-        base44.auth.redirectToLogin(window.location.pathname + window.location.search);
-      }
-    });
-  }, []);
-
   const queryClient = useQueryClient();
   const { executeWithUndo } = useUndoAction();
   const { logAction } = useAuditLog();
