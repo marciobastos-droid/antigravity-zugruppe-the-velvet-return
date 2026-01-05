@@ -1532,7 +1532,6 @@ return (
           </Badge>
         </div>
       </div>
-      </a>
 
       {/* Favorite Button */}
       <button
@@ -1669,7 +1668,6 @@ return (
             </Badge>
           </div>
         </div>
-      </div>
       </div>
 
       {/* Favorite Button */}
