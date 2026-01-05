@@ -1413,16 +1413,26 @@ export default function Website() {
 
 // Compact Card for Grid View - Highly Optimized Memoization
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
-  const [imgIndex, setImgIndex] = React.useState(0);
-  const images = property.images?.length > 0 ? property.images : [];
-  const translatedProperty = useTranslatedProperty(property);
+const [imgIndex, setImgIndex] = React.useState(0);
+const images = property.images?.length > 0 ? property.images : [];
+const translatedProperty = useTranslatedProperty(property);
 
-  return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative">
-      <Link 
-        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-        className="block"
-      >
+const handleClick = (e) => {
+  e.preventDefault();
+  if (!property.id) {
+    console.error('[PropertyCard] Missing property ID:', property);
+    return;
+  }
+  window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
+};
+
+return (
+  <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative">
+    <a 
+      href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      onClick={handleClick}
+      className="block"
+    >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {images[imgIndex] ? (
@@ -1524,7 +1534,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           </Badge>
         </div>
       </div>
-      </Link>
+      </a>
 
       {/* Favorite Button */}
       <button
@@ -1551,10 +1561,20 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
     const image = property.images?.[0];
     const translatedProperty = useTranslatedProperty(property);
 
+    const handleClick = (e) => {
+      e.preventDefault();
+      if (!property.id) {
+        console.error('[PropertyCard] Missing property ID:', property);
+        return;
+      }
+      window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
+    };
+
     return (
     <div className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative">
-      <Link 
-        to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      <a 
+        href={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+        onClick={handleClick}
         className="flex flex-1"
       >
       {/* Image */}
@@ -1654,7 +1674,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           </div>
         </div>
       </div>
-      </Link>
+      </a>
 
       {/* Favorite Button */}
       <button
