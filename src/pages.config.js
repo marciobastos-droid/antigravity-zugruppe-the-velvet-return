@@ -11,6 +11,7 @@ import Franchising from './pages/Franchising';
 import Home from './pages/Home';
 import Institucional from './pages/Institucional';
 import ManageData from './pages/ManageData';
+import MetaAdsCreator from './pages/MetaAdsCreator';
 import MyListings from './pages/MyListings';
 import PerformanceMonitor from './pages/PerformanceMonitor';
 import PremiumLuxury from './pages/PremiumLuxury';
@@ -28,7 +29,6 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import MetaAdsCreator from './pages/MetaAdsCreator';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +46,7 @@ export const PAGES = {
     "Home": Home,
     "Institucional": Institucional,
     "ManageData": ManageData,
+    "MetaAdsCreator": MetaAdsCreator,
     "MyListings": MyListings,
     "PerformanceMonitor": PerformanceMonitor,
     "PremiumLuxury": PremiumLuxury,
@@ -63,7 +64,6 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "MetaAdsCreator": MetaAdsCreator,
 }
 
 export const pagesConfig = {
