@@ -1116,13 +1116,15 @@ Extrai:
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between gap-2">
-                    <Link 
-                      to={`${createPageUrl("PropertyDetails")}?id=${lead.property_id}`}
+                    <a 
+                      href={`${createPageUrl("PropertyDetails")}?id=${lead.property_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="font-medium text-blue-900 hover:text-blue-600 flex items-center gap-1 group flex-1 truncate"
                     >
                       <span className="truncate">{lead.property_title}</span>
                       <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </Link>
+                    </a>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -1333,13 +1335,15 @@ Extrai:
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <Link 
-                            to={`${createPageUrl("PropertyDetails")}?id=${ap.property_id}`}
+                          <a 
+                            href={`${createPageUrl("PropertyDetails")}?id=${ap.property_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-sm font-medium truncate hover:text-blue-600 flex items-center gap-1 group"
                           >
                             <span className="truncate">{ap.property_title}</span>
                             <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
+                          </a>
                           <div className="flex flex-wrap gap-1 mt-1">
                             <Badge variant="outline" className="text-xs">
                               {ap.status === 'interested' ? 'Interessado' :
