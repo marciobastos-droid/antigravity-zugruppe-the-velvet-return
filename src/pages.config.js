@@ -24,7 +24,6 @@ import TeamManagement from './pages/TeamManagement';
 import TermsConditions from './pages/TermsConditions';
 import Tools from './pages/Tools';
 import UpgradePlan from './pages/UpgradePlan';
-import UserManagement from './pages/UserManagement';
 import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
@@ -59,7 +58,6 @@ export const PAGES = {
     "TermsConditions": TermsConditions,
     "Tools": Tools,
     "UpgradePlan": UpgradePlan,
-    "UserManagement": UserManagement,
     "Website": Website,
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
