@@ -12,13 +12,7 @@ import GlobalSearch from "./components/search/GlobalSearch";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import PublicLanguageSwitcher from "./components/i18n/PublicLanguageSwitcher";
 import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
-
-import WebVitalsMonitor from "./components/performance/WebVitalsMonitor";
-import PWAProvider from "./components/pwa/PWAProvider";
-import PWAInstaller from "./components/pwa/PWAInstaller";
 import ErrorBoundary from "./components/errors/ErrorBoundary";
-import DataPrefetcher from "./components/performance/DataPrefetcher";
-import CriticalCSS from "./components/performance/CriticalCSS";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "PremiumLuxury", "WorldWideProperties", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal", "Institucional"];
 
@@ -167,28 +161,18 @@ export default function Layout({ children, currentPageName }) {
   if (isMinimalLayout) {
     return (
       <ErrorBoundary name="App Root">
-        <PWAProvider>
           <LocalizationProvider>
-            <CriticalCSS />
-            <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-            <PWAInstaller />
             <PublicLanguageSwitcher />
             <FloatingWhatsAppButton />
             {children}
           </LocalizationProvider>
-        </PWAProvider>
         </ErrorBoundary>
         );
   }
 
   return (
     <ErrorBoundary name="App Layout">
-      <PWAProvider>
         <LocalizationProvider>
-          <CriticalCSS />
-          <WebVitalsMonitor enabled={process.env.NODE_ENV === 'production'} />
-          <PWAInstaller />
-          <DataPrefetcher />
           <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
           <style>{`
@@ -396,7 +380,6 @@ export default function Layout({ children, currentPageName }) {
           </main>
           </div>
           </LocalizationProvider>
-          </PWAProvider>
           </ErrorBoundary>
           );
           }
