@@ -105,9 +105,25 @@ export default function ClientsTable({
 
   const toggleSelectAll = () => {
     if (!onSelectionChange) return;
-    const newSelection = selectedContacts.length === clients.length ? [] : clients.map(c => c.id);
-    onSelectionChange(newSelection);
+    const currentPageIds = paginatedClients.map(c => c.id);
+    const allCurrentPageSelected = currentPageIds.every(id => selectedSet.has(id));
+    
+    if (allCurrentPageSelected) {
+      // Deselect all from current page
+      onSelectionChange(selectedContacts.filter(id => !currentPageIds.includes(id)));
+    } else {
+      // Select all from current page
+      const newSelection = [...selectedContacts];
+      currentPageIds.forEach(id => {
+        if (!newSelection.includes(id)) {
+          newSelection.push(id);
+        }
+      });
+      onSelectionChange(newSelection);
+    }
   };
+
+  const selectedSet = useMemo(() => new Set(selectedContacts), [selectedContacts]);
 
   const columns = [
     ...(onSelectionChange ? [{
@@ -118,14 +134,14 @@ export default function ClientsTable({
       alwaysVisible: true,
       headerRender: () => (
         <Checkbox
-          checked={selectedContacts.length === clients.length && clients.length > 0}
+          checked={paginatedClients.length > 0 && paginatedClients.every(c => selectedSet.has(c.id))}
           onCheckedChange={toggleSelectAll}
         />
       ),
       render: (_, client) => (
         <div onClick={(e) => e.stopPropagation()}>
           <Checkbox
-            checked={selectedContacts.includes(client.id)}
+            checked={selectedSet.has(client.id)}
             onCheckedChange={() => toggleSelectContact(client.id)}
           />
         </div>
