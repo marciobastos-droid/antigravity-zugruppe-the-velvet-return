@@ -22,8 +22,11 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
     assigned_agent: "",
     appointment_date: initialDate ? initialDate.toISOString().slice(0, 16) : "",
     duration_minutes: 60,
-    notes: ""
+    notes: "",
+    proposed_time_slots: []
   });
+  const [proposingSlots, setProposingSlots] = useState(false);
+  const [tempSlot, setTempSlot] = useState({ date_time: "", duration_minutes: 60 });
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -304,6 +307,99 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
                 placeholder="Notas sobre a visita..."
                 rows={3}
               />
+            </div>
+
+            {/* Propor Múltiplos Horários */}
+            <div className="col-span-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label>Propor Horários Alternativos</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProposingSlots(!proposingSlots)}
+                >
+                  {proposingSlots ? "Cancelar" : "+ Adicionar Horário"}
+                </Button>
+              </div>
+
+              {proposingSlots && (
+                <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 mb-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <Input
+                        type="datetime-local"
+                        value={tempSlot.date_time}
+                        onChange={(e) => setTempSlot({ ...tempSlot, date_time: e.target.value })}
+                        className="bg-white"
+                      />
+                    </div>
+                    <div className="flex gap-1">
+                      <Input
+                        type="number"
+                        value={tempSlot.duration_minutes}
+                        onChange={(e) => setTempSlot({ ...tempSlot, duration_minutes: Number(e.target.value) })}
+                        placeholder="60"
+                        className="bg-white w-16"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          if (tempSlot.date_time) {
+                            setFormData(prev => ({
+                              ...prev,
+                              proposed_time_slots: [...prev.proposed_time_slots, { 
+                                date_time: new Date(tempSlot.date_time).toISOString(),
+                                duration_minutes: tempSlot.duration_minutes,
+                                status: "pending"
+                              }]
+                            }));
+                            setTempSlot({ date_time: "", duration_minutes: 60 });
+                            setProposingSlots(false);
+                          }
+                        }}
+                      >
+                        ✓
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {formData.proposed_time_slots.length > 0 && (
+                <div className="space-y-2">
+                  {formData.proposed_time_slots.map((slot, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
+                      <span className="text-sm">
+                        {new Date(slot.date_time).toLocaleString('pt-PT', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric',
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })} ({slot.duration_minutes}min)
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            proposed_time_slots: prev.proposed_time_slots.filter((_, i) => i !== idx)
+                          }));
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-slate-500 mt-1">
+                Cliente receberá email com os horários propostos para escolher
+              </p>
             </div>
           </div>
 
