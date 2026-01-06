@@ -347,6 +347,83 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
             </Card>
           </TabsContent>
 
+          {/* TAB: Traduzir */}
+          <TabsContent value="translate" className="space-y-4 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Tradução Automática</CardTitle>
+                <p className="text-sm text-slate-600">
+                  Traduza automaticamente o título, descrição e comodidades para inglês, espanhol, francês e alemão.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  onClick={() => generateDescriptionMutation.mutate()}
+                  disabled={generateDescriptionMutation.isPending}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  {generateDescriptionMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A gerar descrição...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Gerar Descrição
+                    </>
+                  )}
+                </Button>
+
+                {generatedDescription && (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Textarea
+                        value={generatedDescription}
+                        onChange={(e) => setGeneratedDescription(e.target.value)}
+                        rows={10}
+                        className="font-sans text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCopyDescription}
+                        className="absolute top-2 right-2"
+                      >
+                        {copied ? (
+                          <Check className="w-3 h-3 text-green-600" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleApplyDescription}
+                        disabled={updatePropertyMutation.isPending}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      >
+                        {updatePropertyMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4 mr-2" />
+                        )}
+                        Aplicar ao Imóvel
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => generateDescriptionMutation.mutate()}
+                        disabled={generateDescriptionMutation.isPending}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* TAB: Etiquetas */}
           <TabsContent value="tags" className="space-y-4 mt-6">
             <Card>
