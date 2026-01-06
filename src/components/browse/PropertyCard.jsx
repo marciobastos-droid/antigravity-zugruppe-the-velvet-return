@@ -5,9 +5,22 @@ import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
 import OptimizedImage from "../common/OptimizedImage";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function PropertyCard({ property, hideMetadata = false }) {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  
+  // Fetch development data if property belongs to one
+  const { data: development } = useQuery({
+    queryKey: ['development', property.development_id],
+    queryFn: async () => {
+      if (!property.development_id) return null;
+      const devs = await base44.entities.Development.filter({ id: property.development_id });
+      return devs?.[0] || null;
+    },
+    enabled: !!property.development_id
+  });
   
   // Reset image index when property changes
   React.useEffect(() => {
