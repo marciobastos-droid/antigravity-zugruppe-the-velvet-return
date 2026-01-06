@@ -1492,8 +1492,112 @@ Retorna array de imóveis com o máximo de detalhes possível.`,
     toast.info(`A processar link de ${portal.name}...`);
 
     try {
-      const response = await base44.functions.invoke('searchPropertyAI', { url });
-      const data = response.data;
+      // Usar o novo prompt especializado
+      const enhancedPrompt = `Você é um assistente especializado em importação de dados imobiliários. Sua tarefa é acessar o link de um imóvel fornecido, extrair todas as informações estruturadas e retorná-las em formato JSON para o sistema Base44.
+
+A seguir, está a URL do imóvel que deve ser analisada:
+${url}
+
+Instruções de Extração:
+1. Acesse o link e identifique os dados principais do imóvel.
+2. Extraia os seguintes campos de texto:
+   - titulo (Título do anúncio)
+   - descricao (Descrição completa do imóvel)
+   - preco (Valor de venda ou aluguel - formate apenas como número se possível, ou texto)
+   - endereco (Endereço completo)
+   - caract_quartos (Número de quartos)
+   - caract_banheiros (Número de banheiros)
+   - caract_area (Área em m²)
+   - caract_garagem (Número de vagas, se houver)
+
+3. Extração de Imagens (CRUCIAL):
+   - Encontre todas as imagens da galeria do imóvel.
+   - Retorne apenas os links diretos (URLs) das imagens em alta resolução (extensões .jpg, .jpeg, .png ou .webp).
+   - Evite links de thumbnails (miniaturas) ou ícones.
+
+Formato de Saída Obrigatório:
+Retorne APENAS um objeto JSON válido, sem formatação Markdown (sem blocos de código), seguindo exatamente esta estrutura:
+
+{
+  "titulo": "String",
+  "descricao": "String",
+  "preco": "String ou Number",
+  "endereco": "String",
+  "caracteristicas": {
+    "quartos": "Number",
+    "banheiros": "Number",
+    "area": "Number",
+    "garagem": "Number"
+  },
+  "lista_imagens": [
+    "https://exemplo.com/imagem1.jpg",
+    "https://exemplo.com/imagem2.jpg"
+  ]
+}`;
+
+      const llmResult = await base44.integrations.Core.InvokeLLM({
+        prompt: enhancedPrompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            titulo: { type: "string" },
+            descricao: { type: "string" },
+            preco: { type: ["string", "number"] },
+            endereco: { type: "string" },
+            caracteristicas: {
+              type: "object",
+              properties: {
+                quartos: { type: "number" },
+                banheiros: { type: "number" },
+                area: { type: "number" },
+                garagem: { type: "number" }
+              }
+            },
+            lista_imagens: {
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        }
+      });
+
+      // Transformar resultado para formato do sistema
+      const property = {
+        title: llmResult.titulo,
+        description: llmResult.descricao,
+        price: typeof llmResult.preco === 'string' ? 
+          parseFloat(llmResult.preco.replace(/[^0-9.,]/g, '').replace(/\./g, '').replace(',', '.')) : 
+          llmResult.preco,
+        address: llmResult.endereco,
+        bedrooms: llmResult.caracteristicas?.quartos || 0,
+        bathrooms: llmResult.caracteristicas?.banheiros || 0,
+        square_feet: llmResult.caracteristicas?.area || 0,
+        useful_area: llmResult.caracteristicas?.area || 0,
+        garage: llmResult.caracteristicas?.garagem ? llmResult.caracteristicas.garagem.toString() : "none",
+        images: llmResult.lista_imagens || [],
+        source_url: url
+      };
+
+      // Tentar extrair cidade do endereço
+      const addressParts = property.address?.split(',').map(p => p.trim()) || [];
+      if (addressParts.length > 0) {
+        property.city = addressParts[addressParts.length - 1];
+        property.state = addressParts[addressParts.length - 1];
+      }
+
+      setProgress("A classificar imóvel com IA...");
+      
+      const detected = await detectPropertyTypes(property.title, property.description, property.price);
+      if (detected) {
+        property.property_type = detected.property_type || 'apartment';
+        property.listing_type = detected.listing_type || 'sale';
+      } else {
+        property.property_type = 'apartment';
+        property.listing_type = 'sale';
+      }
+
+      const data = { success: true, property };
 
       if (!data) {
         throw new Error('Sem resposta do servidor. Tente novamente.');
