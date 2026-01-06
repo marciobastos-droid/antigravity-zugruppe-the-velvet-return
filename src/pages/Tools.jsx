@@ -80,6 +80,7 @@ import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
 import SEOManager from "../components/website/SEOManager";
 import ActivityFeedViewer from "../components/admin/ActivityFeedViewer";
 import PendingApprovalsManager from "../components/approvals/PendingApprovalsManager";
+import PropertyApprovalsHub from "../components/approvals/PropertyApprovalsHub";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -1583,7 +1584,7 @@ export default function Tools() {
               </div>
 
         <div ref={el => toolRefs.current['content-errorLogs'] = el}>{activeTab === "errorLogs" && <ErrorLogsAdmin />}</div>
-        <div ref={el => toolRefs.current['content-pendingApprovals'] = el}>{activeTab === "pendingApprovals" && <PendingApprovalsManager />}</div>
+        <div ref={el => toolRefs.current['content-pendingApprovals'] = el}>{activeTab === "pendingApprovals" && <PropertyApprovalsHub />}</div>
         <div ref={el => toolRefs.current['content-marketingHub'] = el}>{activeTab === "marketingHub" && <MarketingHub />}</div>
         <div ref={el => toolRefs.current['content-marketingCampaigns'] = el}>{activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}</div>
         <div ref={el => toolRefs.current['content-landingPages'] = el}>{activeTab === "landingPages" && <LandingPageBuilder />}</div>
