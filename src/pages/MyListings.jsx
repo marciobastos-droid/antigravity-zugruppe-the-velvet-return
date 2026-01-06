@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Globe, BarChart3, Calendar, Home, Store, TrendingUp, Crown, Wand2, Navigation } from "lucide-react";
+import { Plus, Trash2, Eye, MapPin, ExternalLink, Hash, CheckSquare, Filter, X, FileText, Edit, Star, Copy, Building2, LayoutGrid, List, Tag, Users, Image, Layers, Globe, BarChart3, Calendar, Home, Store, TrendingUp, Crown, Wand2, Navigation, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +38,8 @@ import QuickFilterBadges from "../components/listings/QuickFilterBadges";
 import ErrorBoundary from "../components/errors/ErrorBoundary";
 import { handleApiError } from "../components/errors/apiErrorHandler";
 
+const PropertyDocumentManager = React.lazy(() => import("../components/property/PropertyDocumentManager"));
+
 // Memoized Property Card component for better performance
 const PropertyCard = memo(function PropertyCard({ 
   property, 
@@ -58,7 +60,8 @@ const PropertyCard = memo(function PropertyCard({
   setPublicationHubOpen,
   setSelectedPropertyForPlan,
   setMarketingPlanOpen,
-  development
+  development,
+  onOpenDocuments
 }) {
 
   const handleSelect = useCallback(() => {
@@ -282,6 +285,18 @@ const PropertyCard = memo(function PropertyCard({
               >
                 <FileText className="w-3 h-3" />
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenDocuments(property);
+                }}
+                className="h-8 text-[10px] sm:text-xs px-2 border-amber-300 text-amber-600 touch-manipulation active:scale-95"
+                title="Documentos"
+              >
+                <FolderOpen className="w-3 h-3" />
+              </Button>
             </div>
           </div>
         </div>
@@ -325,6 +340,8 @@ export default function MyListings() {
   const [visitRouteOpen, setVisitRouteOpen] = useState(false);
   const [marketingPlanOpen, setMarketingPlanOpen] = useState(false);
   const [selectedPropertyForPlan, setSelectedPropertyForPlan] = useState(null);
+  const [documentsDialogOpen, setDocumentsDialogOpen] = useState(false);
+  const [selectedPropertyForDocs, setSelectedPropertyForDocs] = useState(null);
   
   const [searchInput, setSearchInput] = useState("");
   const [filters, setFilters] = useState({
@@ -1707,6 +1724,10 @@ export default function MyListings() {
                   setSelectedPropertyForPlan={setSelectedPropertyForPlan}
                   setMarketingPlanOpen={setMarketingPlanOpen}
                   development={property.development_id ? developmentsMap.get(property.development_id) : null}
+                  onOpenDocuments={(prop) => {
+                    setSelectedPropertyForDocs(prop);
+                    setDocumentsDialogOpen(true);
+                  }}
                 />
               ))}
             </div>
@@ -1805,6 +1826,29 @@ export default function MyListings() {
           open={marketingPlanOpen}
           onOpenChange={setMarketingPlanOpen}
         />
+
+        {/* Documents Manager Dialog */}
+        <Dialog open={documentsDialogOpen} onOpenChange={setDocumentsDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                Documentos - {selectedPropertyForDocs?.title}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedPropertyForDocs && (
+              <React.Suspense fallback={
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900" />
+                </div>
+              }>
+                <PropertyDocumentManager
+                  propertyId={selectedPropertyForDocs.id}
+                  propertyTitle={selectedPropertyForDocs.title}
+                />
+              </React.Suspense>
+            )}
+          </DialogContent>
+        </Dialog>
         </>
         )}
       </div>
