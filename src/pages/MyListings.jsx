@@ -57,18 +57,9 @@ const PropertyCard = memo(function PropertyCard({
   setSelectedPropertyForPublication,
   setPublicationHubOpen,
   setSelectedPropertyForPlan,
-  setMarketingPlanOpen
+  setMarketingPlanOpen,
+  development
 }) {
-  // Fetch development data if property belongs to one
-  const { data: development } = useQuery({
-    queryKey: ['development', property.development_id],
-    queryFn: async () => {
-      if (!property.development_id) return null;
-      const devs = await base44.entities.Development.filter({ id: property.development_id });
-      return devs?.[0] || null;
-    },
-    enabled: !!property.development_id
-  });
 
   const handleSelect = useCallback(() => {
     onToggleSelect(property.id);
@@ -410,6 +401,13 @@ export default function MyListings() {
     staleTime: 60000, // Cache 1 min
     gcTime: 120000
   });
+
+  // Criar mapa de developments por ID para acesso rápido
+  const developmentsMap = useMemo(() => {
+    const map = new Map();
+    developments.forEach(dev => map.set(dev.id, dev));
+    return map;
+  }, [developments]);
 
   // Buscar consultores
   const { data: consultants = [] } = useQuery({
@@ -1708,6 +1706,7 @@ export default function MyListings() {
                   setPublicationHubOpen={setPublicationHubOpen}
                   setSelectedPropertyForPlan={setSelectedPropertyForPlan}
                   setMarketingPlanOpen={setMarketingPlanOpen}
+                  development={property.development_id ? developmentsMap.get(property.development_id) : null}
                 />
               ))}
             </div>
