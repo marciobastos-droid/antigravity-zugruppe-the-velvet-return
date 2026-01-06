@@ -53,6 +53,13 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
   const images = property.images?.length > 0 ? property.images : [];
   const translatedProperty = useTranslatedProperty(property);
 
+  // Debug: log property ID
+  React.useEffect(() => {
+    if (!property.id) {
+      console.error('[PropertyCardCompact] Missing property.id:', property);
+    }
+  }, [property.id]);
+
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
@@ -175,6 +182,13 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
 const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
   const image = property.images?.[0];
   const translatedProperty = useTranslatedProperty(property);
+
+  // Debug: log property ID
+  React.useEffect(() => {
+    if (!property.id) {
+      console.error('[PropertyCardList] Missing property.id:', property);
+    }
+  }, [property.id]);
 
   return (
     <Link 
