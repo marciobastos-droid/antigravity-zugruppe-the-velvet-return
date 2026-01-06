@@ -726,12 +726,44 @@ export default function ClientDatabase() {
   // Memoized selected set for O(1) lookup in cards
   const selectedContactsSet = useMemo(() => new Set(selectedContacts), [selectedContacts]);
 
-  // toggleSelectAll needs to be after filteredClients is defined
+  // Pagination state
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const ITEMS_PER_PAGE = 50;
+
+  // Calculate paginated clients
+  const paginatedClients = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredClients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredClients, currentPage]);
+
+  const totalPages = Math.ceil(filteredClients.length / ITEMS_PER_PAGE);
+
+  // toggleSelectAll - selects all on current page
   const toggleSelectAll = useCallback(() => {
-    setSelectedContacts(prev =>
-      prev.length === filteredClients.length ? [] : filteredClients.map(c => c.id)
-    );
-  }, [filteredClients]);
+    const currentPageIds = paginatedClients.map(c => c.id);
+    const allCurrentPageSelected = currentPageIds.every(id => selectedContacts.includes(id));
+    
+    setSelectedContacts(prev => {
+      if (allCurrentPageSelected) {
+        // Deselect all from current page
+        return prev.filter(id => !currentPageIds.includes(id));
+      } else {
+        // Select all from current page (merge with existing)
+        const newSelection = [...prev];
+        currentPageIds.forEach(id => {
+          if (!newSelection.includes(id)) {
+            newSelection.push(id);
+          }
+        });
+        return newSelection;
+      }
+    });
+  }, [paginatedClients, selectedContacts]);
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
 
   const typeLabels = useMemo(() => ({
     client: "Cliente",
@@ -1398,14 +1430,23 @@ export default function ClientDatabase() {
             size="sm"
             onClick={toggleSelectAll}
           >
-            {selectedContacts.length === filteredClients.length && filteredClients.length > 0 
-              ? 'Desselecionar Todos' 
-              : 'Selecionar Todos'}
+            {(() => {
+              const currentPageIds = paginatedClients.map(c => c.id);
+              const allCurrentPageSelected = currentPageIds.every(id => selectedContacts.includes(id));
+              return allCurrentPageSelected && paginatedClients.length > 0
+                ? `Desselecionar Página (${paginatedClients.length})`
+                : `Selecionar Página (${paginatedClients.length})`;
+            })()}
           </Button>
           {selectedContacts.length > 0 && (
             <span className="text-sm text-slate-600">
               {selectedContacts.length} de {filteredClients.length} selecionado(s)
             </span>
+          )}
+          {filteredClients.length > ITEMS_PER_PAGE && (
+            <Badge variant="outline" className="text-xs">
+              Página {currentPage} de {totalPages}
+            </Badge>
           )}
         </div>
         <div className="flex border rounded-lg overflow-hidden">
@@ -1441,16 +1482,74 @@ export default function ClientDatabase() {
 
       {/* Client List */}
       {viewMode === "table" ? (
-        <ClientsTable
-          clients={filteredClients}
-          communications={communications}
-          opportunities={opportunities}
-          onClientClick={(client) => { setActiveTab("details"); setSelectedClient(client); }}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          selectedContacts={selectedContacts}
-          onSelectionChange={setSelectedContacts}
-        />
+        <>
+          <ClientsTable
+            clients={paginatedClients}
+            communications={communications}
+            opportunities={opportunities}
+            onClientClick={(client) => { setActiveTab("details"); setSelectedClient(client); }}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            selectedContacts={selectedContacts}
+            onSelectionChange={setSelectedContacts}
+          />
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Card className="mt-4">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-slate-600">
+                    A mostrar {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredClients.length)} de {filteredClients.length} contactos
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : viewMode === "sidebar" ? (
         <div className="grid lg:grid-cols-3 gap-4">
           {/* Sidebar - Contact List */}
@@ -1837,7 +1936,8 @@ export default function ClientDatabase() {
             </CardContent>
           </Card>
         ) : (
-          filteredClients.slice(0, 50).map((client) => {
+          <>
+          {paginatedClients.map((client) => {
             const clientComms = getClientCommunications(client.id);
             const clientOpps = getClientOpportunities(client);
             const req = client.property_requirements;
