@@ -2262,8 +2262,9 @@ export default function ClientDatabase() {
               </CardContent>
             </Card>
           )}
-        </div>
+          </>
         )}
+      </div>
       )}
 
       {/* Client Detail Panel */}
