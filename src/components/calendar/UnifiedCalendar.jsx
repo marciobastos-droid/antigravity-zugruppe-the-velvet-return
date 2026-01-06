@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, FileText, List, Grid3X3, AlertTriangle, Clock } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Filter, CheckCircle2, FileText, List, Grid3X3, AlertTriangle, Clock, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, addDays, startOfWeek } from "date-fns";
@@ -259,6 +259,88 @@ export default function UnifiedCalendar() {
 
   const selectedDateEvents = getEventsForDate(selectedDate);
 
+  const printWeekSchedule = () => {
+    const weekEvents = filteredEvents
+      .filter(e => {
+        const eventDate = e.date;
+        return eventDate >= weekDays[0] && eventDate <= addDays(weekDays[6], 1);
+      })
+      .sort((a, b) => a.date - b.date);
+
+    const printWindow = window.open('', '', 'width=800,height=600');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Agenda Semanal - ${format(weekDays[0], 'd MMM')} a ${format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1 { text-align: center; color: #1e293b; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; }
+            .day-section { margin: 20px 0; page-break-inside: avoid; }
+            .day-header { background: #f1f5f9; padding: 10px; font-weight: bold; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
+            .event { margin: 10px 0 10px 20px; padding: 10px; border-left: 3px solid #cbd5e1; background: #f8fafc; }
+            .event-title { font-weight: bold; color: #1e293b; }
+            .event-time { color: #64748b; font-size: 0.9em; }
+            .event-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-top: 5px; }
+            .type-appointment { background: #dbeafe; color: #1e40af; }
+            .type-signature { background: #e9d5ff; color: #6b21a8; }
+            .type-deed { background: #dcfce7; color: #15803d; }
+            .type-followup { background: #fed7aa; color: #c2410c; }
+            .no-events { color: #94a3b8; font-style: italic; margin-left: 20px; }
+            @media print {
+              body { padding: 10px; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>📅 Agenda Semanal</h1>
+          <p style="text-align: center; color: #64748b; margin-bottom: 30px;">
+            ${format(weekDays[0], 'd MMMM', { locale: ptBR })} - ${format(weekDays[6], 'd MMMM yyyy', { locale: ptBR })}
+          </p>
+          ${weekDays.map(day => {
+            const dayEvents = weekEvents.filter(e => 
+              e.date.getDate() === day.getDate() &&
+              e.date.getMonth() === day.getMonth() &&
+              e.date.getFullYear() === day.getFullYear()
+            );
+            return `
+              <div class="day-section">
+                <div class="day-header">
+                  ${format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                  ${day.toDateString() === new Date().toDateString() ? ' (Hoje)' : ''}
+                </div>
+                ${dayEvents.length === 0 ? '<p class="no-events">Sem eventos agendados</p>' : ''}
+                ${dayEvents.map(event => `
+                  <div class="event">
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-time">⏰ ${format(event.date, 'HH:mm')}</div>
+                    ${event.client ? `<div>👤 ${event.client}</div>` : ''}
+                    ${event.property ? `<div>🏠 ${event.property}</div>` : ''}
+                    ${event.agent ? `<div style="font-size: 0.9em; color: #64748b;">Agente: ${users.find(u => u.email === event.agent)?.full_name || event.agent}</div>` : ''}
+                    <span class="event-type type-${event.type}">
+                      ${event.type === 'appointment' ? '📅 Visita' :
+                        event.type === 'signature' ? '📝 Assinatura' :
+                        event.type === 'deed' ? '📄 Escritura' :
+                        event.type === 'renewal' ? '🔄 Renovação' :
+                        '🔔 Follow-up'}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+          }).join('')}
+          <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 0.8em; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            Impresso em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")} • Total: ${weekEvents.length} eventos
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -505,16 +587,29 @@ export default function UnifiedCalendar() {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <CardTitle>
-                    {format(weekDays[0], 'd MMM', { locale: ptBR })} - {format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentDate(addDays(currentDate, 7))}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
+                  <div className="flex flex-col items-center">
+                    <CardTitle>
+                      {format(weekDays[0], 'd MMM', { locale: ptBR })} - {format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={printWeekSchedule}
+                      className="gap-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span className="hidden md:inline">Imprimir</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentDate(addDays(currentDate, 7))}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
