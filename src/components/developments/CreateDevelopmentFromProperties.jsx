@@ -24,13 +24,20 @@ export default function CreateDevelopmentFromProperties({
     description: "",
     status: "under_construction",
     total_units: 0,
-    developer_name: "",
+    developer: "",
+    developer_company: "",
     completion_date: ""
   });
 
   const { data: properties = [] } = useQuery({
     queryKey: ['allProperties'],
     queryFn: () => base44.entities.Property.list('-updated_date'),
+  });
+
+  // Buscar contactos para selecionar promotores
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['contacts'],
+    queryFn: () => base44.entities.ClientContact.list('buyer_name'),
   });
 
   // Filtrar propriedades selecionadas
@@ -85,11 +92,28 @@ export default function CreateDevelopmentFromProperties({
         return p.property_type;
       }).filter(Boolean))];
 
+      // Buscar dados do promotor se selecionado
+      let developerEmail = "";
+      let developerPhone = "";
+      let developerContactId = "";
+      
+      if (formData.developer) {
+        const selectedContact = contacts.find(c => c.id === formData.developer);
+        if (selectedContact) {
+          developerEmail = selectedContact.buyer_email || "";
+          developerPhone = selectedContact.buyer_phone || "";
+          developerContactId = selectedContact.id;
+        }
+      }
+
       // Criar o empreendimento
       const development = await base44.entities.Development.create({
         name: formData.name,
         description: formData.description || `Empreendimento com ${selectedProps.length} frações`,
-        developer_name: formData.developer_name || "",
+        developer: formData.developer_company || "",
+        developer_contact_id: developerContactId,
+        developer_email: developerEmail,
+        developer_phone: developerPhone,
         status: formData.status,
         completion_date: formData.completion_date || undefined,
         total_units: selectedProps.length,
@@ -132,7 +156,8 @@ export default function CreateDevelopmentFromProperties({
         description: "",
         status: "under_construction",
         total_units: 0,
-        developer_name: "",
+        developer: "",
+        developer_company: "",
         completion_date: ""
       });
       onSuccess?.();
@@ -248,11 +273,48 @@ export default function CreateDevelopmentFromProperties({
             </div>
 
             <div>
-              <Label>Promotor/Construtor</Label>
+              <Label>Promotor/Pessoa de Contacto</Label>
+              <Select 
+                value={formData.developer} 
+                onValueChange={(value) => {
+                  const contact = contacts.find(c => c.id === value);
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    developer: value,
+                    developer_company: contact?.company_name || prev.developer_company
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar promotor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {contacts.map(contact => (
+                    <SelectItem key={contact.id} value={contact.id}>
+                      {contact.buyer_name}
+                      {contact.company_name && ` (${contact.company_name})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Empresa Promotora</Label>
               <Input
-                value={formData.developer_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, developer_name: e.target.value }))}
-                placeholder="Nome do promotor"
+                value={formData.developer_company}
+                onChange={(e) => setFormData(prev => ({ ...prev, developer_company: e.target.value }))}
+                placeholder="Nome da empresa"
+              />
+            </div>
+
+            <div>
+              <Label>Data de Conclusão Prevista</Label>
+              <Input
+                type="date"
+                value={formData.completion_date}
+                onChange={(e) => setFormData(prev => ({ ...prev, completion_date: e.target.value }))}
               />
             </div>
 
@@ -272,15 +334,6 @@ export default function CreateDevelopmentFromProperties({
                   <SelectItem value="sold_out">Esgotado</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label>Data de Conclusão Prevista</Label>
-              <Input
-                type="date"
-                value={formData.completion_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, completion_date: e.target.value }))}
-              />
             </div>
 
             <div>
