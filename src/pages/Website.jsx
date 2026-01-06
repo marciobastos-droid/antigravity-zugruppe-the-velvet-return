@@ -53,17 +53,6 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
   const images = property.images?.length > 0 ? property.images : [];
   const translatedProperty = useTranslatedProperty(property);
 
-  // Fetch development data if property belongs to one
-  const { data: development } = useQuery({
-    queryKey: ['development', property.development_id],
-    queryFn: async () => {
-      if (!property.development_id) return null;
-      const devs = await base44.entities.Development.filter({ id: property.development_id });
-      return devs?.[0] || null;
-    },
-    enabled: !!property.development_id
-  });
-
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
@@ -161,12 +150,6 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
           <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5">
             {t(`property.types.${property.property_type}`) || property.property_type}
           </Badge>
-          {(property.development_name || development?.name) && (
-            <Badge variant="outline" className="text-[10px] sm:text-xs border-blue-200 text-blue-700 bg-blue-50 px-1.5 sm:px-2 py-0.5">
-              <Building2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-              {property.development_name || development?.name}
-            </Badge>
-          )}
           </div>
       </div>
 
@@ -192,17 +175,6 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
 const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
   const image = property.images?.[0];
   const translatedProperty = useTranslatedProperty(property);
-
-  // Fetch development data if property belongs to one
-  const { data: development } = useQuery({
-    queryKey: ['development', property.development_id],
-    queryFn: async () => {
-      if (!property.development_id) return null;
-      const devs = await base44.entities.Development.filter({ id: property.development_id });
-      return devs?.[0] || null;
-    },
-    enabled: !!property.development_id
-  });
 
   return (
     <Link 
@@ -301,12 +273,6 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
             <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 hidden sm:inline-flex">
               {t(`property.types.${property.property_type}`) || property.property_type}
             </Badge>
-            {(property.development_name || development?.name) && (
-              <Badge variant="outline" className="text-[10px] sm:text-xs border-blue-200 text-blue-700 bg-blue-50 px-1.5 sm:px-2 py-0.5">
-                <Building2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5 sm:mr-1" />
-                {property.development_name || development?.name}
-              </Badge>
-            )}
             </div>
         </div>
       </div>

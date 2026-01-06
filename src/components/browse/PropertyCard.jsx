@@ -11,17 +11,6 @@ import { useQuery } from "@tanstack/react-query";
 export default function PropertyCard({ property, hideMetadata = false }) {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   
-  // Fetch development data if property belongs to one
-  const { data: development } = useQuery({
-    queryKey: ['development', property.development_id],
-    queryFn: async () => {
-      if (!property.development_id) return null;
-      const devs = await base44.entities.Development.filter({ id: property.development_id });
-      return devs?.[0] || null;
-    },
-    enabled: !!property.development_id
-  });
-  
   // Reset image index when property changes
   React.useEffect(() => {
     setCurrentImageIndex(0);
@@ -171,19 +160,6 @@ export default function PropertyCard({ property, hideMetadata = false }) {
             <Badge variant="secondary" className="text-xs">
               <Hash className="w-3 h-3 mr-1" />
               Fração {property.unit_number}
-            </Badge>
-          )}
-
-          {!hideMetadata && (property.development_name || development?.name) && (
-            <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
-              <Building2 className="w-3 h-3 mr-1" />
-              {property.development_name || development?.name}
-            </Badge>
-          )}
-
-          {!hideMetadata && development?.developer && (
-            <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 bg-purple-50">
-              Promotor: {development.developer}
             </Badge>
           )}
 
