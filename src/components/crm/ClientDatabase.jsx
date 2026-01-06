@@ -667,11 +667,31 @@ export default function ClientDatabase() {
   const getMatchingScore = useCallback(() => 0, []);
 
   // Memoized unique values for filters
-  const { allCities, allTags, allAssignedAgents } = useMemo(() => ({
-    allCities: [...new Set(clients.map(c => c.city).filter(Boolean))].sort(),
-    allTags: [...new Set(clients.flatMap(c => c.tags || []))].sort(),
-    allAssignedAgents: [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort()
-  }), [clients]);
+  const { allCities, allTags, allAssignedAgents, latestImportBatchId } = useMemo(() => {
+    const importBatches = clients
+      .map(c => c.import_batch_id)
+      .filter(Boolean);
+    
+    const uniqueBatches = [...new Set(importBatches)];
+    
+    // Get most recent import batch by finding contacts with import_batch_id and taking the latest created_date
+    let latestBatch = null;
+    if (uniqueBatches.length > 0) {
+      const batchesWithDates = uniqueBatches.map(batchId => {
+        const batchContacts = clients.filter(c => c.import_batch_id === batchId);
+        const latestDate = Math.max(...batchContacts.map(c => new Date(c.created_date).getTime()));
+        return { batchId, latestDate };
+      });
+      latestBatch = batchesWithDates.sort((a, b) => b.latestDate - a.latestDate)[0]?.batchId;
+    }
+    
+    return {
+      allCities: [...new Set(clients.map(c => c.city).filter(Boolean))].sort(),
+      allTags: [...new Set(clients.flatMap(c => c.tags || []))].sort(),
+      allAssignedAgents: [...new Set(clients.map(c => c.assigned_agent).filter(Boolean))].sort(),
+      latestImportBatchId: latestBatch
+    };
+  }, [clients]);
 
   const agentOptions = useMemo(() => getAgentOptions(), [getAgentOptions]);
 
@@ -717,6 +737,7 @@ export default function ClientDatabase() {
         const hasImportDate = c.imported_date;
         if (importDateFilter === "imported" && !hasImportDate) return false;
         if (importDateFilter === "manual" && hasImportDate) return false;
+        if (importDateFilter === "latest_import" && c.import_batch_id !== latestImportBatchId) return false;
         if (importDateFilter === "last_7_days" && hasImportDate) {
           const importDate = new Date(c.imported_date);
           const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -1230,10 +1251,18 @@ export default function ClientDatabase() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="imported">Importados</SelectItem>
-                    <SelectItem value="manual">Manuais</SelectItem>
-                    <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
-                    <SelectItem value="last_30_days">Últimos 30 dias</SelectItem>
+                    <SelectItem value="latest_import">
+                      ⭐ Última Importação
+                      {latestImportBatchId && (
+                        <span className="text-xs text-slate-500 ml-1">
+                          ({clients.filter(c => c.import_batch_id === latestImportBatchId).length})
+                        </span>
+                      )}
+                    </SelectItem>
+                    <SelectItem value="imported">Todos Importados</SelectItem>
+                    <SelectItem value="manual">Criados Manualmente</SelectItem>
+                    <SelectItem value="last_7_days">Importados (7 dias)</SelectItem>
+                    <SelectItem value="last_30_days">Importados (30 dias)</SelectItem>
                   </SelectContent>
                 </Select>
                 <Popover>
