@@ -799,6 +799,16 @@ export default function ClientDatabase() {
     });
   }, [paginatedClients, selectedContacts]);
 
+  // Select ALL filtered contacts (not just current page)
+  const selectAllFiltered = useCallback(() => {
+    const allFilteredIds = filteredClients.map(c => c.id);
+    setSelectedContacts(allFilteredIds);
+  }, [filteredClients]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedContacts([]);
+  }, []);
+
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
@@ -1484,7 +1494,7 @@ export default function ClientDatabase() {
 
       {/* View Mode Toggle */}
       <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button 
             variant="outline" 
             size="sm"
@@ -1498,8 +1508,28 @@ export default function ClientDatabase() {
                 : `Selecionar Página (${paginatedClients.length})`;
             })()}
           </Button>
+          
+          {filteredClients.length > ITEMS_PER_PAGE && (
+            <Button 
+              variant={selectedContacts.length === filteredClients.length ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                if (selectedContacts.length === filteredClients.length) {
+                  deselectAll();
+                } else {
+                  selectAllFiltered();
+                }
+              }}
+              className={selectedContacts.length === filteredClients.length ? "bg-blue-600 hover:bg-blue-700" : ""}
+            >
+              {selectedContacts.length === filteredClients.length 
+                ? `✓ Todos Selecionados (${filteredClients.length})`
+                : `Selecionar Todos Filtrados (${filteredClients.length})`}
+            </Button>
+          )}
+          
           {selectedContacts.length > 0 && (
-            <span className="text-sm text-slate-600">
+            <span className="text-sm text-slate-600 font-medium">
               {selectedContacts.length} de {filteredClients.length} selecionado(s)
             </span>
           )}
