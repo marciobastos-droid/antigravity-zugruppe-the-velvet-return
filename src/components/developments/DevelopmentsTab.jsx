@@ -779,24 +779,24 @@ export default function DevelopmentsTab() {
                   </div>
 
                   <div className="space-y-1 text-sm text-slate-600 mb-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {dev.city}
-                    </div>
-                    {dev.developer && (
-                      <div className="flex items-center gap-1">
-                        <Building2 className="w-4 h-4" />
-                        {dev.developer}
-                      </div>
-                    )}
-                    {(dev.price_from || dev.price_to) && (
-                      <div className="flex items-center gap-1">
-                        <Euro className="w-4 h-4" />
-                        {dev.price_from ? `€${dev.price_from.toLocaleString()}` : ''}
-                        {dev.price_from && dev.price_to ? ' - ' : ''}
-                        {dev.price_to ? `€${dev.price_to.toLocaleString()}` : ''}
-                      </div>
-                    )}
+                   <div className="flex items-center gap-1">
+                     <MapPin className="w-4 h-4" />
+                     {dev.city}
+                   </div>
+                   {dev.developer && (
+                     <div className="flex items-center gap-1 text-blue-700 font-medium">
+                       <Building2 className="w-4 h-4" />
+                       Promotor: {dev.developer}
+                     </div>
+                   )}
+                   {(dev.price_from || dev.price_to) && (
+                     <div className="flex items-center gap-1">
+                       <Euro className="w-4 h-4" />
+                       {dev.price_from ? `€${dev.price_from.toLocaleString()}` : ''}
+                       {dev.price_from && dev.price_to ? ' - ' : ''}
+                       {dev.price_to ? `€${dev.price_to.toLocaleString()}` : ''}
+                     </div>
+                   )}
                   </div>
 
                   {/* Progresso de Vendas */}
