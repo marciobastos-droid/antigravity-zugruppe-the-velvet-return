@@ -154,6 +154,20 @@ export default function PropertyCard({ property, hideMetadata = false }) {
              property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1)}
           </Badge>
 
+          {!hideMetadata && property.unit_number && (
+            <Badge variant="secondary" className="text-xs">
+              <Hash className="w-3 h-3 mr-1" />
+              Fração {property.unit_number}
+            </Badge>
+          )}
+
+          {!hideMetadata && property.development_name && (
+            <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
+              <Building2 className="w-3 h-3 mr-1" />
+              {property.development_name}
+            </Badge>
+          )}
+
           {!hideMetadata && property.external_id && property.external_id !== 'N/A' && (
             <Badge variant="secondary" className="text-xs">
               <Hash className="w-3 h-3 mr-1" />
