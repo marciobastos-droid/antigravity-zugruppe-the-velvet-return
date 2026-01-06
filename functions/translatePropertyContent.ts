@@ -103,7 +103,15 @@ IMPORTANT: Return ONLY the JSON object, no additional text or formatting.`;
       }
     }
 
-    return Response.json(translations);
+    // Update property with translations
+    await base44.asServiceRole.entities.Property.update(property_id, {
+      translations: translations
+    });
+
+    return Response.json({ 
+      success: true,
+      translations: translations 
+    });
 
   } catch (error) {
     console.error('Translation error:', error);
