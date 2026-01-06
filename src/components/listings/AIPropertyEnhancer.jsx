@@ -231,7 +231,7 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 gap-1">
             <TabsTrigger value="title" className="gap-1 sm:gap-2">
               <Type className="w-4 h-4" />
               <span className="hidden sm:inline">Título</span>
@@ -239,6 +239,10 @@ export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
             <TabsTrigger value="description" className="gap-1 sm:gap-2">
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Descrição</span>
+            </TabsTrigger>
+            <TabsTrigger value="translate" className="gap-1 sm:gap-2">
+              <Globe className="w-4 h-4" />
+              <span className="hidden sm:inline">Traduzir</span>
             </TabsTrigger>
             <TabsTrigger value="tags" className="gap-1 sm:gap-2">
               <Tags className="w-4 h-4" />
