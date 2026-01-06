@@ -167,12 +167,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
               {property.development_name || development?.name}
             </Badge>
           )}
-          {development?.developer && (
-            <Badge variant="outline" className="text-[10px] sm:text-xs border-purple-200 text-purple-700 bg-purple-50 px-1.5 sm:px-2 py-0.5">
-              {development.developer}
-            </Badge>
-          )}
-        </div>
+          </div>
       </div>
 
       <button
@@ -312,12 +307,7 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
                 {property.development_name || development?.name}
               </Badge>
             )}
-            {development?.developer && (
-              <Badge variant="outline" className="text-[10px] sm:text-xs border-purple-200 text-purple-700 bg-purple-50 px-1.5 sm:px-2 py-0.5">
-                {development.developer}
-              </Badge>
-            )}
-          </div>
+            </div>
         </div>
       </div>
 
