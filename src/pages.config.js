@@ -2,6 +2,7 @@ import ActivityFeed from './pages/ActivityFeed';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminPanel from './pages/AdminPanel';
 import AgentManagement from './pages/AgentManagement';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
 import CookiePolicy from './pages/CookiePolicy';
@@ -28,7 +29,6 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -37,6 +37,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AdminPanel": AdminPanel,
     "AgentManagement": AgentManagement,
+    "AnalyticsDashboard": AnalyticsDashboard,
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
     "CookiePolicy": CookiePolicy,
@@ -63,11 +64,10 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "AnalyticsDashboard": AnalyticsDashboard,
 }
 
 export const pagesConfig = {
-    mainPage: "Website",
+    mainPage: "Home",
     Pages: PAGES,
     Layout: __Layout,
 };
