@@ -174,10 +174,16 @@ export default function PropertyCard({ property, hideMetadata = false }) {
             </Badge>
           )}
 
-          {!hideMetadata && property.development_name && (
+          {!hideMetadata && (property.development_name || development?.name) && (
             <Badge variant="outline" className="text-xs border-blue-200 text-blue-700 bg-blue-50">
               <Building2 className="w-3 h-3 mr-1" />
-              {property.development_name}
+              {property.development_name || development?.name}
+            </Badge>
+          )}
+
+          {!hideMetadata && development?.developer && (
+            <Badge variant="outline" className="text-xs border-purple-200 text-purple-700 bg-purple-50">
+              Promotor: {development.developer}
             </Badge>
           )}
 
