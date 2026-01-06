@@ -14,6 +14,7 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import AITitleGenerator from "../property/AITitleGenerator";
+import AutoTranslateButton from "../property/AutoTranslateButton";
 
 export default function AIPropertyEnhancer({ open, onOpenChange, property }) {
   const [activeTab, setActiveTab] = React.useState("title");
