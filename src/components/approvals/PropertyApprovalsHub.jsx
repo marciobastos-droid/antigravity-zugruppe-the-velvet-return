@@ -16,19 +16,14 @@ import {
   CheckCircle2, XCircle, Clock, AlertCircle, Filter, Search,
   Building2, MapPin, Euro, Bed, Bath, User, Calendar, Eye,
   Settings, Bell, Mail, MessageSquare, FileCheck, Users,
-  TrendingUp, BarChart3, ChevronDown, ChevronUp
+  TrendingUp, BarChart3, ChevronDown, ChevronUp, Workflow
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-
-const APPROVAL_STEPS = [
-  { id: "initial_review", label: "Revisão Inicial", description: "Verificação de dados básicos" },
-  { id: "quality_check", label: "Controlo de Qualidade", description: "Verificação de fotos e descrição" },
-  { id: "pricing_review", label: "Revisão de Preço", description: "Validação do preço de mercado" },
-  { id: "final_approval", label: "Aprovação Final", description: "Aprovação executiva" }
-];
+import ApprovalWorkflowManager from "./ApprovalWorkflowManager";
+import ApprovalStatsDashboard from "./ApprovalStatsDashboard";
 
 export default function PropertyApprovalsHub() {
   const queryClient = useQueryClient();
@@ -43,16 +38,7 @@ export default function PropertyApprovalsHub() {
   const [detailsDialog, setDetailsDialog] = useState(false);
   const [settingsDialog, setSettingsDialog] = useState(false);
   const [expandedProperty, setExpandedProperty] = useState(null);
-
-  // Multi-step approval settings
-  const [approvalSettings, setApprovalSettings] = useState({
-    multi_step_enabled: false,
-    required_steps: ["initial_review", "final_approval"],
-    auto_notify_agent: true,
-    auto_notify_admin: true,
-    require_feedback_on_reject: true,
-    notification_channels: ["email", "system"]
-  });
+  const [activeTab, setActiveTab] = useState("pending");
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -64,7 +50,9 @@ export default function PropertyApprovalsHub() {
   const { data: pendingProperties = [], isLoading } = useQuery({
     queryKey: ['pendingApprovalProperties'],
     queryFn: async () => {
-      const props = await base44.entities.Property.filter({ approval_status: "pending" });
+      const props = await base44.entities.Property.filter({ 
+        approval_status: { $in: ["pending", "in_progress"] }
+      });
       return props.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     enabled: !!user && isAdmin
@@ -84,28 +72,12 @@ export default function PropertyApprovalsHub() {
     mutationFn: async ({ propertyIds, feedback }) => {
       const results = await Promise.allSettled(
         propertyIds.map(async (id) => {
-          const property = pendingProperties.find(p => p.id === id);
-          await base44.entities.Property.update(id, {
-            approval_status: "approved",
-            availability_status: "available",
-            approved_by: user.email,
-            approved_date: new Date().toISOString(),
-            approval_feedback: feedback || "Aprovado"
+          const { data } = await base44.functions.invoke('processApprovalWorkflow', {
+            propertyId: id,
+            action: 'approved',
+            feedback: feedback || null
           });
-
-          // Notificar agente
-          if (property?.assigned_consultant) {
-            await base44.functions.invoke('notifyPropertyApproval', {
-              property_id: id,
-              property_title: property.title,
-              agent_email: property.assigned_consultant,
-              status: "approved",
-              feedback: feedback || "Aprovado",
-              approved_by: user.email
-            });
-          }
-
-          return { id, success: true };
+          return data;
         })
       );
 
@@ -114,12 +86,14 @@ export default function PropertyApprovalsHub() {
       return { successful, failed };
     },
     onSuccess: (result) => {
-      toast.success(`${result.successful} imóvel(is) aprovado(s)${result.failed > 0 ? `, ${result.failed} falharam` : ''}`);
+      toast.success(`${result.successful} imóvel(is) processado(s)${result.failed > 0 ? `, ${result.failed} falharam` : ''}`);
       queryClient.invalidateQueries({ queryKey: ['pendingApprovalProperties'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['approval-history'] });
       setSelectedProperties([]);
       setBulkActionDialog(null);
       setBulkFeedback("");
+      setSelectedProperty(null);
     }
   });
 
@@ -127,29 +101,12 @@ export default function PropertyApprovalsHub() {
     mutationFn: async ({ propertyIds, feedback }) => {
       const results = await Promise.allSettled(
         propertyIds.map(async (id) => {
-          const property = pendingProperties.find(p => p.id === id);
-          await base44.entities.Property.update(id, {
-            approval_status: "rejected",
-            availability_status: "withdrawn",
-            approved_by: user.email,
-            approved_date: new Date().toISOString(),
-            rejection_reason: feedback || "Não aprovado",
-            approval_feedback: feedback || "Não aprovado"
+          const { data } = await base44.functions.invoke('processApprovalWorkflow', {
+            propertyId: id,
+            action: 'rejected',
+            feedback: feedback || 'Rejeitado'
           });
-
-          // Notificar agente
-          if (property?.assigned_consultant) {
-            await base44.functions.invoke('notifyPropertyApproval', {
-              property_id: id,
-              property_title: property.title,
-              agent_email: property.assigned_consultant,
-              status: "rejected",
-              feedback: feedback || "Não aprovado",
-              approved_by: user.email
-            });
-          }
-
-          return { id, success: true };
+          return data;
         })
       );
 
@@ -161,9 +118,11 @@ export default function PropertyApprovalsHub() {
       toast.success(`${result.successful} imóvel(is) rejeitado(s)${result.failed > 0 ? `, ${result.failed} falharam` : ''}`);
       queryClient.invalidateQueries({ queryKey: ['pendingApprovalProperties'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['approval-history'] });
       setSelectedProperties([]);
       setBulkActionDialog(null);
       setBulkFeedback("");
+      setSelectedProperty(null);
     }
   });
 
@@ -256,8 +215,8 @@ export default function PropertyApprovalsHub() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gestão de Aprovações</h2>
-          <p className="text-slate-600">Aprovar e gerir imóveis pendentes</p>
+          <h2 className="text-2xl font-bold text-slate-900">Central de Aprovações</h2>
+          <p className="text-slate-600">Gerir aprovações de imóveis</p>
         </div>
         <Button variant="outline" onClick={() => setSettingsDialog(true)}>
           <Settings className="w-4 h-4 mr-2" />
@@ -265,326 +224,373 @@ export default function PropertyApprovalsHub() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4 text-center">
-            <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
-            <p className="text-sm text-blue-700">Pendentes</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-          <CardContent className="p-4 text-center">
-            <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-amber-900">{stats.last24h}</p>
-            <p className="text-sm text-amber-700">Últimas 24h</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-purple-900">{stats.last7days}</p>
-            <p className="text-sm text-purple-700">Últimos 7 dias</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
-          <CardContent className="p-4 text-center">
-            <BarChart3 className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-slate-900">{stats.avgDaysPending}</p>
-            <p className="text-sm text-slate-700">Dias médios</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="pending" className="gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Pendentes ({stats.total})
+          </TabsTrigger>
+          <TabsTrigger value="stats" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Estatísticas
+          </TabsTrigger>
+          <TabsTrigger value="workflows" className="gap-2">
+            <Workflow className="w-4 h-4" />
+            Workflows
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid md:grid-cols-5 gap-3">
-            <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Pesquisar por título, ref, cidade..."
-                className="pl-10"
-              />
-            </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Tipos</SelectItem>
-                <SelectItem value="apartment">Apartamento</SelectItem>
-                <SelectItem value="house">Moradia</SelectItem>
-                <SelectItem value="land">Terreno</SelectItem>
-                <SelectItem value="building">Prédio</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={cityFilter} onValueChange={setCityFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Cidade" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Cidades</SelectItem>
-                {uniqueCities.map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={agentFilter} onValueChange={setAgentFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Agente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Agentes</SelectItem>
-                {uniqueAgents.map(agent => (
-                  <SelectItem key={agent.email} value={agent.email}>{agent.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <TabsContent value="pending" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4 text-center">
+                <Clock className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-blue-900">{stats.total}</p>
+                <p className="text-sm text-blue-700">Pendentes</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+              <CardContent className="p-4 text-center">
+                <AlertCircle className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-amber-900">{stats.last24h}</p>
+                <p className="text-sm text-amber-700">Últimas 24h</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <TrendingUp className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-purple-900">{stats.last7days}</p>
+                <p className="text-sm text-purple-700">Últimos 7 dias</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200">
+              <CardContent className="p-4 text-center">
+                <BarChart3 className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-slate-900">{stats.avgDaysPending}</p>
+                <p className="text-sm text-slate-700">Dias médios</p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Bulk Actions Bar */}
-      {selectedProperties.length > 0 && (
-        <Card className="border-blue-300 bg-blue-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                <span className="font-semibold text-blue-900">
-                  {selectedProperties.length} imóvel(is) selecionado(s)
-                </span>
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid md:grid-cols-5 gap-3">
+                <div className="md:col-span-2 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Pesquisar por título, ref, cidade..."
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Tipos</SelectItem>
+                    <SelectItem value="apartment">Apartamento</SelectItem>
+                    <SelectItem value="house">Moradia</SelectItem>
+                    <SelectItem value="land">Terreno</SelectItem>
+                    <SelectItem value="building">Prédio</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Cidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Cidades</SelectItem>
+                    {uniqueCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={agentFilter} onValueChange={setAgentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Agente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Agentes</SelectItem>
+                    {uniqueAgents.map(agent => (
+                      <SelectItem key={agent.email} value={agent.email}>{agent.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="flex items-center gap-2">
+            </CardContent>
+          </Card>
+
+          {/* Bulk Actions Bar */}
+          {selectedProperties.length > 0 && (
+            <Card className="border-blue-300 bg-blue-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <span className="font-semibold text-blue-900">
+                      {selectedProperties.length} imóvel(is) selecionado(s)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => setBulkActionDialog("approve")}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                      Aprovar Selecionados
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setBulkActionDialog("reject")}
+                    >
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Rejeitar Selecionados
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedProperties([])}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Properties List */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Imóveis Pendentes ({filteredProperties.length})</CardTitle>
                 <Button
-                  size="sm"
-                  onClick={() => setBulkActionDialog("approve")}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-1" />
-                  Aprovar Selecionados
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => setBulkActionDialog("reject")}
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Rejeitar Selecionados
-                </Button>
-                <Button
-                  size="sm"
                   variant="outline"
-                  onClick={() => setSelectedProperties([])}
+                  size="sm"
+                  onClick={toggleSelectAll}
                 >
-                  Cancelar
+                  {selectedProperties.length === filteredProperties.length && filteredProperties.length > 0
+                    ? 'Desselecionar Todos'
+                    : 'Selecionar Todos'}
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardHeader>
+            <CardContent>
+              {filteredProperties.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileCheck className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                    {pendingProperties.length === 0 ? 'Nenhum imóvel pendente' : 'Nenhum resultado'}
+                  </h3>
+                  <p className="text-slate-600">
+                    {pendingProperties.length === 0 
+                      ? 'Todos os imóveis foram processados.'
+                      : 'Ajuste os filtros para ver resultados.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredProperties.map((property) => {
+                    const isExpanded = expandedProperty === property.id;
+                    const isSelected = selectedProperties.includes(property.id);
+                    const daysPending = Math.floor((new Date() - new Date(property.created_date)) / (1000 * 60 * 60 * 24));
+                    const assignedUser = allUsers.find(u => u.email === property.assigned_consultant);
 
-      {/* Properties List */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Imóveis Pendentes ({filteredProperties.length})</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleSelectAll}
-            >
-              {selectedProperties.length === filteredProperties.length && filteredProperties.length > 0
-                ? 'Desselecionar Todos'
-                : 'Selecionar Todos'}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredProperties.length === 0 ? (
-            <div className="text-center py-12">
-              <FileCheck className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                {pendingProperties.length === 0 ? 'Nenhum imóvel pendente' : 'Nenhum resultado'}
-              </h3>
-              <p className="text-slate-600">
-                {pendingProperties.length === 0 
-                  ? 'Todos os imóveis foram aprovados ou rejeitados.'
-                  : 'Ajuste os filtros para ver resultados.'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredProperties.map((property) => {
-                const isExpanded = expandedProperty === property.id;
-                const isSelected = selectedProperties.includes(property.id);
-                const daysPending = Math.floor((new Date() - new Date(property.created_date)) / (1000 * 60 * 60 * 24));
-                const assignedUser = allUsers.find(u => u.email === property.assigned_consultant);
-                const assignedAgent = agents.find(a => a.email === property.assigned_consultant);
-
-                return (
-                  <Card 
-                    key={property.id}
-                    className={`transition-all ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50/30' : ''}`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        {/* Checkbox */}
-                        <div className="pt-1">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => toggleSelection(property.id)}
-                          />
-                        </div>
-
-                        {/* Image */}
-                        <div className="flex-shrink-0">
-                          {property.images?.[0] ? (
-                            <img
-                              src={property.images[0]}
-                              alt={property.title}
-                              className="w-24 h-24 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-24 h-24 bg-slate-200 rounded-lg flex items-center justify-center">
-                              <Building2 className="w-8 h-8 text-slate-400" />
+                    return (
+                      <Card 
+                        key={property.id}
+                        className={`transition-all ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50/30' : ''}`}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            {/* Checkbox */}
+                            <div className="pt-1">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleSelection(property.id)}
+                              />
                             </div>
-                          )}
-                        </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                {property.ref_id && (
-                                  <Badge variant="outline" className="font-mono text-xs">
-                                    {property.ref_id}
-                                  </Badge>
-                                )}
-                                {daysPending > 3 && (
-                                  <Badge className="bg-amber-100 text-amber-800">
-                                    <Clock className="w-3 h-3 mr-1" />
-                                    {daysPending} dias
-                                  </Badge>
-                                )}
-                              </div>
-                              <h3 className="font-semibold text-slate-900 mb-1 line-clamp-1">
-                                {property.title}
-                              </h3>
-                              <div className="flex items-center gap-3 text-sm text-slate-600 flex-wrap">
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" />
-                                  {property.city}
-                                </span>
-                                <span className="flex items-center gap-1 font-semibold text-green-600">
-                                  <Euro className="w-3 h-3" />
-                                  {property.price?.toLocaleString()}
-                                </span>
-                                {property.bedrooms > 0 && (
-                                  <span className="flex items-center gap-1">
-                                    <Bed className="w-3 h-3" />
-                                    T{property.bedrooms}
-                                  </span>
-                                )}
-                              </div>
-                              {assignedUser && (
-                                <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
-                                  <User className="w-3 h-3" />
-                                  {assignedUser.display_name || assignedUser.full_name}
+                            {/* Image */}
+                            <div className="flex-shrink-0">
+                              {property.images?.[0] ? (
+                                <img
+                                  src={property.images[0]}
+                                  alt={property.title}
+                                  className="w-24 h-24 object-cover rounded-lg"
+                                />
+                              ) : (
+                                <div className="w-24 h-24 bg-slate-200 rounded-lg flex items-center justify-center">
+                                  <Building2 className="w-8 h-8 text-slate-400" />
                                 </div>
                               )}
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex flex-col gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedProperty(property);
-                                  setDetailsDialog(true);
-                                }}
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                    {property.ref_id && (
+                                      <Badge variant="outline" className="font-mono text-xs">
+                                        {property.ref_id}
+                                      </Badge>
+                                    )}
+                                    {daysPending > 3 && (
+                                      <Badge className="bg-amber-100 text-amber-800">
+                                        <Clock className="w-3 h-3 mr-1" />
+                                        {daysPending} dias
+                                      </Badge>
+                                    )}
+                                    {property.approval_status === 'in_progress' && (
+                                      <Badge className="bg-blue-100 text-blue-800">
+                                        Em Progresso
+                                      </Badge>
+                                    )}
+                                    {property.approval_step_name && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {property.approval_step_name}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <h3 className="font-semibold text-slate-900 mb-1 line-clamp-1">
+                                    {property.title}
+                                  </h3>
+                                  <div className="flex items-center gap-3 text-sm text-slate-600 flex-wrap">
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      {property.city}
+                                    </span>
+                                    <span className="flex items-center gap-1 font-semibold text-green-600">
+                                      <Euro className="w-3 h-3" />
+                                      {property.price?.toLocaleString()}
+                                    </span>
+                                    {property.bedrooms > 0 && (
+                                      <span className="flex items-center gap-1">
+                                        <Bed className="w-3 h-3" />
+                                        T{property.bedrooms}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {assignedUser && (
+                                    <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
+                                      <User className="w-3 h-3" />
+                                      {assignedUser.display_name || assignedUser.full_name}
+                                    </div>
+                                  )}
+                                  {property.pending_approver_role && (
+                                    <Badge className="bg-amber-500 text-white text-xs mt-2">
+                                      Aguarda: {property.pending_approver_role}
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex flex-col gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedProperty(property);
+                                      setDetailsDialog(true);
+                                    }}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Ver
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => approveMutation.mutate({ propertyIds: [property.id], feedback: "" })}
+                                    className="bg-green-600 hover:bg-green-700"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                                    Aprovar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => {
+                                      setSelectedProperty(property);
+                                      setBulkActionDialog("reject");
+                                    }}
+                                  >
+                                    <XCircle className="w-4 h-4 mr-1" />
+                                    Rejeitar
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Expandable Details */}
+                              <button
+                                onClick={() => setExpandedProperty(isExpanded ? null : property.id)}
+                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
                               >
-                                <Eye className="w-4 h-4 mr-1" />
-                                Ver
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => approveMutation.mutate({ propertyIds: [property.id], feedback: "" })}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle2 className="w-4 h-4 mr-1" />
-                                Aprovar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => {
-                                  setSelectedProperty(property);
-                                  setBulkActionDialog("reject");
-                                }}
-                              >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                Rejeitar
-                              </Button>
+                                {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                {isExpanded ? 'Menos detalhes' : 'Mais detalhes'}
+                              </button>
+
+                              {isExpanded && (
+                                <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                                  <p className="text-sm text-slate-700 line-clamp-3">{property.description}</p>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                                    {property.bathrooms > 0 && (
+                                      <span className="flex items-center gap-1">
+                                        <Bath className="w-3 h-3" />
+                                        {property.bathrooms} WC
+                                      </span>
+                                    )}
+                                    {property.useful_area && (
+                                      <span className="flex items-center gap-1">
+                                        {property.useful_area}m²
+                                      </span>
+                                    )}
+                                    {property.year_built && (
+                                      <span className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {property.year_built}
+                                      </span>
+                                    )}
+                                    <span className="flex items-center gap-1 text-slate-500">
+                                      Criado: {format(new Date(property.created_date), "dd/MM/yy")}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                          {/* Expandable Details */}
-                          <button
-                            onClick={() => setExpandedProperty(isExpanded ? null : property.id)}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-2"
-                          >
-                            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                            {isExpanded ? 'Menos detalhes' : 'Mais detalhes'}
-                          </button>
+        <TabsContent value="stats">
+          <ApprovalStatsDashboard />
+        </TabsContent>
 
-                          {isExpanded && (
-                            <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                              <p className="text-sm text-slate-700 line-clamp-3">{property.description}</p>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                                {property.bathrooms > 0 && (
-                                  <span className="flex items-center gap-1">
-                                    <Bath className="w-3 h-3" />
-                                    {property.bathrooms} WC
-                                  </span>
-                                )}
-                                {property.useful_area && (
-                                  <span className="flex items-center gap-1">
-                                    {property.useful_area}m²
-                                  </span>
-                                )}
-                                {property.year_built && (
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {property.year_built}
-                                  </span>
-                                )}
-                                <span className="flex items-center gap-1 text-slate-500">
-                                  Criado: {format(new Date(property.created_date), "dd/MM/yy")}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <TabsContent value="workflows">
+          <ApprovalWorkflowManager />
+        </TabsContent>
+      </Tabs>
 
       {/* Bulk Action Dialog */}
-      <Dialog open={!!bulkActionDialog} onOpenChange={(open) => !open && setBulkActionDialog(null)}>
+      <Dialog open={!!bulkActionDialog} onOpenChange={(open) => {
+        if (!open) {
+          setBulkActionDialog(null);
+          setBulkFeedback("");
+          setSelectedProperty(null);
+        }
+      }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -604,9 +610,7 @@ export default function PropertyApprovalsHub() {
 
           <div className="space-y-4 py-4">
             <div>
-              <Label>
-                Feedback {bulkActionDialog === "reject" && approvalSettings.require_feedback_on_reject ? "*" : "(Opcional)"}
-              </Label>
+              <Label>Feedback {bulkActionDialog === "reject" ? "*" : "(Opcional)"}</Label>
               <Textarea
                 value={bulkFeedback}
                 onChange={(e) => setBulkFeedback(e.target.value)}
@@ -615,23 +619,21 @@ export default function PropertyApprovalsHub() {
                   : "Motivo da rejeição e sugestões de melhoria..."
                 }
                 rows={4}
-                required={bulkActionDialog === "reject" && approvalSettings.require_feedback_on_reject}
+                required={bulkActionDialog === "reject"}
               />
             </div>
 
-            {approvalSettings.auto_notify_agent && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Bell className="w-4 h-4 text-blue-600 mt-0.5" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium">Notificação automática</p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      {selectedProperty ? 'O agente' : 'Os agentes'} responsável(is) será(ão) notificado(s) por email e sistema.
-                    </p>
-                  </div>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Bell className="w-4 h-4 text-blue-600 mt-0.5" />
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">Notificação automática</p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    {selectedProperty ? 'O proprietário' : 'Os proprietários'} será(ão) notificado(s) por email e sistema.
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
 
             <div className="flex gap-2">
               <Button
@@ -651,7 +653,7 @@ export default function PropertyApprovalsHub() {
                   if (bulkActionDialog === "approve") {
                     approveMutation.mutate({ propertyIds: ids, feedback: bulkFeedback });
                   } else {
-                    if (approvalSettings.require_feedback_on_reject && !bulkFeedback.trim()) {
+                    if (!bulkFeedback.trim()) {
                       toast.error("Feedback é obrigatório para rejeição");
                       return;
                     }
@@ -699,6 +701,24 @@ export default function PropertyApprovalsHub() {
                     />
                   ))}
                 </div>
+              )}
+
+              {/* Workflow Progress */}
+              {selectedProperty.approval_step_name && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Workflow className="w-4 h-4 text-blue-600" />
+                      <p className="font-semibold text-blue-900">Progresso do Workflow</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-blue-600 text-white">
+                        Passo {selectedProperty.current_approval_step || 1}
+                      </Badge>
+                      <span className="text-sm text-blue-800">{selectedProperty.approval_step_name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Basic Info */}
@@ -799,154 +819,25 @@ export default function PropertyApprovalsHub() {
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="notifications" className="mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="notifications">Notificações</TabsTrigger>
-              <TabsTrigger value="workflow">Fluxo de Trabalho</TabsTrigger>
-            </TabsList>
+          <div className="space-y-4 mt-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 mb-1">ℹ️ Configurações Avançadas</p>
+              <p className="text-xs text-blue-700">
+                Configure workflows personalizados no separador "Workflows" para ativar aprovações em múltiplos passos.
+              </p>
+            </div>
 
-            <TabsContent value="notifications" className="space-y-4 mt-4">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900">Notificar agente automaticamente</p>
-                    <p className="text-xs text-slate-600">Enviar notificação ao aprovar/rejeitar</p>
-                  </div>
-                  <Switch
-                    checked={approvalSettings.auto_notify_agent}
-                    onCheckedChange={(checked) => 
-                      setApprovalSettings({...approvalSettings, auto_notify_agent: checked})
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900">Notificar administradores</p>
-                    <p className="text-xs text-slate-600">Alertar admins sobre novos imóveis pendentes</p>
-                  </div>
-                  <Switch
-                    checked={approvalSettings.auto_notify_admin}
-                    onCheckedChange={(checked) => 
-                      setApprovalSettings({...approvalSettings, auto_notify_admin: checked})
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-slate-900">Feedback obrigatório na rejeição</p>
-                    <p className="text-xs text-slate-600">Exigir motivo ao rejeitar imóveis</p>
-                  </div>
-                  <Switch
-                    checked={approvalSettings.require_feedback_on_reject}
-                    onCheckedChange={(checked) => 
-                      setApprovalSettings({...approvalSettings, require_feedback_on_reject: checked})
-                    }
-                  />
-                </div>
-
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <Label className="text-sm font-medium mb-2 block">Canais de Notificação</Label>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={approvalSettings.notification_channels.includes("email")}
-                        onCheckedChange={(checked) => {
-                          const channels = checked
-                            ? [...approvalSettings.notification_channels, "email"]
-                            : approvalSettings.notification_channels.filter(c => c !== "email");
-                          setApprovalSettings({...approvalSettings, notification_channels: channels});
-                        }}
-                      />
-                      <Mail className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">Email</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={approvalSettings.notification_channels.includes("system")}
-                        onCheckedChange={(checked) => {
-                          const channels = checked
-                            ? [...approvalSettings.notification_channels, "system"]
-                            : approvalSettings.notification_channels.filter(c => c !== "system");
-                          setApprovalSettings({...approvalSettings, notification_channels: channels});
-                        }}
-                      />
-                      <Bell className="w-4 h-4 text-purple-600" />
-                      <span className="text-sm">Notificações do Sistema</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={approvalSettings.notification_channels.includes("whatsapp")}
-                        onCheckedChange={(checked) => {
-                          const channels = checked
-                            ? [...approvalSettings.notification_channels, "whatsapp"]
-                            : approvalSettings.notification_channels.filter(c => c !== "whatsapp");
-                          setApprovalSettings({...approvalSettings, notification_channels: channels});
-                        }}
-                      />
-                      <MessageSquare className="w-4 h-4 text-green-600" />
-                      <span className="text-sm">WhatsApp</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="workflow" className="space-y-4 mt-4">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-slate-900">Aprovação em Múltiplos Passos</p>
-                  <p className="text-xs text-slate-600">Ativar fluxo de aprovação em etapas</p>
-                </div>
-                <Switch
-                  checked={approvalSettings.multi_step_enabled}
-                  onCheckedChange={(checked) => 
-                    setApprovalSettings({...approvalSettings, multi_step_enabled: checked})
-                  }
-                />
-              </div>
-
-              {approvalSettings.multi_step_enabled && (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm font-medium text-amber-900 mb-3">Passos Obrigatórios</p>
-                  <div className="space-y-2">
-                    {APPROVAL_STEPS.map((step) => (
-                      <label key={step.id} className="flex items-start gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={approvalSettings.required_steps.includes(step.id)}
-                          onCheckedChange={(checked) => {
-                            const steps = checked
-                              ? [...approvalSettings.required_steps, step.id]
-                              : approvalSettings.required_steps.filter(s => s !== step.id);
-                            setApprovalSettings({...approvalSettings, required_steps: steps});
-                          }}
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{step.label}</p>
-                          <p className="text-xs text-slate-600">{step.description}</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                  <p className="text-xs text-amber-700 mt-3 bg-amber-100 p-2 rounded">
-                    ⚠️ Funcionalidade em desenvolvimento. Atualmente apenas aprovação simples está ativa.
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setSettingsDialog(false)}>
-              Fechar
-            </Button>
-            <Button onClick={() => {
-              toast.success("Configurações guardadas!");
-              setSettingsDialog(false);
-            }}>
-              Guardar Configurações
-            </Button>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setSettingsDialog(false)}>
+                Fechar
+              </Button>
+              <Button onClick={() => {
+                setActiveTab("workflows");
+                setSettingsDialog(false);
+              }}>
+                Ir para Workflows
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
