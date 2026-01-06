@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
 import OptimizedImage from "../common/OptimizedImage";
