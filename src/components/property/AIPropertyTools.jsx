@@ -13,6 +13,7 @@ import PropertyMediaUploader from "./PropertyMediaUploader";
 import AITitleGenerator from "./AITitleGenerator";
 import AIMultilingualDescriptionGenerator from "./AIMultilingualDescriptionGenerator";
 import AISEOOptimizer from "./AISEOOptimizer";
+import AutoTranslateButton from "./AutoTranslateButton";
 
 export default function AIPropertyTools({ property, onUpdate }) {
   const [activeTab, setActiveTab] = React.useState("price");
