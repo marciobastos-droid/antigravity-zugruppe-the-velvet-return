@@ -465,9 +465,7 @@ export default function Website() {
       const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
       return pp.length > 0;
     }).length;
-    const withZugruppe = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zugruppe")
-    ).length;
+
     const withZuhaus = activeProperties.filter(p => 
       (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
     ).length;
@@ -478,7 +476,7 @@ export default function Website() {
     console.log('[Website Debug]', {
       totalActive,
       withPublishedPages,
-      configured: { zugruppe: withZugruppe, zuhaus: withZuhaus, zuhandel: withZuhandel },
+      configured: { zuhaus: withZuhaus, zuhandel: withZuhandel },
       activeTab
     });
     
@@ -519,13 +517,9 @@ export default function Website() {
           });
         }
         return pass;
-      } else {
-        const hasZugruppe = publishedPages.includes("zugruppe");
-        if (!hasZugruppe) {
-          console.log('[Website] Rejected (all):', p.ref_id || p.id, { publishedPages });
-        }
-        return hasZugruppe;
       }
+      
+      return false;
     });
     
     console.log('[Website] Filtered result:', filtered.length, 'properties');
@@ -705,7 +699,6 @@ export default function Website() {
   // SEO dinâmico baseado em filtros ativos
   const generateDynamicSEO = () => {
     const baseTitles = {
-      all: locale === 'en' ? "Properties" : locale === 'es' ? "Propiedades" : locale === 'fr' ? "Propriétés" : "Imóveis",
       residential: locale === 'en' ? "Residential Properties" : locale === 'es' ? "Propiedades Residenciales" : locale === 'fr' ? "Propriétés Résidentielles" : "Imóveis Residenciais",
       commercial: locale === 'en' ? "Commercial Spaces" : locale === 'es' ? "Espacios Comerciales" : locale === 'fr' ? "Espaces Commerciaux" : "Espaços Comerciais"
     };
@@ -823,16 +816,12 @@ export default function Website() {
       <div className={`relative overflow-hidden ${
         activeTab === "residential" 
           ? "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#d22630]"
-          : activeTab === "commercial"
-          ? "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#75787b]"
-          : "bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900"
+          : "bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#75787b]"
       }`}>
         <div className={`absolute inset-0 bg-cover bg-center opacity-20 ${
           activeTab === "residential"
             ? "bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')]"
-            : activeTab === "commercial"
-            ? "bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')]"
-            : "bg-[url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600')]"
+            : "bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600')]"
         }`} />
         <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
           <div className="text-center mb-10">
@@ -841,11 +830,9 @@ export default function Website() {
                 src={
                   activeTab === "residential"
                     ? "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a0e94a9a1_ZUHAUS_branco_vermelho-trasnparente_c-slogan.png"
-                    : activeTab === "commercial"
-                    ? "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/fbf7ef631_WaterMarkZuHandel.png"
-                    : "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/c00740fb7_ZUGRUPPE_branco_azul-trasnparente_c-slogan1.png"
+                    : "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/fbf7ef631_WaterMarkZuHandel.png"
                 }
-                alt={activeTab === "residential" ? "ZuHaus" : activeTab === "commercial" ? "ZuHandel" : "ZuGruppe"}
+                alt={activeTab === "residential" ? "ZuHaus" : "ZuHandel"}
                 className="h-24 md:h-32 lg:h-40 w-auto object-contain"
               />
             </div>
@@ -857,7 +844,7 @@ export default function Website() {
               <CardContent className="p-3 sm:p-4 md:p-6">
                 {/* Tabs de Categoria */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
-                  <TabsList className="grid grid-cols-5 w-full h-auto">
+                  <TabsList className="grid grid-cols-4 w-full h-auto">
                     <Link to={createPageUrl("Institucional")} className="flex-1">
                       <TabsTrigger value="institutional" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                         <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -880,13 +867,6 @@ export default function Website() {
                         <Star className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span className="hidden lg:inline">Premium Luxo</span>
                         <span className="lg:hidden">Premium</span>
-                      </TabsTrigger>
-                    </Link>
-                    <Link to={createPageUrl("WorldWideProperties")} className="flex-1">
-                      <TabsTrigger value="worldwide" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
-                        <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="hidden lg:inline">Worldwide</span>
-                        <span className="lg:hidden">World</span>
                       </TabsTrigger>
                     </Link>
                   </TabsList>
@@ -1393,7 +1373,7 @@ export default function Website() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
             <h2 className="text-base sm:text-xl font-bold text-slate-900">
-              {filteredProperties.length} {activeTab === "residential" ? t('property.results.residential') : activeTab === "commercial" ? t('property.results.commercial') : (locale === 'en' ? 'properties' : 'imóveis')}
+              {filteredProperties.length} {activeTab === "residential" ? t('property.results.residential') : t('property.results.commercial')}
             </h2>
             {hasActiveFilters && (
               <p className="text-xs sm:text-sm text-slate-600">{t('property.results.withFilters')}</p>
@@ -1457,9 +1437,7 @@ export default function Website() {
               <PropertiesMap 
                 properties={sortedProperties} 
                 brandColor={
-                  activeTab === "residential" ? "#d22630" : 
-                  activeTab === "commercial" ? "#75787b" : 
-                  "#3b82f6"
+                  activeTab === "residential" ? "#d22630" : "#75787b"
                 }
                 height="600px"
               />
