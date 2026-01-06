@@ -144,16 +144,28 @@ const PropertyCard = memo(function PropertyCard({
               {property.useful_area > 0 && <span>📐 {property.useful_area}m²</span>}
             </div>
             
-            {property.development_name && (
+            {(property.development_name || development?.name) && (
               <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center gap-1.5 text-xs">
                   <Building2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
-                  <span className="font-medium text-blue-900 truncate">{property.development_name}</span>
+                  <span className="font-medium text-blue-900 truncate">{property.development_name || development?.name}</span>
                 </div>
                 {property.unit_number && (
                   <div className="flex items-center gap-1 mt-1 text-xs text-blue-700">
                     <Hash className="w-3 h-3" />
                     <span>Fração {property.unit_number}</span>
+                  </div>
+                )}
+                {development?.developer && (
+                  <div className="mt-1.5 pt-1.5 border-t border-blue-200">
+                    <div className="text-[10px] text-blue-600 font-medium truncate">
+                      Promotor: {development.developer}
+                    </div>
+                    {development?.developer_company && (
+                      <div className="text-[10px] text-blue-500 truncate">
+                        {development.developer_company}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
