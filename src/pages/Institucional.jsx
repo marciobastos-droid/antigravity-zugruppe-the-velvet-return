@@ -13,7 +13,6 @@ import {
   TrendingUp, Shield, Sparkles, ArrowRight, Phone, Mail, MapPin, Send, Loader2, CheckCircle2, AlertCircle } from
 "lucide-react";
 import SEOHead from "../components/seo/SEOHead";
-import { HelmetProvider } from "react-helmet-async";
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { base44 } from "@/api/base44Client";
 import { useMutation } from "@tanstack/react-query";
@@ -198,7 +197,6 @@ export default function Institucional() {
 
 
   return (
-    <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
         <SEOHead
           title={`ZuGruppe - ${t('institutional.title')} | ${locale === 'en' ? 'Trusted Real Estate in Portugal' : locale === 'es' ? 'Inmobiliaria de Confianza en Portugal' : locale === 'fr' ? 'Immobilier de Confiance au Portugal' : 'Imobiliária de Confiança em Portugal'}`}
@@ -632,7 +630,6 @@ export default function Institucional() {
             </div>
           </div>
         </div>
-      </div>
-    </HelmetProvider>);
+      </div>);
 
 }

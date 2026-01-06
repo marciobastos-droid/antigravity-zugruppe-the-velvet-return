@@ -50,8 +50,6 @@ import {
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import SEOHead from "../components/seo/SEOHead";
-
-import { HelmetProvider } from "react-helmet-async";
 import VisitorTracker from "../components/tracking/VisitorTracker";
 import { useTranslatedProperty } from "../components/i18n/TranslatedContent";
 import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
@@ -561,7 +559,6 @@ export default function PropertyDetails() {
   };
 
   return (
-    <HelmetProvider>
       <div className="min-h-screen bg-slate-50">
         {/* Visitor Tracking */}
         {property && <VisitorTracker pageType="property" pageId={property.id} pageTitle={property.title} />}
@@ -1272,9 +1269,8 @@ export default function PropertyDetails() {
           context="property"
         />
         </div>
-      </div>
-    </HelmetProvider>
-  );
+        </div>
+        );
 }
 
 // Memoized Map Component with proper Leaflet cleanup
