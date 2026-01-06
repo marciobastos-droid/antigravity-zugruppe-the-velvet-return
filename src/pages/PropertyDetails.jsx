@@ -232,7 +232,21 @@ export default function PropertyDetails() {
   }, [allProperties, propertyId, property?.city, property?.state, property?.property_type]);
 
   const isOwner = React.useMemo(() => {
-    return user && (property?.created_by === user.email || user.role === 'admin' || user.user_type?.toLowerCase() === 'admin' || user.user_type?.toLowerCase() === 'gestor');
+    const result = user && (
+      property?.created_by === user.email || 
+      user.role === 'admin' || 
+      user.user_type?.toLowerCase() === 'admin' || 
+      user.user_type?.toLowerCase() === 'gestor'
+    );
+    console.log('[PropertyDetails] isOwner check:', {
+      hasUser: !!user,
+      userEmail: user?.email,
+      userRole: user?.role,
+      userType: user?.user_type,
+      propertyCreatedBy: property?.created_by,
+      isOwnerResult: result
+    });
+    return result;
   }, [user, property?.created_by]);
 
   const assignedConsultant = React.useMemo(() => {
