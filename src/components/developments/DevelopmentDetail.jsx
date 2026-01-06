@@ -26,6 +26,8 @@ import UnitSalesMap from "./UnitSalesMap";
 import AddUnitsDialog from "./AddUnitsDialog";
 import EditUnitDialog from "./EditUnitDialog";
 
+const PropertyDocumentManager = React.lazy(() => import("../property/PropertyDocumentManager"));
+
 export default function DevelopmentDetail({ development, open, onOpenChange, properties }) {
   const queryClient = useQueryClient();
   const [linkPropertyId, setLinkPropertyId] = React.useState("");
@@ -345,9 +347,10 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
         )}
 
         <Tabs defaultValue="details" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="details">Detalhes</TabsTrigger>
             <TabsTrigger value="properties">Unidades ({linkedProperties.length})</TabsTrigger>
+            <TabsTrigger value="documents">Documentos</TabsTrigger>
             <TabsTrigger value="brochures">Brochuras ({formData.brochures?.length || 0})</TabsTrigger>
             <TabsTrigger value="salesmap">Mapa de Vendas</TabsTrigger>
             <TabsTrigger value="gallery">Galeria</TabsTrigger>
@@ -860,6 +863,20 @@ export default function DevelopmentDetail({ development, open, onOpenChange, pro
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-4">
+            <React.Suspense fallback={
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            }>
+              <PropertyDocumentManager
+                propertyId={development.id}
+                propertyTitle={development.name}
+                entityType="Development"
+              />
+            </React.Suspense>
           </TabsContent>
 
           <TabsContent value="brochures" className="mt-4">
