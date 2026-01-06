@@ -9,14 +9,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, amenities = [] } = await req.json();
+    const { property_id, target_languages } = await req.json();
 
-    if (!title || !description) {
+    if (!property_id) {
       return Response.json({ 
-        error: 'Missing required fields',
-        details: 'Title and description are required'
+        error: 'Missing property_id'
       }, { status: 400 });
     }
+
+    // Fetch property data
+    const properties = await base44.entities.Property.filter({ id: property_id });
+    if (!properties || properties.length === 0) {
+      return Response.json({ error: 'Property not found' }, { status: 404 });
+    }
+
+    const property = properties[0];
+    const title = property.title;
+    const description = property.description;
+    const amenities = property.amenities || [];
 
     // Traduzir para todos os idiomas
     const languages = [
