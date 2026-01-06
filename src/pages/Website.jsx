@@ -8,7 +8,7 @@ import {
   Search, Filter, X, Home, Building2, MapPin, 
   Bed, Bath, Maximize, Star, ChevronDown, SlidersHorizontal,
   Grid3X3, List, Heart, Phone, Mail, Euro, Calendar,
-  ChevronLeft, ChevronRight, Zap, Car, TreePine, Check
+  ChevronLeft, ChevronRight, Zap, Car, TreePine, Check, ArrowRight
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
