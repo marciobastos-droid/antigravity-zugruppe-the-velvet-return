@@ -73,6 +73,13 @@ export default function PropertyDetails() {
   const propertyId = urlParams.get('id');
   const propertySlug = urlParams.get('slug');
   
+  console.log('[PropertyDetails] URL Params:', {
+    fullURL: window.location.href,
+    searchParams: window.location.search,
+    propertyId,
+    propertySlug
+  });
+  
   const [selectedImage, setSelectedImage] = React.useState(0);
   const [editingProperty, setEditingProperty] = React.useState(null);
   const [galleryOpen, setGalleryOpen] = React.useState(false);
@@ -457,8 +464,9 @@ export default function PropertyDetails() {
   React.useEffect(() => {
     console.log('[PropertyDetails] URL:', window.location.href);
     console.log('[PropertyDetails] Property ID:', propertyId);
+    console.log('[PropertyDetails] Property Slug:', propertySlug);
     console.log('[PropertyDetails] Search params:', urlParams.toString());
-  }, [propertyId]);
+  }, [propertyId, propertySlug]);
 
   // NOW SAFE TO DO CONDITIONAL RETURNS - ALL HOOKS CALLED ABOVE
   if (isLoading) {
