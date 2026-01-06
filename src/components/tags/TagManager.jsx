@@ -32,7 +32,16 @@ const CATEGORY_LABELS = {
   contact: "Contactos",
   property: "Imóveis",
   opportunity: "Oportunidades",
+  document: "Documentos",
   general: "Geral"
+};
+
+const CATEGORY_ICONS = {
+  contact: "👤",
+  property: "🏠",
+  opportunity: "💼",
+  document: "📄",
+  general: "🏷️"
 };
 
 export default function TagManager() {
@@ -45,7 +54,8 @@ export default function TagManager() {
     name: "",
     color: "#3b82f6",
     description: "",
-    category: "general"
+    category: "general",
+    icon: ""
   });
 
   const { data: tags = [], isLoading } = useQuery({
@@ -80,7 +90,7 @@ export default function TagManager() {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", color: "#3b82f6", description: "", category: "general" });
+    setFormData({ name: "", color: "#3b82f6", description: "", category: "general", icon: "" });
     setEditingTag(null);
     setDialogOpen(false);
   };
@@ -91,7 +101,8 @@ export default function TagManager() {
       name: tag.name,
       color: tag.color,
       description: tag.description || "",
-      category: tag.category || "general"
+      category: tag.category || "general",
+      icon: tag.icon || ""
     });
     setDialogOpen(true);
   };
@@ -151,41 +162,54 @@ export default function TagManager() {
               <DialogTitle>{editingTag ? "Editar Etiqueta" : "Nova Etiqueta"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div>
-                <Label>Nome *</Label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Ex: VIP, Urgente, Investidor..."
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label>Nome *</Label>
+                  <Input
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Ex: VIP, Urgente, Investidor..."
+                  />
+                </div>
+
+                <div>
+                  <Label>Categoria *</Label>
+                  <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">🏷️ Geral</SelectItem>
+                      <SelectItem value="contact">👤 Contactos</SelectItem>
+                      <SelectItem value="property">🏠 Imóveis</SelectItem>
+                      <SelectItem value="opportunity">💼 Oportunidades</SelectItem>
+                      <SelectItem value="document">📄 Documentos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Ícone (opcional)</Label>
+                  <Input
+                    value={formData.icon}
+                    onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                    placeholder="Ex: 🔥 ⭐ 💎"
+                    maxLength={2}
+                  />
+                </div>
               </div>
 
               <div>
-                <Label>Categoria</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">Geral</SelectItem>
-                    <SelectItem value="contact">Contactos</SelectItem>
-                    <SelectItem value="property">Imóveis</SelectItem>
-                    <SelectItem value="opportunity">Oportunidades</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Cor</Label>
+                <Label>Cor Personalizada *</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color.value}
                       type="button"
                       onClick={() => setFormData({ ...formData, color: color.value })}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        formData.color === color.value ? 'border-slate-900 scale-110' : 'border-transparent'
+                      className={`w-9 h-9 rounded-lg border-2 transition-all hover:scale-105 ${
+                        formData.color === color.value ? 'border-slate-900 scale-110 shadow-md' : 'border-slate-200'
                       }`}
                       style={{ backgroundColor: color.value }}
                       title={color.name}
@@ -193,6 +217,7 @@ export default function TagManager() {
                   ))}
                 </div>
                 <div className="flex items-center gap-2 mt-3">
+                  <Label className="text-xs text-slate-500 mr-2">Ou escolher:</Label>
                   <Input
                     type="color"
                     value={formData.color}
@@ -203,7 +228,7 @@ export default function TagManager() {
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                     placeholder="#000000"
-                    className="flex-1"
+                    className="flex-1 font-mono"
                   />
                 </div>
               </div>
@@ -217,19 +242,29 @@ export default function TagManager() {
                 />
               </div>
 
-              <div className="pt-2">
-                <Label>Pré-visualização</Label>
-                <div className="mt-2">
+              <div className="pt-2 bg-slate-50 p-3 rounded-lg border">
+                <Label className="text-xs text-slate-500 mb-2 block">Pré-visualização</Label>
+                <div className="flex gap-2 flex-wrap">
                   <Badge 
                     style={{ 
                       backgroundColor: `${formData.color}20`, 
                       color: formData.color,
                       borderColor: formData.color 
                     }}
-                    className="border"
+                    className="border text-sm"
                   >
-                    <Tag className="w-3 h-3 mr-1" />
+                    {formData.icon && <span className="mr-1">{formData.icon}</span>}
                     {formData.name || "Nome da etiqueta"}
+                  </Badge>
+                  <Badge 
+                    style={{ 
+                      backgroundColor: formData.color, 
+                      color: '#ffffff'
+                    }}
+                    className="text-sm"
+                  >
+                    {formData.icon && <span className="mr-1">{formData.icon}</span>}
+                    {formData.name || "Sólido"}
                   </Badge>
                 </div>
               </div>
@@ -266,10 +301,11 @@ export default function TagManager() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="general">Geral</SelectItem>
-                <SelectItem value="contact">Contactos</SelectItem>
-                <SelectItem value="property">Imóveis</SelectItem>
-                <SelectItem value="opportunity">Oportunidades</SelectItem>
+                <SelectItem value="general">🏷️ Geral</SelectItem>
+                <SelectItem value="contact">👤 Contactos</SelectItem>
+                <SelectItem value="property">🏠 Imóveis</SelectItem>
+                <SelectItem value="opportunity">💼 Oportunidades</SelectItem>
+                <SelectItem value="document">📄 Documentos</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -327,47 +363,62 @@ export default function TagManager() {
       ) : (
         Object.entries(groupedTags).map(([category, categoryTags]) => (
           <Card key={category}>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-3 bg-gradient-to-r from-slate-50 to-white border-b">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Tag className="w-5 h-5" />
-                {CATEGORY_LABELS[category]} ({categoryTags.length})
+                <span className="text-2xl">{CATEGORY_ICONS[category]}</span>
+                <span>{CATEGORY_LABELS[category]}</span>
+                <Badge variant="secondary" className="ml-auto">{categoryTags.length}</Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <div className="flex flex-wrap gap-3">
                 {categoryTags.map((tag) => (
                   <div
                     key={tag.id}
-                    className="flex items-center gap-2 p-2 rounded-lg border bg-white hover:shadow-md transition-shadow group"
+                    className="flex items-center gap-2 p-3 rounded-xl border-2 bg-white hover:shadow-lg transition-all group"
+                    style={{ borderColor: `${tag.color}30` }}
                   >
-                    <Badge
-                      style={{
-                        backgroundColor: `${tag.color}20`,
-                        color: tag.color,
-                        borderColor: tag.color
-                      }}
-                      className="border"
-                    >
-                      <Tag className="w-3 h-3 mr-1" />
-                      {tag.name}
-                    </Badge>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0 shadow-sm"
+                        style={{ backgroundColor: tag.color }}
+                      />
+                      <Badge
+                        style={{
+                          backgroundColor: `${tag.color}15`,
+                          color: tag.color,
+                          borderColor: `${tag.color}40`
+                        }}
+                        className="border text-sm"
+                      >
+                        {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                        {tag.name}
+                      </Badge>
+                    </div>
+                    {tag.description && (
+                      <span className="text-xs text-slate-500 max-w-[150px] truncate">
+                        {tag.description}
+                      </span>
+                    )}
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(tag)}
-                        className="h-6 w-6 p-0"
+                        className="h-7 w-7 p-0 hover:bg-blue-50"
                       >
-                        <Edit className="w-3 h-3" />
+                        <Edit className="w-3.5 h-3.5 text-blue-600" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(tag)}
-                        className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                      {!tag.is_system && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(tag)}
+                          className="h-7 w-7 p-0 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
