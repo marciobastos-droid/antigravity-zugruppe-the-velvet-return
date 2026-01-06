@@ -185,6 +185,7 @@ export default function ClientDatabase() {
   const [tagFilter, setTagFilter] = useState([]);
   const [hasRequirementsFilter, setHasRequirementsFilter] = useState("all");
   const [assignedAgentFilter, setAssignedAgentFilter] = useState([]);
+  const [importDateFilter, setImportDateFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [selectedClient, setSelectedClient] = useState(null);
@@ -711,6 +712,23 @@ export default function ClientDatabase() {
         if (hasRequirementsFilter === "no" && hasReqs) return false;
       }
 
+      // Import date filter
+      if (importDateFilter !== "all") {
+        const hasImportDate = c.imported_date;
+        if (importDateFilter === "imported" && !hasImportDate) return false;
+        if (importDateFilter === "manual" && hasImportDate) return false;
+        if (importDateFilter === "last_7_days" && hasImportDate) {
+          const importDate = new Date(c.imported_date);
+          const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          if (importDate < sevenDaysAgo) return false;
+        }
+        if (importDateFilter === "last_30_days" && hasImportDate) {
+          const importDate = new Date(c.imported_date);
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+          if (importDate < thirtyDaysAgo) return false;
+        }
+      }
+
       // Search last (most expensive)
       if (searchLower) {
         if (!(c.full_name?.toLowerCase().includes(searchLower) ||
@@ -721,7 +739,7 @@ export default function ClientDatabase() {
 
       return true;
     });
-  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
+  }, [clients, searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter, importDateFilter]);
 
   // Memoized selected set for O(1) lookup in cards
   const selectedContactsSet = useMemo(() => new Set(selectedContacts), [selectedContacts]);
@@ -763,7 +781,7 @@ export default function ClientDatabase() {
   // Reset to page 1 when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter]);
+  }, [searchTerm, typeFilter, statusFilter, sourceFilter, cityFilter, tagFilter, hasRequirementsFilter, assignedAgentFilter, importDateFilter]);
 
   const typeLabels = useMemo(() => ({
     client: "Cliente",
@@ -1206,6 +1224,18 @@ export default function ClientDatabase() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={importDateFilter} onValueChange={setImportDateFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Importação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="imported">Importados</SelectItem>
+                    <SelectItem value="manual">Manuais</SelectItem>
+                    <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
+                    <SelectItem value="last_30_days">Últimos 30 dias</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="justify-between w-full">
@@ -1287,6 +1317,7 @@ export default function ClientDatabase() {
                     setTagFilter([]);
                     setHasRequirementsFilter("all");
                     setAssignedAgentFilter([]);
+                    setImportDateFilter("all");
                     setSearchTerm("");
                   }}
                   className="text-slate-600"
