@@ -66,16 +66,16 @@ export default function UserManagementTab({ currentUser }) {
   });
 
   const handleTypeChange = async (userId, newType) => {
-    // Se mudar para consultor, criar ConsultorProfile
+    // Se mudar para consultor, criar AgentProfile
     if (newType === 'consultor') {
       const user = users.find(u => u.id === userId);
       try {
         // Verificar se já existe perfil
-        const existingProfiles = await base44.entities.ConsultorProfile.filter({ user_email: user.email });
+        const existingProfiles = await base44.entities.AgentProfile.filter({ user_email: user.email });
         
         if (existingProfiles.length === 0) {
-          // Criar novo ConsultorProfile
-          await base44.entities.ConsultorProfile.create({
+          // Criar novo AgentProfile
+          await base44.entities.AgentProfile.create({
             user_email: user.email,
             display_name: user.display_name || user.full_name,
             phone: user.phone || '',
@@ -84,7 +84,7 @@ export default function UserManagementTab({ currentUser }) {
           });
         }
       } catch (error) {
-        console.error('Erro ao criar ConsultorProfile:', error);
+        console.error('Erro ao criar AgentProfile:', error);
         toast.error('Erro ao criar perfil de consultor');
         return;
       }
@@ -139,8 +139,21 @@ export default function UserManagementTab({ currentUser }) {
     setUploadingPhoto(userId);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const user = users.find(u => u.id === userId);
+      
+      // Atualizar foto no User
       await base44.entities.User.update(userId, { photo_url: file_url });
+      
+      // Atualizar também no AgentProfile se existir
+      if (user?.email) {
+        const profiles = await base44.entities.AgentProfile.filter({ user_email: user.email });
+        if (profiles.length > 0) {
+          await base44.entities.AgentProfile.update(profiles[0].id, { photo_url: file_url });
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['agentProfiles'] });
       toast.success("Foto atualizada com sucesso");
     } catch (error) {
       console.error("Erro ao carregar foto:", error);
