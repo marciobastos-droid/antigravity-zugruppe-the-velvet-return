@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
+import GoogleDriveUploader from "../documents/GoogleDriveUploader";
 
 const DOC_CATEGORIES = {
   legal: {
@@ -83,7 +84,7 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("folders"); // "folders" or "list"
+  const [viewMode, setViewMode] = useState("folders");
   const [expandedFolders, setExpandedFolders] = useState(["legal", "technical", "financial"]);
   const [zoom, setZoom] = useState(100);
   const [currentPage, setCurrentPage] = useState(0);
@@ -142,13 +143,11 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
   };
 
   const processDocumentOCR = async (fileUrl, fileName, fileType, documentId = null) => {
-    // Apenas processar PDFs e imagens
     if (!fileType?.includes('pdf') && !fileType?.includes('image')) {
       return null;
     }
 
     try {
-      // Chamar função backend para OCR completo
       const response = await base44.functions.invoke('processPropertyDocumentOCR', {
         file_url: fileUrl,
         document_id: documentId,
@@ -156,11 +155,9 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
       });
 
       if (response.data.success) {
-        // Melhorar sugestão de nome baseado no tipo de documento detectado
         let suggestedName = fileName.split('.')[0];
         const extractedData = response.data.extracted_data;
         
-        // Usar nome sugerido pela IA se disponível
         if (extractedData.suggested_filename) {
           suggestedName = extractedData.suggested_filename;
         } else if (extractedData.document_type === 'energy_certificate') {
@@ -219,11 +216,9 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
           file_uri = result.file_uri;
         }
 
-        // Process OCR
         const uploadedUrl = file_url || file_uri;
         const ocrData = await processDocumentOCR(uploadedUrl, file.name, file.type);
 
-        // Use OCR data if available, otherwise use form data
         const docData = {
           property_id: propertyId,
           property_title: propertyTitle,
@@ -239,7 +234,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
           file_size: file.size,
           file_type: file.type,
           upload_date: new Date().toISOString(),
-          // OCR metadata
           ocr_processed: !!ocrData,
           ocr_data: ocrData ? {
             key_entities: ocrData.key_entities || [],
@@ -261,6 +255,30 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     }
     setUploading(false);
     setProcessingOCR(false);
+  };
+
+  const handleGoogleDriveUpload = async (driveFileData) => {
+    // Create document record with Drive link
+    const docData = {
+      property_id: propertyId,
+      property_title: propertyTitle,
+      document_name: driveFileData.name,
+      document_type: formData.document_type,
+      description: formData.description,
+      expiry_date: formData.expiry_date || null,
+      is_public: false,
+      status: formData.status,
+      tags: formData.custom_category ? [formData.custom_category] : [],
+      file_url: driveFileData.drive_link,
+      google_drive_id: driveFileData.drive_id,
+      file_type: driveFileData.mime_type,
+      upload_date: new Date().toISOString(),
+      linked_contact_ids: formData.linked_contact_ids || [],
+      linked_contact_names: formData.linked_contact_names || []
+    };
+
+    await createMutation.mutateAsync(docData);
+    toast.success("Documento do Google Drive vinculado!");
   };
 
   const resetForm = () => {
@@ -292,7 +310,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     const currentNames = selectedDocForLink.linked_contact_names || [];
     
     if (currentLinked.includes(contactToLink.id)) {
-      // Remove
       updateDocumentMutation.mutate({
         id: selectedDocForLink.id,
         data: {
@@ -301,7 +318,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
         }
       });
     } else {
-      // Add
       updateDocumentMutation.mutate({
         id: selectedDocForLink.id,
         data: {
@@ -362,14 +378,11 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     const matchesSearch = !searchTerm || 
       doc.document_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      // Pesquisar em tags personalizadas
       doc.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      // Pesquisar em metadados OCR
       doc.ocr_data?.key_entities?.some(e => e.toLowerCase().includes(searchTerm.toLowerCase())) ||
       doc.ocr_data?.detected_fields && Object.values(doc.ocr_data.detected_fields).some(v => 
         String(v).toLowerCase().includes(searchTerm.toLowerCase())
       ) ||
-      // Pesquisar em contactos vinculados
       doc.linked_contact_names?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     if (categoryFilter === "all") return matchesSearch;
@@ -380,7 +393,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
     return matchesSearch && category && DOC_CATEGORIES[categoryFilter]?.types.some(t => t.id === doc.document_type);
   });
 
-  // Agrupar documentos por categoria para visualização em pastas
   const docsByCategory = React.useMemo(() => {
     const grouped = {};
     Object.keys(DOC_CATEGORIES).forEach(catKey => {
@@ -431,7 +443,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
         </CardHeader>
 
         <CardContent>
-          {/* Search and Filters */}
           <div className="flex gap-2 mb-4">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -463,7 +474,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               <p>Sem documentos</p>
             </div>
           ) : viewMode === "folders" ? (
-            /* Folder View */
             <Accordion type="multiple" value={expandedFolders} onValueChange={setExpandedFolders} className="space-y-2">
               {Object.entries(DOC_CATEGORIES).map(([catKey, category]) => {
                 const categoryDocs = docsByCategory[catKey] || [];
@@ -511,7 +521,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               })}
             </Accordion>
           ) : (
-            /* List View */
             <div className="space-y-2">
               {filteredDocs.map((doc) => (
                 <DocumentRow 
@@ -573,6 +582,14 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Google Drive Upload Option */}
+            <div className="border-t pt-4">
+              <GoogleDriveUploader 
+                onUploadSuccess={handleGoogleDriveUpload}
+                disabled={uploading}
+              />
             </div>
 
             <div>
@@ -646,7 +663,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               </Label>
             </div>
 
-            {/* Custom Category/Tag */}
             <div>
               <Label>Categoria Personalizada (opcional)</Label>
               <div className="flex gap-2">
@@ -686,7 +702,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               </div>
             </div>
 
-            {/* Link to Contacts */}
             <div>
               <Label className="text-sm font-medium mb-2 block">Vincular a Contactos</Label>
               <div className="border rounded-lg p-3 bg-slate-50 max-h-40 overflow-y-auto">
@@ -776,7 +791,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
         <DialogContent className="max-w-6xl max-h-[95vh] p-0">
           <div className="flex flex-col h-[90vh]">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b bg-slate-50">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{selectedDoc && getDocTypeInfo(selectedDoc.document_type).icon}</span>
@@ -825,10 +839,8 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
               </div>
             </div>
 
-            {/* Viewer */}
             <div className="flex-1 overflow-auto bg-slate-100 p-4">
               <div className="grid lg:grid-cols-3 gap-4 h-full">
-                {/* Document Preview - 2/3 width */}
                 <div className="lg:col-span-2 h-full">
                   {selectedDoc && isImage(selectedDoc.file_type) && (
                     <div className="flex items-center justify-center h-full">
@@ -851,7 +863,6 @@ export default function PropertyDocumentManager({ propertyId, propertyTitle, con
                   )}
                 </div>
 
-                {/* OCR Metadata Panel - 1/3 width */}
                 {selectedDoc?.ocr_data && (
                   <div className="lg:col-span-1 bg-white rounded-lg p-4 shadow-sm overflow-y-auto">
                     <div className="flex items-center gap-2 mb-4 pb-3 border-b">
@@ -997,6 +1008,17 @@ function DocumentRow({ doc, onView, onDownload, onDelete, onLinkContact, getDocT
               <Badge className="bg-purple-100 text-purple-700 text-xs" title="Processado com OCR">
                 <Wand2 className="w-3 h-3" />
               </Badge>
+            )}
+            {doc.google_drive_id && (
+              <a
+                href={doc.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700"
+                title="Ver no Google Drive"
+              >
+                <ExternalLink className="w-3 h-3" />
+              </a>
             )}
           </div>
           {doc.description && (
