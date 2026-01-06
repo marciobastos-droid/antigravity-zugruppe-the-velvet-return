@@ -28,9 +28,10 @@ export default function AIPropertyTools({ property, onUpdate }) {
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 h-auto">
+          <TabsList className="grid w-full grid-cols-8 h-auto">
             <TabsTrigger value="title" className="text-xs">Título</TabsTrigger>
             <TabsTrigger value="description" className="text-xs">Descrição</TabsTrigger>
+            <TabsTrigger value="translate" className="text-xs">🌐 Traduzir</TabsTrigger>
             <TabsTrigger value="multilingual" className="text-xs">🌍 Multi-Idioma</TabsTrigger>
             <TabsTrigger value="seo" className="text-xs">🔍 SEO</TabsTrigger>
             <TabsTrigger value="price" className="text-xs">Preço</TabsTrigger>
