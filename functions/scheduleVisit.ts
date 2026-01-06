@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const CUSTOM_DOMAIN = 'https://zuhaus.pt';
 
@@ -17,7 +17,8 @@ Deno.serve(async (req) => {
       clientPhone, 
       agentEmail,
       propertyOwnerEmail,
-      sendCalendarInvite = true 
+      sendCalendarInvite = true,
+      addToGoogleCalendar = false
     } = await req.json();
 
     if (!appointmentId) {
@@ -33,11 +34,6 @@ Deno.serve(async (req) => {
     const appointment = appointments[0];
     const appointmentDate = new Date(appointment.appointment_date);
     const endDate = new Date(appointmentDate.getTime() + (appointment.duration_minutes || 60) * 60000);
-
-    // Format dates for calendar
-    const formatDateForCalendar = (date) => {
-      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    };
 
     const results = {
       emailsSent: [],
@@ -180,56 +176,59 @@ Deno.serve(async (req) => {
     }
 
     // Create Google Calendar event if requested
-    if (sendCalendarInvite && agentEmail) {
+    if ((sendCalendarInvite || addToGoogleCalendar) && agentEmail) {
       try {
         const accessToken = await base44.asServiceRole.connectors.getAccessToken("googlecalendar");
         
-        const calendarEvent = {
-          summary: appointment.title,
-          description: `Visita ao imóvel: ${appointment.property_title || ''}\n\nCliente: ${appointment.client_name || ''}\n\n${appointment.notes || ''}`,
-          location: appointment.property_address || '',
-          start: {
-            dateTime: appointmentDate.toISOString(),
-            timeZone: 'Europe/Lisbon'
-          },
-          end: {
-            dateTime: endDate.toISOString(),
-            timeZone: 'Europe/Lisbon'
-          },
-          attendees: [
-            ...(clientEmail ? [{ email: clientEmail }] : []),
-            ...(agentEmail ? [{ email: agentEmail }] : [])
-          ],
-          reminders: {
-            useDefault: false,
-            overrides: [
-              { method: 'email', minutes: 24 * 60 },
-              { method: 'popup', minutes: 30 }
-            ]
-          }
-        };
-
-        const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(calendarEvent)
-        });
-
-        if (response.ok) {
-          const event = await response.json();
-          results.calendarInvite = {
-            id: event.id,
-            link: event.htmlLink
+        if (accessToken) {
+          const calendarEvent = {
+            summary: appointment.title,
+            description: `Visita ao imóvel: ${appointment.property_title || ''}\n\nCliente: ${appointment.client_name || ''}\n\n${appointment.notes || ''}`,
+            location: appointment.property_address || '',
+            start: {
+              dateTime: appointmentDate.toISOString(),
+              timeZone: 'Europe/Lisbon'
+            },
+            end: {
+              dateTime: endDate.toISOString(),
+              timeZone: 'Europe/Lisbon'
+            },
+            attendees: [
+              ...(clientEmail ? [{ email: clientEmail }] : []),
+              ...(agentEmail ? [{ email: agentEmail }] : [])
+            ],
+            reminders: {
+              useDefault: false,
+              overrides: [
+                { method: 'email', minutes: 24 * 60 },
+                { method: 'popup', minutes: 30 }
+              ]
+            }
           };
-          
-          // Update appointment with calendar event ID
-          await base44.asServiceRole.entities.Appointment.update(appointmentId, {
-            calendar_event_id: event.id,
-            calendar_event_link: event.htmlLink
+
+          const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(calendarEvent)
           });
+
+          if (response.ok) {
+            const event = await response.json();
+            results.calendarInvite = {
+              id: event.id,
+              link: event.htmlLink
+            };
+            
+            // Update appointment with calendar event ID
+            await base44.asServiceRole.entities.Appointment.update(appointmentId, {
+              google_event_id: event.id,
+              google_calendar_synced: true,
+              google_calendar_link: event.htmlLink
+            });
+          }
         }
       } catch (error) {
         console.error('Error creating calendar event:', error);

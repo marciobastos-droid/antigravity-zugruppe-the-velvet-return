@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, CalendarCheck } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 export default function CreateAppointmentDialog({ open, onOpenChange, initialDate, propertyId, opportunityId, onSuccess }) {
@@ -27,6 +28,7 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
   });
   const [proposingSlots, setProposingSlots] = useState(false);
   const [tempSlot, setTempSlot] = useState({ date_time: "", duration_minutes: 60 });
+  const [addToGoogleCalendar, setAddToGoogleCalendar] = useState(true);
 
   const { data: properties = [] } = useQuery({
     queryKey: ['properties'],
@@ -105,7 +107,8 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
           clientPhone: data.client_phone,
           agentEmail: data.assigned_agent,
           propertyOwnerEmail: property?.created_by,
-          sendCalendarInvite: true
+          sendCalendarInvite: true,
+          addToGoogleCalendar: addToGoogleCalendar
         });
       } catch (error) {
         console.error('Error sending notifications:', error);
@@ -127,17 +130,13 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
       return appointment;
     },
     onSuccess: () => {
-      console.log('[CreateAppointmentDialog] Success, calling callback');
       queryClient.invalidateQueries({ queryKey: ['appointments', 'opportunities'] });
-      toast.success("Visita agendada e notificações enviadas!");
+      toast.success("Visita agendada" + (addToGoogleCalendar ? " e adicionada ao Google Calendar!" : "!"));
       
-      // Call onSuccess callback FIRST
       if (onSuccess) {
-        console.log('[CreateAppointmentDialog] Executing onSuccess callback');
         onSuccess();
       }
       
-      // Add small delay before closing to ensure parent state updates
       setTimeout(() => {
         onOpenChange(false);
         setFormData({
@@ -152,6 +151,7 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
           duration_minutes: 60,
           notes: ""
         });
+        setAddToGoogleCalendar(true);
       }, 150);
     }
   });
@@ -309,97 +309,19 @@ export default function CreateAppointmentDialog({ open, onOpenChange, initialDat
               />
             </div>
 
-            {/* Propor Múltiplos Horários */}
-            <div className="col-span-2">
-              <div className="flex items-center justify-between mb-2">
-                <Label>Propor Horários Alternativos</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setProposingSlots(!proposingSlots)}
-                >
-                  {proposingSlots ? "Cancelar" : "+ Adicionar Horário"}
-                </Button>
-              </div>
-
-              {proposingSlots && (
-                <div className="border border-blue-200 bg-blue-50 rounded-lg p-3 mb-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-2">
-                      <Input
-                        type="datetime-local"
-                        value={tempSlot.date_time}
-                        onChange={(e) => setTempSlot({ ...tempSlot, date_time: e.target.value })}
-                        className="bg-white"
-                      />
-                    </div>
-                    <div className="flex gap-1">
-                      <Input
-                        type="number"
-                        value={tempSlot.duration_minutes}
-                        onChange={(e) => setTempSlot({ ...tempSlot, duration_minutes: Number(e.target.value) })}
-                        placeholder="60"
-                        className="bg-white w-16"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => {
-                          if (tempSlot.date_time) {
-                            setFormData(prev => ({
-                              ...prev,
-                              proposed_time_slots: [...prev.proposed_time_slots, { 
-                                date_time: new Date(tempSlot.date_time).toISOString(),
-                                duration_minutes: tempSlot.duration_minutes,
-                                status: "pending"
-                              }]
-                            }));
-                            setTempSlot({ date_time: "", duration_minutes: 60 });
-                            setProposingSlots(false);
-                          }
-                        }}
-                      >
-                        ✓
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {formData.proposed_time_slots.length > 0 && (
-                <div className="space-y-2">
-                  {formData.proposed_time_slots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded border">
-                      <span className="text-sm">
-                        {new Date(slot.date_time).toLocaleString('pt-PT', { 
-                          day: '2-digit', 
-                          month: '2-digit', 
-                          year: 'numeric',
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })} ({slot.duration_minutes}min)
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setFormData(prev => ({
-                            ...prev,
-                            proposed_time_slots: prev.proposed_time_slots.filter((_, i) => i !== idx)
-                          }));
-                        }}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p className="text-xs text-slate-500 mt-1">
-                Cliente receberá email com os horários propostos para escolher
-              </p>
+            <div className="col-span-2 flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <Checkbox
+                id="addToGoogleCalendar"
+                checked={addToGoogleCalendar}
+                onCheckedChange={setAddToGoogleCalendar}
+              />
+              <Label
+                htmlFor="addToGoogleCalendar"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 cursor-pointer"
+              >
+                <CalendarCheck className="w-4 h-4 text-green-600" />
+                <span>Adicionar automaticamente ao Google Calendar</span>
+              </Label>
             </div>
           </div>
 
