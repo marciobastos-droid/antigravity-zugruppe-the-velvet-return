@@ -66,25 +66,28 @@ export default function UserManagementTab({ currentUser }) {
   });
 
   const handleTypeChange = async (userId, newType) => {
-    // Se mudar para consultor, criar AgentProfile
+    // Se mudar para consultor, criar/atualizar AgentProfile
     if (newType === 'consultor') {
       const user = users.find(u => u.id === userId);
       try {
-        // Verificar se já existe perfil
         const existingProfiles = await base44.entities.AgentProfile.filter({ user_email: user.email });
         
+        const profileData = {
+          user_email: user.email,
+          display_name: user.display_name || user.full_name,
+          phone: user.phone || '',
+          photo_url: user.photo_url || '',
+          is_active: true
+        };
+        
         if (existingProfiles.length === 0) {
-          // Criar novo AgentProfile
-          await base44.entities.AgentProfile.create({
-            user_email: user.email,
-            display_name: user.display_name || user.full_name,
-            phone: user.phone || '',
-            photo_url: user.photo_url || '',
-            is_active: true
-          });
+          await base44.entities.AgentProfile.create(profileData);
+        } else {
+          // Atualizar perfil existente para sincronizar dados
+          await base44.entities.AgentProfile.update(existingProfiles[0].id, profileData);
         }
       } catch (error) {
-        console.error('Erro ao criar AgentProfile:', error);
+        console.error('Erro ao criar/atualizar AgentProfile:', error);
         toast.error('Erro ao criar perfil de consultor');
         return;
       }
