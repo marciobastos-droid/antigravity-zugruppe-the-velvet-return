@@ -47,6 +47,20 @@ export default function AIPropertyTools({ property, onUpdate }) {
             <AIDescriptionGenerator property={property} onUpdate={onUpdate} />
           </TabsContent>
 
+          <TabsContent value="translate" className="mt-4">
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Traduza automaticamente o título, descrição e comodidades do imóvel para inglês, espanhol, francês e alemão.
+              </p>
+              <AutoTranslateButton 
+                property={property}
+                onTranslated={onUpdate}
+                variant="default"
+                size="default"
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="multilingual" className="mt-4">
             <AIMultilingualDescriptionGenerator property={property} onUpdate={onUpdate} />
           </TabsContent>
