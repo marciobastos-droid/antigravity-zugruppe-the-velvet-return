@@ -267,16 +267,70 @@ export default function UnifiedCalendar() {
       })
       .sort((a, b) => a.date - b.date);
 
-    const printWindow = window.open('', '', 'width=800,height=600');
+    const printWindow = window.open('', '', 'width=1000,height=800');
     printWindow.document.write(`
       <html>
         <head>
           <title>Agenda Semanal - ${format(weekDays[0], 'd MMM')} a ${format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}</title>
           <style>
             body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { text-align: center; color: #1e293b; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; }
+            h1 { text-align: center; color: #1e293b; border-bottom: 3px solid #3b82f6; padding-bottom: 10px; margin-bottom: 5px; }
+            .subtitle { text-align: center; color: #64748b; margin-bottom: 30px; }
+            
+            /* Calendar Grid */
+            .calendar-grid { 
+              display: grid; 
+              grid-template-columns: 60px repeat(7, 1fr); 
+              gap: 2px; 
+              margin: 20px 0;
+              background: #e2e8f0;
+              border: 2px solid #cbd5e1;
+            }
+            .time-label { 
+              background: #f1f5f9; 
+              padding: 8px 4px; 
+              text-align: right; 
+              font-size: 0.75em; 
+              color: #64748b;
+              border-right: 2px solid #cbd5e1;
+            }
+            .day-header { 
+              background: #3b82f6; 
+              color: white; 
+              padding: 10px; 
+              text-align: center; 
+              font-weight: bold;
+              font-size: 0.9em;
+            }
+            .day-header.today { background: #1e40af; }
+            .calendar-cell { 
+              background: white; 
+              min-height: 60px; 
+              padding: 4px; 
+              position: relative;
+            }
+            .calendar-cell.today { background: #dbeafe; }
+            .calendar-event {
+              background: #3b82f6;
+              color: white;
+              padding: 2px 4px;
+              margin: 1px 0;
+              border-radius: 3px;
+              font-size: 0.7em;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            .calendar-event.appointment { background: #3b82f6; }
+            .calendar-event.signature { background: #9333ea; }
+            .calendar-event.deed { background: #16a34a; }
+            .calendar-event.followup { background: #ea580c; }
+            .calendar-event.renewal { background: #f59e0b; }
+            
+            /* Events List */
+            .events-list { margin-top: 30px; page-break-before: always; }
             .day-section { margin: 20px 0; page-break-inside: avoid; }
-            .day-header { background: #f1f5f9; padding: 10px; font-weight: bold; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
+            .list-day-header { background: #f1f5f9; padding: 10px; font-weight: bold; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
             .event { margin: 10px 0 10px 20px; padding: 10px; border-left: 3px solid #cbd5e1; background: #f8fafc; }
             .event-title { font-weight: bold; color: #1e293b; }
             .event-time { color: #64748b; font-size: 0.9em; }
@@ -285,7 +339,9 @@ export default function UnifiedCalendar() {
             .type-signature { background: #e9d5ff; color: #6b21a8; }
             .type-deed { background: #dcfce7; color: #15803d; }
             .type-followup { background: #fed7aa; color: #c2410c; }
+            .type-renewal { background: #fef3c7; color: #a16207; }
             .no-events { color: #94a3b8; font-style: italic; margin-left: 20px; }
+            
             @media print {
               body { padding: 10px; }
               .no-print { display: none; }
@@ -294,41 +350,80 @@ export default function UnifiedCalendar() {
         </head>
         <body>
           <h1>📅 Agenda Semanal</h1>
-          <p style="text-align: center; color: #64748b; margin-bottom: 30px;">
+          <p class="subtitle">
             ${format(weekDays[0], 'd MMMM', { locale: ptBR })} - ${format(weekDays[6], 'd MMMM yyyy', { locale: ptBR })}
           </p>
-          ${weekDays.map(day => {
-            const dayEvents = weekEvents.filter(e => 
-              e.date.getDate() === day.getDate() &&
-              e.date.getMonth() === day.getMonth() &&
-              e.date.getFullYear() === day.getFullYear()
-            );
-            return `
-              <div class="day-section">
-                <div class="day-header">
-                  ${format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                  ${day.toDateString() === new Date().toDateString() ? ' (Hoje)' : ''}
-                </div>
-                ${dayEvents.length === 0 ? '<p class="no-events">Sem eventos agendados</p>' : ''}
-                ${dayEvents.map(event => `
-                  <div class="event">
-                    <div class="event-title">${event.title}</div>
-                    <div class="event-time">⏰ ${format(event.date, 'HH:mm')}</div>
-                    ${event.client ? `<div>👤 ${event.client}</div>` : ''}
-                    ${event.property ? `<div>🏠 ${event.property}</div>` : ''}
-                    ${event.agent ? `<div style="font-size: 0.9em; color: #64748b;">Agente: ${users.find(u => u.email === event.agent)?.full_name || event.agent}</div>` : ''}
-                    <span class="event-type type-${event.type}">
-                      ${event.type === 'appointment' ? '📅 Visita' :
-                        event.type === 'signature' ? '📝 Assinatura' :
-                        event.type === 'deed' ? '📄 Escritura' :
-                        event.type === 'renewal' ? '🔄 Renovação' :
-                        '🔔 Follow-up'}
-                    </span>
-                  </div>
-                `).join('')}
+
+          <!-- Calendar Grid -->
+          <div class="calendar-grid">
+            <div class="time-label"></div>
+            ${weekDays.map(day => `
+              <div class="day-header ${day.toDateString() === new Date().toDateString() ? 'today' : ''}">
+                ${format(day, 'EEE', { locale: ptBR })}<br/>
+                ${format(day, 'd')}
               </div>
-            `;
-          }).join('')}
+            `).join('')}
+            
+            ${Array.from({ length: 12 }, (_, i) => i + 8).map(hour => `
+              <div class="time-label">${hour}:00</div>
+              ${weekDays.map(day => {
+                const isToday = day.toDateString() === new Date().toDateString();
+                const dayEvents = weekEvents.filter(e => 
+                  e.date.getDate() === day.getDate() &&
+                  e.date.getMonth() === day.getMonth() &&
+                  e.date.getFullYear() === day.getFullYear() &&
+                  e.date.getHours() === hour
+                );
+                return `
+                  <div class="calendar-cell ${isToday ? 'today' : ''}">
+                    ${dayEvents.map(event => `
+                      <div class="calendar-event ${event.type}">
+                        ${format(event.date, 'HH:mm')} ${event.title.substring(0, 20)}
+                      </div>
+                    `).join('')}
+                  </div>
+                `;
+              }).join('')}
+            `).join('')}
+          </div>
+
+          <!-- Events List -->
+          <div class="events-list">
+            <h2 style="color: #1e293b; margin-bottom: 20px;">📋 Lista Detalhada de Eventos</h2>
+            ${weekDays.map(day => {
+              const dayEvents = weekEvents.filter(e => 
+                e.date.getDate() === day.getDate() &&
+                e.date.getMonth() === day.getMonth() &&
+                e.date.getFullYear() === day.getFullYear()
+              );
+              return `
+                <div class="day-section">
+                  <div class="list-day-header">
+                    ${format(day, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                    ${day.toDateString() === new Date().toDateString() ? ' (Hoje)' : ''}
+                  </div>
+                  ${dayEvents.length === 0 ? '<p class="no-events">Sem eventos agendados</p>' : ''}
+                  ${dayEvents.map(event => `
+                    <div class="event">
+                      <div class="event-title">${event.title}</div>
+                      <div class="event-time">⏰ ${format(event.date, 'HH:mm')}${event.data?.duration_minutes ? ` (${event.data.duration_minutes} min)` : ''}</div>
+                      ${event.client ? `<div>👤 ${event.client}</div>` : ''}
+                      ${event.property ? `<div>🏠 ${event.property}</div>` : ''}
+                      ${event.agent ? `<div style="font-size: 0.9em; color: #64748b;">Agente: ${users.find(u => u.email === event.agent)?.full_name || event.agent}</div>` : ''}
+                      <span class="event-type type-${event.type}">
+                        ${event.type === 'appointment' ? '📅 Visita' :
+                          event.type === 'signature' ? '📝 Assinatura' :
+                          event.type === 'deed' ? '📄 Escritura' :
+                          event.type === 'renewal' ? '🔄 Renovação' :
+                          '🔔 Follow-up'}
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }).join('')}
+          </div>
+
           <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 0.8em; border-top: 1px solid #e2e8f0; padding-top: 20px;">
             Impresso em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")} • Total: ${weekEvents.length} eventos
           </div>
