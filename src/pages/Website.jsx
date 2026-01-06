@@ -53,18 +53,10 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
   const images = property.images?.length > 0 ? property.images : [];
   const translatedProperty = useTranslatedProperty(property);
 
-  const handleCardClick = () => {
-    if (!property.id) {
-      console.error('[PropertyCard] Missing property ID:', property);
-      return;
-    }
-    window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
-  };
-
   return (
-    <div 
-      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative cursor-pointer"
-      onClick={handleCardClick}
+    <Link 
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative block"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {images[imgIndex] ? (
@@ -163,6 +155,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
 
       <button
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           onToggleFavorite?.(property);
         }}
@@ -170,7 +163,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
       >
         <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
       </button>
-    </div>
+    </Link>
   );
 }, (prevProps, nextProps) => {
   return prevProps.property.id === nextProps.property.id &&
@@ -183,18 +176,10 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
   const image = property.images?.[0];
   const translatedProperty = useTranslatedProperty(property);
 
-  const handleCardClick = () => {
-    if (!property.id) {
-      console.error('[PropertyCard] Missing property ID:', property);
-      return;
-    }
-    window.location.href = `${createPageUrl("PropertyDetails")}?id=${property.id}`;
-  };
-
   return (
-    <div 
-      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative cursor-pointer"
-      onClick={handleCardClick}
+    <Link 
+      to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
+      className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative block"
     >
       <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
         {image ? (
@@ -294,6 +279,7 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
 
       <button
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           onToggleFavorite?.(property);
         }}
@@ -301,7 +287,7 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
       >
         <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
       </button>
-    </div>
+    </Link>
   );
 }, (prevProps, nextProps) => {
   return prevProps.property.id === nextProps.property.id &&
