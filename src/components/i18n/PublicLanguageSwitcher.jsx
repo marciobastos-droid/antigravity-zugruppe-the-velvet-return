@@ -8,7 +8,8 @@ const LANGUAGES = [
   { code: "pt", name: "Português", flag: "🇵🇹" },
   { code: "en", name: "English", flag: "🇬🇧" },
   { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" }
+  { code: "fr", name: "Français", flag: "🇫🇷" },
+  { code: "de", name: "Deutsch", flag: "🇩🇪" }
 ];
 
 export default function PublicLanguageSwitcher() {

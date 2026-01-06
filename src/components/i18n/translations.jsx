@@ -1562,5 +1562,396 @@ export const translations = {
       acceptConsent: "J'accepte la Politique de Confidentialité",
       readPolicy: "Lire la Politique de Confidentialité"
     }
+  },
+  de: {
+    common: {
+      search: "Suchen",
+      filter: "Filter",
+      clear: "Löschen",
+      clearAll: "Alles Löschen",
+      apply: "Anwenden",
+      cancel: "Abbrechen",
+      save: "Speichern",
+      delete: "Löschen",
+      edit: "Bearbeiten",
+      view: "Ansehen",
+      loading: "Laden...",
+      noResults: "Keine Ergebnisse gefunden",
+      contact: "Kontakt",
+      phone: "Telefon",
+      email: "E-Mail",
+      send: "Senden",
+      success: "Erfolg!",
+      error: "Fehler",
+      back: "Zurück",
+      all: "Alle",
+      or: "oder",
+      name: "Name",
+      message: "Nachricht",
+      notes: "Notizen",
+      featured: "Hervorgehoben",
+      favorites: "Favoriten",
+      myFavorites: "Meine Favoriten",
+      perMonth: "/Monat",
+      viewAll: "Alle ansehen",
+      photos: "Fotos"
+    },
+    property: {
+      types: {
+        apartment: "Wohnung",
+        house: "Haus",
+        condo: "Eigentumswohnung",
+        townhouse: "Reihenhaus",
+        farm: "Bauernhof",
+        land: "Grundstück",
+        building: "Gebäude",
+        store: "Geschäft",
+        warehouse: "Lagerhaus",
+        office: "Büro",
+        hotel: "Hotel",
+        shop: "Laden",
+        all: "Alle Typen"
+      },
+      listing: {
+        sale: "Verkauf",
+        rent: "Miete",
+        buyOrRent: "Kaufen oder Mieten",
+        buy: "Kaufen",
+        toRent: "Mieten"
+      },
+      details: {
+        bedrooms: "Schlafzimmer",
+        bathrooms: "Badezimmer",
+        area: "Fläche",
+        price: "Preis",
+        priceMin: "Mindestpreis",
+        priceMax: "Höchstpreis",
+        location: "Standort",
+        city: "Stadt",
+        state: "Bezirk",
+        country: "Land",
+        description: "Beschreibung",
+        amenities: "Ausstattung",
+        features: "Merkmale",
+        yearBuilt: "Baujahr",
+        energyCertificate: "Energieausweis",
+        parking: "Parkplatz",
+        furnished: "Möbliert",
+        allCountries: "Alle Länder",
+        allCities: "Alle Städte",
+        allDistricts: "Alle Bezirke",
+        year: "Jahr",
+        contactAgent: "Kontakt zu dieser Immobilie",
+        assignedAgent: "Zuständiger Makler",
+        scheduleViewing: "Besichtigung Planen",
+        similarProperties: "Ähnliche Immobilien",
+        propertyDetails: "Immobiliendetails",
+        grossArea: "Bruttofläche",
+        usefulArea: "Nutzfläche",
+        finishes: "Ausstattung",
+        fronts: "Fronten",
+        renovated: "Renoviert",
+        exempt: "Befreit",
+        noAgent: "Kein Makler zugewiesen",
+        tags: "Tags"
+      },
+      status: {
+        available: "Verfügbar",
+        sold: "Verkauft",
+        reserved: "Reserviert",
+        rented: "Vermietet",
+        prospecting: "In Akquise",
+        withdrawn: "Zurückgezogen",
+        pending_validation: "Validierung ausstehend"
+      },
+      search: {
+        searchPlaceholder: "Nach Standort suchen...",
+        allCities: "Alle",
+        allDistricts: "Alle",
+        allCountries: "Alle",
+        filters: "Filter",
+        advancedFilters: "Erweiterte Filter",
+        showAdvanced: "Erweiterte Filter anzeigen",
+        hideAdvanced: "Erweiterte Filter ausblenden",
+        sortBy: "Sortieren",
+        recent: "Neueste",
+        priceAsc: "Preis: ↑",
+        priceDesc: "Preis: ↓",
+        area: "Größte Fläche",
+        gridView: "Rasteransicht",
+        listView: "Listenansicht",
+        mapView: "Kartenansicht"
+      },
+      results: {
+        found: "{count} Immobilien",
+        foundSingle: "{count} Immobilie",
+        residential: "Wohnimmobilien",
+        commercial: "Gewerbeimmobilien",
+        withFilters: "Mit angewendeten Filtern",
+        noProperties: "Keine Immobilien gefunden",
+        adjustFilters: "Versuchen Sie, die Suchfilter anzupassen, um mehr Ergebnisse zu sehen"
+      },
+      cta: {
+        dreamHome: "Suchen Sie Ihr Traumhaus?",
+        commercialSpace: "Suchen Sie eine bestimmte Gewerbefläche?",
+        notFound: "Nicht gefunden, wonach Sie suchen?",
+        helpResidential: "Unser spezialisiertes Team kann Ihnen helfen, die ideale Wohnimmobilie zu finden.",
+        helpCommercial: "Unser spezialisiertes Team kann Ihnen helfen, die ideale Gewerbeimmobilie zu finden.",
+        helpGeneral: "Unser Team kann Ihnen helfen, die perfekte Immobilie zu finden. Kontaktieren Sie uns!",
+        contactUs: "Mit Berater sprechen",
+        sendEmail: "E-Mail senden"
+      }
+    },
+    pages: {
+      home: {
+        title: "Finden Sie Ihre Ideale Immobilie",
+        subtitle: "Die besten Immobilienmöglichkeiten in Portugal und weltweit"
+      },
+      zugruppe: {
+        title: "Alle Immobilien",
+        residential: "Wohnimmobilien",
+        commercial: "Gewerbe",
+        all: "Alle Immobilien"
+      },
+      zuhaus: {
+        title: "Ihr Traumhaus Ist Hier",
+        subtitle: "Sorgfältig ausgewählte Wohnimmobilien für Sie und Ihre Familie",
+        features: {
+          quality: "Sorgfältige Auswahl",
+          qualityDesc: "Jede Immobilie wird von unserem Team sorgfältig bewertet",
+          support: "Persönliche Betreuung",
+          supportDesc: "Engagierte Berater bei jedem Schritt",
+          premium: "Premium-Erlebnis",
+          premiumDesc: "Exzellenter Service von Anfang bis Ende"
+        },
+        cta: {
+          title: "Haben Sie nicht gefunden, wonach Sie suchen?",
+          subtitle: "Unser Team kann Ihnen helfen, das perfekte Zuhause zu finden"
+        }
+      },
+      zuhandel: {
+        title: "Gewerbeflächen der Exzellenz",
+        subtitle: "Finden Sie den idealen Raum für Ihr Geschäft",
+        features: {
+          locations: "Premium-Standorte",
+          locationsDesc: "Flächen in den besten Geschäftsvierteln",
+          expertise: "Spezialisierte Beratung",
+          expertiseDesc: "Expertise in Gewerbeimmobilien",
+          solutions: "Maßgeschneiderte Lösungen",
+          solutionsDesc: "An Ihre Geschäftsbedürfnisse angepasst"
+        },
+        cta: {
+          title: "Suchen Sie eine bestimmte Fläche?",
+          subtitle: "Unsere Gewerbespezialisten können Ihnen helfen"
+        }
+      }
+    },
+    contact: {
+      title: "Kontaktieren Sie uns",
+      subtitle: "Füllen Sie das Formular aus und wir melden uns in Kürze",
+      name: "Name",
+      email: "E-Mail",
+      phone: "Telefon",
+      company: "Unternehmen",
+      message: "Nachricht",
+      submit: "Nachricht Senden",
+      sending: "Wird gesendet...",
+      success: "Nachricht erfolgreich gesendet!",
+      error: "Fehler beim Senden der Nachricht",
+      messagePlaceholder: "Hallo, ich interessiere mich für die Immobilie \"{title}\". Ich würde gerne mehr Informationen erhalten...",
+      messageSent: "Nachricht Gesendet!",
+      messageConfirmation: "Wir werden uns in Kürze bei Ihnen melden.",
+      sendAnother: "Weitere Nachricht senden",
+      visitScheduled: "Besichtigung Geplant!",
+      visitConfirmation: "Sie erhalten in Kürze eine Bestätigung.",
+      scheduleAnother: "Weitere Besichtigung planen",
+      shareProperty: "Teilen",
+      saveProperty: "Speichern",
+      savedProperty: "Gespeichert",
+      required: "*"
+    },
+    dashboard: {
+      title: "Dashboard",
+      myProperties: "Meine Immobilien",
+      opportunities: "Chancen",
+      clients: "Kunden",
+      appointments: "Termine",
+      analytics: "Analysen"
+    },
+    forms: {
+      selectOption: "Auswählen...",
+      chooseFile: "Datei auswählen",
+      uploadFile: "Datei hochladen",
+      processing: "Wird verarbeitet...",
+      uploading: "Wird hochgeladen...",
+      required: "Erforderlich",
+      optional: "Optional"
+    },
+    navigation: {
+      home: "Startseite",
+      properties: "Immobilien",
+      about: "Über Uns",
+      contact: "Kontakt",
+      login: "Anmelden",
+      logout: "Abmelden",
+      myAccount: "Mein Konto"
+    },
+    footer: {
+      rights: "Alle Rechte vorbehalten",
+      license: "Lizenz IMPIC",
+      terms: "Geschäftsbedingungen",
+      privacy: "Datenschutzrichtlinie",
+      cookies: "Cookie-Richtlinie",
+      disputeResolution: "Alternative Streitbeilegung",
+      complaintsBook: "Online-Beschwerdebuch",
+      denunciationChannel: "Meldekanal",
+      manageData: "Daten Verwalten"
+    },
+    institutional: {
+      title: "Über Uns",
+      subtitle: "Lernen Sie ZuGruppe - The Velvet Return kennen",
+      mission: "Den Immobilienmarkt Transformieren",
+      missionText: "Bei ZuGruppe - The Velvet Return glauben wir, dass jede Immobilie eine Geschichte erzählt und jeder Kunde einen einzigartigen Traum hat. Unsere Mission ist es, Menschen mit den perfekten Räumen zu verbinden, ob gemütliche Häuser, strategische Büros oder hochwertige Investitionen.",
+      commitment: "Mit modernster Technologie, einem erfahrenen Team und einem unerschütterlichen Engagement für Exzellenz machen wir jede Immobilientransaktion zu einem unvergesslichen und erfolgreichen Erlebnis.",
+      values: "Unsere Werte",
+      valuesSubtitle: "Prinzipien, die uns bei jedem Geschäft leiten",
+      brands: "Eine Gruppe, Mehrere Spezialisierungen",
+      brandsSubtitle: "Jede Marke von ZuGruppe - The Velvet Return ist auf ihr Segment spezialisiert und garantiert den besten Service in jedem Bereich",
+      services: "Ergänzende Dienstleistungen",
+      servicesSubtitle: "Komplette Lösungen für alle Ihre Immobilienbedürfnisse",
+      contact: "Lassen Sie uns zusammenarbeiten",
+      contactSubtitle: "Kontaktieren Sie uns und entdecken Sie, wie wir Ihnen helfen können, Ihre Immobilienziele zu erreichen",
+      stats: {
+        propertiesSold: "Verkaufte Immobilien",
+        satisfiedClients: "Zufriedene Kunden",
+        yearsExperience: "Jahre Erfahrung",
+        consultants: "Spezialisierte Berater"
+      },
+      valuesList: {
+        passion: "Leidenschaft für das, was wir tun",
+        passionDesc: "Jede Immobilie wird mit Hingabe und absolutem Engagement behandelt.",
+        transparency: "Totale Transparenz",
+        transparencyDesc: "Klare Prozesse, ehrliche Kommunikation und vertrauensbasierte Beziehungen.",
+        clientFocus: "Kundenfokus",
+        clientFocusDesc: "Ihr Erfolg und Ihre Zufriedenheit sind unsere oberste Priorität.",
+        innovation: "Ständige Innovation",
+        innovationDesc: "Modernste Technologie und moderne Methoden im Dienste der Immobilien.",
+        excellence: "Exzellenz in den Ergebnissen",
+        excellenceDesc: "Engagement für Qualität und Übertreffen von Erwartungen.",
+        globalVision: "Globale Vision",
+        globalVisionDesc: "Lokale Präsenz mit internationaler Reichweite für besseren Service."
+      },
+      brandsData: {
+        zuhaus: {
+          name: "ZuHaus",
+          subtitle: "Wohnimmobilien",
+          description: "Experten darin, das perfekte Zuhause für jede Familie zu finden. Wohnungen, Häuser und Räume, die Träume wahr werden lassen."
+        },
+        zuhandel: {
+          name: "ZuHandel",
+          subtitle: "Gewerbeflächen",
+          description: "Gewerbliche Lösungen, die Ihr Geschäft vorantreiben. Geschäfte, Büros und strategisch gelegene Lagerhäuser."
+        },
+        premium: {
+          name: "Premium Luxus",
+          subtitle: "Luxusimmobilien",
+          description: "Exklusive Immobilien für anspruchsvolle Kunden. Luxus, Komfort und Exklusivität in jedem Detail."
+        },
+        worldwide: {
+          name: "Worldwide",
+          subtitle: "Internationale Immobilien",
+          description: "Die Welt ist unser Markt. Immobilien in den gefragtesten Destinationen weltweit."
+        }
+      },
+      servicesData: {
+        finance: {
+          name: "ZuFinance",
+          subtitle: "Finanzlösungen",
+          description: "Spezialisierte Finanzberatung für Immobilieninvestitionen. Intelligente Finanzierung für Ihre Projekte."
+        },
+        garden: {
+          name: "ZuGarden",
+          subtitle: "Außenbereiche",
+          description: "Design und Ausführung von Gärten und Außenbereichen. Wir verwandeln Umgebungen in einzigartige Erlebnisse."
+        },
+        projekt: {
+          name: "ZuProjekt",
+          subtitle: "Architekturprojekte",
+          description: "Entwicklung und Management von Immobilienprojekten. Von der Konzeption bis zur Ausführung mit Exzellenz."
+        }
+      }
+    },
+    legal: {
+      termsTitle: "Geschäftsbedingungen",
+      termsUpdated: "Zuletzt aktualisiert",
+      termsAcceptance: "Annahme der Bedingungen",
+      termsAcceptanceText: "Durch die Nutzung unserer Plattform stimmen Sie diesen Geschäftsbedingungen zu.",
+      acceptableUse: "Akzeptable Nutzung",
+      acceptableUseText: "Sie verpflichten sich, die Plattform legal und angemessen zu nutzen. Verboten sind:",
+      prohibitedActions: {
+        illegal: "Illegale oder betrügerische Aktivitäten",
+        spam: "Versenden von Spam oder unerwünschten Inhalten",
+        harm: "Schaden für andere Nutzer oder die Plattform",
+        violation: "Verletzung von geistigen Eigentumsrechten"
+      },
+      applicableLaw: "Anwendbares Recht",
+      applicableLawText: "Diese Bedingungen unterliegen dem portugiesischen Recht.",
+      contact: "Kontakt",
+      privacyTitle: "Datenschutzrichtlinie",
+      privacyIntro: "Diese Datenschutzrichtlinie beschreibt, wie wir Ihre personenbezogenen Daten sammeln, verwenden und schützen.",
+      dataCollection: "Datenerfassung",
+      dataCollectionText: "Wir sammeln personenbezogene Daten, die Sie uns direkt zur Verfügung stellen, einschließlich Name, E-Mail, Telefon und Immobilienpräferenzen.",
+      dataUse: "Datennutzung",
+      dataUseText: "Wir verwenden Ihre Daten, um unsere Dienste bereitzustellen und zu verbessern, Anfragen zu bearbeiten und mit Ihnen über Immobilien zu kommunizieren, die Sie interessieren könnten.",
+      dataSharing: "Datenweitergabe",
+      dataSharingText: "Wir verkaufen Ihre Daten nicht. Wir können Informationen mit Dienstleistern teilen, die uns beim Betrieb der Plattform helfen.",
+      dataSecurity: "Sicherheit",
+      dataSecurityText: "Wir implementieren Sicherheitsmaßnahmen zum Schutz Ihrer Daten vor unbefugtem Zugriff.",
+      yourRights: "Ihre Rechte",
+      yourRightsText: "Sie haben das Recht, auf Ihre personenbezogenen Daten zuzugreifen, sie zu korrigieren oder zu löschen. Kontaktieren Sie uns, um diese Rechte auszuüben.",
+      cookies: "Cookies",
+      cookiesText: "Wir verwenden Cookies, um Ihre Erfahrung zu verbessern. Siehe unsere Cookie-Richtlinie für weitere Details.",
+      dataRetention: "Datenspeicherung",
+      dataRetentionText: "Wir bewahren Ihre Daten nur so lange auf, wie es zur Erfüllung der beschriebenen Zwecke erforderlich ist.",
+      thirdParty: "Drittanbieter-Integrationen",
+      thirdPartyText: "Wir können mit Drittanbieterdiensten wie Google Maps und Zahlungsanbietern integrieren.",
+      cookiePolicyTitle: "Cookie-Richtlinie",
+      whatAreCookies: "Was sind Cookies?",
+      whatAreCookiesText: "Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden, wenn Sie unsere Website besuchen.",
+      howWeUseCookies: "Wie wir Cookies verwenden",
+      howWeUseCookiesText: "Wir verwenden Cookies, um die Funktionalität der Website zu verbessern, den Traffic zu analysieren und Inhalte zu personalisieren.",
+      cookieTypes: {
+        essential: "Essentielle Cookies: Notwendig für die Funktionalität der Website",
+        analytics: "Analytische Cookies: Helfen uns zu verstehen, wie Sie die Website nutzen",
+        marketing: "Marketing-Cookies: Verwendet für personalisierte Werbung"
+      },
+      denunciationTitle: "Meldekanal",
+      denunciationIntro: "Dieser Kanal ermöglicht es Ihnen, Unregelmäßigkeiten sicher und vertraulich zu melden.",
+      anonymous: "Anonyme Einreichung",
+      anonymousText: "Sie können Ihre Meldung anonym einreichen",
+      subject: "Betreff",
+      description: "Beschreibung",
+      descriptionPlaceholder: "Beschreiben Sie die Situation so detailliert wie möglich...",
+      attachments: "Anhänge",
+      contactDetails: "Kontaktdaten (Optional)",
+      acceptTerms: "Ich akzeptiere die Geschäftsbedingungen",
+      submitDenunciation: "Meldung Einreichen",
+      denunciationSuccess: "Meldung erfolgreich eingereicht",
+      denunciationError: "Fehler beim Einreichen der Meldung",
+      manageDataTitle: "Ihre Daten Verwalten",
+      manageDataIntro: "Gemäß DSGVO haben Sie das Recht, Ihre personenbezogenen Daten zu verwalten.",
+      yourRightsList: {
+        access: "Zugriff: Sie können eine Kopie Ihrer Daten anfordern",
+        rectification: "Berichtigung: Sie können ungenaue Daten korrigieren",
+        erasure: "Löschung: Sie können die Löschung Ihrer Daten beantragen",
+        portability: "Portabilität: Sie können Ihre Daten in einem strukturierten Format erhalten",
+        objection: "Widerspruch: Sie können der Verarbeitung Ihrer Daten widersprechen"
+      },
+      exerciseRights: "Um diese Rechte auszuüben, kontaktieren Sie uns unter:",
+      rgpdConsentTitle: "DSGVO-Einwilligung",
+      rgpdConsentText: "Durch die Nutzung dieser Plattform stimmen Sie der Verarbeitung Ihrer personenbezogenen Daten gemäß unserer Datenschutzrichtlinie zu.",
+      acceptConsent: "Ich akzeptiere die Datenschutzrichtlinie",
+      readPolicy: "Datenschutzrichtlinie lesen"
+    }
   }
 };
