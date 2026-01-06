@@ -76,7 +76,9 @@ Deno.serve(async (req) => {
       message: `${updates.length} oportunidades atualizadas com ref_id`,
       updated: updates.length,
       total_without_ref_id: withoutRefId.length,
-      details: updates
+      errors: errors.length,
+      details: updates,
+      error_details: errors
     });
 
   } catch (error) {
