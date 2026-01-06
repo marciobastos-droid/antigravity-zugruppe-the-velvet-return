@@ -13,6 +13,7 @@ import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import PublicLanguageSwitcher from "./components/i18n/PublicLanguageSwitcher";
 import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
 import ErrorBoundary from "./components/errors/ErrorBoundary";
+import { HelmetProvider } from "react-helmet-async";
 // Pages where layout should be minimal (no header/footer)
 const MINIMAL_LAYOUT_PAGES = ["Home", "Website", "PropertyDetails", "PremiumLuxury", "WorldWideProperties", "TermsConditions", "PrivacyPolicy", "CookiePolicy", "ManageData", "RGPDConsent", "DenunciationChannel", "ClientPortal", "Institucional"];
 
@@ -161,17 +162,20 @@ export default function Layout({ children, currentPageName }) {
   if (isMinimalLayout) {
     return (
       <ErrorBoundary name="App Root">
+        <HelmetProvider>
           <LocalizationProvider>
             <PublicLanguageSwitcher />
             <FloatingWhatsAppButton />
             {children}
           </LocalizationProvider>
+        </HelmetProvider>
         </ErrorBoundary>
         );
   }
 
   return (
     <ErrorBoundary name="App Layout">
+      <HelmetProvider>
         <LocalizationProvider>
           <div className="min-h-screen bg-slate-50">
           <Toaster position="top-right" richColors />
@@ -380,6 +384,7 @@ export default function Layout({ children, currentPageName }) {
           </main>
           </div>
           </LocalizationProvider>
+          </HelmetProvider>
           </ErrorBoundary>
           );
           }
