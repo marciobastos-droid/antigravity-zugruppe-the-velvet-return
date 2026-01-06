@@ -59,6 +59,17 @@ const PropertyCard = memo(function PropertyCard({
   setSelectedPropertyForPlan,
   setMarketingPlanOpen
 }) {
+  // Fetch development data if property belongs to one
+  const { data: development } = useQuery({
+    queryKey: ['development', property.development_id],
+    queryFn: async () => {
+      if (!property.development_id) return null;
+      const devs = await base44.entities.Development.filter({ id: property.development_id });
+      return devs?.[0] || null;
+    },
+    enabled: !!property.development_id
+  });
+
   const handleSelect = useCallback(() => {
     onToggleSelect(property.id);
   }, [property.id, onToggleSelect]);
