@@ -79,6 +79,7 @@ import LandingPageBuilder from "../components/website/LandingPageBuilder";
 import DynamicFormBuilder from "../components/website/DynamicFormBuilder";
 import SEOManager from "../components/website/SEOManager";
 import ActivityFeedViewer from "../components/admin/ActivityFeedViewer";
+import PendingApprovalsManager from "../components/approvals/PendingApprovalsManager";
 
 export default function Tools() {
   const [activeTab, setActiveTab] = useState("importProperties");
@@ -130,7 +131,7 @@ export default function Tools() {
   // Obter ferramentas de um grupo na ordem correta
   const getGroupTools = (groupId) => {
     const groupMap = {
-      system: ['errorLogs'],
+      system: ['errorLogs', 'pendingApprovals'],
       marketing: ['marketingHub', 'marketingCampaigns', 'landingPages', 'dynamicForms', 'seoManager', 
                   'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 
                   'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'],
@@ -259,7 +260,7 @@ export default function Tools() {
   const allToolIds = React.useMemo(() => {
     const toolIds = [];
     const groups = [
-      { tools: ['errorLogs'] }, // System tools
+      { tools: ['errorLogs', 'pendingApprovals'] }, // System tools
       { tools: ['marketingHub', 'marketingCampaigns', 'landingPages', 'dynamicForms', 'seoManager', 'socialMedia', 'socialAdCreator', 'apiPublish', 'apiIntegrations', 'portalIntegrations', 'whatsapp', 'integrations', 'imageExtractor', 'excelImport', 'crmIntegrations', 'seoAnalytics'] },
       { tools: ['facebookCampaigns', 'facebookLeads', 'facebookForms'] },
       { tools: ['leadManagement', 'leadNurturing'] },
@@ -282,6 +283,7 @@ export default function Tools() {
   // Tool metadata with descriptions for tooltips
   const TOOL_METADATA = {
     errorLogs: { description: "Visualizar e analisar logs de erro da aplicação" },
+    pendingApprovals: { description: "Aprovar ou rejeitar imóveis pendentes de validação" },
     marketingHub: { description: "Central unificada para gerir todas as campanhas de marketing" },
     marketingCampaigns: { description: "Criar e monitorizar campanhas de marketing digital" },
     landingPages: { description: "Criar e editar landing pages personalizadas" },
@@ -370,6 +372,7 @@ export default function Tools() {
   // Mapear ferramentas para grupos
   const toolToGroup = React.useMemo(() => ({
     errorLogs: 'system',
+    pendingApprovals: 'system',
     marketingHub: 'marketing', marketingCampaigns: 'marketing', landingPages: 'marketing', 
     dynamicForms: 'marketing', seoManager: 'marketing', socialMedia: 'marketing',
     socialAdCreator: 'marketing', apiPublish: 'marketing', apiIntegrations: 'marketing',
@@ -634,7 +637,7 @@ export default function Tools() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary" className="bg-slate-200 text-slate-700">
-                        1 ferramenta
+                        2 ferramentas
                       </Badge>
                       <motion.div
                         animate={{ rotate: expandedGroups.system ? 180 : 0 }}
@@ -655,6 +658,9 @@ export default function Tools() {
                     >
                       <div ref={el => toolRefs.current['errorLogs'] = el}>
                         <ToolButton toolId="errorLogs" icon={Bug} label="Logs de Erro" gridMode />
+                      </div>
+                      <div ref={el => toolRefs.current['pendingApprovals'] = el}>
+                        <ToolButton toolId="pendingApprovals" icon={CheckCircle2} label="Aprovar Imóveis" gridMode />
                       </div>
                     </motion.div>
                   )}
@@ -1577,6 +1583,7 @@ export default function Tools() {
               </div>
 
         <div ref={el => toolRefs.current['content-errorLogs'] = el}>{activeTab === "errorLogs" && <ErrorLogsAdmin />}</div>
+        <div ref={el => toolRefs.current['content-pendingApprovals'] = el}>{activeTab === "pendingApprovals" && <PendingApprovalsManager />}</div>
         <div ref={el => toolRefs.current['content-marketingHub'] = el}>{activeTab === "marketingHub" && <MarketingHub />}</div>
         <div ref={el => toolRefs.current['content-marketingCampaigns'] = el}>{activeTab === "marketingCampaigns" && <MarketingCampaignsHub />}</div>
         <div ref={el => toolRefs.current['content-landingPages'] = el}>{activeTab === "landingPages" && <LandingPageBuilder />}</div>
