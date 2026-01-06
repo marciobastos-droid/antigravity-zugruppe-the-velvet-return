@@ -198,6 +198,7 @@ export default function ClientDatabase() {
 
 
   const [formData, setFormData] = useState({
+    entity_kind: "person",
     first_name: "",
     last_name: "",
     full_name: "",
@@ -518,6 +519,7 @@ export default function ClientDatabase() {
 
   const resetForm = () => {
     setFormData({
+      entity_kind: "person",
       first_name: "",
       last_name: "",
       full_name: "",
@@ -546,6 +548,7 @@ export default function ClientDatabase() {
   const handleEdit = (client) => {
     setEditingClient(client);
     setFormData({
+      entity_kind: client.entity_kind || "person",
       first_name: client.first_name || "",
       last_name: client.last_name || "",
       full_name: client.full_name || "",
@@ -787,41 +790,91 @@ export default function ClientDatabase() {
               <DialogTitle>{editingClient ? "Editar Contacto" : "Novo Contacto"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <Label>Primeiro Nome</Label>
-                  <Input
-                    value={formData.first_name}
-                    onChange={(e) => {
-                      const firstName = e.target.value;
-                      const fullName = `${firstName} ${formData.last_name}`.trim();
-                      setFormData({...formData, first_name: firstName, full_name: fullName});
-                    }}
-                    placeholder="João"
-                  />
-                </div>
-                <div>
-                  <Label>Último Nome</Label>
-                  <Input
-                    value={formData.last_name}
-                    onChange={(e) => {
-                      const lastName = e.target.value;
-                      const fullName = `${formData.first_name} ${lastName}`.trim();
-                      setFormData({...formData, last_name: lastName, full_name: fullName});
-                    }}
-                    placeholder="Silva"
-                  />
-                </div>
-                <div>
-                  <Label>Nome Completo *</Label>
-                  <Input
-                    required
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                    placeholder="João Silva"
-                  />
+              {/* Tipo de Entidade - Pessoa ou Empresa */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <Label className="text-sm font-semibold mb-3 block">Tipo de Entidade *</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, entity_kind: "person"})}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      formData.entity_kind === "person"
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <User className={`w-6 h-6 mx-auto mb-2 ${formData.entity_kind === "person" ? 'text-blue-600' : 'text-slate-400'}`} />
+                    <p className={`font-semibold ${formData.entity_kind === "person" ? 'text-blue-900' : 'text-slate-700'}`}>
+                      Pessoa
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({...formData, entity_kind: "company"})}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      formData.entity_kind === "company"
+                        ? 'border-purple-500 bg-purple-50'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <Building2 className={`w-6 h-6 mx-auto mb-2 ${formData.entity_kind === "company" ? 'text-purple-600' : 'text-slate-400'}`} />
+                    <p className={`font-semibold ${formData.entity_kind === "company" ? 'text-purple-900' : 'text-slate-700'}`}>
+                      Empresa
+                    </p>
+                  </button>
                 </div>
               </div>
+
+              {/* Campos para Pessoa */}
+              {formData.entity_kind === "person" ? (
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Primeiro Nome</Label>
+                    <Input
+                      value={formData.first_name}
+                      onChange={(e) => {
+                        const firstName = e.target.value;
+                        const fullName = `${firstName} ${formData.last_name}`.trim();
+                        setFormData({...formData, first_name: firstName, full_name: fullName});
+                      }}
+                      placeholder="João"
+                    />
+                  </div>
+                  <div>
+                    <Label>Último Nome</Label>
+                    <Input
+                      value={formData.last_name}
+                      onChange={(e) => {
+                        const lastName = e.target.value;
+                        const fullName = `${formData.first_name} ${lastName}`.trim();
+                        setFormData({...formData, last_name: lastName, full_name: fullName});
+                      }}
+                      placeholder="Silva"
+                    />
+                  </div>
+                  <div>
+                    <Label>Nome Completo *</Label>
+                    <Input
+                      required
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                      placeholder="João Silva"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Label>Nome da Empresa *</Label>
+                  <Input
+                    required
+                    value={formData.company_name}
+                    onChange={(e) => {
+                      setFormData({...formData, company_name: e.target.value, full_name: e.target.value});
+                    }}
+                    placeholder="Ex: Construtora ABC, Lda."
+                  />
+                </div>
+              )}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Email</Label>
@@ -919,24 +972,27 @@ export default function ClientDatabase() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Empresa</Label>
-                  <Input
-                    value={formData.company_name}
-                    onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                    placeholder="Nome da empresa"
-                  />
+              {/* Empresa/Cargo - Apenas para Pessoas */}
+              {formData.entity_kind === "person" && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Empresa (Opcional)</Label>
+                    <Input
+                      value={formData.company_name}
+                      onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+                      placeholder="Onde trabalha (opcional)"
+                    />
+                  </div>
+                  <div>
+                    <Label>Cargo</Label>
+                    <Input
+                      value={formData.job_title}
+                      onChange={(e) => setFormData({...formData, job_title: e.target.value})}
+                      placeholder="Diretor Comercial"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Cargo</Label>
-                  <Input
-                    value={formData.job_title}
-                    onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-                    placeholder="Diretor Comercial"
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
