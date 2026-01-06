@@ -22,7 +22,7 @@ export default function UnifiedCalendar() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [filterAgent, setFilterAgent] = useState("all");
   const [filterType, setFilterType] = useState("all");
-  const [viewMode, setViewMode] = useState("list");
+  const [viewMode, setViewMode] = useState("week");
   const [draggedEvent, setDraggedEvent] = useState(null);
 
   const { data: appointments = [] } = useQuery({
@@ -493,30 +493,32 @@ export default function UnifiedCalendar() {
 
       {/* Week View */}
       {viewMode === "week" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentDate(addDays(currentDate, -7))}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <CardTitle>
-                {format(weekDays[0], 'd MMM', { locale: ptBR })} - {format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentDate(addDays(currentDate, 7))}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-8 gap-2">
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentDate(addDays(currentDate, -7))}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <CardTitle>
+                    {format(weekDays[0], 'd MMM', { locale: ptBR })} - {format(weekDays[6], 'd MMM yyyy', { locale: ptBR })}
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentDate(addDays(currentDate, 7))}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-8 gap-2">
               <div className="space-y-12 pt-8">
                 {Array.from({ length: 12 }, (_, i) => i + 8).map(hour => (
                   <div key={hour} className="text-xs text-slate-500 text-right pr-2">
@@ -599,8 +601,72 @@ export default function UnifiedCalendar() {
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Week Events List - Right Sidebar */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Eventos da Semana</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const weekEvents = filteredEvents
+                  .filter(e => {
+                    const eventDate = e.date;
+                    return eventDate >= weekDays[0] && eventDate <= addDays(weekDays[6], 1);
+                  })
+                  .sort((a, b) => a.date - b.date);
+
+                if (weekEvents.length === 0) {
+                  return <p className="text-sm text-slate-500 text-center py-8">Sem eventos esta semana</p>;
+                }
+
+                return (
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                    {weekEvents.map((event, idx) => {
+                      const Icon = event.icon;
+                      const conflicts = getConflictsForEvent(event);
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedEvent(event)}
+                          className={`w-full text-left p-3 rounded-lg border-2 ${eventColors[event.color]} hover:shadow-md transition-all`}
+                        >
+                          <div className="flex items-start gap-2">
+                            <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-medium text-xs">
+                                  {format(event.date, "EEE dd/MM 'às' HH:mm", { locale: ptBR })}
+                                </p>
+                                {conflicts.length > 0 && (
+                                  <AlertTriangle className="w-3 h-3 text-red-500" title={`${conflicts.length} conflito(s)`} />
+                                )}
+                              </div>
+                              <p className="font-medium text-sm truncate">{event.title}</p>
+                              {event.client && (
+                                <p className="text-xs opacity-75 truncate">{event.client}</p>
+                              )}
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {event.type === 'appointment' ? 'Visita' :
+                                 event.type === 'signature' ? 'Assinatura' :
+                                 event.type === 'deed' ? 'Escritura' :
+                                 event.type === 'renewal' ? 'Renovação' :
+                                 'Follow-up'}
+                              </Badge>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* List View */}
