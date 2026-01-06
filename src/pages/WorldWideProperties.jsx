@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "../components/browse/PropertyCard";
 import SEOHead from "../components/seo/SEOHead";
-import { HelmetProvider } from "react-helmet-async";
 
 export default function WorldWideProperties() {
   const [countryFilter, setCountryFilter] = React.useState("all");
@@ -110,7 +109,6 @@ export default function WorldWideProperties() {
   };
 
   return (
-    <HelmetProvider>
       <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50">
       <SEOHead
         title={dynamicSEO.title}
@@ -325,6 +323,5 @@ export default function WorldWideProperties() {
         </div>
       </footer>
     </div>
-    </HelmetProvider>
   );
 }
