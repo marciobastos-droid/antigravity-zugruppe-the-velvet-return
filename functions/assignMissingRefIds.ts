@@ -41,19 +41,33 @@ Deno.serve(async (req) => {
       new Date(a.created_date) - new Date(b.created_date)
     );
 
-    // Atribuir ref_ids sequenciais
+    // Atribuir ref_ids sequenciais com delay para evitar rate limit
     const updates = [];
-    for (const opp of sorted) {
-      const refId = `OPO-${String(nextNumber).padStart(5, '0')}`;
+    const errors = [];
+    const BATCH_SIZE = 10;
+    const DELAY_MS = 2000;
+
+    for (let i = 0; i < sorted.length; i += BATCH_SIZE) {
+      const batch = sorted.slice(i, i + BATCH_SIZE);
       
-      try {
-        await base44.asServiceRole.entities.Opportunity.update(opp.id, {
-          ref_id: refId
-        });
-        updates.push({ id: opp.id, ref_id: refId, buyer_name: opp.buyer_name });
-        nextNumber++;
-      } catch (error) {
-        console.error(`Erro ao atualizar oportunidade ${opp.id}:`, error);
+      for (const opp of batch) {
+        const refId = `OPO-${String(nextNumber).padStart(5, '0')}`;
+        
+        try {
+          await base44.asServiceRole.entities.Opportunity.update(opp.id, {
+            ref_id: refId
+          });
+          updates.push({ id: opp.id, ref_id: refId, buyer_name: opp.buyer_name });
+          nextNumber++;
+        } catch (error) {
+          console.error(`Erro ao atualizar oportunidade ${opp.id}:`, error);
+          errors.push({ id: opp.id, error: error.message });
+        }
+      }
+      
+      // Delay entre batches para evitar rate limit
+      if (i + BATCH_SIZE < sorted.length) {
+        await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
 
