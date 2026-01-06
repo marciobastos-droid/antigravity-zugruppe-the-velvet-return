@@ -1263,11 +1263,6 @@ export default function ClientDatabase() {
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="latest_import">
                       ⭐ Última Importação
-                      {latestImportBatchId && (
-                        <span className="text-xs text-slate-500 ml-1">
-                          ({clients.filter(c => c.import_batch_id === latestImportBatchId).length})
-                        </span>
-                      )}
                     </SelectItem>
                     <SelectItem value="imported">Todos Importados</SelectItem>
                     <SelectItem value="manual">Criados Manualmente</SelectItem>
