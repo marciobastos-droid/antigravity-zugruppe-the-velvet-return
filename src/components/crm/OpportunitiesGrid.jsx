@@ -182,9 +182,17 @@ export default function OpportunitiesGrid({
                     );
                   })()}
                 </h3>
-                <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                  <LeadIcon className={`w-3 h-3 ${leadType.color}`} />
-                  <span>{leadType.label}</span>
+                <div className="flex flex-wrap items-center gap-1 mt-1">
+                  <Badge variant="outline" className="text-[10px] sm:text-xs">
+                    <LeadIcon className={`w-3 h-3 ${leadType.color} mr-1`} />
+                    {leadType.label}
+                  </Badge>
+                  {opp.assigned_to && (
+                    <Badge className="bg-slate-100 text-slate-700 text-[10px] sm:text-xs">
+                      <UserCheck className="w-3 h-3 mr-1" />
+                      {getAgentName(opp.assigned_to, true)}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
@@ -242,7 +250,7 @@ export default function OpportunitiesGrid({
               {/* Footer */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                 <div className="text-[10px] sm:text-xs text-slate-500">
-                  {opp.assigned_to ? getAgentName(opp.assigned_to, true) : 'Sem agente'}
+                  {opp.ref_id || `#${opp.id.slice(0, 8)}`}
                 </div>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <TooltipProvider>
