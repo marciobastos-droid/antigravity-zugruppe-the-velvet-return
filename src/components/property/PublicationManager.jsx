@@ -10,9 +10,7 @@ const AVAILABLE_PORTALS = [
   { id: "idealista", name: "Idealista", icon: ExternalLink, color: "text-green-600" },
   { id: "imovirtual", name: "Imovirtual", icon: ExternalLink, color: "text-blue-600" },
   { id: "casafari", name: "Casafari", icon: ExternalLink, color: "text-orange-600" },
-  { id: "olx", name: "OLX", icon: ExternalLink, color: "text-purple-600" },
-  { id: "supercasa", name: "Supercasa", icon: ExternalLink, color: "text-red-600" },
-  { id: "custojusto", name: "Custo Justo", icon: ExternalLink, color: "text-yellow-600" }
+  { id: "supercasa", name: "Supercasa", icon: ExternalLink, color: "text-red-600" }
 ];
 
 const AVAILABLE_PAGES = [
