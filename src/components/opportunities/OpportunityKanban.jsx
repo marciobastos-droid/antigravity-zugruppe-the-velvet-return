@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   User, Phone, Mail, Euro, Calendar, Building2,
   Star, AlertCircle, Clock, CheckCircle2, XCircle,
-  MoreHorizontal, Eye, ExternalLink, MapPin
+  MoreHorizontal, Eye, ExternalLink, MapPin, UserCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -20,6 +20,7 @@ import {
 import moment from "moment";
 import CreateAppointmentDialog from "../calendar/CreateAppointmentDialog";
 import { toast } from "sonner";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 const STAGES = [
   { id: "new", label: "Novo", color: "bg-slate-100 border-slate-300", headerColor: "bg-gradient-to-r from-slate-100 to-slate-200", icon: Clock },
@@ -39,6 +40,7 @@ export default function OpportunityKanban({
   onEdit,
   onDelete 
 }) {
+  const { getAgentName } = useAgentNames();
   const [scheduleDialogOpen, setScheduleDialogOpen] = React.useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = React.useState(null);
   const [pendingStatusChange, setPendingStatusChange] = React.useState(null);
@@ -290,6 +292,12 @@ export default function OpportunityKanban({
                                       {opp.lead_type === 'comprador' ? 'Comprador' : 
                                        opp.lead_type === 'vendedor' ? 'Vendedor' : 
                                        opp.lead_type === 'parceiro_comprador' ? 'P. Comprador' : 'P. Vendedor'}
+                                    </Badge>
+                                  )}
+                                  {opp.assigned_to && (
+                                    <Badge className="bg-slate-100 text-slate-700 text-[0.65rem] py-0 px-1.5">
+                                      <UserCheck className="w-3 h-3 mr-1" />
+                                      {getAgentName(opp.assigned_to, true)}
                                     </Badge>
                                   )}
                                 </div>
