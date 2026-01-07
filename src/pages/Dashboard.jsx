@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   TrendingUp, TrendingDown, Users, Building2, FileText, 
   Download, Calendar, DollarSign, Target, Activity, BarChart3, RefreshCw,
-  Settings2, Focus, Eye
+  Settings2, Focus, Eye, Globe, Monitor, Smartphone
 } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, subDays, startOfMonth, endOfMonth, startOfDay } from "date-fns";
+import { ptBR, pt } from "date-fns/locale";
 import AIMatchingSuggestions from "../components/dashboard/AIMatchingSuggestions";
 import NotificationBoard from "../components/notifications/NotificationBoard";
 import SmartNotificationsPanel from "../components/notifications/SmartNotificationsPanel";
@@ -142,6 +142,13 @@ export default function Dashboard() {
       const settings = await base44.entities.FacebookLeadSettings.list();
       return settings[0];
     },
+  });
+
+  const { data: siteAnalytics = [] } = useQuery({
+    queryKey: ['siteAnalytics'],
+    queryFn: () => base44.entities.SiteAnalytics.list('-data_registro', 1000),
+    enabled: !!user && isAdmin,
+    refetchInterval: 60000
   });
 
   const updateProgressMutation = useMutation({
@@ -356,6 +363,78 @@ export default function Dashboard() {
     .filter(item => item.leads > 0)
     .sort((a, b) => b.leads - a.leads)
     : [];
+
+  // Analytics calculations
+  const totalVisits = siteAnalytics.length;
+  
+  const todayVisits = React.useMemo(() => {
+    const today = startOfDay(new Date());
+    return siteAnalytics.filter(a => {
+      const visitDate = new Date(a.data_registro);
+      return visitDate >= today;
+    }).length;
+  }, [siteAnalytics]);
+
+  const topCountry = React.useMemo(() => {
+    const countryCounts = {};
+    siteAnalytics.forEach(a => {
+      const country = a.pais || 'Unknown';
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    });
+    
+    const sorted = Object.entries(countryCounts).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] || 'N/A';
+  }, [siteAnalytics]);
+
+  const topDevice = React.useMemo(() => {
+    const deviceCounts = {};
+    siteAnalytics.forEach(a => {
+      const device = a.dispositivo || 'Unknown';
+      deviceCounts[device] = (deviceCounts[device] || 0) + 1;
+    });
+    
+    const sorted = Object.entries(deviceCounts).sort((a, b) => b[1] - a[1]);
+    return sorted[0]?.[0] || 'N/A';
+  }, [siteAnalytics]);
+
+  const top5Countries = React.useMemo(() => {
+    const countryCounts = {};
+    siteAnalytics.forEach(a => {
+      const country = a.pais || 'Unknown';
+      countryCounts[country] = (countryCounts[country] || 0) + 1;
+    });
+    
+    return Object.entries(countryCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([pais, visitas]) => ({ pais, visitas }));
+  }, [siteAnalytics]);
+
+  const weeklyTraffic = React.useMemo(() => {
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dayStart = startOfDay(date);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+      
+      const count = siteAnalytics.filter(a => {
+        const visitDate = new Date(a.data_registro);
+        return visitDate >= dayStart && visitDate < dayEnd;
+      }).length;
+      
+      last7Days.push({
+        dia: format(date, 'EEE', { locale: pt }),
+        visitas: count
+      });
+    }
+    return last7Days;
+  }, [siteAnalytics]);
+
+  const recentVisits = React.useMemo(() => {
+    return [...siteAnalytics]
+      .sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro))
+      .slice(0, 10);
+  }, [siteAnalytics]);
 
   // Export report
   const exportReport = () => {
@@ -610,6 +689,7 @@ export default function Dashboard() {
               <TabsTrigger value="overview">Visão Geral</TabsTrigger>
               <TabsTrigger value="properties">Imóveis</TabsTrigger>
               <TabsTrigger value="reports">Relatórios Avançados</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics Visitantes</TabsTrigger>
               <TabsTrigger value="adminboard">AdminBoard</TabsTrigger>
             </TabsList>
 
@@ -979,6 +1059,289 @@ export default function Dashboard() {
                   <AgentPerformanceReport />
                 </TabsContent>
               </Tabs>
+            </TabsContent>
+
+            <TabsContent value="analytics">
+              {/* Analytics de Visitantes */}
+              <div className="space-y-6">
+                {/* KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-600 mb-1">Total de Visitas</p>
+                          <p className="text-3xl font-bold text-slate-900">{totalVisits.toLocaleString()}</p>
+                        </div>
+                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <TrendingUp className="w-6 h-6 text-blue-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-600 mb-1">País Principal</p>
+                          <p className="text-3xl font-bold text-slate-900">{topCountry}</p>
+                        </div>
+                        <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Globe className="w-6 h-6 text-green-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-600 mb-1">Dispositivo Principal</p>
+                          <p className="text-3xl font-bold text-slate-900">{topDevice}</p>
+                        </div>
+                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                          {topDevice === 'Mobile' ? (
+                            <Smartphone className="w-6 h-6 text-purple-600" />
+                          ) : (
+                            <Monitor className="w-6 h-6 text-purple-600" />
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-slate-600 mb-1">Visitas Hoje</p>
+                          <p className="text-3xl font-bold text-slate-900">{todayVisits.toLocaleString()}</p>
+                        </div>
+                        <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-amber-600" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Charts */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Globe className="w-5 h-5" />
+                        Top 5 Países
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={top5Countries}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis 
+                            dataKey="pais" 
+                            tick={{ fontSize: 12 }}
+                            stroke="#64748b"
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 12 }}
+                            stroke="#64748b"
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'white', 
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Bar dataKey="visitas" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5" />
+                        Tráfego Semanal
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={weeklyTraffic}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis 
+                            dataKey="dia" 
+                            tick={{ fontSize: 12 }}
+                            stroke="#64748b"
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 12 }}
+                            stroke="#64748b"
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'white', 
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px'
+                            }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="visitas" 
+                            stroke="#10b981" 
+                            strokeWidth={3}
+                            dot={{ fill: '#10b981', r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Recent Visits Table */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Últimas 10 Visitas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200">
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Data/Hora</th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">País</th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Cidade</th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Dispositivo</th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Fonte</th>
+                            <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">Página</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {recentVisits.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="text-center py-8 text-slate-500">
+                                Ainda sem visitas registadas
+                              </td>
+                            </tr>
+                          ) : (
+                            recentVisits.map((visit) => (
+                              <tr key={visit.id} className="border-b border-slate-100 hover:bg-slate-50">
+                                <td className="py-3 px-4 text-sm text-slate-600">
+                                  {format(new Date(visit.data_registro), 'dd/MM/yyyy HH:mm', { locale: pt })}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <Badge variant="outline" className="font-medium">
+                                    {visit.pais}
+                                  </Badge>
+                                </td>
+                                <td className="py-3 px-4 text-sm text-slate-600">
+                                  {visit.cidade || '-'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  <Badge className={
+                                    visit.dispositivo === 'Mobile' ? 'bg-blue-100 text-blue-800' :
+                                    visit.dispositivo === 'Desktop' ? 'bg-green-100 text-green-800' :
+                                    'bg-purple-100 text-purple-800'
+                                  }>
+                                    {visit.dispositivo}
+                                  </Badge>
+                                </td>
+                                <td className="py-3 px-4 text-sm text-slate-600">
+                                  {visit.fonte_origem}
+                                </td>
+                                <td className="py-3 px-4 text-sm text-slate-600 max-w-xs truncate" title={visit.pagina_visitada}>
+                                  {visit.pagina_visitada}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Script de Implementação */}
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardHeader>
+                    <CardTitle className="text-blue-900">📋 Código de Tracking para www.zuhaus.pt</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-blue-800">
+                      Copie e cole este código antes do <code className="bg-blue-100 px-2 py-1 rounded">&lt;/body&gt;</code> no seu website externo:
+                    </p>
+                    
+                    <div className="bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">
+                      <pre className="text-xs font-mono whitespace-pre-wrap">
+{`<script>
+(function() {
+  function detectDevice() {
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return "Tablet";
+    if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry/.test(ua)) return "Mobile";
+    return "Desktop";
+  }
+
+  function detectCountry() {
+    const lang = navigator.language || navigator.userLanguage;
+    const map = {
+      'pt-PT': 'Portugal', 'pt-BR': 'Brasil', 'en-US': 'USA', 
+      'en-GB': 'United Kingdom', 'es-ES': 'Spain', 'fr-FR': 'France', 
+      'de-DE': 'Germany', 'it-IT': 'Italy'
+    };
+    return map[lang] || lang.split('-')[1] || 'Unknown';
+  }
+
+  function detectBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.indexOf("Firefox") > -1) return "Firefox";
+    if (ua.indexOf("Chrome") > -1) return "Chrome";
+    if (ua.indexOf("Safari") > -1) return "Safari";
+    if (ua.indexOf("Edge") > -1) return "Edge";
+    return "Other";
+  }
+
+  function detectSource() {
+    const ref = document.referrer;
+    if (!ref) return "Direct";
+    if (ref.includes("google")) return "Google";
+    if (ref.includes("facebook")) return "Facebook";
+    if (ref.includes("instagram")) return "Instagram";
+    return "Referral";
+  }
+
+  function trackVisit() {
+    fetch('${typeof window !== 'undefined' ? window.location.origin : 'https://zugruppe.base44.app'}/api/functions/trackSiteVisit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        pagina_visitada: window.location.href,
+        pais: detectCountry(),
+        cidade: "Unknown",
+        fonte_origem: detectSource(),
+        dispositivo: detectDevice(),
+        navegador: detectBrowser(),
+        idioma: navigator.language,
+        referrer: document.referrer,
+        user_agent: navigator.userAgent
+      })
+    }).catch(err => console.error('Analytics:', err));
+  }
+
+  if (document.readyState === 'complete') trackVisit();
+  else window.addEventListener('load', trackVisit);
+})();
+</script>`}
+                      </pre>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="adminboard">
