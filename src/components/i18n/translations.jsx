@@ -232,6 +232,30 @@ export const translations = {
       logout: "Sair",
       myAccount: "A Minha Conta"
     },
+    about: {
+      title: "Sobre a ZuConnect",
+      subtitle: "Somos uma empresa líder em serviços imobiliários, dedicada a conectar pessoas aos seus imóveis ideais através de tecnologia inovadora e atendimento personalizado.",
+      missionTitle: "A Nossa Missão",
+      missionText: "Transformar a experiência imobiliária através da combinação perfeita entre tecnologia de ponta e atendimento humano. Cada cliente merece encontrar não apenas uma propriedade, mas o lugar onde pertence.",
+      values: {
+        team: {
+          title: "Equipa Experiente",
+          description: "Profissionais qualificados com anos de experiência no mercado imobiliário"
+        },
+        excellence: {
+          title: "Excelência",
+          description: "Compromisso com a qualidade e satisfação em cada detalhe"
+        },
+        results: {
+          title: "Resultados",
+          description: "Histórico comprovado de transações bem-sucedidas"
+        },
+        dedication: {
+          title: "Dedicação",
+          description: "Apoio personalizado em todas as etapas do processo"
+        }
+      }
+    },
     footer: {
       rights: "Todos os direitos reservados",
       license: "Licença IMPIC",
@@ -622,6 +646,30 @@ export const translations = {
       login: "Login",
       logout: "Logout",
       myAccount: "My Account"
+    },
+    about: {
+      title: "About ZuConnect",
+      subtitle: "We are a leading company in real estate services, dedicated to connecting people to their ideal properties through innovative technology and personalized service.",
+      missionTitle: "Our Mission",
+      missionText: "Transform the real estate experience through the perfect combination of cutting-edge technology and human service. Every client deserves to find not just a property, but the place where they belong.",
+      values: {
+        team: {
+          title: "Experienced Team",
+          description: "Qualified professionals with years of experience in the real estate market"
+        },
+        excellence: {
+          title: "Excellence",
+          description: "Commitment to quality and satisfaction in every detail"
+        },
+        results: {
+          title: "Results",
+          description: "Proven track record of successful transactions"
+        },
+        dedication: {
+          title: "Dedication",
+          description: "Personalized support at every stage of the process"
+        }
+      }
     },
     footer: {
       rights: "All rights reserved",
@@ -1014,6 +1062,30 @@ export const translations = {
       logout: "Salir",
       myAccount: "Mi Cuenta"
     },
+    about: {
+      title: "Sobre ZuConnect",
+      subtitle: "Somos una empresa líder en servicios inmobiliarios, dedicada a conectar personas con sus propiedades ideales a través de tecnología innovadora y atención personalizada.",
+      missionTitle: "Nuestra Misión",
+      missionText: "Transformar la experiencia inmobiliaria a través de la combinación perfecta entre tecnología de punta y atención humana. Cada cliente merece encontrar no solo una propiedad, sino el lugar al que pertenece.",
+      values: {
+        team: {
+          title: "Equipo Experimentado",
+          description: "Profesionales cualificados con años de experiencia en el mercado inmobiliario"
+        },
+        excellence: {
+          title: "Excelencia",
+          description: "Compromiso con la calidad y satisfacción en cada detalle"
+        },
+        results: {
+          title: "Resultados",
+          description: "Historial probado de transacciones exitosas"
+        },
+        dedication: {
+          title: "Dedicación",
+          description: "Apoyo personalizado en todas las etapas del proceso"
+        }
+      }
+    },
     footer: {
       rights: "Todos los derechos reservados",
       license: "Licencia IMPIC",
@@ -1405,6 +1477,30 @@ export const translations = {
       logout: "Déconnexion",
       myAccount: "Mon Compte"
     },
+    about: {
+      title: "À Propos de ZuConnect",
+      subtitle: "Nous sommes une entreprise leader dans les services immobiliers, dédiée à connecter les personnes à leurs propriétés idéales grâce à une technologie innovante et un service personnalisé.",
+      missionTitle: "Notre Mission",
+      missionText: "Transformer l'expérience immobilière grâce à la combinaison parfaite entre technologie de pointe et service humain. Chaque client mérite de trouver non seulement une propriété, mais l'endroit auquel il appartient.",
+      values: {
+        team: {
+          title: "Équipe Expérimentée",
+          description: "Professionnels qualifiés avec des années d'expérience sur le marché immobilier"
+        },
+        excellence: {
+          title: "Excellence",
+          description: "Engagement envers la qualité et la satisfaction dans chaque détail"
+        },
+        results: {
+          title: "Résultats",
+          description: "Historique prouvé de transactions réussies"
+        },
+        dedication: {
+          title: "Dévouement",
+          description: "Soutien personnalisé à toutes les étapes du processus"
+        }
+      }
+    },
     footer: {
       rights: "Tous droits réservés",
       license: "Licence IMPIC",
@@ -1795,6 +1891,30 @@ export const translations = {
       login: "Anmelden",
       logout: "Abmelden",
       myAccount: "Mein Konto"
+    },
+    about: {
+      title: "Über ZuConnect",
+      subtitle: "Wir sind ein führendes Unternehmen im Immobilienservice, das sich darauf spezialisiert hat, Menschen mit ihren idealen Immobilien durch innovative Technologie und persönlichen Service zu verbinden.",
+      missionTitle: "Unsere Mission",
+      missionText: "Die Immobilienerfahrung durch die perfekte Kombination aus modernster Technologie und menschlichem Service zu transformieren. Jeder Kunde verdient es, nicht nur eine Immobilie zu finden, sondern den Ort, zu dem er gehört.",
+      values: {
+        team: {
+          title: "Erfahrenes Team",
+          description: "Qualifizierte Fachleute mit jahrelanger Erfahrung auf dem Immobilienmarkt"
+        },
+        excellence: {
+          title: "Exzellenz",
+          description: "Engagement für Qualität und Zufriedenheit in jedem Detail"
+        },
+        results: {
+          title: "Ergebnisse",
+          description: "Nachgewiesene Erfolgsbilanz erfolgreicher Transaktionen"
+        },
+        dedication: {
+          title: "Hingabe",
+          description: "Personalisierte Unterstützung in allen Phasen des Prozesses"
+        }
+      }
     },
     footer: {
       rights: "Alle Rechte vorbehalten",

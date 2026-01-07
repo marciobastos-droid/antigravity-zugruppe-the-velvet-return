@@ -2,34 +2,37 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Award, TrendingUp, Heart } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLocalization } from "@/components/i18n/LocalizationContext";
 
 /**
  * Secção "Sobre Nós" para o website
  */
 export default function AboutSection() {
+  const { t } = useLocalization();
+
   const values = [
     {
       icon: Users,
-      title: "Equipa Experiente",
-      description: "Profissionais qualificados com anos de experiência no mercado imobiliário",
+      title: t('about.values.team.title'),
+      description: t('about.values.team.description'),
       color: "blue"
     },
     {
       icon: Award,
-      title: "Excelência",
-      description: "Compromisso com a qualidade e satisfação em cada detalhe",
+      title: t('about.values.excellence.title'),
+      description: t('about.values.excellence.description'),
       color: "purple"
     },
     {
       icon: TrendingUp,
-      title: "Resultados",
-      description: "Histórico comprovado de transações bem-sucedidas",
+      title: t('about.values.results.title'),
+      description: t('about.values.results.description'),
       color: "green"
     },
     {
       icon: Heart,
-      title: "Dedicação",
-      description: "Apoio personalizado em todas as etapas do processo",
+      title: t('about.values.dedication.title'),
+      description: t('about.values.dedication.description'),
       color: "red"
     }
   ];
@@ -51,7 +54,7 @@ export default function AboutSection() {
             viewport={{ once: true }}
             className="text-4xl font-bold text-slate-900 mb-4"
           >
-            Sobre a ZuConnect
+            {t('about.title')}
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -60,8 +63,7 @@ export default function AboutSection() {
             transition={{ delay: 0.1 }}
             className="text-lg text-slate-600 max-w-3xl mx-auto"
           >
-            Somos uma empresa líder em serviços imobiliários, dedicada a conectar pessoas aos seus 
-            imóveis ideais através de tecnologia inovadora e atendimento personalizado.
+            {t('about.subtitle')}
           </motion.p>
         </div>
 
@@ -101,11 +103,9 @@ export default function AboutSection() {
           viewport={{ once: true }}
           className="bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-2xl p-8 md:p-12 text-center"
         >
-          <h3 className="text-2xl md:text-3xl font-bold mb-4">A Nossa Missão</h3>
+          <h3 className="text-2xl md:text-3xl font-bold mb-4">{t('about.missionTitle')}</h3>
           <p className="text-lg text-slate-200 max-w-3xl mx-auto leading-relaxed">
-            Transformar a experiência imobiliária através da combinação perfeita entre tecnologia 
-            de ponta e atendimento humano. Cada cliente merece encontrar não apenas uma propriedade, 
-            mas o lugar onde pertence.
+            {t('about.missionText')}
           </p>
         </motion.div>
       </div>
