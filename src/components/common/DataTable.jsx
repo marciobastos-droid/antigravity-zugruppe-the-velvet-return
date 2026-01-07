@@ -191,40 +191,75 @@ export default function DataTable({
             </div>
           </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Columns3 className="w-4 h-4" />
-                Colunas
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {columns.filter(c => !c.alwaysVisible).map((column) => (
-                <DropdownMenuCheckboxItem
-                  key={column.key}
-                  checked={visibleColumns.includes(column.key)}
-                  onCheckedChange={() => toggleColumnVisibility(column.key)}
-                >
-                  {column.label}
-                </DropdownMenuCheckboxItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem
-                checked={visibleColumns.length === columns.length}
-                onCheckedChange={() => {
-                  if (visibleColumns.length === columns.length) {
-                    setVisibleColumns(columns.filter(c => c.alwaysVisible).map(c => c.key));
-                  } else {
-                    setVisibleColumns(columns.map(c => c.key));
-                  }
-                }}
+          <div className="flex items-center gap-2">
+            {/* Sort Selector */}
+            <Select 
+              value={sortColumn || ""} 
+              onValueChange={(val) => {
+                setSortColumn(val);
+                setSortDirection("desc");
+              }}
+            >
+              <SelectTrigger className="h-8 w-40 text-xs">
+                <SelectValue placeholder="Ordenar por..." />
+              </SelectTrigger>
+              <SelectContent>
+                {columns.filter(c => c.sortable !== false && c.key !== 'actions' && c.key !== 'select').map((col) => (
+                  <SelectItem key={col.key} value={col.key}>
+                    {col.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Sort Direction */}
+            {sortColumn && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+                title={sortDirection === "asc" ? "Crescente" : "Decrescente"}
               >
-                Mostrar Todas
-              </DropdownMenuCheckboxItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {sortDirection === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+              </Button>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Columns3 className="w-4 h-4" />
+                  Colunas
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Colunas Visíveis</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {columns.filter(c => !c.alwaysVisible).map((column) => (
+                  <DropdownMenuCheckboxItem
+                    key={column.key}
+                    checked={visibleColumns.includes(column.key)}
+                    onCheckedChange={() => toggleColumnVisibility(column.key)}
+                  >
+                    {column.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={visibleColumns.length === columns.length}
+                  onCheckedChange={() => {
+                    if (visibleColumns.length === columns.length) {
+                      setVisibleColumns(columns.filter(c => c.alwaysVisible).map(c => c.key));
+                    } else {
+                      setVisibleColumns(columns.map(c => c.key));
+                    }
+                  }}
+                >
+                  Mostrar Todas
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Table */}
