@@ -73,6 +73,7 @@ import ExcelImportExport from "../components/tools/ExcelImportExport";
 import CRMIntegrations from "../components/tools/CRMIntegrations";
 import OCRProcessor from "../components/tools/OCRProcessor";
 import SEOAnalytics from "../components/seo/SEOAnalytics";
+import SEOContentManager from "../components/seo/SEOContentManager";
 import DataExporter from "../components/tools/DataExporter";
 import ErrorLogsAdmin from "../components/admin/ErrorLogsAdmin";
 import LandingPageBuilder from "../components/website/LandingPageBuilder";
@@ -1648,7 +1649,7 @@ export default function Tools() {
         <div ref={el => toolRefs.current['content-backupManager'] = el}>{activeTab === "backupManager" && <BackupManager />}</div>
         <div ref={el => toolRefs.current['content-excelImport'] = el}>{activeTab === "excelImport" && <ExcelImportExport />}</div>
         <div ref={el => toolRefs.current['content-crmIntegrations'] = el}>{activeTab === "crmIntegrations" && <CRMIntegrations />}</div>
-        <div ref={el => toolRefs.current['content-seoAnalytics'] = el}>{activeTab === "seoAnalytics" && <SEOAnalytics />}</div>
+        <div ref={el => toolRefs.current['content-seoAnalytics'] = el}>{activeTab === "seoAnalytics" && <SEOContentManager />}</div>
         <div ref={el => toolRefs.current['content-dataExporter'] = el}>{activeTab === "dataExporter" && <DataExporter />}</div>
         <div ref={el => toolRefs.current['content-gmailSync'] = el}>{activeTab === "gmailSync" && (
               <Card>
