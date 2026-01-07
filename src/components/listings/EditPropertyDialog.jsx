@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, Upload, X, Image as ImageIcon, Sparkles, ExternalLink, Home, Building2, MapPin, Settings, ChevronDown, ChevronRight, Languages } from "lucide-react";
 import PropertyTagger from "../property/PropertyTagger";
 import AIPropertyTools from "../property/AIPropertyTools";
+import AIDescriptionEnhancer from "../property/AIDescriptionEnhancer";
 import LocationAutocomplete from "../property/LocationAutocomplete";
 import ValidatedInput from "../property/ValidatedInput";
 import PublicationManager from "../property/PublicationManager";
