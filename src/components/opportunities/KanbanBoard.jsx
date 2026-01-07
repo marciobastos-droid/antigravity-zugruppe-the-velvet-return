@@ -2,13 +2,15 @@ import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, MapPin, Building2, Calendar, DollarSign, GripVertical } from "lucide-react";
+import { User, Mail, Phone, MapPin, Building2, Calendar, DollarSign, GripVertical, UserCheck } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAgentNames } from "@/components/common/useAgentNames";
 
 export function KanbanCard({ opportunity, index, onSelect, isSelected, onClick, leadTypeIcons, leadTypeColors }) {
   const LeadIcon = leadTypeIcons[opportunity.lead_type || "comprador"];
+  const { getAgentName } = useAgentNames();
   
   return (
     <Draggable draggableId={opportunity.id} index={index}>
@@ -37,10 +39,18 @@ export function KanbanCard({ opportunity, index, onSelect, isSelected, onClick, 
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm mb-1 truncate">{opportunity.buyer_name}</h4>
-                    <Badge className={`text-xs border ${leadTypeColors[opportunity.lead_type || "comprador"]}`}>
-                      <LeadIcon className="w-3 h-3 mr-1" />
-                      {opportunity.lead_type || "comprador"}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Badge className={`text-xs border ${leadTypeColors[opportunity.lead_type || "comprador"]}`}>
+                        <LeadIcon className="w-3 h-3 mr-1" />
+                        {opportunity.lead_type || "comprador"}
+                      </Badge>
+                      {opportunity.assigned_to && (
+                        <Badge className="bg-slate-100 text-slate-700 text-xs">
+                          <UserCheck className="w-3 h-3 mr-1" />
+                          {getAgentName(opportunity.assigned_to, true)}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div {...provided.dragHandleProps} className="drag-handle cursor-grab active:cursor-grabbing">
