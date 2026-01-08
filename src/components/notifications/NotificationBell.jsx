@@ -197,7 +197,8 @@ export default function NotificationBell({ user }) {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
   const unreadLeadsCount = unreadLeads.length;
-  const totalAlerts = unreadCount + newLeads.length + unreadLeadsCount;
+  // Only show count for unread leads in the bell badge
+  const totalAlerts = unreadLeadsCount;
   const [activeTab, setActiveTab] = useState("leads");
 
   // Toggle sound
