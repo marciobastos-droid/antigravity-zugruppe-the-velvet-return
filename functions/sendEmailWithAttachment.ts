@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import nodemailer from 'npm:nodemailer@6.9.8';
 
 Deno.serve(async (req) => {
   try {
@@ -51,46 +50,70 @@ ${user.full_name || 'ZuGruppe'}`;
       </div>
     `;
 
-    console.log('[sendEmailWithAttachment] Preparing to send email via Gmail');
+    console.log('[sendEmailWithAttachment] Sending email via Gmail API');
 
-    // Create nodemailer transporter for Gmail with explicit STARTTLS
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // Use STARTTLS
-      auth: {
-        user: GMAIL_USER,
-        pass: GMAIL_APP_PASSWORD,
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
+    // Create MIME message
+    const boundary = '----=_Part_' + Math.random().toString(36).substring(2);
+    let mimeMessage = [
+      `From: ZuGruppe <${GMAIL_USER}>`,
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: multipart/alternative; boundary="alt_boundary"',
+      '',
+      '--alt_boundary',
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      emailBody,
+      '',
+      '--alt_boundary',
+      'Content-Type: text/html; charset=UTF-8',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      htmlBody,
+      '',
+      '--alt_boundary--'
+    ];
 
-    // Prepare email options
-    const mailOptions = {
-      from: `ZuGruppe <${GMAIL_USER}>`,
-      to: to,
-      subject: subject,
-      text: emailBody,
-      html: htmlBody,
-    };
-
-    // Add PDF attachment if provided
+    // Add attachment if provided
     if (attachment && attachment.content && attachment.filename) {
-      mailOptions.attachments = [{
-        filename: attachment.filename,
-        content: attachment.content,
-        encoding: 'base64'
-      }];
+      mimeMessage.push(
+        `--${boundary}`,
+        `Content-Type: application/pdf; name="${attachment.filename}"`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        '',
+        attachment.content,
+        ''
+      );
     }
 
-    console.log('[sendEmailWithAttachment] Sending email to:', to);
+    mimeMessage.push(`--${boundary}--`);
 
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
+    // Encode to base64url
+    const mimeString = mimeMessage.join('\r\n');
+    const encodedMessage = btoa(unescape(encodeURIComponent(mimeString)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
-    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail:', info.messageId);
+    // Use Gmail API via OAuth
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken('gmail');
+    
+    if (!accessToken) {
+      // Fallback: Use Core.SendEmail integration
+      console.log('[sendEmailWithAttachment] No Gmail OAuth, using Core.SendEmail');
+      const result = await base44.asServiceRole.integrations.Core.SendEmail({
+        to: to,
+        subject: subject,
+        body: htmlBody
+      });
+      
+      console.log('[sendEmailWithAttachment] Email sent via Core.SendEmail');
 
     // Log communication if property_id provided
     if (property_id) {
