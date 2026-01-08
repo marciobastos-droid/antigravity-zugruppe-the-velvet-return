@@ -76,7 +76,9 @@ export default function OpportunityQuickFilters({
     return counts;
   }, [opportunities, convertedOpportunityIds]);
 
-  const toggleFilter = (filterKey, value) => {
+  const toggleFilter = React.useCallback((filterKey, value) => {
+    if (!onFilterChange) return;
+    
     const currentValue = filters[filterKey];
     
     // Para filtros booleanos ou especiais
@@ -91,11 +93,11 @@ export default function OpportunityQuickFilters({
     } else {
       onFilterChange({ ...filters, [filterKey]: value });
     }
-  };
+  }, [filters, onFilterChange]);
 
-  const isActive = (filterKey, value) => {
+  const isActive = React.useCallback((filterKey, value) => {
     return filters[filterKey] === value;
-  };
+  }, [filters]);
 
   const FilterBadge = ({ filterKey, value, label, count, icon: Icon, color = "slate" }) => {
     const active = isActive(filterKey, value);
