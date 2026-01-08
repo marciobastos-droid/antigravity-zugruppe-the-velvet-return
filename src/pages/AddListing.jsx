@@ -37,7 +37,8 @@ export default function AddListing() {
     images: [],
     amenities: [],
     status: "pending",
-    visibility: "team_only"
+    visibility: "team_only",
+    availability_status: "pending_validation"
   });
 
   const [amenityInput, setAmenityInput] = React.useState("");
@@ -76,7 +77,8 @@ export default function AddListing() {
     },
     onError: (error) => {
       console.error('[AddListing] Error creating property:', error);
-      toast.error("Erro ao criar imóvel: " + (error.message || "Erro desconhecido"));
+      const errorMsg = error?.response?.data?.error || error?.response?.data?.message || error.message || "Erro desconhecido";
+      toast.error("Erro ao criar imóvel: " + errorMsg);
     }
   });
 
