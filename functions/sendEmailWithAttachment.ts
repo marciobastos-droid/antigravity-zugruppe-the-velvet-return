@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { SMTPClient } from 'npm:emailjs@4.0.3';
+import nodemailer from 'npm:nodemailer@6.9.8';
 
 Deno.serve(async (req) => {
   try {
@@ -51,41 +51,41 @@ ${user.full_name || 'ZuGruppe'}`;
       </div>
     `;
 
-    console.log('[sendEmailWithAttachment] Preparing to send email via Gmail SMTP');
+    console.log('[sendEmailWithAttachment] Preparing to send email via Gmail');
 
-    const client = new SMTPClient({
-      user: GMAIL_USER,
-      password: GMAIL_APP_PASSWORD,
-      host: 'smtp.gmail.com',
-      ssl: true,
+    // Create nodemailer transporter for Gmail
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: GMAIL_USER,
+        pass: GMAIL_APP_PASSWORD,
+      },
     });
 
-    const emailMessage = {
-      from: GMAIL_USER,
+    // Prepare email options
+    const mailOptions = {
+      from: `ZuGruppe <${GMAIL_USER}>`,
       to: to,
       subject: subject,
       text: emailBody,
-      attachment: [
-        { data: htmlBody, alternative: true }
-      ]
+      html: htmlBody,
     };
 
     // Add PDF attachment if provided
     if (attachment && attachment.content && attachment.filename) {
-      emailMessage.attachment.push({
-        data: attachment.content,
-        type: 'application/pdf',
-        name: attachment.filename,
+      mailOptions.attachments = [{
+        filename: attachment.filename,
+        content: attachment.content,
         encoding: 'base64'
-      });
+      }];
     }
 
     console.log('[sendEmailWithAttachment] Sending email to:', to);
 
     // Send email
-    await client.sendAsync(emailMessage);
+    const info = await transporter.sendMail(mailOptions);
 
-    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail SMTP');
+    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail:', info.messageId);
 
     // Log communication if property_id provided
     if (property_id) {
