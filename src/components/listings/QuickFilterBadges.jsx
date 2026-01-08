@@ -156,147 +156,124 @@ export default function QuickFilterBadges({
 
   return (
     <div className="mb-4">
-      <div className="bg-white border border-slate-200 rounded-lg p-3">
-        {/* Filtros Principais - Sempre Visíveis */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          <FilterBadge filterKey="status" value="active" label="Ativo" count={stats.active} color="green" />
-          <FilterBadge filterKey="status" value="pending" label="Pendente" count={stats.pending} color="yellow" />
-          <FilterBadge filterKey="listing_type" value="sale" label="Venda" count={stats.sale} color="blue" />
-          <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" />
-          <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
-          <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
-          <FilterBadge filterKey="last_import" value={true} label="Última Importação" count={stats.lastImport} color="indigo" icon={Download} />
-        </div>
-
-        {/* Filtros de Páginas Publicadas - Segunda Linha */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          <Badge
-            onClick={() => togglePublishedPage('zuhaus')}
-            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-              filters.published_pages?.includes('zuhaus')
-                ? "bg-red-600 text-white border-red-600"
-                : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
-            }`}
-          >
-            <Home className="w-3 h-3" />
-            <span className="font-medium">ZuHaus</span>
-            <span className="opacity-60">({stats.zuhaus})</span>
-            {filters.published_pages?.includes('zuhaus') && <X className="w-2.5 h-2.5 ml-0.5" />}
-          </Badge>
-          
-          <Badge
-            onClick={() => togglePublishedPage('zuhandel')}
-            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-              filters.published_pages?.includes('zuhandel')
-                ? "bg-slate-600 text-white border-slate-600"
-                : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
-            }`}
-          >
-            <Store className="w-3 h-3" />
-            <span className="font-medium">ZuHandel</span>
-            <span className="opacity-60">({stats.zuhandel})</span>
-            {filters.published_pages?.includes('zuhandel') && <X className="w-2.5 h-2.5 ml-0.5" />}
-          </Badge>
-          
-          <Badge
-            onClick={() => togglePublishedPage('luxury_collection')}
-            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-              filters.published_pages?.includes('luxury_collection')
-                ? "bg-amber-600 text-white border-amber-600"
-                : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-            }`}
-          >
-            <Crown className="w-3 h-3" />
-            <span className="font-medium">Premium Luxo</span>
-            <span className="opacity-60">({stats.luxury})</span>
-            {filters.published_pages?.includes('luxury_collection') && <X className="w-2.5 h-2.5 ml-0.5" />}
-          </Badge>
-
-          <Badge
-            onClick={() => toggleFilter('country', 'international')}
-            className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-              filters.country === 'international'
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-            }`}
-          >
-            <Globe className="w-3 h-3" />
-            <span className="font-medium">Imóveis Internacionais</span>
-            <span className="opacity-60">({stats.international})</span>
-            {filters.country === 'international' && <X className="w-2.5 h-2.5 ml-0.5" />}
-          </Badge>
-
-          <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
-          <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
-        </div>
-
-        {/* Botão Expandir */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setExpanded(!expanded)}
-          className="w-full text-xs text-slate-600 hover:text-slate-900 h-7 mt-1"
-        >
-          {expanded ? (
-            <>
-              <ChevronUp className="w-3 h-3 mr-1" />
-              Menos filtros
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-3 h-3 mr-1" />
-              Mais filtros rápidos
-            </>
-          )}
-        </Button>
-
-        {/* Filtros Adicionais - Colapsáveis */}
-        {expanded && (
-          <div className="mt-3 pt-3 border-t border-slate-200 space-y-3">
-            <div className="flex flex-wrap gap-2">
-              <FilterBadge filterKey="status" value="sold" label="Vendido" count={stats.sold} color="blue" />
-              <FilterBadge filterKey="status" value="rented" label="Arrendado" count={stats.rented} color="purple" />
-              <FilterBadge filterKey="property_type" value="land" label="Terrenos" count={stats.land} color="amber" />
-              <FilterBadge filterKey="property_type" value="store" label="Lojas" count={stats.store} color="slate" />
-              <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
-              <Badge
-                onClick={() => {
-                  if (filters.published_portals?.length > 0 || filters.published_pages?.length > 0) {
-                    onFilterChange({ ...filters, published_portals: [], published_pages: [] });
-                  } else {
-                    const allPortals = [...new Set(properties.flatMap(p => p.published_portals || []))];
-                    const allPages = [...new Set(properties.flatMap(p => p.published_pages || []))];
-                    onFilterChange({ ...filters, published_portals: allPortals, published_pages: allPages });
-                  }
-                }}
-                className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 ${
-                  (filters.published_portals?.length > 0 || filters.published_pages?.length > 0)
-                    ? "bg-purple-600 text-white border-purple-600"
-                    : "bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100"
-                }`}
-              >
-                <Globe className="w-3 h-3" />
-                <span className="text-xs font-medium">Publicados</span>
-                <span className="text-xs opacity-60">({stats.publishedPortals + stats.publishedPages})</span>
-                {(filters.published_portals?.length > 0 || filters.published_pages?.length > 0) && <X className="w-3 h-3 ml-1" />}
-              </Badge>
-              <FilterBadge 
-                filterKey="development_id" 
-                value="none" 
-                label="Sem Empreendimento" 
-                count={stats.withoutDevelopment} 
-                color="slate"
-              />
-              <FilterBadge 
-                filterKey="assigned_consultant" 
-                value="unassigned" 
-                label="Sem Consultor" 
-                count={stats.withoutConsultant} 
-                color="slate"
-              />
-            </div>
+      <div className="bg-white border border-slate-200 rounded-lg p-4">
+        {/* LINHA 1: Estados */}
+        <div className="mb-3">
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Estado</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterBadge filterKey="status" value="active" label="Ativo" count={stats.active} color="green" />
+            <FilterBadge filterKey="status" value="pending" label="Pendente" count={stats.pending} color="yellow" />
+            <FilterBadge filterKey="status" value="sold" label="Vendido" count={stats.sold} color="blue" />
+            <FilterBadge filterKey="status" value="rented" label="Arrendado" count={stats.rented} color="purple" />
           </div>
-        )}
+        </div>
+
+        {/* LINHA 2: Tipo de Negócio */}
+        <div className="mb-3 pb-3 border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Negócio</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterBadge filterKey="listing_type" value="sale" label="Venda" count={stats.sale} color="blue" />
+            <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" />
+          </div>
+        </div>
+
+        {/* LINHA 3: Tipo de Imóvel */}
+        <div className="mb-3 pb-3 border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Tipo de Imóvel</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
+            <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
+            <FilterBadge filterKey="property_type" value="land" label="Terrenos" count={stats.land} color="amber" />
+            <FilterBadge filterKey="property_type" value="store" label="Lojas" count={stats.store} color="slate" icon={Store} />
+          </div>
+        </div>
+
+        {/* LINHA 4: Páginas Publicadas */}
+        <div className="mb-3 pb-3 border-b border-slate-100">
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Publicado em</p>
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              onClick={() => togglePublishedPage('zuhaus')}
+              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+                filters.published_pages?.includes('zuhaus')
+                  ? "bg-red-600 text-white border-red-600"
+                  : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+              }`}
+            >
+              <Home className="w-3 h-3" />
+              <span className="font-medium">ZuHaus</span>
+              <span className="opacity-60">({stats.zuhaus})</span>
+              {filters.published_pages?.includes('zuhaus') && <X className="w-2.5 h-2.5 ml-0.5" />}
+            </Badge>
+            
+            <Badge
+              onClick={() => togglePublishedPage('zuhandel')}
+              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+                filters.published_pages?.includes('zuhandel')
+                  ? "bg-slate-600 text-white border-slate-600"
+                  : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              <Store className="w-3 h-3" />
+              <span className="font-medium">ZuHandel</span>
+              <span className="opacity-60">({stats.zuhandel})</span>
+              {filters.published_pages?.includes('zuhandel') && <X className="w-2.5 h-2.5 ml-0.5" />}
+            </Badge>
+            
+            <Badge
+              onClick={() => togglePublishedPage('luxury_collection')}
+              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+                filters.published_pages?.includes('luxury_collection')
+                  ? "bg-amber-600 text-white border-amber-600"
+                  : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+              }`}
+            >
+              <Crown className="w-3 h-3" />
+              <span className="font-medium">Premium Luxo</span>
+              <span className="opacity-60">({stats.luxury})</span>
+              {filters.published_pages?.includes('luxury_collection') && <X className="w-2.5 h-2.5 ml-0.5" />}
+            </Badge>
+
+            <Badge
+              onClick={() => toggleFilter('country', 'international')}
+              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+                filters.country === 'international'
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+              }`}
+            >
+              <Globe className="w-3 h-3" />
+              <span className="font-medium">Internacionais</span>
+              <span className="opacity-60">({stats.international})</span>
+              {filters.country === 'international' && <X className="w-2.5 h-2.5 ml-0.5" />}
+            </Badge>
+
+            <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
+          </div>
+        </div>
+
+        {/* LINHA 5: Outros Filtros */}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Outros</p>
+          <div className="flex flex-wrap gap-2">
+            <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
+            <FilterBadge filterKey="last_import" value={true} label="Última Importação" count={stats.lastImport} color="indigo" icon={Download} />
+            <FilterBadge 
+              filterKey="development_id" 
+              value="none" 
+              label="Sem Empreendimento" 
+              count={stats.withoutDevelopment} 
+              color="slate"
+            />
+            <FilterBadge 
+              filterKey="assigned_consultant" 
+              value="unassigned" 
+              label="Sem Consultor" 
+              count={stats.withoutConsultant} 
+              color="slate"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
