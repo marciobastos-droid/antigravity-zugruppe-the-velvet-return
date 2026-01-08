@@ -4,17 +4,28 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { 
   FileDown, Loader2, Home, Bed, Bath, Maximize, MapPin, 
-  Euro, Calendar, Mail, Phone, Share2, CheckCircle2
+  Euro, Calendar, Mail, Phone, Share2, CheckCircle2, Send
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PropertyBrochureGenerator({ property, open, onOpenChange }) {
   const brochureRef = useRef();
   const [generating, setGenerating] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [activeTab, setActiveTab] = useState("preview");
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    message: ""
+  });
 
   const { data: consultant } = useQuery({
     queryKey: ['consultant', property?.assigned_consultant],
@@ -26,7 +37,7 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
     enabled: !!property?.assigned_consultant && open
   });
 
-  const generatePDF = async () => {
+  const generatePDF = async (returnBlob = false) => {
     setGenerating(true);
     try {
       const element = brochureRef.current;
@@ -108,6 +119,11 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
         heightLeft -= (pageHeight - 2 * margin);
       }
 
+      if (returnBlob) {
+        setGenerating(false);
+        return pdf.output('blob');
+      }
+
       const fileName = `Brochura_${property.ref_id || property.id.slice(0,8)}_${property.city}.pdf`;
       pdf.save(fileName);
       
@@ -117,6 +133,56 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
       toast.error("Erro ao gerar PDF", { description: error.message });
     }
     setGenerating(false);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailData.to || !emailData.subject) {
+      toast.error("Preencha o destinatário e assunto");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      // Generate PDF blob
+      const pdfBlob = await generatePDF(true);
+      
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.readAsDataURL(pdfBlob);
+      });
+      
+      const pdfBase64 = await base64Promise;
+      const fileName = `Brochura_${property.ref_id || property.id.slice(0,8)}.pdf`;
+
+      // Send email with PDF attachment using Resend
+      const response = await base44.functions.invoke('sendEmailWithAttachment', {
+        to: emailData.to,
+        subject: emailData.subject,
+        message: emailData.message || `Segue em anexo a brochura do imóvel:\n\n${property.title}\n${property.city}, ${property.state}\n€${property.price?.toLocaleString()}`,
+        attachment: {
+          filename: fileName,
+          content: pdfBase64
+        },
+        property_id: property.id
+      });
+
+      if (response.data.success) {
+        toast.success("Email enviado com sucesso!");
+        setEmailData({ to: "", subject: "", message: "" });
+        setActiveTab("preview");
+      } else {
+        throw new Error(response.data.error || "Erro ao enviar email");
+      }
+    } catch (error) {
+      console.error("Email sending error:", error);
+      toast.error("Erro ao enviar email: " + (error.message || "Erro desconhecido"));
+    }
+    setSendingEmail(false);
   };
 
   const propertyTypeLabels = {
@@ -141,11 +207,22 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-white border-b p-4 flex items-center justify-between">
-          <DialogTitle>Brochura do Imóvel</DialogTitle>
-          <div className="flex gap-2">
+        <div className="sticky top-0 z-10 bg-white border-b p-4">
+          <DialogTitle className="mb-3">Gerador de PDF Profissional</DialogTitle>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="preview">Pré-visualizar</TabsTrigger>
+              <TabsTrigger value="email">Enviar</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <TabsContent value="preview" className="m-0">
+          <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
+            <p className="text-sm text-slate-600">Pré-visualização da brochura</p>
             <Button
-              onClick={generatePDF}
+              onClick={() => generatePDF(false)}
               disabled={generating}
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -161,11 +238,61 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
                 </>
               )}
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Fechar
-            </Button>
           </div>
-        </div>
+        </TabsContent>
+
+        <TabsContent value="email" className="m-0">
+          <div className="p-6 bg-slate-50 space-y-4">
+            <div>
+              <Label>Destinatário *</Label>
+              <Input
+                type="email"
+                value={emailData.to}
+                onChange={(e) => setEmailData({ ...emailData, to: e.target.value })}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+            <div>
+              <Label>Assunto do Email *</Label>
+              <Input
+                value={emailData.subject}
+                onChange={(e) => setEmailData({ ...emailData, subject: e.target.value })}
+                placeholder={`${property.ref_id || ''} - ${property.title || 'Imóvel'}`}
+              />
+            </div>
+            <div>
+              <Label>Mensagem</Label>
+              <Textarea
+                value={emailData.message}
+                onChange={(e) => setEmailData({ ...emailData, message: e.target.value })}
+                placeholder="Olá,&#10;&#10;Envio em anexo o pedido de um dos imóveis.&#10;&#10;Exige Cognome"
+                rows={6}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !emailData.to || !emailData.subject}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {sendingEmail ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    A enviar...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Enviar Email com PDF
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 text-center">
+              O PDF será gerado automaticamente e enviado como anexo
+            </p>
+          </div>
+        </TabsContent>
 
         {/* Brochure Content */}
         <div ref={brochureRef} data-brochure="true" className="bg-white" style={{ 
