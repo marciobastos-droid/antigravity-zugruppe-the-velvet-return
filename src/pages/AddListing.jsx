@@ -57,9 +57,14 @@ export default function AddListing() {
 
       // Gerar slug
       const slugResponse = await base44.functions.invoke('generatePropertySlug', { 
-        title: propertyData.title,
-        city: propertyData.city,
-        property_type: propertyData.property_type
+        property_data: {
+          title: propertyData.title,
+          city: propertyData.city,
+          property_type: propertyData.property_type,
+          listing_type: propertyData.listing_type,
+          bedrooms: propertyData.bedrooms,
+          address: propertyData.address
+        }
       });
       const slug = slugResponse.data.slug;
 
