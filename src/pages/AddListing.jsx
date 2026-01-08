@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Home, Save, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import LocationAutocomplete from "../components/property/LocationAutocomplete";
-import ImageManager from "../components/property/ImageManager";
-import AIPropertyTools from "../components/property/AIPropertyTools";
+import { Upload, X } from "lucide-react";
 
 export default function AddListing() {
   const navigate = useNavigate();
@@ -421,11 +420,64 @@ export default function AddListing() {
             <CardHeader>
               <CardTitle>Imagens</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ImageManager
-                images={formData.images}
-                onImagesChange={(images) => updateField('images', images)}
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Carregar Imagens</Label>
+                <label className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-slate-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-colors">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files);
+                      if (files.length === 0) return;
+
+                      try {
+                        const uploadPromises = files.map(file => 
+                          base44.integrations.Core.UploadFile({ file })
+                        );
+                        
+                        const results = await Promise.all(uploadPromises);
+                        const newUrls = results.map(r => r.file_url);
+                        
+                        updateField('images', [...formData.images, ...newUrls]);
+                        toast.success(`${files.length} imagens carregadas`);
+                      } catch (error) {
+                        toast.error("Erro ao carregar imagens");
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <Upload className="w-5 h-5 text-slate-500" />
+                  <span className="text-sm text-slate-600">Clique para carregar imagens</span>
+                </label>
+              </div>
+
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {formData.images.map((url, idx) => (
+                    <div key={idx} className="relative group aspect-video">
+                      <img
+                        src={url}
+                        alt={`Imagem ${idx + 1}`}
+                        className="w-full h-full object-cover rounded border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => updateField('images', formData.images.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {idx === 0 && (
+                        <div className="absolute top-1 left-1 px-2 py-0.5 bg-amber-400 text-amber-900 rounded text-xs font-semibold">
+                          Principal
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
