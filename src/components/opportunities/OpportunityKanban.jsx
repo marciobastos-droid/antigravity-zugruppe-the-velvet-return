@@ -60,7 +60,14 @@ export default function OpportunityKanban({
       setScheduleDialogOpen(true);
     } else {
       // Processar normalmente
-      onDragEnd(result);
+      // Se saiu da coluna "new", marcar como lida automaticamente
+      const isLeavingNew = opportunity?.status === 'new' && newStatus !== 'new';
+      const updatedResult = isLeavingNew ? {
+        ...result,
+        markAsRead: true
+      } : result;
+      
+      onDragEnd(updatedResult);
     }
   };
 
