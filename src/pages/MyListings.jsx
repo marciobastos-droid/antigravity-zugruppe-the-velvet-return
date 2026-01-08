@@ -1338,6 +1338,7 @@ export default function MyListings() {
     office: "Escritório",
     store: "Loja",
     farm: "Quinta",
+    hotel: "Hotel",
     development: "Empreendimento"
   }), []);
 

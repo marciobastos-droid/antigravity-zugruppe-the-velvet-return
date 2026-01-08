@@ -201,6 +201,7 @@ export default function AddListing() {
                       <SelectItem value="store">Loja</SelectItem>
                       <SelectItem value="warehouse">Armazém</SelectItem>
                       <SelectItem value="office">Escritório</SelectItem>
+                      <SelectItem value="hotel">Hotel</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

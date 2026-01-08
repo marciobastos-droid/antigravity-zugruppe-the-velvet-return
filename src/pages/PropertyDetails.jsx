@@ -514,7 +514,8 @@ export default function PropertyDetails() {
     farm: "Quinta/Herdade",
     store: "Loja",
     warehouse: "Armazém",
-    office: "Escritório"
+    office: "Escritório",
+    hotel: "Hotel"
   };
 
   const availabilityLabels = {
