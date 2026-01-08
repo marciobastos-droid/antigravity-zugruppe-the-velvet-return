@@ -53,13 +53,18 @@ ${user.full_name || 'ZuGruppe'}`;
 
     console.log('[sendEmailWithAttachment] Preparing to send email via Gmail');
 
-    // Create nodemailer transporter for Gmail
+    // Create nodemailer transporter for Gmail with explicit STARTTLS
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // Use STARTTLS
       auth: {
         user: GMAIL_USER,
         pass: GMAIL_APP_PASSWORD,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     // Prepare email options
