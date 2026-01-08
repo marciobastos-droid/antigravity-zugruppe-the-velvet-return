@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import NotificationBell from "./components/notifications/NotificationBell";
 import { Toaster } from "sonner";
 import LanguageCurrencySelector from "./components/i18n/LanguageCurrencySelector";
-import GlobalSearch from "./components/search/GlobalSearch";
+import EnhancedGlobalSearch from "./components/search/EnhancedGlobalSearch";
 import { LocalizationProvider } from "./components/i18n/LocalizationContext";
 import PublicLanguageSwitcher from "./components/i18n/PublicLanguageSwitcher";
 import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
@@ -253,8 +253,8 @@ export default function Layout({ children, currentPageName }) {
             </nav>
 
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-              {/* Global Search */}
-              <GlobalSearch />
+              {/* Enhanced Global Search */}
+              <EnhancedGlobalSearch />
 
               <LanguageCurrencySelector variant="compact" />
 

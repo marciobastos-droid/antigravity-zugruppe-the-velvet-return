@@ -37,6 +37,8 @@ import { Home as HomeIcon } from "lucide-react";
 import QuickFilterBadges from "../components/listings/QuickFilterBadges";
 import ErrorBoundary from "../components/errors/ErrorBoundary";
 import { handleApiError } from "../components/errors/apiErrorHandler";
+import SavedSearchManager from "../components/search/SavedSearchManager";
+import ImageSearch from "../components/search/ImageSearch";
 
 const PropertyDocumentManager = React.lazy(() => import("../components/property/PropertyDocumentManager"));
 
@@ -359,7 +361,9 @@ export default function MyListings() {
     featured: null,
     last_import: null,
     bedrooms: "all",
+    bathrooms: "all",
     useful_area: {},
+    gross_area: {},
     availability_status: "all",
     assigned_consultant: "all",
     development_id: "all",
@@ -367,7 +371,11 @@ export default function MyListings() {
     has_energy_certificate: null,
     published_portals: [],
     published_pages: [],
-    visibility: "all"
+    visibility: "all",
+    specific_amenities: [],
+    year_built: {},
+    floor: "all",
+    energy_certificate: "all"
   });
   
   // Debounce search input
@@ -929,11 +937,88 @@ export default function MyListings() {
       ],
       customFilter: true
     },
+    bathrooms: {
+      type: FILTER_TYPES.select,
+      label: "Casas de Banho",
+      field: "bathrooms",
+      options: [
+        { value: "1", label: "1" },
+        { value: "2", label: "2" },
+        { value: "3", label: "3" },
+        { value: "4", label: "4" },
+        { value: "5+", label: "5+" }
+      ],
+      customFilter: true,
+      advanced: true
+    },
     price: {
       type: FILTER_TYPES.numberRange,
       label: "Preço",
       field: "price",
       prefix: "€"
+    },
+    gross_area: {
+      type: FILTER_TYPES.numberRange,
+      label: "Área Bruta (m²)",
+      field: "gross_area",
+      suffix: "m²",
+      advanced: true
+    },
+    year_built: {
+      type: FILTER_TYPES.numberRange,
+      label: "Ano de Construção",
+      field: "year_built",
+      advanced: true
+    },
+    floor: {
+      type: FILTER_TYPES.select,
+      label: "Piso",
+      field: "floor",
+      options: [
+        { value: "RC", label: "Rés do Chão" },
+        { value: "1", label: "1º" },
+        { value: "2", label: "2º" },
+        { value: "3", label: "3º" },
+        { value: "4", label: "4º" },
+        { value: "5+", label: "5º+" }
+      ],
+      advanced: true,
+      customFilter: true
+    },
+    energy_certificate: {
+      type: FILTER_TYPES.select,
+      label: "Certificado Energético",
+      field: "energy_certificate",
+      options: [
+        { value: "A+", label: "A+" },
+        { value: "A", label: "A" },
+        { value: "B", label: "B" },
+        { value: "B-", label: "B-" },
+        { value: "C", label: "C" },
+        { value: "D", label: "D" },
+        { value: "E", label: "E" },
+        { value: "F", label: "F" }
+      ],
+      advanced: true
+    },
+    specific_amenities: {
+      type: FILTER_TYPES.multiSelect,
+      label: "Comodidades",
+      field: "amenities",
+      options: [
+        { value: "Piscina", label: "Piscina" },
+        { value: "Jardim", label: "Jardim" },
+        { value: "Garagem", label: "Garagem" },
+        { value: "Varanda", label: "Varanda" },
+        { value: "Terraço", label: "Terraço" },
+        { value: "Ar Condicionado", label: "Ar Condicionado" },
+        { value: "Aquecimento Central", label: "Aquecimento Central" },
+        { value: "Elevador", label: "Elevador" },
+        { value: "Condomínio Fechado", label: "Condomínio Fechado" },
+        { value: "Vista Mar", label: "Vista Mar" }
+      ],
+      advanced: true,
+      customFilter: true
     },
     country: {
       type: FILTER_TYPES.select,
@@ -1406,6 +1491,27 @@ export default function MyListings() {
           <PropertiesByAgentView />
         ) : (
         <>
+        {/* Saved Searches */}
+        <div className="mb-4 flex gap-3">
+          <div className="flex-1">
+            <SavedSearchManager
+              searchType="properties"
+              currentFilters={filters}
+              currentSortBy={sortBy}
+              currentSortOrder={sortOrder}
+              currentFilterLogic={filterLogic}
+              onApplySearch={(searchData) => {
+                setFilters(searchData.filters);
+                setSortBy(searchData.sortBy);
+                setSortOrder(searchData.sortOrder);
+                setFilterLogic(searchData.filterLogic);
+              }}
+              compact={true}
+            />
+          </div>
+          <ImageSearch properties={properties} />
+        </div>
+
         {/* Quick Filter Badges */}
         <QuickFilterBadges
           properties={properties}

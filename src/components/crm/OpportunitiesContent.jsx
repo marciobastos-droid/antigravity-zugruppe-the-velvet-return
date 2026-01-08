@@ -23,6 +23,8 @@ import { calculateLeadScore, bulkScoreLeads } from "@/components/opportunities/A
 import { useAgentNames } from "@/components/common/useAgentNames";
 import { useAuditLog } from "../audit/useAuditLog";
 import OpportunitiesGrid from "./OpportunitiesGrid";
+import SavedSearchManager from "../search/SavedSearchManager";
+import AdvancedFilters, { FILTER_TYPES } from "../filters/AdvancedFilters";
 
 export default function OpportunitiesContent() {
   const queryClient = useQueryClient();
@@ -41,7 +43,7 @@ export default function OpportunitiesContent() {
   const [emailRecipient, setEmailRecipient] = React.useState(null);
   const [isBulkScoring, setIsBulkScoring] = React.useState(false);
   
-  // Estado dos filtros simplificados
+  // Estado dos filtros expandidos
   const [filters, setFilters] = React.useState({
     search: "",
     status: "all",
@@ -50,8 +52,17 @@ export default function OpportunitiesContent() {
     lead_source: "all",
     assigned_to: "all",
     priority: "all",
-    converted: "all"
+    converted: "all",
+    budget: {},
+    estimated_value: {},
+    created_date: {},
+    updated_date: {},
+    next_followup_date: {},
+    probability: {},
+    urgency: "all",
+    financing_status: "all"
   });
+  const [filterLogic, setFilterLogic] = React.useState("AND");
 
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -674,12 +685,106 @@ export default function OpportunitiesContent() {
       )}
 
       {viewMode !== "dashboard" && (
-        <OpportunityQuickFilters
-          opportunities={opportunities}
-          filters={filters}
-          onFilterChange={setFilters}
-          convertedOpportunityIds={convertedOpportunityIds}
-        />
+        <>
+          <div className="mb-4">
+            <SavedSearchManager
+              searchType="opportunities"
+              currentFilters={filters}
+              currentFilterLogic={filterLogic}
+              onApplySearch={(searchData) => {
+                setFilters(searchData.filters);
+                setFilterLogic(searchData.filterLogic || "AND");
+              }}
+              compact={true}
+            />
+          </div>
+          
+          <OpportunityQuickFilters
+            opportunities={opportunities}
+            filters={filters}
+            onFilterChange={setFilters}
+            convertedOpportunityIds={convertedOpportunityIds}
+          />
+          
+          <AdvancedFilters
+            filterConfig={{
+              budget: {
+                type: FILTER_TYPES.numberRange,
+                label: "Orçamento",
+                field: "budget",
+                prefix: "€",
+                advanced: true
+              },
+              estimated_value: {
+                type: FILTER_TYPES.numberRange,
+                label: "Valor Estimado",
+                field: "estimated_value",
+                prefix: "€",
+                advanced: true
+              },
+              probability: {
+                type: FILTER_TYPES.numberRange,
+                label: "Probabilidade (%)",
+                field: "probability",
+                suffix: "%",
+                advanced: true
+              },
+              created_date: {
+                type: FILTER_TYPES.dateRange,
+                label: "Data de Criação",
+                field: "created_date",
+                advanced: true
+              },
+              updated_date: {
+                type: FILTER_TYPES.dateRange,
+                label: "Última Atualização",
+                field: "updated_date",
+                advanced: true
+              },
+              next_followup_date: {
+                type: FILTER_TYPES.dateRange,
+                label: "Próximo Follow-up",
+                field: "next_followup_date",
+                advanced: true
+              },
+              urgency: {
+                type: FILTER_TYPES.select,
+                label: "Urgência",
+                field: "urgency",
+                options: [
+                  { value: "immediate", label: "Imediato" },
+                  { value: "1_month", label: "1 Mês" },
+                  { value: "3_months", label: "3 Meses" },
+                  { value: "6_months", label: "6 Meses" },
+                  { value: "1_year", label: "1 Ano" },
+                  { value: "just_looking", label: "Apenas a Ver" }
+                ],
+                advanced: true
+              },
+              financing_status: {
+                type: FILTER_TYPES.select,
+                label: "Estado Financiamento",
+                field: "financing_status",
+                options: [
+                  { value: "not_needed", label: "Não Necessário" },
+                  { value: "pre_approved", label: "Pré-aprovado" },
+                  { value: "pending", label: "Pendente" },
+                  { value: "rejected", label: "Rejeitado" },
+                  { value: "unknown", label: "Desconhecido" }
+                ],
+                advanced: true
+              }
+            }}
+            filters={filters}
+            onFiltersChange={setFilters}
+            savedFiltersKey="opportunities"
+            totalCount={opportunities.length}
+            filteredCount={filteredOpportunities.length}
+            showSavedFilters={false}
+            showLogicToggle={true}
+            className="mb-4"
+          />
+        </>
       )}
 
       {/* Content */}
