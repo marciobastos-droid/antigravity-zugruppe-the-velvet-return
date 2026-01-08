@@ -18,9 +18,10 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    if (!RESEND_API_KEY) {
-      return Response.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+    // Get Gmail access token
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken('gmail');
+    if (!accessToken) {
+      return Response.json({ error: 'Gmail not authorized' }, { status: 500 });
     }
 
     // Prepare email body
@@ -46,46 +47,76 @@ ${user.full_name || 'ZuGruppe'}`;
       </div>
     `;
 
-    // Prepare attachments array
-    const attachments = [];
+    // Create MIME message for Gmail API
+    const boundary = '----=_Part_0_' + Date.now();
+    let mimeMessage = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      '',
+      `--${boundary}`,
+      'Content-Type: multipart/alternative; boundary="alt_boundary"',
+      '',
+      '--alt_boundary',
+      'Content-Type: text/plain; charset=UTF-8',
+      '',
+      emailBody,
+      '',
+      '--alt_boundary',
+      'Content-Type: text/html; charset=UTF-8',
+      '',
+      htmlBody,
+      '',
+      '--alt_boundary--'
+    ];
+
+    // Add attachment if provided
     if (attachment && attachment.content && attachment.filename) {
-      attachments.push({
-        filename: attachment.filename,
-        content: attachment.content
-      });
+      mimeMessage.push(
+        `--${boundary}`,
+        `Content-Type: application/pdf; name="${attachment.filename}"`,
+        'Content-Transfer-Encoding: base64',
+        `Content-Disposition: attachment; filename="${attachment.filename}"`,
+        '',
+        attachment.content,
+        ''
+      );
     }
 
-    console.log('[sendEmailWithAttachment] Sending email to:', to);
-    console.log('[sendEmailWithAttachment] Has attachment:', attachments.length > 0);
+    mimeMessage.push(`--${boundary}--`);
 
-    const response = await fetch('https://api.resend.com/emails', {
+    // Encode message in base64url
+    const encodedMessage = btoa(mimeMessage.join('\r\n'))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    console.log('[sendEmailWithAttachment] Sending via Gmail to:', to);
+
+    // Send email via Gmail API
+    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'ZuGruppe <noreply@zuhaus.pt>',
-        to: Array.isArray(to) ? to : [to],
-        subject,
-        html: htmlBody,
-        text: emailBody,
-        reply_to: user.email || 'info@zugruppe.com',
-        attachments: attachments.length > 0 ? attachments : undefined
+        raw: encodedMessage
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('[sendEmailWithAttachment] Resend API error:', data);
+      console.error('[sendEmailWithAttachment] Gmail API error:', data);
       return Response.json({ 
-        error: 'Failed to send email', 
-        details: data.message || data.error || JSON.stringify(data)
+        error: 'Failed to send email via Gmail', 
+        details: data.error?.message || JSON.stringify(data)
       }, { status: response.status });
     }
 
-    console.log('[sendEmailWithAttachment] Email sent successfully:', data.id);
+    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail:', data.id);
 
     // Log communication if property_id provided
     if (property_id) {
@@ -98,7 +129,7 @@ ${user.full_name || 'ZuGruppe'}`;
           sent_by: user.email,
           property_id,
           status: 'sent',
-          has_attachment: attachments.length > 0
+          has_attachment: !!attachment
         });
       } catch (logError) {
         console.error('[sendEmailWithAttachment] Failed to log communication:', logError);
