@@ -99,14 +99,14 @@ export default function NotificationBell({ user }) {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch unread leads (is_read = false)
+  // Fetch unread leads (status = 'new' AND is_read = false)
   const { data: unreadLeads = [] } = useQuery({
     queryKey: ['unreadLeads', user?.email],
     queryFn: async () => {
       if (!user || typeof base44 === 'undefined') return [];
       
       const allOpps = await base44.entities.Opportunity.filter(
-        { is_read: false },
+        { status: 'new', is_read: false },
         '-created_date',
         50
       );
