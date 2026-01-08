@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { SMTPClient } from 'npm:emailjs@4.0.3';
 
 Deno.serve(async (req) => {
   try {
@@ -18,10 +19,13 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Get Gmail access token
-    const accessToken = await base44.asServiceRole.connectors.getAccessToken('gmail');
-    if (!accessToken) {
-      return Response.json({ error: 'Gmail not authorized' }, { status: 500 });
+    const GMAIL_USER = Deno.env.get('GMAIL_USER');
+    const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD');
+
+    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) {
+      return Response.json({ 
+        error: 'Gmail credentials not configured. Please set GMAIL_USER and GMAIL_APP_PASSWORD secrets.' 
+      }, { status: 500 });
     }
 
     // Prepare email body
@@ -47,76 +51,41 @@ ${user.full_name || 'ZuGruppe'}`;
       </div>
     `;
 
-    // Create MIME message for Gmail API
-    const boundary = '----=_Part_0_' + Date.now();
-    let mimeMessage = [
-      `To: ${to}`,
-      `Subject: ${subject}`,
-      'MIME-Version: 1.0',
-      `Content-Type: multipart/mixed; boundary="${boundary}"`,
-      '',
-      `--${boundary}`,
-      'Content-Type: multipart/alternative; boundary="alt_boundary"',
-      '',
-      '--alt_boundary',
-      'Content-Type: text/plain; charset=UTF-8',
-      '',
-      emailBody,
-      '',
-      '--alt_boundary',
-      'Content-Type: text/html; charset=UTF-8',
-      '',
-      htmlBody,
-      '',
-      '--alt_boundary--'
-    ];
+    console.log('[sendEmailWithAttachment] Preparing to send email via Gmail SMTP');
 
-    // Add attachment if provided
-    if (attachment && attachment.content && attachment.filename) {
-      mimeMessage.push(
-        `--${boundary}`,
-        `Content-Type: application/pdf; name="${attachment.filename}"`,
-        'Content-Transfer-Encoding: base64',
-        `Content-Disposition: attachment; filename="${attachment.filename}"`,
-        '',
-        attachment.content,
-        ''
-      );
-    }
-
-    mimeMessage.push(`--${boundary}--`);
-
-    // Encode message in base64url
-    const encodedMessage = btoa(mimeMessage.join('\r\n'))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
-
-    console.log('[sendEmailWithAttachment] Sending via Gmail to:', to);
-
-    // Send email via Gmail API
-    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        raw: encodedMessage
-      }),
+    const client = new SMTPClient({
+      user: GMAIL_USER,
+      password: GMAIL_APP_PASSWORD,
+      host: 'smtp.gmail.com',
+      ssl: true,
     });
 
-    const data = await response.json();
+    const emailMessage = {
+      from: GMAIL_USER,
+      to: to,
+      subject: subject,
+      text: emailBody,
+      attachment: [
+        { data: htmlBody, alternative: true }
+      ]
+    };
 
-    if (!response.ok) {
-      console.error('[sendEmailWithAttachment] Gmail API error:', data);
-      return Response.json({ 
-        error: 'Failed to send email via Gmail', 
-        details: data.error?.message || JSON.stringify(data)
-      }, { status: response.status });
+    // Add PDF attachment if provided
+    if (attachment && attachment.content && attachment.filename) {
+      emailMessage.attachment.push({
+        data: attachment.content,
+        type: 'application/pdf',
+        name: attachment.filename,
+        encoding: 'base64'
+      });
     }
 
-    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail:', data.id);
+    console.log('[sendEmailWithAttachment] Sending email to:', to);
+
+    // Send email
+    await client.sendAsync(emailMessage);
+
+    console.log('[sendEmailWithAttachment] Email sent successfully via Gmail SMTP');
 
     // Log communication if property_id provided
     if (property_id) {
@@ -137,14 +106,15 @@ ${user.full_name || 'ZuGruppe'}`;
     }
 
     return Response.json({ 
-      success: true, 
-      messageId: data.id 
+      success: true,
+      message: 'Email sent successfully via Gmail'
     });
 
   } catch (error) {
     console.error('[sendEmailWithAttachment] Error:', error);
     return Response.json({ 
-      error: error.message || 'Unknown error'
+      error: error.message || 'Unknown error',
+      details: error.toString()
     }, { status: 500 });
   }
 });
