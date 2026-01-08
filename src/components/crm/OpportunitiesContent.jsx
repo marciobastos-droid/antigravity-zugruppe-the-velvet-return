@@ -180,11 +180,20 @@ export default function OpportunitiesContent() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => {
-      const result = await base44.entities.Opportunity.update(id, data);
+      const opportunity = opportunities.find(o => o.id === id);
+      const updateData = { ...data };
+      
+      // Se saiu da coluna "new", marcar como lida automaticamente
+      if (opportunity?.status === 'new' && data.status && data.status !== 'new') {
+        updateData.is_read = true;
+        updateData.read_at = new Date().toISOString();
+        updateData.read_by = user?.email;
+      }
+      
+      const result = await base44.entities.Opportunity.update(id, updateData);
       
       // Auto-generate commission if status changed to won/closed
       if ((data.status === 'won' || data.status === 'closed') && user) {
-        const opportunity = opportunities.find(o => o.id === id);
         const previousStatus = opportunity?.status;
         
         // Only generate if status actually changed to won/closed
@@ -209,6 +218,8 @@ export default function OpportunitiesContent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       queryClient.invalidateQueries({ queryKey: ['commissions'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadLeads'] });
+      queryClient.invalidateQueries({ queryKey: ['newLeads'] });
     },
   });
 
