@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Home, Save, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import LocationAutocomplete from "../components/property/LocationAutocomplete";
-import { Upload, X } from "lucide-react";
 
 export default function AddListing() {
   const navigate = useNavigate();
