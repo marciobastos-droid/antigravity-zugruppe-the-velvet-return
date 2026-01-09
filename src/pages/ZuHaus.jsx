@@ -19,9 +19,12 @@ import ContactFormEnhanced from "../components/forms/ContactFormEnhanced";
 import { CURRENCY_SYMBOLS, convertToEUR } from "../components/utils/currencyConverter";
 import PropertiesMap from "../components/maps/PropertiesMap";
 import OptimizedImage from "../components/common/OptimizedImage";
+import { useDynamicPropertySEO, generateCanonicalURL } from "../components/seo/useDynamicPropertySEO";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function ZuHaus() {
   const queryClient = useQueryClient();
+  const { locale } = useLocalization();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [city, setCity] = React.useState("all");
   const [listingType, setListingType] = React.useState("all");
@@ -74,6 +77,25 @@ export default function ZuHaus() {
 
   const featuredProperties = filteredProperties.filter(p => p.featured).slice(0, 3);
 
+  // SEO dinâmico
+  const dynamicSEO = useDynamicPropertySEO({
+    properties: filteredProperties,
+    filters: {
+      listing_type: listingType,
+      bedrooms,
+      city,
+      priceMin,
+      priceMax
+    },
+    pageType: "residential",
+    locale
+  });
+
+  const canonicalURL = React.useMemo(() => {
+    const baseURL = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
+    return generateCanonicalURL(baseURL, { listing_type: listingType, bedrooms, city, priceMin, priceMax });
+  }, [listingType, bedrooms, city, priceMin, priceMax]);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const handleContactSubmit = async (formData) => {
@@ -120,10 +142,13 @@ export default function ZuHaus() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="ZuHaus - Imóveis Residenciais Premium"
-        description="A sua casa de sonho está aqui. Apartamentos, moradias e condomínios cuidadosamente selecionados para você e sua família em Portugal."
-        keywords="imóveis residenciais, apartamentos, moradias, casas, T1, T2, T3, T4, venda, arrendamento, Portugal"
+        title={dynamicSEO.title}
+        description={dynamicSEO.description}
+        keywords={dynamicSEO.keywords}
+        type="website"
         image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/a0e94a9a1_ZUHAUS_branco_vermelho-trasnparente_c-slogan.png"
+        url={canonicalURL}
+        structuredData={dynamicSEO.structuredData}
       />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#000000] via-[#2a2a2a] to-[#d22630]">
