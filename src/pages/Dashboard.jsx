@@ -36,6 +36,7 @@ import PipelineAnalysisReport from "../components/reports/PipelineAnalysisReport
 import AgentPerformanceReport from "../components/reports/AgentPerformanceReport";
 import PropertyPerformanceReport from "../components/reports/PropertyPerformanceReport";
 import SalesReport from "../components/reports/SalesReport";
+import ImageSearch from "../components/search/ImageSearch";
 
 const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -630,6 +631,8 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             {activeTab === "overview" && (
               <>
+                <ImageSearch properties={properties} />
+
                 <Button 
                   onClick={() => setFocusModeOpen(true)}
                   variant="outline"
