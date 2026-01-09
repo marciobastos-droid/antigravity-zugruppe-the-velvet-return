@@ -21,11 +21,10 @@ export default function WorldWideProperties() {
     queryKey: ['worldwideProperties'],
     queryFn: async () => {
       const allProperties = await base44.entities.Property.list('-created_date');
-      
-      // Filtrar apenas imóveis fora de Portugal
+
+      // Filtrar apenas imóveis explicitamente publicados em 'worldwide'
       return allProperties.filter(p => 
-        p.country && 
-        p.country !== 'Portugal'
+        p.published_pages?.includes('worldwide')
       );
     }
   });

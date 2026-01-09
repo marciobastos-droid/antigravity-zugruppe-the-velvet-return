@@ -453,7 +453,10 @@ export default function Website() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
-  const activeProperties = properties;
+  // Filtrar apenas imóveis publicados nas páginas do website
+  const activeProperties = properties.filter(p => 
+    p.published_pages?.includes('website')
+  );
   
   // Filtrar por tab ativa
   const tabFilteredProperties = React.useMemo(() => {
