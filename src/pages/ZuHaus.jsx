@@ -41,7 +41,9 @@ export default function ZuHaus() {
   
   const filteredProperties = React.useMemo(() => {
     return properties.filter(p => {
+      // Filtrar apenas por tipo residencial e status ativo
       const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
+      const isActive = p.status === 'active';
       
       const matchesSearch = !searchTerm || 
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +59,7 @@ export default function ZuHaus() {
         (!priceMin || p.price >= Number(priceMin)) &&
         (!priceMax || p.price <= Number(priceMax));
       
-      return isResidential && matchesSearch && matchesCity && 
+      return isResidential && isActive && matchesSearch && matchesCity && 
              matchesListingType && matchesPrice && matchesBedrooms;
     });
   }, [properties, searchTerm, city, listingType, priceMin, priceMax, bedrooms]);
