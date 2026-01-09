@@ -198,12 +198,12 @@ export default function QuickFilterBadges({
     return (
       <Badge
         onClick={() => toggleFilter(config.filterKey, config.value)}
-        className={`cursor-pointer transition-all border ${colorClasses[config.color]} flex items-center gap-1 px-2.5 py-1 text-xs ${isDragging ? 'shadow-lg opacity-80' : ''}`}
+        className={`cursor-pointer transition-all border ${colorClasses[config.color]} flex items-center gap-1 px-2 py-0.5 text-xs ${isDragging ? 'shadow-lg opacity-80' : ''}`}
       >
         {config.icon && <config.icon className="w-3 h-3" />}
         <span className="font-medium">{config.label}</span>
         <span className={active ? "opacity-90" : "opacity-60"}>({config.count})</span>
-        {active && <X className="w-2.5 h-2.5 ml-0.5" />}
+        {active && <X className="w-2 h-2 ml-0.5" />}
       </Badge>
     );
   };
@@ -252,25 +252,25 @@ export default function QuickFilterBadges({
   };
 
   return (
-    <div className="mb-4">
-      <div className="bg-white border border-slate-200 rounded-lg p-4">
+    <div className="mb-3">
+      <div className="bg-white border border-slate-200 rounded-lg p-3">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {filterGroups.map((group, groupIndex) => (
               <Droppable key={group.id} droppableId={group.id} direction="horizontal">
                 {(provided, snapshot) => (
                   <div 
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`${groupIndex % 2 !== 0 ? 'md:border-l md:pl-4' : ''} ${groupIndex >= 2 ? 'pt-3 border-t border-slate-100' : ''} ${
-                      snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg p-2' : ''
+                    className={`${groupIndex % 2 !== 0 ? 'md:border-l md:pl-3' : ''} ${groupIndex >= 2 ? 'pt-2 border-t border-slate-100' : ''} ${
+                      snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg p-1.5' : ''
                     }`}
                   >
-                    <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
-                      <GripVertical className="w-3 h-3 text-slate-400" />
+                    <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wide flex items-center gap-1.5">
+                      <GripVertical className="w-2.5 h-2.5 text-slate-400" />
                       {group.title}
                     </p>
-                    <div className="flex flex-wrap gap-2 min-h-[32px]">
+                    <div className="flex flex-wrap gap-1.5 min-h-[28px]">
                       {group.items.map((itemId, index) => {
                         // Renderizar badges de publicação especiais
                         if (['zuhaus', 'zuhandel', 'luxury', 'international'].includes(itemId)) {
