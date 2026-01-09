@@ -1456,12 +1456,15 @@ export default function MyListings() {
             <p className="text-sm sm:text-base text-slate-600 mt-1 sm:mt-2">Gerir imóveis e empreendimentos</p>
           </div>
           {activeTab === "properties" && (
-            <Link to={createPageUrl("AddListing")} className="w-full sm:w-auto">
-              <Button className="bg-slate-900 hover:bg-slate-800 w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Anúncio
-              </Button>
-            </Link>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <ImageSearch properties={properties} />
+              <Link to={createPageUrl("AddListing")} className="flex-1 sm:flex-initial">
+                <Button className="bg-slate-900 hover:bg-slate-800 w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Anúncio
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
