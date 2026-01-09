@@ -1693,6 +1693,7 @@ Extrai:
           .filter(Boolean)}
         recipientEmail={lead.buyer_email}
         recipientName={lead.buyer_name}
+        recipientPhone={lead.buyer_phone}
         opportunityId={lead.id}
       />
 

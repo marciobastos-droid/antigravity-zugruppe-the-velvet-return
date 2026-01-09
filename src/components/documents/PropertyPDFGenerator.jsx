@@ -18,6 +18,7 @@ export default function PropertyPDFGenerator({
   properties = [], 
   recipientEmail = "",
   recipientName = "",
+  recipientPhone = "",
   opportunityId = null
 }) {
   const [activeTab, setActiveTab] = React.useState("config");
@@ -45,7 +46,7 @@ export default function PropertyPDFGenerator({
     emailMessage: `Olá${recipientName ? ` ${recipientName}` : ''},\n\nSelecionámos ${properties.length} imóve${properties.length > 1 ? 'is' : 'l'} que poderão ser do seu interesse.\n\nEstamos disponíveis para qualquer esclarecimento.\n\nCumprimentos,\nEquipa Zugruppe`,
     
     // WhatsApp
-    whatsAppPhone: "",
+    whatsAppPhone: recipientPhone || "",
     whatsAppMessage: `Olá${recipientName ? ` ${recipientName}` : ''}! Segue a proposta com ${properties.length} imóve${properties.length > 1 ? 'is' : 'l'} selecionado${properties.length > 1 ? 's' : ''} para si.`
   });
 
