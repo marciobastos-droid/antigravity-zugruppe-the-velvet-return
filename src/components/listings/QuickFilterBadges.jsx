@@ -211,7 +211,6 @@ export default function QuickFilterBadges({
       store: { filterKey: "property_type", value: "store", label: "Lojas", count: stats.store, color: "slate", icon: Store },
       featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
       lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
-      luxury: { filterKey: "published_pages", value: "luxury_collection", label: "Premium Luxo", count: stats.luxury, color: "gold", icon: Crown },
       withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
     };
 
