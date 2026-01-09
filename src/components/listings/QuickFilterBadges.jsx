@@ -211,7 +211,7 @@ export default function QuickFilterBadges({
       store: { filterKey: "property_type", value: "store", label: "Lojas", count: stats.store, color: "slate", icon: Store },
       featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
       lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
-      luxury: { filterKey: "published_pages", value: "luxury_collection", label: "Premium Luxo", count: stats.luxury, color: "amber", icon: Crown },
+      luxury: { filterKey: "published_pages", value: "luxury_collection", label: "Premium Luxo", count: stats.luxury, color: "gold", icon: Crown },
       withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
     };
 
@@ -227,6 +227,7 @@ export default function QuickFilterBadges({
       red: active ? "bg-red-600 text-white border-red-600" : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100",
       slate: active ? "bg-slate-600 text-white border-slate-600" : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100",
       amber: active ? "bg-amber-600 text-white border-amber-600" : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100",
+      gold: active ? "bg-yellow-500 text-white border-yellow-500" : "bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100",
       emerald: active ? "bg-emerald-600 text-white border-emerald-600" : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100",
       indigo: active ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100"
     };
@@ -267,8 +268,8 @@ export default function QuickFilterBadges({
       luxury: {
         onClick: () => togglePublishedPage('luxury_collection'),
         active: filters.published_pages?.includes('luxury_collection'),
-        activeClass: "bg-amber-600 text-white border-amber-600",
-        inactiveClass: "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100",
+        activeClass: "bg-yellow-500 text-white border-yellow-500",
+        inactiveClass: "bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100",
         icon: Crown,
         label: "Premium Luxo",
         count: stats.luxury
