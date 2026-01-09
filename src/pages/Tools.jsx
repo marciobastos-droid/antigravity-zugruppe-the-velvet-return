@@ -102,20 +102,6 @@ export default function Tools() {
   const [shortcuts, setShortcuts] = useState(defaultShortcuts);
   const [replicating, setReplicating] = useState(false);
 
-  // Carregar atalhos do user ou localStorage
-  React.useEffect(() => {
-    if (currentUser) {
-      if (currentUser.quick_shortcuts && currentUser.quick_shortcuts.length > 0) {
-        setShortcuts(currentUser.quick_shortcuts);
-      } else {
-        const saved = localStorage.getItem('toolsShortcuts');
-        if (saved) {
-          setShortcuts(JSON.parse(saved));
-        }
-      }
-    }
-  }, [currentUser]);
-
   // Função para lidar com drag end
   const handleDragEnd = (result, groupId) => {
     if (!result.destination) return;
@@ -229,6 +215,20 @@ export default function Tools() {
 
   // Check if user is admin/gestor (has full access) or needs permission check
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.user_type === 'admin' || currentUser.user_type === 'gestor');
+
+  // Carregar atalhos do user ou localStorage
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.quick_shortcuts && currentUser.quick_shortcuts.length > 0) {
+        setShortcuts(currentUser.quick_shortcuts);
+      } else {
+        const saved = localStorage.getItem('toolsShortcuts');
+        if (saved) {
+          setShortcuts(JSON.parse(saved));
+        }
+      }
+    }
+  }, [currentUser]);
 
   // Get subscription data
   const { data: subscription } = useQuery({
