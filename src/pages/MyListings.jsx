@@ -229,7 +229,7 @@ const PropertyCard = memo(function PropertyCard({
                       const pageColor = 
                         page === 'zuhaus' ? 'text-white bg-[#d22630]' :
                         page === 'zuhandel' ? 'text-white bg-[#75787b]' :
-                        page === 'luxury_collection' ? 'text-slate-900 bg-yellow-300' :
+                        page === 'luxury_collection' ? 'text-white bg-yellow-500' :
                         page === 'worldwide' || page === 'premium_luxury' ? 'text-white bg-blue-600' :
                         'text-green-700 bg-green-50';
                       
