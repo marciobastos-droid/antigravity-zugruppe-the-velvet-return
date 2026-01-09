@@ -422,35 +422,18 @@ Retorna APENAS o título melhorado, nada mais.`,
   const lastUpdateRef = React.useRef(Date.now());
 
   const handlePublicationUpdate = React.useCallback((publicationData) => {
-    // Proteção contra loops infinitos
-    const now = Date.now();
-    if (now - lastUpdateRef.current < 100) {
-      updateCountRef.current++;
-      if (updateCountRef.current > 5) {
-        console.warn('PublicationManager: Loop detectado, ignorando atualização');
-        return;
-      }
-    } else {
-      updateCountRef.current = 0;
-    }
-    lastUpdateRef.current = now;
-
+    console.log('[EditPropertyDialog] Publication update received:', publicationData);
+    
     setFormData(prev => {
-      // Verificar se realmente mudou algo
-      const portalsChanged = JSON.stringify(prev.published_portals || []) !== JSON.stringify(publicationData.published_portals || []);
-      const pagesChanged = JSON.stringify(prev.published_pages || []) !== JSON.stringify(publicationData.published_pages || []);
-      const configChanged = JSON.stringify(prev.publication_config || {}) !== JSON.stringify(publicationData.publication_config || {});
-      
-      if (!portalsChanged && !pagesChanged && !configChanged) {
-        return prev;
-      }
-      
-      return { 
+      const updated = { 
         ...prev, 
         published_portals: publicationData.published_portals || [],
         published_pages: publicationData.published_pages || [],
         publication_config: publicationData.publication_config || { auto_publish: false, exclude_from_feeds: false }
       };
+      
+      console.log('[EditPropertyDialog] FormData updated with publication:', updated.published_pages);
+      return updated;
     });
   }, []);
 
