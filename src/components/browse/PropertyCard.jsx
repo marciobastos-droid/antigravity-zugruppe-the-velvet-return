@@ -177,7 +177,7 @@ export default function PropertyCard({ property, hideMetadata = false }) {
              </Badge>
            )}
 
-           {!hideMetadata && property.published_pages && property.published_pages.length > 0 && (
+           {!hideMetadata && property.published_pages && property.published_pages.filter(p => p !== 'website').length > 0 && (
              <>
                {property.published_pages
                  .filter(page => page !== 'website')
