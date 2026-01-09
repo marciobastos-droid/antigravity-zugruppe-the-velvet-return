@@ -23,7 +23,6 @@ import BulkPhotoAssign from "../components/listings/BulkPhotoAssign";
 import BulkPublicationDialog from "../components/listings/BulkPublicationDialog";
 import CreateDevelopmentFromProperties from "@/components/developments/CreateDevelopmentFromProperties";
 import AIPropertyEnhancer from "../components/listings/AIPropertyEnhancer";
-import AIDescriptionEnhancer from "../components/property/AIDescriptionEnhancer";
 import VisitRouteGenerator from "../components/visits/VisitRouteGenerator";
 import PublicationHub from "../components/publication/PublicationHub";
 import MarketingPlanGenerator from "../components/marketing/MarketingPlanGenerator";
