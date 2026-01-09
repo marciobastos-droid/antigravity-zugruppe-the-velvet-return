@@ -41,7 +41,9 @@ export default function ZuHaus() {
   
   const filteredProperties = React.useMemo(() => {
     return properties.filter(p => {
-      // Filtrar apenas por tipo residencial e status ativo
+      // Filtrar apenas imóveis explicitamente publicados em 'zuhaus'
+      const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
+      const isPublished = publishedPages.includes("zuhaus");
       const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
       const isActive = p.status === 'active';
       
@@ -59,7 +61,7 @@ export default function ZuHaus() {
         (!priceMin || p.price >= Number(priceMin)) &&
         (!priceMax || p.price <= Number(priceMax));
       
-      return isResidential && isActive && matchesSearch && matchesCity && 
+      return isPublished && isResidential && isActive && matchesSearch && matchesCity && 
              matchesListingType && matchesPrice && matchesBedrooms;
     });
   }, [properties, searchTerm, city, listingType, priceMin, priceMax, bedrooms]);
