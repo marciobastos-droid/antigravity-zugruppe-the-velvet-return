@@ -1072,6 +1072,14 @@ export default function MyListings() {
       advanced: true,
       customFilter: true
     },
+    developer: {
+      type: FILTER_TYPES.text,
+      label: "Promotor",
+      placeholder: "Pesquisar por nome do promotor...",
+      searchFields: [],
+      advanced: true,
+      customFilter: true
+    },
     tags: {
       type: FILTER_TYPES.multiSelect,
       label: "Etiquetas",
