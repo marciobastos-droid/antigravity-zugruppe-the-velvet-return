@@ -28,8 +28,8 @@ export default function QuickFilterBadges({
       { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
       { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
       { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
-      { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury_collection', 'international', 'withImages'] },
-      { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport'] }
+      { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury_collection', 'international'] },
+      { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport', 'withImages'] }
     ];
   });
   
