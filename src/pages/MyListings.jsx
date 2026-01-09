@@ -226,8 +226,13 @@ const PropertyCard = memo(function PropertyCard({
                         page === 'investor_section' ? 'Investidores' :
                         page === 'luxury_collection' ? 'Luxo' : page;
                       
+                      const pageColor = 
+                        page === 'zuhaus' ? 'text-white bg-[#d22630]' :
+                        page === 'zuhandel' ? 'text-white bg-[#75787b]' :
+                        'text-green-700 bg-green-50';
+                      
                       return (
-                        <span key={idx} className="flex items-center gap-1 text-xs text-green-700 bg-green-50 px-1.5 py-0.5 rounded">
+                        <span key={idx} className={`flex items-center gap-1 text-xs px-1.5 py-0.5 rounded ${pageColor}`}>
                           {pageIcon}
                           {pageName}
                         </span>
