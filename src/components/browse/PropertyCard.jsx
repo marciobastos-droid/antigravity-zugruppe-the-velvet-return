@@ -139,44 +139,62 @@ export default function PropertyCard({ property, hideMetadata = false }) {
         )}
 
         {/* Property Type and Source Info */}
-        <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2">
-          {!hideMetadata && property.ref_id && (
-            <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
-              {property.ref_id}
-            </Badge>
-          )}
-          <Badge variant="outline" className="text-slate-700 text-xs">
-            {property.property_type === 'house' ? 'Moradia' : 
-             property.property_type === 'apartment' ? 'Apartamento' :
-             property.property_type === 'condo' ? 'Condomínio' :
-             property.property_type === 'townhouse' ? 'Casa Geminada' :
-             property.property_type === 'building' ? 'Prédio' :
-             property.property_type === 'land' ? 'Terreno' :
-             property.property_type === 'commercial' ? 'Comercial' :
-             property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1)}
-          </Badge>
+         <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2">
+           {!hideMetadata && property.ref_id && (
+             <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
+               {property.ref_id}
+             </Badge>
+           )}
+           <Badge variant="outline" className="text-slate-700 text-xs">
+             {property.property_type === 'house' ? 'Moradia' : 
+              property.property_type === 'apartment' ? 'Apartamento' :
+              property.property_type === 'condo' ? 'Condomínio' :
+              property.property_type === 'townhouse' ? 'Casa Geminada' :
+              property.property_type === 'building' ? 'Prédio' :
+              property.property_type === 'land' ? 'Terreno' :
+              property.property_type === 'commercial' ? 'Comercial' :
+              property.property_type?.charAt(0).toUpperCase() + property.property_type?.slice(1)}
+           </Badge>
 
-          {!hideMetadata && property.unit_number && (
-            <Badge variant="secondary" className="text-xs">
-              <Hash className="w-3 h-3 mr-1" />
-              Fração {property.unit_number}
-            </Badge>
-          )}
+           {!hideMetadata && property.unit_number && (
+             <Badge variant="secondary" className="text-xs">
+               <Hash className="w-3 h-3 mr-1" />
+               Fração {property.unit_number}
+             </Badge>
+           )}
 
-          {!hideMetadata && property.external_id && property.external_id !== 'N/A' && (
-            <Badge variant="secondary" className="text-xs">
-              <Hash className="w-3 h-3 mr-1" />
-              {property.external_id}
-            </Badge>
-          )}
+           {!hideMetadata && property.external_id && property.external_id !== 'N/A' && (
+             <Badge variant="secondary" className="text-xs">
+               <Hash className="w-3 h-3 mr-1" />
+               {property.external_id}
+             </Badge>
+           )}
 
-          {!hideMetadata && property.source_url && (
-            <Badge variant="secondary" className="text-xs">
-              <ExternalLink className="w-3 h-3 mr-1" />
-              Importado
-            </Badge>
-          )}
-        </div>
+           {!hideMetadata && property.source_url && (
+             <Badge variant="secondary" className="text-xs">
+               <ExternalLink className="w-3 h-3 mr-1" />
+               Importado
+             </Badge>
+           )}
+
+           {!hideMetadata && property.published_pages && property.published_pages.length > 0 && (
+             <>
+               {property.published_pages
+                 .filter(page => page !== 'website')
+                 .map(page => (
+                   <Badge key={page} variant="secondary" className="text-xs capitalize">
+                     {page === 'zuhaus' && '🏠 ZuHaus'}
+                     {page === 'zuhandel' && '🏢 ZuHandel'}
+                     {page === 'luxury_collection' && '✨ Luxo'}
+                     {page === 'investor_section' && '📈 Investidor'}
+                     {page === 'worldwide_properties' && '🌍 Worldwide'}
+                     {page === 'homepage_featured' && '⭐ Destaque'}
+                   </Badge>
+                 ))
+               }
+             </>
+           )}
+         </div>
       </div>
     </Link>
   );

@@ -222,13 +222,7 @@ const PublicationManagerComponent = ({ property, onChange }) => {
             })}
           </div>
           
-          {pages.length > 0 && (
-            <div className="mt-3 flex items-center gap-2">
-              <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                {pages.length} {pages.length === 1 ? "página selecionada" : "páginas selecionadas"}
-              </Badge>
-            </div>
-          )}
+
         </div>
 
         {/* Configurações Adicionais */}
