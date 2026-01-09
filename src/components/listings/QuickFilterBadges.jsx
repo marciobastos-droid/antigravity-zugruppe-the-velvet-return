@@ -115,6 +115,16 @@ export default function QuickFilterBadges({
   }, [properties, lastImportTimestamp]);
 
   const toggleFilter = (filterKey, value) => {
+    // Para filtros de array (published_pages)
+    if (Array.isArray(filters[filterKey])) {
+      const current = filters[filterKey] || [];
+      const newValue = current.includes(value) 
+        ? current.filter(v => v !== value)
+        : [...current, value];
+      onFilterChange({ ...filters, [filterKey]: newValue });
+      return;
+    }
+    
     const currentValue = filters[filterKey];
     
     // Para filtros booleanos
@@ -141,6 +151,12 @@ export default function QuickFilterBadges({
 
   const isActive = (filterKey, value) => {
     const currentValue = filters[filterKey];
+    
+    // Para filtros de array (published_pages)
+    if (Array.isArray(currentValue)) {
+      return currentValue.includes(value);
+    }
+    
     if (value === true || value === false) {
       return currentValue === value;
     }
@@ -195,6 +211,7 @@ export default function QuickFilterBadges({
       store: { filterKey: "property_type", value: "store", label: "Lojas", count: stats.store, color: "slate", icon: Store },
       featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
       lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
+      luxury: { filterKey: "published_pages", value: "luxury_collection", label: "Premium Luxo", count: stats.luxury, color: "amber", icon: Crown },
       withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
     };
 
