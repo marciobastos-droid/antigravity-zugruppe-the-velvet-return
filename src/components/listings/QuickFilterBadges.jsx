@@ -133,8 +133,56 @@ export default function QuickFilterBadges({
     return currentValue === value;
   };
 
-  const FilterBadge = ({ filterKey, value, label, count, icon: Icon, color = "slate" }) => {
-    const active = isActive(filterKey, value);
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    
+    const { source, destination } = result;
+    
+    // Se moveu dentro do mesmo grupo, reordenar items
+    if (source.droppableId === destination.droppableId) {
+      const groupIndex = filterGroups.findIndex(g => g.id === source.droppableId);
+      const newGroups = [...filterGroups];
+      const items = Array.from(newGroups[groupIndex].items);
+      const [removed] = items.splice(source.index, 1);
+      items.splice(destination.index, 0, removed);
+      newGroups[groupIndex] = { ...newGroups[groupIndex], items };
+      setFilterGroups(newGroups);
+    } else {
+      // Mover entre grupos
+      const sourceGroupIndex = filterGroups.findIndex(g => g.id === source.droppableId);
+      const destGroupIndex = filterGroups.findIndex(g => g.id === destination.droppableId);
+      const newGroups = [...filterGroups];
+      
+      const sourceItems = Array.from(newGroups[sourceGroupIndex].items);
+      const [removed] = sourceItems.splice(source.index, 1);
+      newGroups[sourceGroupIndex] = { ...newGroups[sourceGroupIndex], items: sourceItems };
+      
+      const destItems = Array.from(newGroups[destGroupIndex].items);
+      destItems.splice(destination.index, 0, removed);
+      newGroups[destGroupIndex] = { ...newGroups[destGroupIndex], items: destItems };
+      
+      setFilterGroups(newGroups);
+    }
+  };
+
+  const renderBadge = (itemId, isDragging = false) => {
+    const badgeMap = {
+      active: { filterKey: "status", value: "active", label: "Ativo", count: stats.active, color: "green" },
+      pending: { filterKey: "status", value: "pending", label: "Pendente", count: stats.pending, color: "yellow" },
+      sale: { filterKey: "listing_type", value: "sale", label: "Venda", count: stats.sale, color: "blue" },
+      rent: { filterKey: "listing_type", value: "rent", label: "Arrendamento", count: stats.rent, color: "purple" },
+      apartment: { filterKey: "property_type", value: "apartment", label: "Apartamentos", count: stats.apartment, color: "indigo", icon: Building2 },
+      house: { filterKey: "property_type", value: "house", label: "Moradias", count: stats.house, color: "emerald", icon: Home },
+      store: { filterKey: "property_type", value: "store", label: "Lojas", count: stats.store, color: "slate", icon: Store },
+      featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
+      lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
+      withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
+    };
+
+    const config = badgeMap[itemId];
+    if (!config || config.count === 0) return null;
+
+    const active = isActive(config.filterKey, config.value);
     const colorClasses = {
       green: active ? "bg-green-600 text-white border-green-600" : "bg-green-50 text-green-700 border-green-300 hover:bg-green-100",
       yellow: active ? "bg-yellow-600 text-white border-yellow-600" : "bg-yellow-50 text-yellow-700 border-yellow-300 hover:bg-yellow-100",
@@ -147,19 +195,77 @@ export default function QuickFilterBadges({
       indigo: active ? "bg-indigo-600 text-white border-indigo-600" : "bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100"
     };
 
-    if (count === 0) return null;
-
     return (
       <Badge
-        onClick={() => toggleFilter(filterKey, value)}
-        className={`cursor-pointer transition-all border ${colorClasses[color]} flex items-center gap-1 px-2.5 py-1 text-xs`}
+        onClick={() => toggleFilter(config.filterKey, config.value)}
+        className={`cursor-pointer transition-all border ${colorClasses[config.color]} flex items-center gap-1 px-2.5 py-1 text-xs ${isDragging ? 'shadow-lg opacity-80' : ''}`}
       >
-        {Icon && <Icon className="w-3 h-3" />}
-        <span className="font-medium">{label}</span>
-        <span className={active ? "opacity-90" : "opacity-60"}>({count})</span>
+        {config.icon && <config.icon className="w-3 h-3" />}
+        <span className="font-medium">{config.label}</span>
+        <span className={active ? "opacity-90" : "opacity-60"}>({config.count})</span>
         {active && <X className="w-2.5 h-2.5 ml-0.5" />}
       </Badge>
     );
+  };
+
+  const renderPublishedBadges = (isDragging = false) => {
+    const badges = [
+      {
+        id: 'zuhaus',
+        onClick: () => togglePublishedPage('zuhaus'),
+        active: filters.published_pages?.includes('zuhaus'),
+        activeClass: "bg-red-600 text-white border-red-600",
+        inactiveClass: "bg-red-50 text-red-700 border-red-300 hover:bg-red-100",
+        icon: Home,
+        label: "ZuHaus",
+        count: stats.zuhaus
+      },
+      {
+        id: 'zuhandel',
+        onClick: () => togglePublishedPage('zuhandel'),
+        active: filters.published_pages?.includes('zuhandel'),
+        activeClass: "bg-slate-600 text-white border-slate-600",
+        inactiveClass: "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100",
+        icon: Store,
+        label: "ZuHandel",
+        count: stats.zuhandel
+      },
+      {
+        id: 'luxury',
+        onClick: () => togglePublishedPage('luxury_collection'),
+        active: filters.published_pages?.includes('luxury_collection'),
+        activeClass: "bg-amber-600 text-white border-amber-600",
+        inactiveClass: "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100",
+        icon: Crown,
+        label: "Premium Luxo",
+        count: stats.luxury
+      },
+      {
+        id: 'international',
+        onClick: () => toggleFilter('country', 'international'),
+        active: filters.country === 'international',
+        activeClass: "bg-blue-600 text-white border-blue-600",
+        inactiveClass: "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100",
+        icon: Globe,
+        label: "Internacionais",
+        count: stats.international
+      }
+    ];
+
+    return badges.filter(b => b.count > 0).map(badge => (
+      <Badge
+        key={badge.id}
+        onClick={badge.onClick}
+        className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+          badge.active ? badge.activeClass : badge.inactiveClass
+        } ${isDragging ? 'shadow-lg opacity-80' : ''}`}
+      >
+        <badge.icon className="w-3 h-3" />
+        <span className="font-medium">{badge.label}</span>
+        <span className="opacity-60">({badge.count})</span>
+        {badge.active && <X className="w-2.5 h-2.5 ml-0.5" />}
+      </Badge>
+    ));
   };
 
   return (
