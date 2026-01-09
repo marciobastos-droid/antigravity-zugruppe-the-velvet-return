@@ -41,7 +41,11 @@ export default function PropertyPDFGenerator({
     
     // Email
     emailSubject: `Sugestões de Imóveis${recipientName ? ` - ${recipientName}` : ''}`,
-    emailMessage: `Olá${recipientName ? ` ${recipientName}` : ''},\n\nSelecionámos ${properties.length} imóve${properties.length > 1 ? 'is' : 'l'} que poderão ser do seu interesse.\n\nEstamos disponíveis para qualquer esclarecimento.\n\nCumprimentos,\nEquipa Zugruppe`
+    emailMessage: `Olá${recipientName ? ` ${recipientName}` : ''},\n\nSelecionámos ${properties.length} imóve${properties.length > 1 ? 'is' : 'l'} que poderão ser do seu interesse.\n\nEstamos disponíveis para qualquer esclarecimento.\n\nCumprimentos,\nEquipa Zugruppe`,
+    
+    // WhatsApp
+    whatsappPhone: "",
+    whatsappMessage: `Olá${recipientName ? ` ${recipientName}` : ''}! 📄\n\nSegue a brochura com ${properties.length} imóve${properties.length > 1 ? 'is' : 'l'} selecionado${properties.length > 1 ? 's' : ''} para si.\n\nCumprimentos,\nEquipa Zugruppe`
   });
 
   const updateConfig = (key, value) => {
@@ -473,6 +477,61 @@ export default function PropertyPDFGenerator({
     setSending(false);
   };
 
+  const handleSendWhatsApp = async () => {
+    if (!config.whatsappPhone) {
+      toast.error("Preencha o número de telefone");
+      return;
+    }
+
+    setSending(true);
+    try {
+      const doc = await generatePDF();
+      if (!doc) {
+        setSending(false);
+        return;
+      }
+
+      const pdfBlob = doc.output('blob');
+      const pdfBase64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(pdfBlob);
+      });
+
+      const fileName = `Proposta_${recipientName ? recipientName.replace(/\s+/g, '_') : 'Imoveis'}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      await base44.functions.invoke('sendWhatsApp', {
+        phoneNumber: config.whatsappPhone,
+        message: config.whatsappMessage,
+        file_content_base64: pdfBase64,
+        file_name: fileName,
+        contactName: recipientName || 'Cliente'
+      });
+
+      // Atualizar oportunidade se tiver ID
+      if (opportunityId) {
+        const opp = await base44.entities.Opportunity.filter({ id: opportunityId });
+        if (opp[0]?.associated_properties) {
+          const updated = opp[0].associated_properties.map(ap => ({
+            ...ap,
+            presented_date: new Date().toISOString(),
+            status: 'visited'
+          }));
+          await base44.entities.Opportunity.update(opportunityId, { 
+            associated_properties: updated 
+          });
+        }
+      }
+
+      toast.success('PDF enviado via WhatsApp!');
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error sending WhatsApp:', error);
+      toast.error('Erro ao enviar WhatsApp');
+    }
+    setSending(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -484,7 +543,7 @@ export default function PropertyPDFGenerator({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="config">
               <Settings className="w-4 h-4 mr-2" />
               Configurar
@@ -496,6 +555,10 @@ export default function PropertyPDFGenerator({
             <TabsTrigger value="send">
               <Mail className="w-4 h-4 mr-2" />
               Enviar
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              WhatsApp
             </TabsTrigger>
           </TabsList>
 
@@ -658,6 +721,36 @@ export default function PropertyPDFGenerator({
                 </CardContent>
               </Card>
             </TabsContent>
+
+            <TabsContent value="whatsapp" className="mt-0 space-y-4">
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label>Número de Telefone *</Label>
+                    <Input 
+                      type="tel"
+                      value={config.whatsappPhone}
+                      onChange={(e) => updateConfig('whatsappPhone', e.target.value)}
+                      placeholder="+351 912 345 678"
+                    />
+                    <p className="text-xs text-slate-500">
+                      Formato: +351 9XX XXX XXX ou 9XX XXX XXX
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Mensagem</Label>
+                    <Textarea 
+                      value={config.whatsappMessage}
+                      onChange={(e) => updateConfig('whatsappMessage', e.target.value)}
+                      rows={8}
+                      className="whitespace-pre-wrap"
+                      placeholder={`Olá! Segue a brochura com os imóveis...`}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </div>
 
           <div className="border-t p-4 flex items-center justify-between bg-slate-50">
@@ -705,6 +798,20 @@ export default function PropertyPDFGenerator({
                     <Mail className="w-4 h-4 mr-2" />
                   )}
                   Enviar Email com PDF
+                </Button>
+              )}
+              {activeTab === 'whatsapp' && (
+                <Button 
+                  onClick={handleSendWhatsApp}
+                  disabled={sending || !config.whatsappPhone}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {sending ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                  )}
+                  Enviar WhatsApp com PDF
                 </Button>
               )}
             </div>
