@@ -28,7 +28,8 @@ const AVAILABLE_PAGES = [
   { id: "zuhandel", name: "ZuHandel", icon: Building2, description: "Plataforma comercial especializada", color: "#75787b" },
   { id: "homepage_featured", name: "Homepage - Destaque", icon: Home, description: "Imóveis em destaque na página inicial" },
   { id: "investor_section", name: "Secção Investidores", icon: TrendingUp, description: "Página dedicada a investidores" },
-  { id: "luxury_collection", name: "Coleção Luxo", icon: FileText, description: "Imóveis de luxo premium" }
+  { id: "premium_luxury", name: "Premium Luxo", icon: FileText, description: "Imóveis de luxo premium" },
+  { id: "worldwide", name: "WorldWide Properties", icon: Globe, description: "Propriedades internacionais" }
 ];
 
 export default function BulkPublicationDialog({ open, onOpenChange, selectedPropertyIds, properties }) {
