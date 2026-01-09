@@ -208,10 +208,9 @@ export default function QuickFilterBadges({
     );
   };
 
-  const renderPublishedBadges = (isDragging = false) => {
-    const badges = [
-      {
-        id: 'zuhaus',
+  const getPublishedBadgeConfig = (itemId) => {
+    const configs = {
+      zuhaus: {
         onClick: () => togglePublishedPage('zuhaus'),
         active: filters.published_pages?.includes('zuhaus'),
         activeClass: "bg-red-600 text-white border-red-600",
@@ -220,8 +219,7 @@ export default function QuickFilterBadges({
         label: "ZuHaus",
         count: stats.zuhaus
       },
-      {
-        id: 'zuhandel',
+      zuhandel: {
         onClick: () => togglePublishedPage('zuhandel'),
         active: filters.published_pages?.includes('zuhandel'),
         activeClass: "bg-slate-600 text-white border-slate-600",
@@ -230,8 +228,7 @@ export default function QuickFilterBadges({
         label: "ZuHandel",
         count: stats.zuhandel
       },
-      {
-        id: 'luxury',
+      luxury: {
         onClick: () => togglePublishedPage('luxury_collection'),
         active: filters.published_pages?.includes('luxury_collection'),
         activeClass: "bg-amber-600 text-white border-amber-600",
@@ -240,8 +237,7 @@ export default function QuickFilterBadges({
         label: "Premium Luxo",
         count: stats.luxury
       },
-      {
-        id: 'international',
+      international: {
         onClick: () => toggleFilter('country', 'international'),
         active: filters.country === 'international',
         activeClass: "bg-blue-600 text-white border-blue-600",
@@ -250,22 +246,9 @@ export default function QuickFilterBadges({
         label: "Internacionais",
         count: stats.international
       }
-    ];
-
-    return badges.filter(b => b.count > 0).map(badge => (
-      <Badge
-        key={badge.id}
-        onClick={badge.onClick}
-        className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-          badge.active ? badge.activeClass : badge.inactiveClass
-        } ${isDragging ? 'shadow-lg opacity-80' : ''}`}
-      >
-        <badge.icon className="w-3 h-3" />
-        <span className="font-medium">{badge.label}</span>
-        <span className="opacity-60">({badge.count})</span>
-        {badge.active && <X className="w-2.5 h-2.5 ml-0.5" />}
-      </Badge>
-    ));
+    };
+    
+    return configs[itemId];
   };
 
   return (
