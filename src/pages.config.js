@@ -7,7 +7,6 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
 import CookiePolicy from './pages/CookiePolicy';
-import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
 import Franchising from './pages/Franchising';
 import Home from './pages/Home';
@@ -30,6 +29,7 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -43,7 +43,6 @@ export const PAGES = {
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
     "CookiePolicy": CookiePolicy,
-    "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
     "Franchising": Franchising,
     "Home": Home,
@@ -66,6 +65,7 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

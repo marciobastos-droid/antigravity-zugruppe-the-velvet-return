@@ -98,11 +98,23 @@ export default function Tools() {
   });
 
   // Estado para atalhos rápidos
-  const defaultShortcuts = ['importProperties', 'importLeads', 'listingOptimizer', 'aiMatching', 'facebookLeads', 'bulkScore', 'socialMedia', 'calendar'];
-  const [shortcuts, setShortcuts] = useState(() => {
-    const saved = localStorage.getItem('toolsShortcuts');
-    return saved ? JSON.parse(saved) : defaultShortcuts;
-  });
+  const defaultShortcuts = ['importProperties', 'importLeads', 'listingOptimizer', 'aiMatching', 'facebookLeads', 'bulkScore', 'socialMedia', 'calendar', 'imageExtractor'];
+  const [shortcuts, setShortcuts] = useState(defaultShortcuts);
+  const [replicating, setReplicating] = useState(false);
+
+  // Carregar atalhos do user ou localStorage
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.quick_shortcuts && currentUser.quick_shortcuts.length > 0) {
+        setShortcuts(currentUser.quick_shortcuts);
+      } else {
+        const saved = localStorage.getItem('toolsShortcuts');
+        if (saved) {
+          setShortcuts(JSON.parse(saved));
+        }
+      }
+    }
+  }, [currentUser]);
 
   // Função para lidar com drag end
   const handleDragEnd = (result, groupId) => {
@@ -119,7 +131,7 @@ export default function Tools() {
   };
 
   // Função para drag dos atalhos rápidos
-  const handleShortcutsDragEnd = (result) => {
+  const handleShortcutsDragEnd = async (result) => {
     if (!result.destination) return;
 
     const reordered = Array.from(shortcuts);
@@ -128,6 +140,59 @@ export default function Tools() {
 
     setShortcuts(reordered);
     localStorage.setItem('toolsShortcuts', JSON.stringify(reordered));
+    
+    // Guardar no user
+    try {
+      await base44.auth.updateMe({ quick_shortcuts: reordered });
+    } catch (error) {
+      console.error('Erro ao guardar atalhos:', error);
+    }
+  };
+
+  // Função para replicar atalhos para todos os consultores
+  const replicateShortcuts = async () => {
+    setReplicating(true);
+    try {
+      const allUsers = await base44.asServiceRole.entities.User.list();
+      const consultants = allUsers.filter(u => {
+        const userType = u.user_type?.toLowerCase() || '';
+        return userType === 'consultant' || userType === 'agente';
+      });
+
+      if (consultants.length === 0) {
+        toast.info('Não há consultores para replicar atalhos');
+        setReplicating(false);
+        return;
+      }
+
+      // Atualizar cada consultor com os atalhos atuais, respeitando permissões
+      let updatedCount = 0;
+      for (const consultant of consultants) {
+        const consultantPermissions = consultant.permissions?.tools || {};
+        
+        // Filtrar atalhos para incluir apenas os que o consultor tem permissão
+        const allowedShortcuts = shortcuts.filter(toolId => {
+          // Se não tem permissões definidas, não incluir
+          if (Object.keys(consultantPermissions).length === 0) return false;
+          // Se tem a permissão específica = true
+          return consultantPermissions[toolId] === true;
+        });
+
+        // Só atualizar se tiver pelo menos 1 atalho permitido
+        if (allowedShortcuts.length > 0) {
+          await base44.asServiceRole.entities.User.update(consultant.id, {
+            quick_shortcuts: allowedShortcuts
+          });
+          updatedCount++;
+        }
+      }
+
+      toast.success(`Atalhos replicados para ${updatedCount} consultor${updatedCount !== 1 ? 'es' : ''}`);
+    } catch (error) {
+      console.error('Erro ao replicar atalhos:', error);
+      toast.error('Erro ao replicar atalhos: ' + error.message);
+    }
+    setReplicating(false);
   };
 
   // Obter ferramentas de um grupo na ordem correta
@@ -556,12 +621,36 @@ export default function Tools() {
         {/* Quick Access Shortcuts */}
         <Card className="mb-6 border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50">
           <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Zap className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-blue-900 text-lg">Atalhos Rápidos</h3>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                Ferramentas Frequentes
-              </Badge>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <Zap className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-blue-900 text-lg">Atalhos Rápidos</h3>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  Ferramentas Frequentes
+                </Badge>
+              </div>
+              
+              {isAdmin && (
+                <Button
+                  onClick={replicateShortcuts}
+                  disabled={replicating}
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  {replicating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      A replicar...
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 mr-2" />
+                      Replicar para Consultores
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             <DragDropContext onDragEnd={handleShortcutsDragEnd}>
@@ -581,7 +670,8 @@ export default function Tools() {
                         facebookLeads: { icon: Target, label: "Leads Facebook" },
                         bulkScore: { icon: TrendingUp, label: "Pontuações" },
                         socialMedia: { icon: Share2, label: "Redes Sociais" },
-                        calendar: { icon: Calendar, label: "Calendário" }
+                        calendar: { icon: Calendar, label: "Calendário" },
+                        imageExtractor: { icon: Image, label: "Extrator de Imagens" }
                       }[toolId];
                       
                       if (!toolMeta) return null;
