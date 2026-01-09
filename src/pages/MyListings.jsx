@@ -833,6 +833,17 @@ export default function MyListings() {
     return Array.from(pages).sort();
   }, [properties]);
 
+  // Calcular contagens por página
+  const pagesCounts = useMemo(() => {
+    const counts = {};
+    uniquePages.forEach(page => {
+      counts[page] = properties.filter(p => 
+        p.published_pages && p.published_pages.includes(page)
+      ).length;
+    });
+    return counts;
+  }, [properties, uniquePages]);
+
   // Configuração dos filtros avançados - memoized
   const filterConfig = useMemo(() => ({
     search: {
