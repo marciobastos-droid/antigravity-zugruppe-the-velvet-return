@@ -14,6 +14,7 @@ import { useDynamicPropertySEO, generateCanonicalURL } from "../components/seo/u
 import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function WorldWideProperties() {
+  const { locale } = useLocalization();
   const [countryFilter, setCountryFilter] = React.useState("all");
   const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = React.useState("all");
