@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React from 'react';
 
 /**
  * Hook para gerar SEO dinâmico baseado em filtros de imóveis
@@ -31,7 +31,7 @@ export function useDynamicPropertySEO({ properties, filters, pageType, locale = 
     worldwide: { pt: "Imóveis Internacionais", en: "International Properties", es: "Propiedades Internacionales", fr: "Propriétés Internationales" }
   };
 
-  const seo = useMemo(() => {
+  const seo = React.useMemo(() => {
     const lang = locale || 'pt';
     const parts = [];
     const keywordParts = [];
