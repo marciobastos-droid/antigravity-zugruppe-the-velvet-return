@@ -12,6 +12,13 @@ export default function QuickFilterBadges({
   developments = []
 }) {
   const [expanded, setExpanded] = React.useState(false);
+  const [filterGroups, setFilterGroups] = React.useState([
+    { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
+    { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
+    { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
+    { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury', 'international', 'withImages'] },
+    { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport'] }
+  ]);
   
   // Calcular data/hora da última importação
   const lastImportTimestamp = React.useMemo(() => {
