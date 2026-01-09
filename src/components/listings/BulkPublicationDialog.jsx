@@ -227,6 +227,10 @@ export default function BulkPublicationDialog({ open, onOpenChange, selectedProp
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       queryClient.invalidateQueries({ queryKey: ['publicationLogs'] });
       queryClient.invalidateQueries({ queryKey: ['scheduledPublications'] });
+      // Invalidar cada property individual para sincronizar PropertyDetails
+      selectedPropertyIds.forEach(id => {
+        queryClient.invalidateQueries({ queryKey: ['property', id] });
+      });
       onOpenChange(false);
       resetState();
     },
