@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PropertyCard from "../components/browse/PropertyCard";
 import SEOHead from "../components/seo/SEOHead";
 import { useDynamicPropertySEO, generateCanonicalURL } from "../components/seo/useDynamicPropertySEO";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function WorldWideProperties() {
   const [countryFilter, setCountryFilter] = React.useState("all");
@@ -79,7 +80,7 @@ export default function WorldWideProperties() {
       country: countryFilter
     },
     pageType: "worldwide",
-    locale: 'pt'
+    locale
   });
 
   const canonicalURL = React.useMemo(() => {
