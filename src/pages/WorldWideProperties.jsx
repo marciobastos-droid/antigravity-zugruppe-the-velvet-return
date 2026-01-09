@@ -22,9 +22,8 @@ export default function WorldWideProperties() {
     queryFn: async () => {
       const allProperties = await base44.entities.Property.list('-created_date');
       
-      // Filtrar por publicação na página WorldWide e imóveis fora de Portugal
+      // Filtrar apenas imóveis fora de Portugal
       return allProperties.filter(p => 
-        p.published_pages?.includes('worldwide') &&
         p.country && 
         p.country !== 'Portugal'
       );
