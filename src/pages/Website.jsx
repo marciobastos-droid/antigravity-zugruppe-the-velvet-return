@@ -1,3 +1,4 @@
+
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -453,81 +454,43 @@ export default function Website() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
-  const activeProperties = properties.filter(p => p.status === 'active');
+  const activeProperties = properties.filter(p => {
+    // Considerar ativo se status='active' OU availability_status está disponível/pendente
+    return p.status === 'active' || p.availability_status === 'available' || p.availability_status === 'pending_validation';
+  });
   
   // Filtrar por tab ativa e publicação
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    // Debug: contar configurações
-    const totalActive = activeProperties.length;
-    const withPublishedPages = activeProperties.filter(p => {
-      const pp = Array.isArray(p.published_pages) ? p.published_pages : [];
-      return pp.length > 0;
-    }).length;
-
-    const withZuhaus = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhaus")
-    ).length;
-    const withZuhandel = activeProperties.filter(p => 
-      (Array.isArray(p.published_pages) ? p.published_pages : []).includes("zuhandel")
-    ).length;
-    
-    console.log('[Website Debug]', {
-      totalActive,
-      withPublishedPages,
-      configured: { zuhaus: withZuhaus, zuhandel: withZuhandel },
-      activeTab
-    });
-    
-    // Filtrar por publicação: apenas mostrar imóveis publicados na página correta
+    // Filtrar por publicação: mostrar imóveis publicados na página correta OU sem published_pages definido
     filtered = filtered.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
       
-      // Se não tem published_pages definido OU está vazio, não mostrar
+      // Se não tem published_pages definido OU está vazio, INCLUIR (compatibilidade retroativa)
       if (!publishedPages || publishedPages.length === 0) {
-        console.log('[Website] Rejected (no pages):', p.ref_id || p.id);
-        return false;
+        return true; 
       }
       
       // Verificar se está publicado na página correspondente à tab
       if (activeTab === "residential") {
         const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
         const hasZuhaus = publishedPages.includes("zuhaus");
-        const pass = hasZuhaus && isResidential;
-        if (!pass) {
-          console.log('[Website] Rejected (residential):', p.ref_id || p.id, { 
-            type: p.property_type, 
-            isResidential, 
-            hasZuhaus, 
-            publishedPages 
-          });
-        }
-        return pass;
+        return hasZuhaus && isResidential;
       } else if (activeTab === "commercial") {
         const isCommercial = COMMERCIAL_TYPES.includes(p.property_type);
         const hasZuhandel = publishedPages.includes("zuhandel");
-        const pass = hasZuhandel && isCommercial;
-        if (!pass) {
-          console.log('[Website] Rejected (commercial):', p.ref_id || p.id, { 
-            type: p.property_type, 
-            isCommercial, 
-            hasZuhandel, 
-            publishedPages 
-          });
-        }
-        return pass;
+        return hasZuhandel && isCommercial;
       }
       
       return false;
     });
     
-    console.log('[Website] Filtered result:', filtered.length, 'properties');
     return filtered;
   }, [activeTab, activeProperties]);
 
   const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
-  const featuredProperties = activeProperties.filter(p => p.featured && p.published_pages?.length > 0).slice(0, 4);
+  const featuredProperties = activeProperties.filter(p => p.featured && (p.published_pages?.length > 0 || !p.published_pages)).slice(0, 4);
 
   const filteredProperties = tabFilteredProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||
@@ -844,7 +807,7 @@ export default function Website() {
               <CardContent className="p-3 sm:p-4 md:p-6">
                 {/* Tabs de Categoria */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-3 sm:mb-4">
-                  <TabsList className="grid grid-cols-4 w-full h-auto">
+                  <TabsList className="grid grid-cols-5 w-full h-auto">
                     <Link to={createPageUrl("Institucional")} className="flex-1">
                       <TabsTrigger value="institutional" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
                         <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -867,6 +830,13 @@ export default function Website() {
                         <Star className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span className="hidden lg:inline">Premium Luxo</span>
                         <span className="lg:hidden">Premium</span>
+                      </TabsTrigger>
+                    </Link>
+                    <Link to={createPageUrl("WorldWideProperties")} className="flex-1">
+                      <TabsTrigger value="worldwide" className="w-full flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
+                        <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden lg:inline">Internacional</span>
+                        <span className="lg:hidden">🌍</span>
                       </TabsTrigger>
                     </Link>
                   </TabsList>
@@ -1295,7 +1265,7 @@ export default function Website() {
                           )}
                           {(pricePerSqmRange[0] > 0 || (pricePerSqmRange[1] < dataRanges.maxPricePerSqm && pricePerSqmRange[1] > 0)) && (
                             <Badge variant="secondary" className="gap-1">
-                              €{pricePerSqmRange[0]}-{pricePerSqmRange[1]}/m²
+                              €{pricePerSqmRange[0].toLocaleString()}-{pricePerSqmRange[1].toLocaleString()}/m²
                               <X className="w-3 h-3 cursor-pointer" onClick={() => setPricePerSqmRange([0, dataRanges.maxPricePerSqm])} />
                             </Badge>
                           )}
@@ -1421,7 +1391,7 @@ export default function Website() {
               </Button>
             </div>
           </div>
-        </div>
+                            </div>
 
         {/* Map View - Desktop only */}
         {showMapView && paginatedProperties.length > 0 && (

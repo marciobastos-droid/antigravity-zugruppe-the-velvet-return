@@ -42,9 +42,11 @@ export default function ZuHaus() {
   const filteredProperties = React.useMemo(() => {
     return properties.filter(p => {
       const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
-      const isPublished = publishedPages.includes("zuhaus");
+      // Incluir se publicado em zuhaus OU se não tem published_pages definido (compatibilidade retroativa)
+      const isPublished = publishedPages.includes("zuhaus") || publishedPages.length === 0;
       const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
-      const isActive = p.status === 'active';
+      // Considerar ativo se status='active' OU availability_status está disponível/pendente validação
+      const isActive = p.status === 'active' || p.availability_status === 'available' || p.availability_status === 'pending_validation';
       
       const matchesSearch = !searchTerm || 
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
