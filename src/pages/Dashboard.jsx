@@ -1424,6 +1424,37 @@ export default function Dashboard() {
               </Link>
             </div>
 
+            <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+              <ImageSearch properties={properties} />
+
+              <Button 
+                onClick={() => setFocusModeOpen(true)}
+                variant="outline"
+                size="sm"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                <Focus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Modo Foco</span>
+              </Button>
+
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Últimos 7 dias</SelectItem>
+                  <SelectItem value="30">Últimos 30 dias</SelectItem>
+                  <SelectItem value="90">Últimos 90 dias</SelectItem>
+                  <SelectItem value="365">Último ano</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button onClick={exportReport} variant="outline" size="sm">
+                <Download className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Exportar</span>
+              </Button>
+            </div>
+
             {shouldShowChecklist && (
               <div className="mb-6">
                 <OnboardingChecklist 
