@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { report_type, filters, invoices_data, title } = await req.json();
+    const { report_type, filters, invoices_data, title, send_via_whatsapp } = await req.json();
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -375,15 +375,26 @@ Deno.serve(async (req) => {
       doc.text(new Date().toLocaleDateString('pt-PT'), pageWidth - margin, pageHeight - 10, { align: 'right' });
     }
 
-    const pdfBytes = doc.output('arraybuffer');
+    const pdfOutput = doc.output('arraybuffer');
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename=relatorio_faturas_${new Date().toISOString().split('T')[0]}.pdf`
-      }
-    });
+    if (send_via_whatsapp) {
+      // For WhatsApp, return base64 encoded string
+      const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfOutput)));
+      return Response.json({
+        success: true,
+        file_content_base64: base64Pdf,
+        file_name: `relatorio_faturas_${new Date().toISOString().split('T')[0]}.pdf`
+      });
+    } else {
+      // For download, return as PDF file
+      return new Response(pdfOutput, {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename=relatorio_faturas_${new Date().toISOString().split('T')[0]}.pdf`
+        }
+      });
+    }
 
   } catch (error) {
     console.error('Error generating PDF:', error);

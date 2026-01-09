@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { phoneNumber, message, contactId, contactName, properties, clientName, baseUrl } = body;
-    console.log('Request params - phone:', phoneNumber, 'message length:', message?.length, 'properties count:', properties?.length);
+    const { phoneNumber, message, contactId, contactName, properties, clientName, baseUrl, file_content_base64, file_name, file_url } = body;
+    console.log('Request params - phone:', phoneNumber, 'message length:', message?.length, 'properties count:', properties?.length, 'has file:', !!file_content_base64 || !!file_url);
 
     // If properties array is provided, format the message
     let finalMessage = message;
@@ -115,8 +115,8 @@ Deno.serve(async (req) => {
       finalMessage = await formatPropertiesMessage(clientName || contactName || 'Cliente', properties, baseUrl);
     }
 
-    if (!phoneNumber || !finalMessage) {
-      return Response.json({ success: false, error: 'Numero e mensagem sao obrigatorios' });
+    if (!phoneNumber || (!finalMessage && !file_content_base64 && !file_url)) {
+      return Response.json({ success: false, error: 'Número e conteúdo (mensagem ou ficheiro) são obrigatórios' });
     }
 
     // Try environment variables first, then user config
@@ -161,36 +161,85 @@ Deno.serve(async (req) => {
     // Enviar via WhatsApp Cloud API
     const apiUrl = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
     console.log(`Calling WhatsApp API: ${apiUrl}`);
-    
-    // Check if we should use a template (for first contact) or regular message
-    const { useTemplate, templateName } = body;
-    
+
     let requestBody;
-    
-    if (useTemplate) {
-      // Use approved template for first contact
+    let messageType;
+    let documentUrl; // To store the uploaded file URL
+
+    if (file_content_base64 && file_name) {
+      console.log('Sending document via WhatsApp');
+      
+      // Decode base64 and create a Blob to represent the file
+      const fileData = Uint8Array.from(atob(file_content_base64), c => c.charCodeAt(0));
+      const fileBlob = new Blob([fileData], { type: 'application/pdf' });
+      
+      // Use the Base44 integration to upload the file to public storage.
+      const uploadResult = await base44.integrations.Core.UploadFile({
+        file: fileBlob
+      });
+
+      if (!uploadResult || !uploadResult.file_url) {
+        throw new Error("Failed to upload document for WhatsApp.");
+      }
+      documentUrl = uploadResult.file_url;
+
       requestBody = {
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
         to: normalizedPhone,
-        type: 'template',
-        template: {
-          name: templateName || 'hello_world', // Use hello_world as default (pre-approved by Meta)
-          language: { code: 'pt_PT' }
+        type: 'document',
+        document: {
+          link: documentUrl,
+          filename: file_name
         }
       };
+      messageType = 'document';
+    } else if (file_url && file_name) {
+      // If a file URL is directly provided (e.g., already uploaded PDF)
+      console.log('Sending document via WhatsApp using provided URL');
+      documentUrl = file_url; // Set documentUrl for logging
+      requestBody = {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: normalizedPhone,
+        type: 'document',
+        document: {
+          link: file_url,
+          filename: file_name
+        }
+      };
+      messageType = 'document';
     } else {
-      // Regular text message (only works within 24h conversation window)
-      requestBody = {
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: normalizedPhone,
-        type: 'text',
-        text: { 
-          preview_url: false,
-          body: finalMessage 
-        }
-      };
+      // Check if we should use a template (for first contact) or regular message
+      const { useTemplate, templateName } = body;
+      
+      if (useTemplate) {
+        // Use approved template for first contact
+        requestBody = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: normalizedPhone,
+          type: 'template',
+          template: {
+            name: templateName || 'hello_world', // Use hello_world as default (pre-approved by Meta)
+            language: { code: 'pt_PT' }
+          }
+        };
+        messageType = 'template';
+      } else {
+        // Regular text message (only works within 24h conversation window)
+        requestBody = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: normalizedPhone,
+          type: 'text',
+          text: { 
+            preview_url: false,
+            body: finalMessage 
+          }
+        };
+        messageType = 'text';
+      }
     }
     
     console.log('Request body:', JSON.stringify(requestBody));
@@ -235,8 +284,9 @@ Deno.serve(async (req) => {
       contact_name: contactName || 'Desconhecido',
       agent_email: user.email,
       direction: 'outbound',
-      message_type: 'text',
-      content: finalMessage,
+      message_type: messageType, // Use the determined message type
+      content: messageType === 'document' ? `Documento: ${file_name}` : finalMessage,
+      file_url: messageType === 'document' ? (file_url || documentUrl) : undefined,
       status: 'sent',
       timestamp: new Date().toISOString()
     });
@@ -248,7 +298,7 @@ Deno.serve(async (req) => {
         contact_name: contactName || 'Desconhecido',
         communication_type: 'whatsapp',
         direction: 'outbound',
-        summary: finalMessage.substring(0, 200),
+        summary: messageType === 'document' ? `Documento enviado: ${file_name}` : finalMessage.substring(0, 200),
         communication_date: new Date().toISOString(),
         agent_email: user.email
       });
