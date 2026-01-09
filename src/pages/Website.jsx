@@ -453,10 +453,12 @@ export default function Website() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
-  // Filtrar apenas imóveis publicados nas páginas do website
-  const activeProperties = properties.filter(p => 
-    p.published_pages?.includes('website')
-  );
+  // Agregar imóveis publicados em páginas específicas (não usar 'website' como destino direto)
+  const specificPages = ['zuhaus', 'zuhandel', 'luxury_collection', 'investor_section', 'homepage_featured'];
+  const activeProperties = properties.filter(p => {
+    const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
+    return specificPages.some(page => publishedPages.includes(page));
+  });
   
   // Filtrar por tab ativa
   const tabFilteredProperties = React.useMemo(() => {
