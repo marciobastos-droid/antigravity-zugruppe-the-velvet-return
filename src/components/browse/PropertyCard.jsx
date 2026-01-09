@@ -140,11 +140,17 @@ export default function PropertyCard({ property, hideMetadata = false }) {
 
         {/* Property Type and Source Info */}
          <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2">
-           {!hideMetadata && property.ref_id && (
-             <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
-               {property.ref_id}
-             </Badge>
-           )}
+            {!hideMetadata && property.documents && property.documents.length > 0 && (
+              <Badge className="bg-blue-500 text-white border-0 text-xs flex items-center gap-1">
+                <FileText className="w-3 h-3" />
+                {property.documents.length} doc
+              </Badge>
+            )}
+            {!hideMetadata && property.ref_id && (
+              <Badge className="bg-slate-900 text-white border-0 text-xs font-mono">
+                {property.ref_id}
+              </Badge>
+            )}
            <Badge variant="outline" className="text-slate-700 text-xs">
              {property.property_type === 'house' ? 'Moradia' : 
               property.property_type === 'apartment' ? 'Apartamento' :
