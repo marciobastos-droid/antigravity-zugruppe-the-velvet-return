@@ -21,11 +21,9 @@ export default function PremiumLuxury() {
     queryFn: async () => {
       const allProperties = await base44.entities.Property.list('-created_date');
       
-      // Filtrar apenas imóveis publicados na Coleção Premium Luxo
+      // Filtrar imóveis premium (publicados em luxury_collection OU preço acima de 500k)
       return allProperties.filter(p => 
-        p.status === 'active' &&
-        p.visibility === 'public' &&
-        p.published_pages?.includes('luxury_collection')
+        p.published_pages?.includes('luxury_collection') || p.price >= 500000
       );
     }
   });

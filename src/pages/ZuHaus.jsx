@@ -41,12 +41,7 @@ export default function ZuHaus() {
   
   const filteredProperties = React.useMemo(() => {
     return properties.filter(p => {
-      const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
-      // Incluir se publicado em zuhaus OU se não tem published_pages definido (compatibilidade retroativa)
-      const isPublished = publishedPages.includes("zuhaus") || publishedPages.length === 0;
       const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
-      // Considerar ativo se status='active' OU availability_status está disponível/pendente validação
-      const isActive = p.status === 'active' || p.availability_status === 'available' || p.availability_status === 'pending_validation';
       
       const matchesSearch = !searchTerm || 
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,7 +57,7 @@ export default function ZuHaus() {
         (!priceMin || p.price >= Number(priceMin)) &&
         (!priceMax || p.price <= Number(priceMax));
       
-      return isPublished && isResidential && isActive && matchesSearch && matchesCity && 
+      return isResidential && matchesSearch && matchesCity && 
              matchesListingType && matchesPrice && matchesBedrooms;
     });
   }, [properties, searchTerm, city, listingType, priceMin, priceMax, bedrooms]);

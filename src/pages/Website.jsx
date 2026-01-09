@@ -453,43 +453,24 @@ export default function Website() {
   const RESIDENTIAL_TYPES = ['apartment', 'house', 'condo', 'townhouse', 'farm'];
   const COMMERCIAL_TYPES = ['store', 'warehouse', 'office', 'building'];
 
-  const activeProperties = properties.filter(p => {
-    // Considerar ativo se status='active' OU availability_status está disponível/pendente
-    return p.status === 'active' || p.availability_status === 'available' || p.availability_status === 'pending_validation';
-  });
+  const activeProperties = properties;
   
-  // Filtrar por tab ativa e publicação
+  // Filtrar por tab ativa
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
-    // Filtrar por publicação: mostrar imóveis publicados na página correta OU sem published_pages definido
-    filtered = filtered.filter(p => {
-      const publishedPages = Array.isArray(p.published_pages) ? p.published_pages : [];
-      
-      // Se não tem published_pages definido OU está vazio, INCLUIR (compatibilidade retroativa)
-      if (!publishedPages || publishedPages.length === 0) {
-        return true; 
-      }
-      
-      // Verificar se está publicado na página correspondente à tab
-      if (activeTab === "residential") {
-        const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
-        const hasZuhaus = publishedPages.includes("zuhaus");
-        return hasZuhaus && isResidential;
-      } else if (activeTab === "commercial") {
-        const isCommercial = COMMERCIAL_TYPES.includes(p.property_type);
-        const hasZuhandel = publishedPages.includes("zuhandel");
-        return hasZuhandel && isCommercial;
-      }
-      
-      return false;
-    });
+    // Filtrar apenas por tipo de imóvel
+    if (activeTab === "residential") {
+      filtered = filtered.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
+    } else if (activeTab === "commercial") {
+      filtered = filtered.filter(p => COMMERCIAL_TYPES.includes(p.property_type));
+    }
     
     return filtered;
   }, [activeTab, activeProperties]);
 
   const allCities = [...new Set(tabFilteredProperties.map(p => p.city).filter(Boolean))].sort();
-  const featuredProperties = activeProperties.filter(p => p.featured && (p.published_pages?.length > 0 || !p.published_pages)).slice(0, 4);
+  const featuredProperties = activeProperties.filter(p => p.featured).slice(0, 4);
 
   const filteredProperties = tabFilteredProperties.filter((property) => {
     const matchesSearch = debouncedSearch === "" ||

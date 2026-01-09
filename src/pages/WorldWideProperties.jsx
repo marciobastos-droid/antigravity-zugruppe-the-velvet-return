@@ -23,9 +23,7 @@ export default function WorldWideProperties() {
       const allProperties = await base44.entities.Property.list('-created_date');
       
       // Filtrar apenas imóveis fora de Portugal
-      // Considerar ativo se status='active' OU availability_status está disponível/pendente
       return allProperties.filter(p => 
-        (p.status === 'active' || p.availability_status === 'available' || p.availability_status === 'pending_validation') &&
         p.country && 
         p.country !== 'Portugal'
       );
