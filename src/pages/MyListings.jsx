@@ -177,11 +177,11 @@ const PropertyCard = memo(function PropertyCard({
             <div className="mb-2 pt-2 border-t border-slate-100">
               <div className="flex flex-col gap-1">
                 {/* Portals */}
-                {property.published_portals && property.published_portals.length > 0 ? (
+                {property.published_portals && property.published_portals.filter(p => p !== 'website').length > 0 ? (
                   <div className="flex items-center gap-1.5">
                     <Globe className="w-3 h-3 text-blue-600 flex-shrink-0" />
                     <div className="flex flex-wrap gap-1">
-                      {property.published_portals.slice(0, 2).map((portal, idx) => (
+                      {property.published_portals.filter(p => p !== 'website').slice(0, 2).map((portal, idx) => (
                         <span key={idx} className="text-xs text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
                           {portal === 'idealista' ? 'Idealista' :
                            portal === 'imovirtual' ? 'Imovirtual' :
@@ -191,9 +191,9 @@ const PropertyCard = memo(function PropertyCard({
                            portal === 'custojusto' ? 'CustoJusto' : portal}
                         </span>
                       ))}
-                      {property.published_portals.length > 2 && (
+                      {property.published_portals.filter(p => p !== 'website').length > 2 && (
                         <span className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                          +{property.published_portals.length - 2}
+                          +{property.published_portals.filter(p => p !== 'website').length - 2}
                         </span>
                       )}
                     </div>
@@ -206,9 +206,9 @@ const PropertyCard = memo(function PropertyCard({
                 )}
                 
                 {/* Website Pages */}
-                {property.published_pages && property.published_pages.length > 0 ? (
+                {property.published_pages && property.published_pages.filter(p => p !== 'website').length > 0 ? (
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {property.published_pages.map((page, idx) => {
+                    {property.published_pages.filter(p => p !== 'website').map((page, idx) => {
                       const pageIcon = 
                         page === 'zugruppe' ? <Building2 className="w-3 h-3" /> :
                         page === 'zuhaus' ? <Home className="w-3 h-3" /> :
