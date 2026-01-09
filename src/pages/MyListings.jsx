@@ -479,38 +479,11 @@ export default function MyListings() {
     queryKey: ['myProperties', user?.email, userPermissions],
     queryFn: async () => {
       if (!user) return [];
-      
+
       try {
-        // Fetch all properties once
+        // Todos os utilizadores autenticados vêem todos os imóveis
         const allProperties = await base44.entities.Property.list('-updated_date');
-      
-      const userType = user.user_type?.toLowerCase() || '';
-      
-      // Admin/Gestor vê todos os imóveis
-      if (user.role === 'admin' || userType === 'admin' || userType === 'gestor') {
         return allProperties;
-      }
-      
-      // Verifica permissão properties.view_all na entidade UserPermission
-      if (userPermissions?.properties?.view_all === true) {
-        return allProperties;
-      }
-      
-      // Verifica permissão canViewAllProperties (fallback)
-      if (userPermissions?.canViewAllProperties === true) {
-        return allProperties;
-      }
-      
-      // Verifica permissão no user.permissions (fallback)
-      if (user.permissions?.canViewAllProperties === true) {
-        return allProperties;
-      }
-      
-        // Consultores vêem imóveis que criaram OU que lhes estão atribuídos
-        return allProperties.filter(p => 
-          p.created_by === user.email || 
-          p.assigned_consultant === user.email
-        );
       } catch (error) {
         handleApiError(error, {
           endpoint: 'Property.list',
@@ -521,7 +494,7 @@ export default function MyListings() {
       }
     },
     enabled: !!user,
-    staleTime: 30000, // Cache por 30s
+    staleTime: 30000,
     gcTime: 60000,
     retry: 2
   });
