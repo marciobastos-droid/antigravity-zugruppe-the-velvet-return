@@ -78,6 +78,7 @@ export default function QuickFilterBadges({
       zuhaus: properties.filter(p => p.published_pages?.includes('zuhaus')).length,
       zuhandel: properties.filter(p => p.published_pages?.includes('zuhandel')).length,
       luxury: properties.filter(p => p.published_pages?.includes('luxury_collection')).length,
+      website: properties.filter(p => p.published_pages?.includes('website')).length,
       
       // Internacionais
       international: properties.filter(p => p.country && p.country !== 'Portugal').length,
