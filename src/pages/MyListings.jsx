@@ -1252,6 +1252,16 @@ export default function MyListings() {
       }
     }
     
+    // Filtro de promotor
+    if (filters.developer && filters.developer.trim() !== "") {
+      const developerSearch = filters.developer.toLowerCase();
+      filtered = filtered.filter(p => {
+        if (!p.development_id) return false;
+        const dev = developmentsMap.get(p.development_id);
+        return dev && dev.developer && dev.developer.toLowerCase().includes(developerSearch);
+      });
+    }
+    
     // Filtro de imagens
     const hasImagesFilter = filters.has_images === true || filters.has_images === "true";
     const noImagesFilter = filters.has_images === false || filters.has_images === "false";
