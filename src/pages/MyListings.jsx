@@ -1495,24 +1495,21 @@ export default function MyListings() {
         ) : (
         <>
         {/* Saved Searches */}
-        <div className="mb-4 flex gap-3">
-          <div className="flex-1">
-            <SavedSearchManager
-              searchType="properties"
-              currentFilters={filters}
-              currentSortBy={sortBy}
-              currentSortOrder={sortOrder}
-              currentFilterLogic={filterLogic}
-              onApplySearch={(searchData) => {
-                setFilters(searchData.filters);
-                setSortBy(searchData.sortBy);
-                setSortOrder(searchData.sortOrder);
-                setFilterLogic(searchData.filterLogic);
-              }}
-              compact={true}
-            />
-          </div>
-          <ImageSearch properties={properties} />
+        <div className="mb-4">
+          <SavedSearchManager
+            searchType="properties"
+            currentFilters={filters}
+            currentSortBy={sortBy}
+            currentSortOrder={sortOrder}
+            currentFilterLogic={filterLogic}
+            onApplySearch={(searchData) => {
+              setFilters(searchData.filters);
+              setSortBy(searchData.sortBy);
+              setSortOrder(searchData.sortOrder);
+              setFilterLogic(searchData.filterLogic);
+            }}
+            compact={true}
+          />
         </div>
 
         {/* Quick Filter Badges */}
