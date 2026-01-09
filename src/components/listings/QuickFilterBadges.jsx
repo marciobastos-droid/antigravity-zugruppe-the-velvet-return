@@ -1,7 +1,8 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp, Download, Store, Crown } from "lucide-react";
+import { X, Star, Image, Globe, Home, Building2, ChevronDown, ChevronUp, Download, Store, Crown, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function QuickFilterBadges({ 
   properties, 
