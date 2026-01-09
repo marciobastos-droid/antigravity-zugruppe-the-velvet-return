@@ -12,7 +12,7 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { 
   FileDown, Loader2, Home, Bed, Bath, Maximize, MapPin, 
-  Euro, Calendar, Mail, Phone, Share2, CheckCircle2, Send
+  Euro, Calendar, Mail, Phone, Share2, CheckCircle2, Send, MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,10 +20,15 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
   const brochureRef = useRef();
   const [generating, setGenerating] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [activeTab, setActiveTab] = useState("preview");
   const [emailData, setEmailData] = useState({
     to: "",
     subject: "",
+    message: ""
+  });
+  const [whatsAppData, setWhatsAppData] = useState({
+    phoneNumber: "",
     message: ""
   });
 
@@ -185,6 +190,53 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
     setSendingEmail(false);
   };
 
+  const handleSendWhatsApp = async () => {
+    if (!whatsAppData.phoneNumber) {
+      toast.error("Preencha o número de telefone");
+      return;
+    }
+
+    setSendingWhatsApp(true);
+    try {
+      // Generate PDF blob
+      const pdfBlob = await generatePDF(true);
+      
+      // Convert blob to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.readAsDataURL(pdfBlob);
+      });
+      
+      const pdfBase64 = await base64Promise;
+      const fileName = `Brochura_${property.ref_id || property.id.slice(0,8)}.pdf`;
+
+      // Send via WhatsApp
+      const response = await base44.functions.invoke('sendWhatsApp', {
+        phoneNumber: whatsAppData.phoneNumber,
+        message: whatsAppData.message || `Brochura do imóvel ${property.title}`,
+        file_content_base64: pdfBase64,
+        file_name: fileName,
+        contactName: 'Cliente'
+      });
+
+      if (response.data.success) {
+        toast.success("PDF enviado via WhatsApp!");
+        setWhatsAppData({ phoneNumber: "", message: "" });
+        setActiveTab("preview");
+      } else {
+        throw new Error(response.data.error || "Erro ao enviar WhatsApp");
+      }
+    } catch (error) {
+      console.error("WhatsApp sending error:", error);
+      toast.error("Erro ao enviar WhatsApp: " + (error.message || "Erro desconhecido"));
+    }
+    setSendingWhatsApp(false);
+  };
+
   const propertyTypeLabels = {
     apartment: "Apartamento",
     house: "Moradia",
@@ -211,9 +263,10 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
           <DialogTitle className="mb-3">Gerador de PDF Profissional</DialogTitle>
           
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="preview">Pré-visualizar</TabsTrigger>
-              <TabsTrigger value="email">Enviar</TabsTrigger>
+              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -290,6 +343,54 @@ export default function PropertyBrochureGenerator({ property, open, onOpenChange
             </div>
             <p className="text-xs text-slate-500 text-center">
               O PDF será gerado automaticamente e enviado como anexo
+            </p>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="whatsapp" className="m-0">
+          <div className="p-6 bg-green-50 space-y-4">
+            <div>
+              <Label>Número de Telefone *</Label>
+              <Input
+                type="tel"
+                value={whatsAppData.phoneNumber}
+                onChange={(e) => setWhatsAppData({ ...whatsAppData, phoneNumber: e.target.value })}
+                placeholder="+351 912 345 678"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Formato: +351 9XX XXX XXX ou 9XX XXX XXX
+              </p>
+            </div>
+            <div>
+              <Label>Mensagem (opcional)</Label>
+              <Textarea
+                value={whatsAppData.message}
+                onChange={(e) => setWhatsAppData({ ...whatsAppData, message: e.target.value })}
+                placeholder={`Olá! Segue a brochura do imóvel:\n${property.title}\n${property.city}, ${property.state}\n€${property.price?.toLocaleString()}`}
+                rows={6}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSendWhatsApp}
+                disabled={sendingWhatsApp || !whatsAppData.phoneNumber}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {sendingWhatsApp ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    A enviar...
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Enviar WhatsApp com PDF
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 text-center">
+              O PDF será gerado e enviado via WhatsApp Business
             </p>
           </div>
         </TabsContent>
