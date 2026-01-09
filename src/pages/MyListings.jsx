@@ -1082,6 +1082,14 @@ export default function MyListings() {
       advanced: true,
       customFilter: true
     },
+    development_name: {
+      type: FILTER_TYPES.text,
+      label: "Empreendimento",
+      placeholder: "Pesquisar por nome do empreendimento...",
+      searchFields: [],
+      advanced: true,
+      customFilter: true
+    },
     tags: {
       type: FILTER_TYPES.multiSelect,
       label: "Etiquetas",
