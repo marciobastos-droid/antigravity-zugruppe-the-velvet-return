@@ -254,123 +254,77 @@ export default function QuickFilterBadges({
   return (
     <div className="mb-4">
       <div className="bg-white border border-slate-200 rounded-lg p-4">
-        {/* LINHA 1: Estados */}
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Estado</p>
-          <div className="flex flex-wrap gap-2">
-            <FilterBadge filterKey="status" value="active" label="Ativo" count={stats.active} color="green" />
-            <FilterBadge filterKey="status" value="pending" label="Pendente" count={stats.pending} color="yellow" />
-            <FilterBadge filterKey="status" value="sold" label="Vendido" count={stats.sold} color="blue" />
-            <FilterBadge filterKey="status" value="rented" label="Arrendado" count={stats.rented} color="purple" />
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filterGroups.map((group, groupIndex) => (
+              <Droppable key={group.id} droppableId={group.id} direction="horizontal">
+                {(provided, snapshot) => (
+                  <div 
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`${groupIndex % 2 !== 0 ? 'md:border-l md:pl-4' : ''} ${groupIndex >= 2 ? 'pt-3 border-t border-slate-100' : ''} ${
+                      snapshot.isDraggingOver ? 'bg-blue-50 rounded-lg p-2' : ''
+                    }`}
+                  >
+                    <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide flex items-center gap-2">
+                      <GripVertical className="w-3 h-3 text-slate-400" />
+                      {group.title}
+                    </p>
+                    <div className="flex flex-wrap gap-2 min-h-[32px]">
+                      {group.items.map((itemId, index) => {
+                        // Renderizar badges de publicação especiais
+                        if (['zuhaus', 'zuhandel', 'luxury', 'international'].includes(itemId)) {
+                          const config = getPublishedBadgeConfig(itemId);
+                          if (!config || config.count === 0) return null;
+                          
+                          return (
+                            <Draggable key={itemId} draggableId={itemId} index={index}>
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                >
+                                  <Badge
+                                    onClick={config.onClick}
+                                    className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
+                                      config.active ? config.activeClass : config.inactiveClass
+                                    } ${snapshot.isDragging ? 'shadow-lg rotate-2' : ''}`}
+                                  >
+                                    <config.icon className="w-3 h-3" />
+                                    <span className="font-medium">{config.label}</span>
+                                    <span className="opacity-60">({config.count})</span>
+                                    {config.active && <X className="w-2.5 h-2.5 ml-0.5" />}
+                                  </Badge>
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        }
+                        
+                        // Renderizar badges normais
+                        return (
+                          <Draggable key={itemId} draggableId={itemId} index={index}>
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                {renderBadge(itemId, snapshot.isDragging)}
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+                    </div>
+                  </div>
+                )}
+              </Droppable>
+            ))}
           </div>
-        </div>
-
-        {/* LINHA 2: Tipo de Negócio */}
-        <div className="mb-3 pb-3 border-b border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Negócio</p>
-          <div className="flex flex-wrap gap-2">
-            <FilterBadge filterKey="listing_type" value="sale" label="Venda" count={stats.sale} color="blue" />
-            <FilterBadge filterKey="listing_type" value="rent" label="Arrendamento" count={stats.rent} color="purple" />
-          </div>
-        </div>
-
-        {/* LINHA 3: Tipo de Imóvel */}
-        <div className="mb-3 pb-3 border-b border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Tipo de Imóvel</p>
-          <div className="flex flex-wrap gap-2">
-            <FilterBadge filterKey="property_type" value="apartment" label="Apartamentos" count={stats.apartment} color="indigo" icon={Building2} />
-            <FilterBadge filterKey="property_type" value="house" label="Moradias" count={stats.house} color="emerald" icon={Home} />
-            <FilterBadge filterKey="property_type" value="land" label="Terrenos" count={stats.land} color="amber" />
-            <FilterBadge filterKey="property_type" value="store" label="Lojas" count={stats.store} color="slate" icon={Store} />
-          </div>
-        </div>
-
-        {/* LINHA 4: Páginas Publicadas */}
-        <div className="mb-3 pb-3 border-b border-slate-100">
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Publicado em</p>
-          <div className="flex flex-wrap gap-2">
-            <Badge
-              onClick={() => togglePublishedPage('zuhaus')}
-              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-                filters.published_pages?.includes('zuhaus')
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
-              }`}
-            >
-              <Home className="w-3 h-3" />
-              <span className="font-medium">ZuHaus</span>
-              <span className="opacity-60">({stats.zuhaus})</span>
-              {filters.published_pages?.includes('zuhaus') && <X className="w-2.5 h-2.5 ml-0.5" />}
-            </Badge>
-            
-            <Badge
-              onClick={() => togglePublishedPage('zuhandel')}
-              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-                filters.published_pages?.includes('zuhandel')
-                  ? "bg-slate-600 text-white border-slate-600"
-                  : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
-              }`}
-            >
-              <Store className="w-3 h-3" />
-              <span className="font-medium">ZuHandel</span>
-              <span className="opacity-60">({stats.zuhandel})</span>
-              {filters.published_pages?.includes('zuhandel') && <X className="w-2.5 h-2.5 ml-0.5" />}
-            </Badge>
-            
-            <Badge
-              onClick={() => togglePublishedPage('luxury_collection')}
-              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-                filters.published_pages?.includes('luxury_collection')
-                  ? "bg-amber-600 text-white border-amber-600"
-                  : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-              }`}
-            >
-              <Crown className="w-3 h-3" />
-              <span className="font-medium">Premium Luxo</span>
-              <span className="opacity-60">({stats.luxury})</span>
-              {filters.published_pages?.includes('luxury_collection') && <X className="w-2.5 h-2.5 ml-0.5" />}
-            </Badge>
-
-            <Badge
-              onClick={() => toggleFilter('country', 'international')}
-              className={`cursor-pointer transition-all border flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-                filters.country === 'international'
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-              }`}
-            >
-              <Globe className="w-3 h-3" />
-              <span className="font-medium">Internacionais</span>
-              <span className="opacity-60">({stats.international})</span>
-              {filters.country === 'international' && <X className="w-2.5 h-2.5 ml-0.5" />}
-            </Badge>
-
-            <FilterBadge filterKey="has_images" value={true} label="Com Imagens" count={stats.withImages} color="blue" icon={Image} />
-          </div>
-        </div>
-
-        {/* LINHA 5: Outros Filtros */}
-        <div>
-          <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Outros</p>
-          <div className="flex flex-wrap gap-2">
-            <FilterBadge filterKey="featured" value={true} label="Destaque" count={stats.featured} color="amber" icon={Star} />
-            <FilterBadge filterKey="last_import" value={true} label="Última Importação" count={stats.lastImport} color="indigo" icon={Download} />
-            <FilterBadge 
-              filterKey="development_id" 
-              value="none" 
-              label="Sem Empreendimento" 
-              count={stats.withoutDevelopment} 
-              color="slate"
-            />
-            <FilterBadge 
-              filterKey="assigned_consultant" 
-              value="unassigned" 
-              label="Sem Consultor" 
-              count={stats.withoutConsultant} 
-              color="slate"
-            />
-          </div>
-        </div>
+        </DragDropContext>
       </div>
     </div>
   );
