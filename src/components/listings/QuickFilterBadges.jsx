@@ -28,7 +28,7 @@ export default function QuickFilterBadges({
       { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
       { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
       { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
-      { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury', 'international', 'withImages'] },
+      { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury_collection', 'international', 'withImages'] },
       { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport'] }
     ];
   });
@@ -264,7 +264,7 @@ export default function QuickFilterBadges({
         label: "ZuHandel",
         count: stats.zuhandel
       },
-      luxury: {
+      luxury_collection: {
         onClick: () => togglePublishedPage('luxury_collection'),
         active: filters.published_pages?.includes('luxury_collection'),
         activeClass: "bg-yellow-500 text-white border-yellow-500",
@@ -283,7 +283,7 @@ export default function QuickFilterBadges({
         count: stats.international
       }
     };
-    
+
     return configs[itemId];
   };
 
@@ -308,8 +308,8 @@ export default function QuickFilterBadges({
                     </p>
                     <div className="flex flex-wrap gap-1.5 min-h-[28px]">
                       {group.items.map((itemId, index) => {
-                        // Renderizar badges de publicação especiais
-                        if (['zuhaus', 'zuhandel', 'luxury', 'international'].includes(itemId)) {
+                         // Renderizar badges de publicação especiais
+                         if (['zuhaus', 'zuhandel', 'luxury_collection', 'international'].includes(itemId)) {
                           const config = getPublishedBadgeConfig(itemId);
                           if (!config || config.count === 0) return null;
                           
