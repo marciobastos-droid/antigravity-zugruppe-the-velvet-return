@@ -246,7 +246,7 @@ export default function OpportunityQuickFilters({
         </DragDropContext>
 
         {/* Filtro por Consultor Ativo */}
-        {filters.assigned_to !== "all" && filters.assigned_to !== "unassigned" && filters.assigned_to !== "all_assigned" && (
+        {filters.assigned_to && filters.assigned_to !== "all" && filters.assigned_to !== "unassigned" && filters.assigned_to !== "all_assigned" && (
           <div className="mt-2 pt-2 border-t border-slate-100">
             <Badge
               onClick={() => onFilterChange({...filters, assigned_to: "all"})}
@@ -256,7 +256,7 @@ export default function OpportunityQuickFilters({
               <span className="font-medium">
                 {users.find(u => u.email === filters.assigned_to)?.display_name || 
                  users.find(u => u.email === filters.assigned_to)?.full_name || 
-                 filters.assigned_to.split('@')[0]}
+                 (filters.assigned_to?.split('@')?.[0] || filters.assigned_to)}
               </span>
               <span className="opacity-90">({stats.byConsultant[filters.assigned_to] || 0})</span>
               <X className="w-2.5 h-2.5 ml-0.5" />
