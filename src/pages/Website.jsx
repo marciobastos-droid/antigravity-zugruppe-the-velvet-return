@@ -33,7 +33,6 @@ import { generatePropertySEOUrl } from "../components/utils/seoHelpers";
 import { useLocalization } from "../components/i18n/LocalizationContext";
 import { QUERY_CONFIG } from "../components/utils/queryClient";
 import { useGuestFeatures } from "../components/visitors/useGuestFeatures";
-import { useDynamicPropertySEO, generateCanonicalURL } from "../components/seo/useDynamicPropertySEO";
 import RegisterPromptDialog from "../components/visitors/RegisterPromptDialog";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -648,42 +647,6 @@ export default function Website() {
     }
   };
 
-  // SEO dinâmico usando o hook
-  const dynamicSEO = useDynamicPropertySEO({
-    properties: filteredProperties,
-    filters: {
-      listing_type: listingType,
-      property_type: propertyType,
-      bedrooms,
-      city,
-      district,
-      country,
-      priceMin,
-      priceMax,
-      useful_area: { min: null, max: null },
-      specific_amenities: selectedAmenities,
-      energy_certificate: energyCertificate,
-      availability
-    },
-    pageType: activeTab === "residential" ? "residential" : "commercial",
-    locale
-  });
-
-  // URL canônica com filtros
-  const canonicalURL = useMemo(() => {
-    const baseURL = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
-    return generateCanonicalURL(baseURL, {
-      listing_type: listingType,
-      property_type: propertyType,
-      bedrooms,
-      city,
-      district,
-      country,
-      priceMin,
-      priceMax
-    });
-  }, [listingType, propertyType, bedrooms, city, district, country, priceMin, priceMax]);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -695,8 +658,8 @@ export default function Website() {
     );
   }
 
-  // SEO antigo (manter como fallback)
-  const generateDynamicSEOOld = () => {
+  // SEO dinâmico baseado em filtros ativos
+  const generateDynamicSEO = () => {
     const baseTitles = {
       residential: locale === 'en' ? "Residential Properties" : locale === 'es' ? "Propiedades Residenciales" : locale === 'fr' ? "Propriétés Résidentielles" : "Imóveis Residenciais",
       commercial: locale === 'en' ? "Commercial Spaces" : locale === 'es' ? "Espacios Comerciales" : locale === 'fr' ? "Espaces Commerciaux" : "Espaços Comerciais"
@@ -760,6 +723,8 @@ export default function Website() {
     return { title, description, keywords };
   };
 
+  const dynamicSEO = generateDynamicSEO();
+
   // Generate alternate language URLs
   const currentURL = typeof window !== 'undefined' ? window.location.href : '';
   const baseURL = currentURL.split('?')[0];
@@ -786,8 +751,26 @@ export default function Website() {
           keywords={dynamicSEO.keywords}
           type="website"
           image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-          url={canonicalURL}
-          structuredData={dynamicSEO.structuredData}
+          url={typeof window !== 'undefined' ? window.location.href : ''}
+          structuredData={{
+            "@context": "https://schema.org",
+            "@type": "RealEstateAgent",
+            "name": "Zugruppe",
+            "description": dynamicSEO.description,
+            "url": "https://zugruppe.base44.app",
+            "logo": "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg",
+            "areaServed": "Portugal",
+            "knowsAbout": ["Residential Real Estate", "Commercial Real Estate", "Property Management"],
+            "numberOfItems": filteredProperties.length,
+            "priceRange": `€${Math.min(...filteredProperties.map(p => p.price || 0))} - €${Math.max(...filteredProperties.map(p => p.price || 0))}`,
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "PT",
+              "addressLocality": "Lisboa"
+            },
+            "telephone": "+351234026615",
+            "email": "info@zuconnect.pt"
+          }}
           alternateLanguages={alternateLanguages}
           />
 

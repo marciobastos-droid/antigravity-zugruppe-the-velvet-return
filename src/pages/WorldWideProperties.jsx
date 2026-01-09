@@ -10,11 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "../components/browse/PropertyCard";
 import SEOHead from "../components/seo/SEOHead";
-import { useDynamicPropertySEO, generateCanonicalURL } from "../components/seo/useDynamicPropertySEO";
-import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function WorldWideProperties() {
-  const { locale } = useLocalization();
   const [countryFilter, setCountryFilter] = React.useState("all");
   const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = React.useState("all");
@@ -72,26 +69,33 @@ export default function WorldWideProperties() {
     return filtered;
   }, [properties, countryFilter, listingTypeFilter, propertyTypeFilter, sortBy]);
 
-  // SEO dinâmico
-  const dynamicSEO = useDynamicPropertySEO({
-    properties: filteredProperties,
-    filters: {
-      listing_type: listingTypeFilter,
-      property_type: propertyTypeFilter,
-      country: countryFilter
-    },
-    pageType: "worldwide",
-    locale
-  });
-
-  const canonicalURL = React.useMemo(() => {
-    const baseURL = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : '';
-    return generateCanonicalURL(baseURL, {
-      listing_type: listingTypeFilter,
-      property_type: propertyTypeFilter,
-      country: countryFilter
-    });
-  }, [listingTypeFilter, propertyTypeFilter, countryFilter]);
+  // SEO dinâmico baseado em filtros
+  const dynamicSEO = React.useMemo(() => {
+    const parts = ["WorldWide Properties"];
+    const keywords = ["imóveis internacionais", "propriedades mundiais", "investimento internacional"];
+    
+    if (countryFilter !== "all") {
+      parts.push(countryFilter);
+      keywords.push(countryFilter.toLowerCase());
+    }
+    
+    if (propertyTypeFilter !== "all") {
+      const typeLabel = propertyTypeLabels[propertyTypeFilter];
+      parts.push(typeLabel);
+      keywords.push(typeLabel.toLowerCase());
+    }
+    
+    if (listingTypeFilter !== "all") {
+      parts.push(listingTypeFilter === "sale" ? "Venda" : "Arrendamento");
+      keywords.push(listingTypeFilter === "sale" ? "venda" : "arrendamento");
+    }
+    
+    const title = parts.join(" | ") + " | Zugruppe";
+    const description = `${filteredProperties.length} propriedades internacionais exclusivas ${countryFilter !== "all" ? `em ${countryFilter}` : 'ao redor do mundo'}. Apartamentos, moradias e imóveis de luxo em ${countries.length} países. Oportunidades de investimento global.`;
+    const keywordsStr = [...keywords, ...countries.map(c => c.toLowerCase())].join(", ");
+    
+    return { title, description, keywords: keywordsStr };
+  }, [filteredProperties.length, countryFilter, listingTypeFilter, propertyTypeFilter, countries]);
 
   const propertyTypeLabels = {
     apartment: "Apartamento",
@@ -112,8 +116,7 @@ export default function WorldWideProperties() {
         keywords={dynamicSEO.keywords}
         type="website"
         image="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6915a593b6edd8435f5838bd/359538617_Zugruppe01.jpg"
-        url={canonicalURL}
-        structuredData={dynamicSEO.structuredData}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
       />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white py-16 sm:py-24 overflow-hidden">
