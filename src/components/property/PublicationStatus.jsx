@@ -21,6 +21,48 @@ const PAGE_INFO = {
     color: "bg-slate-100 text-slate-800",
     getUrl: (propertyId) => `${window.location.origin}/PropertyDetails?id=${propertyId}`
   },
+  zuhaus: { 
+    name: "ZuHaus", 
+    icon: Home, 
+    color: "bg-red-100 text-red-800",
+    getUrl: null
+  },
+  zuhandel: { 
+    name: "ZuHandel", 
+    icon: Store, 
+    color: "bg-slate-100 text-slate-800",
+    getUrl: null
+  },
+  homepage_featured: { 
+    name: "Homepage - Destaque", 
+    icon: Star, 
+    color: "bg-amber-100 text-amber-800",
+    getUrl: null
+  },
+  investor_section: { 
+    name: "Secção de Investidores", 
+    icon: TrendingUp, 
+    color: "bg-blue-100 text-blue-800",
+    getUrl: null
+  },
+  luxury_collection: { 
+    name: "Colecção Luxo", 
+    icon: Crown, 
+    color: "bg-yellow-100 text-yellow-800",
+    getUrl: null
+  },
+  worldwide_properties: { 
+    name: "Worldwide Properties", 
+    icon: Globe, 
+    color: "bg-purple-100 text-purple-800",
+    getUrl: null
+  },
+  premium_luxury: { 
+    name: "Premium Luxury", 
+    icon: Crown, 
+    color: "bg-indigo-100 text-indigo-800",
+    getUrl: null
+  },
   landing_page: { 
     name: "Landing Page", 
     icon: Globe, 
