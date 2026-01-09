@@ -12,13 +12,26 @@ export default function QuickFilterBadges({
   developments = []
 }) {
   const [expanded, setExpanded] = React.useState(false);
-  const [filterGroups, setFilterGroups] = React.useState([
-    { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
-    { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
-    { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
-    { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury', 'international', 'withImages'] },
-    { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport'] }
-  ]);
+  
+  // Carregar filterGroups do localStorage ou usar valores padrão
+  const [filterGroups, setFilterGroups] = React.useState(() => {
+    try {
+      const saved = localStorage.getItem('quickFilterGroups');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Erro ao carregar filterGroups do localStorage:', e);
+    }
+    
+    return [
+      { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
+      { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
+      { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
+      { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury', 'international', 'withImages'] },
+      { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport'] }
+    ];
+  });
   
   // Calcular data/hora da última importação
   const lastImportTimestamp = React.useMemo(() => {
@@ -138,21 +151,19 @@ export default function QuickFilterBadges({
     if (!result.destination) return;
     
     const { source, destination } = result;
+    let newGroups = [...filterGroups];
     
     // Se moveu dentro do mesmo grupo, reordenar items
     if (source.droppableId === destination.droppableId) {
       const groupIndex = filterGroups.findIndex(g => g.id === source.droppableId);
-      const newGroups = [...filterGroups];
       const items = Array.from(newGroups[groupIndex].items);
       const [removed] = items.splice(source.index, 1);
       items.splice(destination.index, 0, removed);
       newGroups[groupIndex] = { ...newGroups[groupIndex], items };
-      setFilterGroups(newGroups);
     } else {
       // Mover entre grupos
       const sourceGroupIndex = filterGroups.findIndex(g => g.id === source.droppableId);
       const destGroupIndex = filterGroups.findIndex(g => g.id === destination.droppableId);
-      const newGroups = [...filterGroups];
       
       const sourceItems = Array.from(newGroups[sourceGroupIndex].items);
       const [removed] = sourceItems.splice(source.index, 1);
@@ -161,8 +172,15 @@ export default function QuickFilterBadges({
       const destItems = Array.from(newGroups[destGroupIndex].items);
       destItems.splice(destination.index, 0, removed);
       newGroups[destGroupIndex] = { ...newGroups[destGroupIndex], items: destItems };
-      
-      setFilterGroups(newGroups);
+    }
+    
+    setFilterGroups(newGroups);
+    
+    // Guardar no localStorage
+    try {
+      localStorage.setItem('quickFilterGroups', JSON.stringify(newGroups));
+    } catch (e) {
+      console.error('Erro ao guardar filterGroups no localStorage:', e);
     }
   };
 
