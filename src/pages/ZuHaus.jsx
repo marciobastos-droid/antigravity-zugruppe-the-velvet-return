@@ -44,8 +44,9 @@ export default function ZuHaus() {
       // Filtrar por publicação na página ZuHaus
       const isPublishedOnZuHaus = p.published_pages?.includes('zuhaus');
       
-      // Filtrar apenas por tipo residencial
+      // Filtrar apenas por tipo residencial e status ativo
       const isResidential = RESIDENTIAL_TYPES.includes(p.property_type);
+      const isActive = p.status === 'active';
       
       const matchesSearch = !searchTerm || 
         p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,7 +62,7 @@ export default function ZuHaus() {
         (!priceMin || p.price >= Number(priceMin)) &&
         (!priceMax || p.price <= Number(priceMax));
       
-      return isPublishedOnZuHaus && isResidential && matchesSearch && matchesCity && 
+      return isPublishedOnZuHaus && isResidential && isActive && matchesSearch && matchesCity && 
              matchesListingType && matchesPrice && matchesBedrooms;
     });
   }, [properties, searchTerm, city, listingType, priceMin, priceMax, bedrooms]);
