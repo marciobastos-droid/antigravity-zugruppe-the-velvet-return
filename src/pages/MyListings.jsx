@@ -1272,6 +1272,14 @@ export default function MyListings() {
       });
     }
     
+    // Filtro de nome do empreendimento
+    if (filters.development_name && filters.development_name.trim() !== "") {
+      const devNameSearch = filters.development_name.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.development_name && p.development_name.toLowerCase().includes(devNameSearch)
+      );
+    }
+    
     // Filtro de imagens
     const hasImagesFilter = filters.has_images === true || filters.has_images === "true";
     const noImagesFilter = filters.has_images === false || filters.has_images === "false";
