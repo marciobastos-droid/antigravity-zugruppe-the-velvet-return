@@ -459,6 +459,9 @@ export default function Website() {
   const tabFilteredProperties = React.useMemo(() => {
     let filtered = activeProperties;
     
+    // Filtrar por publicação na página Website
+    filtered = filtered.filter(p => p.published_pages?.includes('website'));
+    
     // Filtrar apenas por tipo de imóvel
     if (activeTab === "residential") {
       filtered = filtered.filter(p => RESIDENTIAL_TYPES.includes(p.property_type));
