@@ -177,10 +177,10 @@ export default function PropertyCard({ property, hideMetadata = false }) {
              </Badge>
            )}
 
-           {!hideMetadata && property.published_portals && property.published_portals.length > 0 && (
+           {!hideMetadata && property.published_portals && property.published_portals.filter(p => p !== 'website').length > 0 && (
              <div className="flex items-center gap-1 w-full">
                <span className="text-xs text-slate-500">🌐 Portais:</span>
-               {property.published_portals.map(portal => (
+               {property.published_portals.filter(p => p !== 'website').map(portal => (
                  <Badge key={portal} variant="secondary" className="text-xs">
                    {portal === 'idealista' && 'Idealista'}
                    {portal === 'imovirtual' && 'Imovirtual'}
