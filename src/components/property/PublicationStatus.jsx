@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, Building2, ExternalLink, CheckCircle, AlertCircle, Home, Store, Star, TrendingUp, Crown } from "lucide-react";
+import { Globe, Building2, ExternalLink, CheckCircle, AlertCircle, Home, Store, Star, TrendingUp, Crown, Zap, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // Portal definitions with URLs
