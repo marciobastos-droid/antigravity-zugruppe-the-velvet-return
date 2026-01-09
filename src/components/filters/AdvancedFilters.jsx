@@ -396,14 +396,14 @@ export default function AdvancedFilters({
 
   return (
     <Card className={className}>
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         {showSavedFilters && savedFilters.length > 0 && (
-          <div className="mb-4 pb-4 border-b">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-4 h-4 text-amber-500" />
+          <div className="mb-3 pb-3 border-b">
+            <div className="flex items-center gap-2 mb-1.5">
+              <Star className="w-3.5 h-3.5 text-amber-500" />
               <span className="text-xs font-medium text-slate-600">Filtros Guardados</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {savedFilters.map((sf) => (
                 <div key={sf.id} className="flex items-center">
                   <Badge
@@ -428,7 +428,7 @@ export default function AdvancedFilters({
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
           {basicFilters.map(([key, config]) => renderFilter(key, config))}
         </div>
 
@@ -438,7 +438,7 @@ export default function AdvancedFilters({
               variant="ghost"
               size="sm"
               onClick={() => setExpanded(!expanded)}
-              className="mt-3 text-slate-600"
+              className="mt-2 text-slate-600 h-7 text-xs"
             >
               {expanded ? <ChevronUp className="w-4 h-4 mr-1" /> : <ChevronDown className="w-4 h-4 mr-1" />}
               {expanded ? "Menos Filtros" : "Mais Filtros"}
@@ -457,13 +457,13 @@ export default function AdvancedFilters({
             </Button>
 
             {expanded && (
-              <div className="mt-4 pt-4 border-t">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              <div className="mt-3 pt-3 border-t">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                   {advancedFilters.map(([key, config]) => renderFilter(key, config))}
                 </div>
 
                 {showLogicToggle && (
-                  <div className="mt-4 pt-4 border-t flex items-center gap-4">
+                  <div className="mt-3 pt-3 border-t flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <Settings2 className="w-4 h-4 text-slate-500" />
                       <span className="text-sm text-slate-600">Combinar filtros:</span>
@@ -498,7 +498,7 @@ export default function AdvancedFilters({
           </>
         )}
 
-        <div className="flex items-center justify-between mt-4 pt-4 border-t">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">
               {filteredCount !== undefined && totalCount !== undefined ? (
