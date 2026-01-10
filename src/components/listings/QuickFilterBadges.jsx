@@ -281,7 +281,7 @@ export default function QuickFilterBadges({
     );
   };
 
-  const getPublishedBadgeConfig = (itemId) => {
+  const getPublishedBadgeConfig = React.useCallback((itemId) => {
     const configs = {
       zuhaus: {
         onClick: () => togglePublishedPage('zuhaus'),
@@ -322,7 +322,7 @@ export default function QuickFilterBadges({
     };
 
     return configs[itemId];
-  };
+  }, [filters.published_pages, filters.country, stats, togglePublishedPage, toggleFilter]);
 
   return (
     <div className="mb-3">
