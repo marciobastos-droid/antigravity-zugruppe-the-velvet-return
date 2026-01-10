@@ -29,6 +29,7 @@ import TagSelector from "../tags/TagSelector";
 import QuickContactActions from "./QuickContactActions";
 import { useAgentNames } from "@/components/common/useAgentNames";
 import { useAuditLog } from "../audit/useAuditLog";
+import ContactFilterBadges from "./ContactFilterBadges";
 
 // Lazy load heavy components
 const CommunicationHistory = lazy(() => import("./CommunicationHistory"));
@@ -178,6 +179,7 @@ export default function ClientDatabase() {
     const { getAgentName, getAgentOptions } = useAgentNames();
     const { logAction } = useAuditLog();
     const [searchTerm, setSearchTerm] = useState("");
+  const [badgeFilters, setBadgeFilters] = useState({});
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
@@ -695,6 +697,29 @@ export default function ClientDatabase() {
 
   const agentOptions = useMemo(() => getAgentOptions(), [getAgentOptions]);
 
+  // Helper to get opportunities for a contact
+  const getContactOpps = useCallback((contactId) => {
+    return opportunities.filter(o => 
+      o.contact_id === contactId || 
+      o.profile_id === contactId ||
+      (o.buyer_email && clients.find(c => c.id === contactId)?.email === o.buyer_email)
+    );
+  }, [opportunities, clients]);
+
+  // Handle badge filter changes
+  const handleBadgeFilterChange = useCallback((filterKey, filterValue) => {
+    if (filterKey === 'clear') {
+      setBadgeFilters({});
+      return;
+    }
+    
+    setBadgeFilters(prev => ({
+      ...prev,
+      [filterKey]: filterValue
+    }));
+    setCurrentPage(1);
+  }, []);
+
   // Memoized filtered clients with optimized search
   const filteredClients = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
@@ -704,6 +729,42 @@ export default function ClientDatabase() {
     const hasNone = agentFilterSet.has("none");
 
     return clients.filter(c => {
+      // Badge filters
+      if (badgeFilters.quick) {
+        const opps = getContactOpps(c.id);
+        const created = new Date(c.created_date);
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        
+        if (badgeFilters.quick === 'new' && created <= sevenDaysAgo) return false;
+        if (badgeFilters.quick === 'contacted' && !opps.some(o => ['contacted', 'qualified', 'visit_scheduled', 'proposal', 'negotiation'].includes(o.status))) return false;
+        if (badgeFilters.quick === 'visit_scheduled' && !opps.some(o => o.status === 'visit_scheduled')) return false;
+        if (badgeFilters.quick === 'proposal' && !opps.some(o => o.status === 'proposal')) return false;
+        if (badgeFilters.quick === 'won' && !opps.some(o => o.status === 'won')) return false;
+        if (badgeFilters.quick === 'converted' && !opps.some(o => o.status === 'won')) return false;
+        if (badgeFilters.quick === 'negotiation' && !opps.some(o => o.status === 'negotiation')) return false;
+        if (badgeFilters.quick === 'lost' && !opps.some(o => o.status === 'lost')) return false;
+        if (badgeFilters.quick === 'not_converted' && !(opps.length > 0 && !opps.some(o => o.status === 'won'))) return false;
+      }
+
+      if (badgeFilters.qualification) {
+        const opps = getContactOpps(c.id);
+        if (!opps.some(o => o.qualification_status === badgeFilters.qualification)) return false;
+      }
+
+      if (badgeFilters.source) {
+        if (badgeFilters.source === 'portals') {
+          if (!['real_estate_portal', 'idealista', 'supercasa', 'casasapo'].includes(c.source)) return false;
+        } else if (c.source !== badgeFilters.source) return false;
+      }
+
+      if (badgeFilters.leadType) {
+        const opps = getContactOpps(c.id);
+        if (badgeFilters.leadType === 'buyer' && !opps.some(o => o.lead_type === 'comprador' || o.lead_type === 'parceiro_comprador')) return false;
+        if (badgeFilters.leadType === 'seller' && !opps.some(o => o.lead_type === 'vendedor' || o.lead_type === 'parceiro_vendedor')) return false;
+      }
+
+      if (badgeFilters.contactType && c.contact_type !== badgeFilters.contactType) return false;
+      if (badgeFilters.assignedAgent && c.assigned_agent !== badgeFilters.assignedAgent) return false;
       // Quick filters first (most selective)
       if (typeFilter !== "all") {
         if (typeFilter === "empty") {
@@ -1173,7 +1234,19 @@ export default function ClientDatabase() {
         </div>
       </div>
 
-      {/* Filters */}
+  {/* Badge Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <ContactFilterBadges
+            contacts={clients}
+            opportunities={opportunities}
+            activeFilters={badgeFilters}
+            onFilterChange={handleBadgeFilterChange}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Search and Advanced Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="space-y-4">
@@ -1344,6 +1417,7 @@ export default function ClientDatabase() {
                 <Button 
                   variant="ghost" 
                   onClick={() => {
+                    setBadgeFilters({});
                     setTypeFilter("all");
                     setStatusFilter("all");
                     setSourceFilter("all");
@@ -1358,75 +1432,6 @@ export default function ClientDatabase() {
                 >
                   Limpar Filtros
                 </Button>
-              </div>
-            )}
-
-            {/* Quick Agent Filter Tags */}
-            {agentOptions.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-xs text-slate-500 flex items-center mr-1">Responsável:</span>
-                {agentOptions.map(agent => (
-                  <Badge 
-                    key={agent.value}
-                    variant={assignedAgentFilter.includes(agent.value) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-slate-100"
-                    onClick={() => setAssignedAgentFilter(prev => 
-                      prev.includes(agent.value) ? prev.filter(a => a !== agent.value) : [...prev, agent.value]
-                    )}
-                  >
-                    <User className="w-3 h-3 mr-1" />
-                    {agent.shortLabel}
-                  </Badge>
-                ))}
-                <Badge 
-                  variant={assignedAgentFilter.includes("none") ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-slate-100"
-                  onClick={() => setAssignedAgentFilter(prev => 
-                    prev.includes("none") ? prev.filter(a => a !== "none") : [...prev, "none"]
-                  )}
-                >
-                  Sem Responsável
-                </Badge>
-                {assignedAgentFilter.length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 px-2 text-xs text-slate-500"
-                    onClick={() => setAssignedAgentFilter([])}
-                  >
-                    Limpar
-                  </Button>
-                )}
-              </div>
-            )}
-
-            {/* Quick Tags */}
-            {allTags.length > 0 && (
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-xs text-slate-500 flex items-center mr-1">Tags:</span>
-                {allTags.slice(0, 10).map(tag => (
-                  <Badge 
-                    key={tag}
-                    variant={tagFilter.includes(tag) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-slate-100"
-                    onClick={() => setTagFilter(prev => 
-                      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-                    )}
-                  >
-                    <TagIcon className="w-3 h-3 mr-1" />
-                    {tag}
-                  </Badge>
-                ))}
-                {tagFilter.length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 px-2 text-xs text-slate-500"
-                    onClick={() => setTagFilter([])}
-                  >
-                    Limpar
-                  </Button>
-                )}
               </div>
             )}
           </div>
