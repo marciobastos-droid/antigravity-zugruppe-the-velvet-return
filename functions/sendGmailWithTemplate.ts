@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { SMTPClient } from 'npm:denomailer@1.6.0';
 
 Deno.serve(async (req) => {
   try {
@@ -53,38 +52,48 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Must provide either templateId or both subject and body' }, { status: 400 });
     }
 
-    const gmailUser = Deno.env.get("GMAIL_USER");
-    const gmailPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    // Get Gmail OAuth access token
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken("gmail");
 
-    if (!gmailUser || !gmailPassword) {
-      return Response.json({ error: 'Gmail credentials not configured' }, { status: 500 });
+    if (!accessToken) {
+      return Response.json({ error: 'Gmail not connected. Please authorize Gmail access.' }, { status: 500 });
     }
 
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 587,
-        tls: true,
-        auth: {
-          username: gmailUser,
-          password: gmailPassword,
-        },
+    // Prepare email in RFC 2822 format
+    const email = [
+      `To: ${to}`,
+      `Subject: ${subject}`,
+      `Content-Type: text/html; charset=utf-8`,
+      ``,
+      body.replace(/\n/g, '<br>')
+    ].join('\n');
+
+    // Base64 encode the email
+    const encodedEmail = btoa(unescape(encodeURIComponent(email)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    // Send via Gmail API
+    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        raw: encodedEmail
+      })
     });
 
-    await client.send({
-      from: gmailUser,
-      to: to,
-      subject: subject,
-      content: body,
-      html: body.replace(/\n/g, '<br>'),
-    });
-
-    await client.close();
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Gmail API error: ${error.error?.message || 'Unknown error'}`);
+    }
 
     return Response.json({ 
       success: true,
-      message: "Email sent successfully"
+      message: "Email sent successfully via Gmail"
     });
 
   } catch (error) {
