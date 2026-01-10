@@ -131,6 +131,17 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
       
       if (isEditing) {
         result = await base44.entities.Opportunity.update(opportunity.id, data);
+        
+        // Sincronizar consultor com contacto ao editar
+        if (opportunity.contact_id && data.assigned_to) {
+          try {
+            await base44.entities.ClientContact.update(opportunity.contact_id, {
+              assigned_agent: data.assigned_to
+            });
+          } catch (err) {
+            console.error("Erro ao sincronizar consultor com contacto:", err);
+          }
+        }
       } else {
         // Se não tem contacto associado, procurar ou criar um
         if (!contactId && data.buyer_name) {
@@ -152,8 +163,20 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
           }
           
           if (existingContact) {
-            // Contacto já existe - vincular a oportunidade
+            // Contacto já existe - vincular a oportunidade e atualizar consultor
             contactId = existingContact.id;
+            
+            // Atualizar consultor do contacto se oportunidade tiver um atribuído
+            if (data.assigned_to) {
+              try {
+                await base44.entities.ClientContact.update(contactId, {
+                  assigned_agent: data.assigned_to
+                });
+              } catch (err) {
+                console.error("Erro ao atualizar consultor do contacto:", err);
+              }
+            }
+            
             toast.info(`Oportunidade vinculada ao contacto existente: ${existingContact.full_name}`);
           } else {
             // Criar novo contacto automaticamente
@@ -204,19 +227,6 @@ export default function OpportunityFormDialog({ opportunity, open, onOpenChange,
           } catch (err) {
             console.error("Erro ao vincular oportunidade ao contacto:", err);
           }
-        }
-      }
-      
-      // Sincronizar assigned_agent entre oportunidade e contacto
-      if (contactId) {
-        try {
-          await base44.functions.invoke('syncAgentBetweenContactAndOpportunity', {
-            entityType: 'opportunity',
-            entityId: isEditing ? opportunity.id : result.id,
-            newAgent: data.assigned_to || null
-          });
-        } catch (err) {
-          console.error("Erro ao sincronizar agente:", err);
         }
       }
       
