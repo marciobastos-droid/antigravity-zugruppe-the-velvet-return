@@ -38,7 +38,7 @@ const SendEmailDialog = lazy(() => import("../email/SendEmailDialog"));
 const EmailHistoryPanel = lazy(() => import("../email/EmailHistoryPanel"));
 const ClientPortalManager = lazy(() => import("./ClientPortalManager"));
 const OpportunityFormDialog = lazy(() => import("../opportunities/OpportunityFormDialog"));
-const RGPDConsentManager = lazy(() => import("./RGPDConsentManager"));
+const RGPDConsentManager = lazy(() => import("../rgpd/GDPRConsentManager"));
 
 // Component to show elected properties summary
 function ElectedPropertiesSummary({ contactId }) {

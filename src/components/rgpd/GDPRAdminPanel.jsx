@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Shield, Clock, CheckCircle2, XCircle, AlertTriangle, FileText, Download, Trash2, User } from "lucide-react";
+import { Shield, Clock, CheckCircle2, XCircle, AlertTriangle, FileText, Download, Trash2, User, Settings, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import DSARWorkflowView from "./DSARWorkflowView";
+import GDPRSettingsPanel from "./GDPRSettingsPanel";
 
 export default function GDPRAdminPanel() {
   const queryClient = useQueryClient();
@@ -277,19 +279,30 @@ Equipa ZuGruppe
       )}
 
       <Tabs defaultValue="requests">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="requests">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="requests" className="flex items-center gap-1">
+            <FileText className="w-4 h-4" />
             Pedidos DSAR ({dsarRequests.length})
           </TabsTrigger>
-          <TabsTrigger value="consents">
+          <TabsTrigger value="consents" className="flex items-center gap-1">
+            <Shield className="w-4 h-4" />
             Consentimentos
           </TabsTrigger>
-          <TabsTrigger value="logs">
-            Registos RGPD
+          <TabsTrigger value="logs" className="flex items-center gap-1">
+            <BarChart3 className="w-4 h-4" />
+            Registos ({gdprLogs.length})
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-1">
+            <Settings className="w-4 h-4" />
+            Configurações
+          </TabsTrigger>
+          <TabsTrigger value="metrics" className="flex items-center gap-1">
+            <BarChart3 className="w-4 h-4" />
+            Métricas
           </TabsTrigger>
         </TabsList>
 
-        {/* Pedidos DSAR */}
+        {/* Pedidos DSAR - Workflow Visual */}
         <TabsContent value="requests" className="space-y-4">
           {dsarRequests.length === 0 ? (
             <Card>
@@ -299,132 +312,21 @@ Equipa ZuGruppe
               </CardContent>
             </Card>
           ) : (
-            dsarRequests.map((request) => {
-              const daysRemaining = request.deadline_date 
-                ? differenceInDays(new Date(request.deadline_date), new Date()) 
-                : null;
-
-              return (
-                <Card 
-                  key={request.id}
-                  className={`border-l-4 ${
-                    request.status === "completed" ? "border-l-green-500" :
-                    request.status === "rejected" ? "border-l-red-500" :
-                    daysRemaining < 5 ? "border-l-red-500" :
-                    "border-l-blue-500"
-                  }`}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <FileText className="w-5 h-5" />
-                          {getRequestTypeLabel(request.request_type)}
-                        </CardTitle>
-                        <div className="text-sm text-slate-600 mt-2 space-y-1">
-                          <p><strong>Nome:</strong> {request.requester_name}</p>
-                          <p><strong>Email:</strong> {request.requester_email}</p>
-                          <p><strong>Submetido:</strong> {format(new Date(request.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
-                          {request.deadline_date && (
-                            <p className={daysRemaining < 5 ? "text-red-600 font-medium" : ""}>
-                              <strong>Prazo:</strong> {format(new Date(request.deadline_date), "dd/MM/yyyy", { locale: ptBR })}
-                              {daysRemaining !== null && ` (${daysRemaining} dias restantes)`}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {getStatusBadge(request.status, request.deadline_date)}
-                        {request.priority === "urgent" && (
-                          <Badge className="bg-red-600 text-white">
-                            <AlertTriangle className="w-3 h-3 mr-1" />
-                            Urgente
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {request.description && (
-                      <div className="mb-4">
-                        <p className="text-sm font-medium text-slate-700 mb-1">Descrição:</p>
-                        <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded">{request.description}</p>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      {request.status === "pending_validation" && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setShowRequestDialog(true);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Validar e Processar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setShowRequestDialog(true);
-                            }}
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Rejeitar
-                          </Button>
-                        </>
-                      )}
-
-                      {request.status === "in_progress" && (
-                        <>
-                          {request.request_type === "access" && (
-                            <Button
-                              size="sm"
-                              onClick={() => exportDataMutation.mutate(request.id)}
-                              disabled={exportDataMutation.isPending}
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Exportar e Enviar Dados
-                            </Button>
-                          )}
-                          {request.request_type === "erasure" && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => {
-                                if (confirm("Confirma a eliminação/anonimização dos dados? Esta ação é irreversível.")) {
-                                  deleteDataMutation.mutate(request.id);
-                                }
-                              }}
-                              disabled={deleteDataMutation.isPending}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Eliminar Dados
-                            </Button>
-                          )}
-                        </>
-                      )}
-
-                      {request.identification_document && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => window.open(request.identification_document, '_blank')}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver Identificação
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+            dsarRequests.map((request) => (
+              <DSARWorkflowView
+                key={request.id}
+                request={request}
+                onAction={(action, requestId) => {
+                  if (action === "export") {
+                    exportDataMutation.mutate(requestId);
+                  } else if (action === "delete") {
+                    if (confirm("Confirma a eliminação/anonimização dos dados? Esta ação é irreversível.")) {
+                      deleteDataMutation.mutate(requestId);
+                    }
+                  }
+                }}
+              />
+            ))
           )}
         </TabsContent>
 
@@ -487,30 +389,74 @@ Equipa ZuGruppe
 
         {/* Logs RGPD */}
         <TabsContent value="logs" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-xs text-slate-600 mb-1">Total de Ações</p>
+                <p className="text-2xl font-bold text-slate-900">{gdprLogs.length}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-green-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-xs text-green-600 mb-1">Concluídas</p>
+                <p className="text-2xl font-bold text-green-700">
+                  {gdprLogs.filter(l => l.request_status === "completed").length}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-blue-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-xs text-blue-600 mb-1">Em Progresso</p>
+                <p className="text-2xl font-bold text-blue-700">
+                  {gdprLogs.filter(l => l.request_status === "in_progress").length}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-amber-50">
+              <CardContent className="p-4 text-center">
+                <p className="text-xs text-amber-600 mb-1">Pendentes</p>
+                <p className="text-2xl font-bold text-amber-700">
+                  {gdprLogs.filter(l => l.request_status === "pending").length}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="space-y-2">
             {gdprLogs.map((log) => (
               <Card key={log.id}>
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs">
                           {log.action_type.replace(/_/g, ' ')}
                         </Badge>
                         <span className="text-xs text-slate-500">
                           {format(new Date(log.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                         </span>
+                        {log.consent_type && (
+                          <Badge className="bg-purple-100 text-purple-800 text-xs">
+                            {log.consent_type.replace(/_/g, ' ')}
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-slate-900 mb-1">{log.description}</p>
                       <p className="text-xs text-slate-600">
                         <strong>Email:</strong> {log.contact_email}
                         {log.performed_by && ` | Executado por: ${log.performed_by_name || log.performed_by}`}
                       </p>
+                      {log.legal_basis && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          Base legal: {log.legal_basis.replace(/_/g, ' ')}
+                        </p>
+                      )}
                     </div>
                     <Badge className={
                       log.request_status === "completed" ? "bg-green-100 text-green-800" :
                       log.request_status === "rejected" ? "bg-red-100 text-red-800" :
-                      "bg-blue-100 text-blue-800"
+                      log.request_status === "in_progress" ? "bg-blue-100 text-blue-800" :
+                      "bg-amber-100 text-amber-800"
                     }>
                       {log.request_status}
                     </Badge>
@@ -519,6 +465,16 @@ Equipa ZuGruppe
               </Card>
             ))}
           </div>
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings">
+          <GDPRSettingsPanel />
+        </TabsContent>
+
+        {/* Metrics Tab */}
+        <TabsContent value="metrics">
+          <GDPRMetricsView logs={gdprLogs} requests={dsarRequests} contacts={contacts} />
         </TabsContent>
       </Tabs>
 
