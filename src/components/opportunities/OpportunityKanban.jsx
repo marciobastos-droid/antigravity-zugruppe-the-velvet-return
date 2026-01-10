@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   User, Phone, Mail, Euro, Calendar, Building2,
   Star, AlertCircle, Clock, CheckCircle2, XCircle,
-  MoreHorizontal, Eye, ExternalLink, MapPin, UserCheck
+  MoreHorizontal, Eye, ExternalLink, MapPin, UserCheck, Facebook, Globe
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -299,6 +299,24 @@ export default function OpportunityKanban({
                                       {opp.lead_type === 'comprador' ? 'Comprador' : 
                                        opp.lead_type === 'vendedor' ? 'Vendedor' : 
                                        opp.lead_type === 'parceiro_comprador' ? 'P. Comprador' : 'P. Vendedor'}
+                                    </Badge>
+                                  )}
+                                  {opp.lead_source && (
+                                    <Badge className={`text-[0.65rem] py-0 px-1.5 flex items-center gap-0.5 ${
+                                      opp.lead_source === 'facebook_ads' ? 'bg-blue-600 text-white' :
+                                      opp.lead_source === 'website' ? 'bg-slate-100 text-slate-800' :
+                                      opp.lead_source === 'idealista' ? 'bg-yellow-100 text-yellow-800' :
+                                      opp.lead_source === 'imovirtual' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {opp.lead_source === 'facebook_ads' && <Facebook className="w-2.5 h-2.5" />}
+                                      {opp.lead_source === 'website' && <Globe className="w-2.5 h-2.5" />}
+                                      {opp.lead_source === 'facebook_ads' ? 'Facebook' :
+                                       opp.lead_source === 'website' ? 'Site' :
+                                       opp.lead_source === 'idealista' ? 'Idealista' :
+                                       opp.lead_source === 'imovirtual' ? 'Imovirtual' :
+                                       opp.lead_source === 'referral' ? 'Referência' :
+                                       opp.lead_source}
                                     </Badge>
                                   )}
                                   {opp.assigned_to && (
