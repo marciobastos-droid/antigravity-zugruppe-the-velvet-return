@@ -24,10 +24,13 @@ export default function QuickFilterBadges({
       console.error('Erro ao carregar filterGroups do localStorage:', e);
     }
     
+    // Extrair tipos de imóvel únicos das propriedades
+    const propertyTypes = Array.from(new Set(properties.map(p => p.property_type).filter(Boolean)));
+    
     return [
       { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
       { id: 'negocio', title: 'NEGÓCIO', items: ['sale', 'rent'] },
-      { id: 'tipo', title: 'TIPO DE IMÓVEL', items: ['apartment', 'house', 'store'] },
+      { id: 'tipo', title: 'TIPO DE IMÓVEL', items: propertyTypes },
       { id: 'publicado', title: 'PUBLICADO EM', items: ['zuhaus', 'zuhandel', 'luxury_collection', 'international'] },
       { id: 'outros', title: 'OUTROS', items: ['featured', 'lastImport', 'withImages'] }
     ];
