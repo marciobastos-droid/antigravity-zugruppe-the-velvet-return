@@ -177,6 +177,12 @@ Deno.serve(async (req) => {
 
       // Auto-criar Oportunidade para cada lead
       try {
+        // Gerar ref_id para a oportunidade
+        const refIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
+          entity_type: 'Opportunity' 
+        });
+        const oppRefId = refIdResponse.data.ref_id;
+
         // Verificar se já existe contacto com este email
         let contactId = null;
         if (email) {
@@ -203,8 +209,9 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Criar oportunidade
+        // Criar oportunidade com ref_id
         const opportunity = await base44.entities.Opportunity.create({
+          ref_id: oppRefId,
           lead_type: "comprador",
           contact_id: contactId || undefined,
           buyer_name: leadData.full_name,
