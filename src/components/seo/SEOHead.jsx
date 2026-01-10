@@ -50,43 +50,68 @@ export default function SEOHead({
   let autoStructuredData = structuredData;
   
   if (!autoStructuredData && type === "product" && price) {
+    // Schema.org completo para RealEstateListing
     autoStructuredData = {
       "@context": "https://schema.org",
-      "@type": "Product",
+      "@type": propertyType === "apartment" ? "Apartment" : 
+                propertyType === "house" ? "House" :
+                propertyType === "store" || propertyType === "office" || propertyType === "warehouse" ? "Commercial" :
+                "RealEstateListing",
       "name": title,
       "description": metaDescription,
-      "image": metaImage,
+      "image": Array.isArray(metaImage) ? metaImage : [metaImage],
+      "url": canonical,
       "offers": {
         "@type": "Offer",
         "url": canonical,
         "priceCurrency": currency,
         "price": price,
-        "availability": `https://schema.org/${availability === "available" ? "InStock" : "OutOfStock"}`,
+        "availability": `https://schema.org/${availability === "available" || availability === "in stock" ? "InStock" : "OutOfStock"}`,
         "seller": {
           "@type": "Organization",
-          "name": siteName
+          "name": siteName,
+          "url": BASE_DOMAIN
         }
       }
     };
-
-    // Adicionar dados específicos de imóvel
-    if (propertyType) {
-      autoStructuredData["@type"] = "Apartment"; // ou House, Store, etc
-      autoStructuredData.additionalType = "RealEstateListing";
-    }
 
     if (location) {
       autoStructuredData.address = {
         "@type": "PostalAddress",
         "addressLocality": location.city,
         "addressRegion": location.state,
-        "addressCountry": location.country || "Portugal"
+        "addressCountry": location.country || "PT"
       };
     }
   }
 
   return (
     <Helmet>
+      {/* Essential Meta Tags */}
+      <title>{fullTitle}</title>
+      <meta name="description" content={metaDescription} />
+      {keywords && <meta name="keywords" content={keywords} />}
+      <link rel="canonical" href={canonical} />
+      
+      {/* Open Graph */}
+      <meta property="og:type" content={type} />
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={metaDescription} />
+      <meta property="og:image" content={metaImage} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:site_name" content={siteName} />
+      {type === "product" && price && (
+        <>
+          <meta property="product:price:amount" content={price} />
+          <meta property="product:price:currency" content={currency} />
+        </>
+      )}
+      
+      {/* Twitter Card */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={fullTitle} />
+      <meta name="twitter:description" content={metaDescription} />
+      <meta name="twitter:image" content={metaImage} />
 
       {/* Hreflang Tags for Multilingual Support */}
       {alternateLanguages.length > 0 && alternateLanguages.map((lang) => (
@@ -116,6 +141,10 @@ export default function SEOHead({
         <>
           <meta name="geo.region" content={location.country === "Portugal" ? "PT" : location.country} />
           <meta name="geo.placename" content={location.city} />
+          {location.latitude && location.longitude && (
+            <meta name="geo.position" content={`${location.latitude};${location.longitude}`} />
+          )}
+          <meta name="ICBM" content={`${location.latitude || ''}, ${location.longitude || ''}`} />
         </>
       )}
     </Helmet>

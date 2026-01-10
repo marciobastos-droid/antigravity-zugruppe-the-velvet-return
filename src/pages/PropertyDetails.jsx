@@ -349,12 +349,20 @@ export default function PropertyDetails() {
   const propertyImage = React.useMemo(() => images[0], [images]);
   const structuredData = React.useMemo(() => property ? generatePropertyStructuredData(property, propertyImage) : null, [property, propertyImage]);
 
-  const alternateLanguages = React.useMemo(() => [
-    { locale: 'pt-PT', url: `${seoCanonicalUrl}&lang=pt` },
-    { locale: 'en-US', url: `${seoCanonicalUrl}&lang=en` },
-    { locale: 'es-ES', url: `${seoCanonicalUrl}&lang=es` },
-    { locale: 'fr-FR', url: `${seoCanonicalUrl}&lang=fr` }
-  ], [seoCanonicalUrl]);
+  const alternateLanguages = React.useMemo(() => {
+    const baseUrl = seoCanonicalUrl.split('?')[0];
+    const params = new URLSearchParams(window.location.search);
+    params.delete('lang');
+    const baseQuery = params.toString();
+    
+    return [
+      { locale: 'pt-PT', url: `${baseUrl}?${baseQuery}&lang=pt` },
+      { locale: 'en-US', url: `${baseUrl}?${baseQuery}&lang=en` },
+      { locale: 'es-ES', url: `${baseUrl}?${baseQuery}&lang=es` },
+      { locale: 'fr-FR', url: `${baseUrl}?${baseQuery}&lang=fr` },
+      { locale: 'de-DE', url: `${baseUrl}?${baseQuery}&lang=de` }
+    ];
+  }, [seoCanonicalUrl]);
 
 
 
@@ -548,7 +556,7 @@ export default function PropertyDetails() {
           title={metaTitle}
           description={metaDescription}
           keywords={metaKeywords}
-          image={propertyImage}
+          image={property.images?.length > 0 ? property.images : propertyImage}
           url={seoCanonicalUrl}
           type="product"
           price={property.price}
@@ -558,7 +566,9 @@ export default function PropertyDetails() {
           location={{
             city: property.city,
             state: property.state,
-            country: property.country || "Portugal"
+            country: property.country || "Portugal",
+            latitude: property.latitude,
+            longitude: property.longitude
           }}
           structuredData={structuredData}
           alternateLanguages={alternateLanguages}
