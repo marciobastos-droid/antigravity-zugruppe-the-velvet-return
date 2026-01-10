@@ -13,13 +13,18 @@ export default function ContactFilterBadges({
 
   // Calculate counts for each filter
   const counts = useMemo(() => {
-    if (!contacts || contacts.length === 0) {
+    // Safety check to prevent infinite loops
+    if (!Array.isArray(contacts) || contacts.length === 0) {
       return {
         novos: 0, contactados: 0, visitaAgendada: 0, proposta: 0, fechados: 0, hot: 0, 
         compradores: 0, convertidos: 0, negociacao: 0, perdidos: 0, warm: 0, cold: 0,
         naoQualificados: 0, website: 0, facebookAds: 0, portais: 0, vendedores: 0,
         parceiros: 0, naoConvertidos: 0, consultores: []
       };
+    }
+    
+    if (!Array.isArray(opportunities)) {
+      console.warn('[ContactFilterBadges] Opportunities is not an array:', opportunities);
     }
 
     // Helper to get opportunities for a contact
@@ -143,6 +148,7 @@ export default function ContactFilterBadges({
   };
 
   const agentsList = useMemo(() => {
+    if (!Array.isArray(contacts)) return [];
     return [...new Set(contacts.map(c => c.assigned_agent).filter(Boolean))];
   }, [contacts]);
 
