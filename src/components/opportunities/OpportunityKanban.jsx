@@ -320,8 +320,8 @@ export default function OpportunityKanban({
                                     </Badge>
                                   )}
                                   {opp.source_detail && (
-                                    <Badge className="bg-indigo-100 text-indigo-700 text-[0.65rem] py-0 px-1.5 max-w-[120px] truncate" title={opp.source_detail}>
-                                      {opp.source_detail}
+                                    <Badge className="bg-indigo-100 text-indigo-700 text-[0.65rem] py-0 px-1.5" title={opp.source_detail}>
+                                      {opp.source_detail.length > 15 ? `${opp.source_detail.substring(0, 15)}...` : opp.source_detail}
                                     </Badge>
                                   )}
                                   {opp.assigned_to && (
