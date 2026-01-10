@@ -47,9 +47,11 @@ import MultiCurrencyPrice from "../components/property/MultiCurrencyPrice";
 const PropertiesMap = React.lazy(() => import("../components/maps/PropertiesMap"));
 import BlogSection from "../components/blog/BlogSection";
 
+// Enhanced Carousel Component Import
+const EnhancedPropertyCarousel = React.lazy(() => import("../components/browse/EnhancedPropertyCarousel"));
+
 // Compact Card for Grid View
 const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, onToggleFavorite, isFavorited }) => {
-  const [imgIndex, setImgIndex] = React.useState(0);
   const images = property.images?.length > 0 ? property.images : [];
   const translatedProperty = useTranslatedProperty(property);
 
@@ -58,55 +60,35 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 relative block"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-        {images[imgIndex] ? (
-          <OptimizedImage
-            src={images[imgIndex]}
-            alt={property.title}
-            width={800}
-            height={600}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="w-full h-full"
-            priority={index < 4}
-            quality={80}
-            blur={true}
-            fallbackIcon={Home}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <Home className="w-12 h-12 text-slate-300" />
-          </div>
-        )}
-
-        {images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.slice(0, 5).map((_, i) => (
-              <button
-                key={i}
-                onClick={(e) => { e.stopPropagation(); setImgIndex(i); }}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${i === imgIndex ? 'bg-white w-4' : 'bg-white/60'}`}
-              />
-            ))}
-          </div>
-        )}
-        
-        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
-          {featured && (
-            <Badge className="bg-amber-400 text-slate-900 border-0">
-              <Star className="w-3 h-3 mr-1" />
-              {t('common.featured')}
-            </Badge>
-          )}
-          <Badge className="bg-white/95 text-slate-800 border-0">
-            {t(`property.listing.${property.listing_type}`)}
-          </Badge>
+      <React.Suspense fallback={
+        <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center">
+          <Home className="w-12 h-12 text-slate-300 animate-pulse" />
         </div>
+      }>
+        <EnhancedPropertyCarousel
+          images={images}
+          alt={property.title}
+          className="aspect-[4/3]"
+        />
+      </React.Suspense>
+      
+      {/* Overlay Badges */}
+      <div className="absolute top-3 left-3 flex gap-2 flex-wrap z-20">
+        {featured && (
+          <Badge className="bg-amber-400 text-slate-900 border-0">
+            <Star className="w-3 h-3 mr-1" />
+            {t('common.featured')}
+          </Badge>
+        )}
+        <Badge className="bg-white/95 text-slate-800 border-0">
+          {t(`property.listing.${property.listing_type}`)}
+        </Badge>
+      </div>
 
-        <div className="absolute bottom-2 right-2">
-          <div className="bg-white/95 backdrop-blur-sm shadow-sm px-1.5 py-0.5 rounded border border-slate-200">
-            <div className="text-[10px] font-bold text-slate-900">
-              {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-            </div>
+      <div className="absolute bottom-2 right-2 z-20">
+        <div className="bg-white/95 backdrop-blur-sm shadow-sm px-1.5 py-0.5 rounded border border-slate-200">
+          <div className="text-[10px] font-bold text-slate-900">
+            {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
           </div>
         </div>
       </div>
@@ -173,7 +155,7 @@ const PropertyCardCompact = React.memo(({ property, featured, index, t, locale, 
 
 // List Card for List View  
 const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavorite, isFavorited }) => {
-  const image = property.images?.[0];
+  const images = property.images?.length > 0 ? property.images : [];
   const translatedProperty = useTranslatedProperty(property);
 
   return (
@@ -181,26 +163,19 @@ const PropertyCardList = React.memo(({ property, index, t, locale, onToggleFavor
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
       className="group flex bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-slate-100 relative block"
     >
-      <div className="relative w-72 flex-shrink-0 overflow-hidden bg-slate-100">
-        {image ? (
-          <OptimizedImage
-            src={image}
-            alt={property.title}
-            width={640}
-            height={480}
-            sizes="288px"
-            className="w-full h-full"
-            priority={index < 3}
-            quality={80}
-            blur={true}
-            fallbackIcon={Home}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Home className="w-12 h-12 text-slate-300" />
+      <div className="relative w-72 flex-shrink-0">
+        <React.Suspense fallback={
+          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+            <Home className="w-12 h-12 text-slate-300 animate-pulse" />
           </div>
-        )}
-        <Badge className="absolute top-3 left-3 bg-white/95 text-slate-800 border-0">
+        }>
+          <EnhancedPropertyCarousel
+            images={images}
+            alt={property.title}
+            className="w-full h-full"
+          />
+        </React.Suspense>
+        <Badge className="absolute top-3 left-3 bg-white/95 text-slate-800 border-0 z-20">
           {t(`property.listing.${property.listing_type}`)}
         </Badge>
       </div>

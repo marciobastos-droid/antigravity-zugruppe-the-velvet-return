@@ -1,102 +1,51 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon, ChevronLeft, ChevronRight, Building2, FileText, Download } from "lucide-react";
+import { MapPin, Bed, Bath, Maximize, Star, ExternalLink, Hash, Home as HomeIcon, Building2, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CURRENCY_SYMBOLS, convertToEUR } from "@/components/utils/currencyConverter";
-import OptimizedImage from "../common/OptimizedImage";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import EnhancedPropertyCarousel from "./EnhancedPropertyCarousel";
 
 export default function PropertyCard({ property, hideMetadata = false }) {
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-  
-  // Reset image index when property changes
-  React.useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [property.id]);
-  
   const images = property.images && property.images.length > 0 
     ? property.images 
-    : ["https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&q=80"];
-  
-  const hasMultipleImages = images.length > 1;
-
-  const handlePrevImage = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
-
-  const handleNextImage = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
+    : [];
 
   return (
     <Link 
       to={`${createPageUrl("PropertyDetails")}?id=${property.id}`}
-      className="group bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200"
+      className="group bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 block"
     >
-      {/* Image */}
-      <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden bg-slate-100">
-        <OptimizedImage
-          src={images[currentImageIndex]}
-          alt={property.title}
-          className="w-full h-full group-hover:scale-110 transition-transform duration-500"
-          fallbackIcon={HomeIcon}
-          strategy="lazy"
-        />
-        
-        {/* Image Navigation Arrows */}
-        {hasMultipleImages && (
-          <>
-            <button
-              onClick={handlePrevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full transition-all opacity-0 group-hover:opacity-100"
-              aria-label="Imagem anterior"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleNextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full transition-all opacity-0 group-hover:opacity-100"
-              aria-label="Próxima imagem"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-            
-            {/* Image Counter */}
-            <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded text-xs">
-              {currentImageIndex + 1} / {images.length}
-            </div>
-          </>
-        )}
-        
-        <div className="absolute top-3 md:top-4 left-3 md:left-4 flex gap-2 flex-wrap">
-          {property.featured && (
-            <Badge className="bg-amber-400 text-slate-900 border-0 text-xs">
-              <Star className="w-3 h-3 mr-1" />
-              Destaque
-            </Badge>
-          )}
-          <Badge className="bg-white/95 text-slate-900 border-0 text-xs">
-            {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+      {/* Enhanced Carousel */}
+      <EnhancedPropertyCarousel
+        images={images}
+        alt={property.title}
+        className="h-48 sm:h-56 md:h-64"
+      />
+      
+      {/* Badges Overlay */}
+      <div className="absolute top-3 md:top-4 left-3 md:left-4 flex gap-2 flex-wrap z-20">
+        {property.featured && (
+          <Badge className="bg-amber-400 text-slate-900 border-0 text-xs">
+            <Star className="w-3 h-3 mr-1" />
+            Destaque
           </Badge>
-        </div>
-        <div className="absolute bottom-2 md:bottom-3 right-2 md:right-3">
-          <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 py-1 rounded-md font-bold text-xs md:text-sm">
-            {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
-            {property.currency && property.currency !== 'EUR' && (() => {
-              const eurValue = convertToEUR(property.price, property.currency);
-              return eurValue ? (
-                <div className="text-[9px] font-normal text-white/80 mt-0.5">
-                  ≈ €{eurValue.toLocaleString()}
-                </div>
-              ) : null;
-            })()}
-          </div>
+        )}
+        <Badge className="bg-white/95 text-slate-900 border-0 text-xs">
+          {property.listing_type === 'sale' ? 'Venda' : 'Arrendamento'}
+        </Badge>
+      </div>
+      <div className="absolute bottom-2 md:bottom-3 right-2 md:right-3 z-20">
+        <div className="bg-slate-900/90 backdrop-blur-sm text-white px-2 py-1 rounded-md font-bold text-xs md:text-sm">
+          {CURRENCY_SYMBOLS[property.currency] || '€'}{property.price?.toLocaleString()}
+          {property.currency && property.currency !== 'EUR' && (() => {
+            const eurValue = convertToEUR(property.price, property.currency);
+            return eurValue ? (
+              <div className="text-[9px] font-normal text-white/80 mt-0.5">
+                ≈ €{eurValue.toLocaleString()}
+              </div>
+            ) : null;
+          })()}
         </div>
       </div>
 
