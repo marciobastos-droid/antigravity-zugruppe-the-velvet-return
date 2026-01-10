@@ -27,13 +27,14 @@ export default function ContactFilterBadges({
       console.warn('[ContactFilterBadges] Opportunities is not an array:', opportunities);
     }
 
-    // Helper to get opportunities for a contact
+    // Helper to get opportunities for a contact (memoized to prevent recalculation)
     const getContactOpps = (contactId) => {
-      if (!opportunities || opportunities.length === 0) return [];
+      if (!Array.isArray(opportunities) || opportunities.length === 0) return [];
+      const contactEmail = contacts.find(c => c.id === contactId)?.email;
       return opportunities.filter(o => 
         o.contact_id === contactId || 
         o.profile_id === contactId ||
-        (o.buyer_email && contacts.find(c => c.id === contactId)?.email === o.buyer_email)
+        (o.buyer_email && contactEmail && o.buyer_email === contactEmail)
       );
     };
 
@@ -116,9 +117,9 @@ export default function ContactFilterBadges({
       }).length,
 
       // Consultores (unique assigned agents)
-      consultores: [...new Set(contacts.map(c => c.assigned_agent).filter(Boolean))]
+      consultores: [...new Set(contacts.map(c => c?.assigned_agent).filter(Boolean))]
     };
-  }, [contacts, opportunities]);
+  }, [contacts?.length, opportunities?.length]); // Use length to prevent infinite loops from array reference changes
 
   const FilterBadge = ({ label, count, filterKey, filterValue, icon: Icon, color = "slate", emoji }) => {
     const isActive = activeFilters[filterKey] === filterValue;
