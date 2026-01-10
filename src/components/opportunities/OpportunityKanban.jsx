@@ -319,11 +319,6 @@ export default function OpportunityKanban({
                                        opp.lead_source}
                                     </Badge>
                                   )}
-                                  {opp.source_detail && (
-                                    <Badge className="bg-indigo-100 text-indigo-700 text-[0.65rem] py-0 px-1.5" title={opp.source_detail}>
-                                      {opp.source_detail.length > 15 ? `${opp.source_detail.substring(0, 15)}...` : opp.source_detail}
-                                    </Badge>
-                                  )}
                                   {opp.assigned_to && (
                                     <Badge className="bg-slate-100 text-slate-700 text-[0.65rem] py-0 px-1.5">
                                       <UserCheck className="w-3 h-3 mr-1" />
