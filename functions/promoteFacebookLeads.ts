@@ -40,19 +40,16 @@ Deno.serve(async (req) => {
           return match ? parseInt(match[1]) : 0;
         }));
         const oppRefId = `OPO-${String(maxOppNumber + 1).padStart(5, '0')}`;
-        console.log(`[CONVERT] Generated Opportunity ref_id: ${oppRefId}`);
 
         // Verificar se já existe contacto com este email
         let contactId = null;
         if (lead.email) {
-          console.log(`[CONVERT] Checking for existing contact with email: ${lead.email}`);
           const existingContacts = await base44.asServiceRole.entities.ClientContact.filter({ 
             email: lead.email 
           });
           
           if (existingContacts && existingContacts.length > 0) {
             contactId = existingContacts[0].id;
-            console.log(`[CONVERT] Found existing contact: ${contactId}`);
           } else {
             // Gerar ref_id simples para o contacto
             const allContacts = await base44.asServiceRole.entities.ClientContact.list();
@@ -61,65 +58,43 @@ Deno.serve(async (req) => {
               return match ? parseInt(match[1]) : 0;
             }));
             const contactRefId = `CLI-${String(maxContactNumber + 1).padStart(5, '0')}`;
-            console.log(`[CONVERT] Generated ClientContact ref_id: ${contactRefId}`);
             
-            // Criar novo contacto usando create_entity_records
-            console.log(`[CONVERT] Creating new ClientContact...`);
-            const BASE_URL = Deno.env.get('BASE44_API_URL') || 'https://api.base44.com';
-            const APP_ID = Deno.env.get('BASE44_APP_ID');
+            // Criar novo contacto
+            const contactData = {
+              ref_id: contactRefId,
+              full_name: lead.full_name,
+              email: lead.email,
+              phone: lead.phone,
+              city: lead.location,
+              contact_type: "client",
+              source: "facebook_ads",
+              notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
+            };
             
-            const contactCreateResponse = await base44.asServiceRole._http.post(
-              `/apps/${APP_ID}/tools/create_entity_records`,
-              {
-                entity_name: 'ClientContact',
-                data: [{
-                  ref_id: contactRefId,
-                  full_name: lead.full_name,
-                  email: lead.email,
-                  phone: lead.phone,
-                  city: lead.location,
-                  contact_type: "client",
-                  source: "facebook_ads",
-                  notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
-                }]
-              }
-            );
-            
-            contactId = contactCreateResponse.data[0].id;
-            console.log(`[CONVERT] Created ClientContact: ${contactId}`);
+            const [newContact] = await base44.asServiceRole.entities.ClientContact.bulkCreate([contactData]);
+            contactId = newContact.id;
           }
         }
 
-        // Criar oportunidade usando create_entity_records
-        console.log(`[CONVERT] Creating Opportunity...`);
-        const BASE_URL = Deno.env.get('BASE44_API_URL') || 'https://api.base44.com';
-        const APP_ID = Deno.env.get('BASE44_APP_ID');
+        // Criar oportunidade
+        const oppData = {
+          ref_id: oppRefId,
+          lead_type: "comprador",
+          contact_id: contactId || undefined,
+          buyer_name: lead.full_name,
+          buyer_email: lead.email,
+          buyer_phone: lead.phone,
+          location: lead.location,
+          budget: lead.budget ? Number(lead.budget) : undefined,
+          property_type_interest: lead.property_type,
+          message: `Lead do Facebook (Campanha: ${lead.campaign_name || lead.campaign_id})\n\n${lead.message || ''}`,
+          status: "new",
+          priority: "high",
+          lead_source: "facebook_ads",
+          source_detail: lead.campaign_name || lead.campaign_id
+        };
         
-        const oppCreateResponse = await base44.asServiceRole._http.post(
-          `/apps/${APP_ID}/tools/create_entity_records`,
-          {
-            entity_name: 'Opportunity',
-            data: [{
-              ref_id: oppRefId,
-              lead_type: "comprador",
-              contact_id: contactId || undefined,
-              buyer_name: lead.full_name,
-              buyer_email: lead.email,
-              buyer_phone: lead.phone,
-              location: lead.location,
-              budget: lead.budget ? Number(lead.budget) : undefined,
-              property_type_interest: lead.property_type,
-              message: `Lead do Facebook (Campanha: ${lead.campaign_name || lead.campaign_id})\n\n${lead.message || ''}`,
-              status: "new",
-              priority: "high",
-              lead_source: "facebook_ads",
-              source_detail: lead.campaign_name || lead.campaign_id
-            }]
-          }
-        );
-        
-        const opportunity = oppCreateResponse.data[0];
-        console.log(`[CONVERT] Created Opportunity: ${opportunity.id}`);
+        const [opportunity] = await base44.asServiceRole.entities.Opportunity.bulkCreate([oppData]);
 
         // Atualizar FacebookLead
         await base44.asServiceRole.entities.FacebookLead.update(lead.id, {
@@ -128,7 +103,7 @@ Deno.serve(async (req) => {
         });
 
         successCount++;
-        console.log(`Converted lead: ${lead.full_name} -> Opportunity ${oppRefId}`);
+        console.log(`✅ Converted lead: ${lead.full_name} -> ${oppRefId}`);
       } catch (error) {
         errorCount++;
         errors.push({
@@ -136,7 +111,7 @@ Deno.serve(async (req) => {
           lead_email: lead.email,
           error: error.message
         });
-        console.error(`Failed to convert lead ${lead.full_name}:`, error);
+        console.error(`❌ Failed to convert lead ${lead.full_name}:`, error);
       }
     }
 
