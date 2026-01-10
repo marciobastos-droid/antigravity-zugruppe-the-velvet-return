@@ -10,8 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PropertyCard from "../components/browse/PropertyCard";
 import SEOHead from "../components/seo/SEOHead";
+import { useLocalization } from "../components/i18n/LocalizationContext";
 
 export default function WorldWideProperties() {
+  const { t } = useLocalization();
   const [countryFilter, setCountryFilter] = React.useState("all");
   const [listingTypeFilter, setListingTypeFilter] = React.useState("all");
   const [propertyTypeFilter, setPropertyTypeFilter] = React.useState("all");
@@ -126,25 +128,25 @@ export default function WorldWideProperties() {
               className="group gap-2 text-white/90 hover:text-white hover:bg-white/10 border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-300 px-6 py-6"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              <span className="font-medium">Voltar</span>
+              <span className="font-medium">{t('common.back')}</span>
             </Button>
           </Link>
           
           <div className="flex items-center gap-3 mb-4">
             <Globe className="w-12 h-12 text-blue-300" />
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">WorldWide Properties</h1>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold">{t('pages.worldwide.title')}</h1>
           </div>
           <p className="text-xl sm:text-2xl text-blue-100 max-w-3xl">
-            Imóveis exclusivos ao redor do mundo
+            {t('pages.worldwide.subtitle')}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-4 text-blue-200">
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              <span className="font-semibold">{countries.length} Países</span>
+              <span className="font-semibold">{countries.length} {t('pages.worldwide.countries')}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5" />
-              <span className="font-semibold">{properties.length} Imóveis Internacionais</span>
+              <span className="font-semibold">{properties.length} {t('pages.worldwide.internationalProperties')}</span>
             </div>
           </div>
         </div>
@@ -156,18 +158,18 @@ export default function WorldWideProperties() {
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <Filter className="w-5 h-5 text-blue-700" />
-              <h3 className="font-semibold text-slate-900">Filtros</h3>
+              <h3 className="font-semibold text-slate-900">{t('pages.worldwide.filters')}</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">País</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('pages.worldwide.country')}</label>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Países</SelectItem>
+                    <SelectItem value="all">{t('pages.worldwide.allCountries')}</SelectItem>
                     {countries.map(country => (
                       <SelectItem key={country} value={country}>{country}</SelectItem>
                     ))}
@@ -176,30 +178,30 @@ export default function WorldWideProperties() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Negócio</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('pages.worldwide.businessType')}</label>
                 <Select value={listingTypeFilter} onValueChange={setListingTypeFilter}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="sale">Venda</SelectItem>
-                    <SelectItem value="rent">Arrendamento</SelectItem>
+                    <SelectItem value="all">{t('pages.worldwide.all')}</SelectItem>
+                    <SelectItem value="sale">{t('pages.worldwide.sale')}</SelectItem>
+                    <SelectItem value="rent">{t('pages.worldwide.rent')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Tipo de Imóvel</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('pages.worldwide.propertyType')}</label>
                 <Select value={propertyTypeFilter} onValueChange={setPropertyTypeFilter}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="all">{t('pages.worldwide.all')}</SelectItem>
                     {propertyTypes.map(type => (
                       <SelectItem key={type} value={type}>
-                        {propertyTypeLabels[type] || type}
+                        {t(`property.types.${type}`) || type}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -207,22 +209,22 @@ export default function WorldWideProperties() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Ordenar por</label>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">{t('pages.worldwide.sortBy')}</label>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="newest">Mais Recentes</SelectItem>
-                    <SelectItem value="price_desc">Preço: Maior para Menor</SelectItem>
-                    <SelectItem value="price_asc">Preço: Menor para Maior</SelectItem>
+                    <SelectItem value="newest">{t('pages.worldwide.newest')}</SelectItem>
+                    <SelectItem value="price_desc">{t('pages.worldwide.priceHighToLow')}</SelectItem>
+                    <SelectItem value="price_asc">{t('pages.worldwide.priceLowToHigh')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
-              <span>A mostrar <strong>{filteredProperties.length}</strong> imóveis internacionais</span>
+              <span>{t('pages.worldwide.showing')} <strong>{filteredProperties.length}</strong> {t('pages.worldwide.internationalProperties').toLowerCase()}</span>
               {(countryFilter !== "all" || listingTypeFilter !== "all" || propertyTypeFilter !== "all") && (
                 <Button 
                   variant="ghost" 
@@ -233,7 +235,7 @@ export default function WorldWideProperties() {
                     setPropertyTypeFilter("all");
                   }}
                 >
-                  Limpar Filtros
+                  {t('pages.worldwide.clearFilters')}
                 </Button>
               )}
             </div>
@@ -249,8 +251,8 @@ export default function WorldWideProperties() {
           <Card className="text-center py-20">
             <CardContent>
               <Globe className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Nenhum imóvel internacional encontrado</h3>
-              <p className="text-slate-600">Ajuste os filtros ou volte mais tarde</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">{t('pages.worldwide.noInternationalFound')}</h3>
+              <p className="text-slate-600">{t('pages.worldwide.adjustFilters')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -294,27 +296,27 @@ export default function WorldWideProperties() {
               </a>
               <span>•</span>
               <Link to={createPageUrl("TermsConditions")} className="hover:text-white transition-colors">
-                Termos e Condições
+                {t('footer.terms')}
               </Link>
               <span>•</span>
               <Link to={createPageUrl("PrivacyPolicy")} className="hover:text-white transition-colors">
-                Política de Privacidade
+                {t('footer.privacy')}
               </Link>
               <span>•</span>
               <Link to={createPageUrl("CookiePolicy")} className="hover:text-white transition-colors">
-                Política de Cookies
+                {t('footer.cookies')}
               </Link>
               <span>•</span>
               <Link to={createPageUrl("DenunciationChannel")} className="hover:text-white transition-colors">
-                Canal de Denúncias
+                {t('footer.denunciationChannel')}
               </Link>
               <span>•</span>
               <Link to={createPageUrl("ManageData")} className="hover:text-white transition-colors">
-                Gerir Dados
+                {t('footer.manageData')}
               </Link>
             </div>
             <p className="text-xs text-slate-500">
-              © {new Date().getFullYear()} Zugruppe. Todos os direitos reservados. | Licença IMPIC 11355
+              © {new Date().getFullYear()} Zugruppe. {t('footer.rights')}. | {t('footer.license')} 11355
             </p>
           </div>
         </div>
