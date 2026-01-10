@@ -138,11 +138,11 @@ export default function ContactFilterBadges({
 
     return (
       <Badge
-        className={`${colorClasses[color]} cursor-pointer transition-all border-0 text-xs px-2.5 py-1 font-medium`}
+        className={`${colorClasses[color]} cursor-pointer transition-all border-0 text-[11px] px-2 py-0.5 font-medium`}
         onClick={() => onFilterChange(filterKey, isActive ? null : filterValue)}
       >
-        {emoji && <span className="mr-1">{emoji}</span>}
-        {Icon && <Icon className="w-3 h-3 mr-1" />}
+        {emoji && <span className="mr-0.5 text-[10px]">{emoji}</span>}
+        {Icon && <Icon className="w-2.5 h-2.5 mr-0.5" />}
         {label} ({count})
       </Badge>
     );
@@ -154,77 +154,80 @@ export default function ContactFilterBadges({
   }, [contacts]);
 
   return (
-    <div className="space-y-4">
-      {/* PRINCIPAIS */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          📊 Principais
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Novos" count={counts.novos} filterKey="quick" filterValue="new" color="cyan" />
-          <FilterBadge label="Contactados" count={counts.contactados} filterKey="quick" filterValue="contacted" color="blue" />
-          <FilterBadge label="Visita Agendada" count={counts.visitaAgendada} filterKey="quick" filterValue="visit_scheduled" color="purple" />
-          <FilterBadge label="Proposta" count={counts.proposta} filterKey="quick" filterValue="proposal" color="indigo" />
-          <FilterBadge label="Fechados" count={counts.fechados} filterKey="quick" filterValue="won" color="green" emoji="🔥" />
-          <FilterBadge label="Hot" count={counts.hot} filterKey="qualification" filterValue="hot" color="red" emoji="🔥" />
-          <FilterBadge label="Compradores" count={counts.compradores} filterKey="leadType" filterValue="buyer" color="blue" />
-          <FilterBadge label="Convertidos" count={counts.convertidos} filterKey="quick" filterValue="converted" color="green" icon={CheckCircle2} />
+    <div className="space-y-3">
+      {/* Two Column Grid Layout */}
+      <div className="grid md:grid-cols-2 gap-x-6 gap-y-3">
+        {/* PRINCIPAIS */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            📊 Principais
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Novos" count={counts.novos} filterKey="quick" filterValue="new" color="cyan" />
+            <FilterBadge label="Contactados" count={counts.contactados} filterKey="quick" filterValue="contacted" color="blue" />
+            <FilterBadge label="Visita Agendada" count={counts.visitaAgendada} filterKey="quick" filterValue="visit_scheduled" color="purple" />
+            <FilterBadge label="Proposta" count={counts.proposta} filterKey="quick" filterValue="proposal" color="indigo" />
+            <FilterBadge label="Fechados" count={counts.fechados} filterKey="quick" filterValue="won" color="green" emoji="🔥" />
+            <FilterBadge label="Hot" count={counts.hot} filterKey="qualification" filterValue="hot" color="red" emoji="🔥" />
+            <FilterBadge label="Compradores" count={counts.compradores} filterKey="leadType" filterValue="buyer" color="blue" />
+            <FilterBadge label="Convertidos" count={counts.convertidos} filterKey="quick" filterValue="converted" color="green" icon={CheckCircle2} />
+          </div>
         </div>
-      </div>
 
-      {/* ESTADOS */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          📈 Estados
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Negociação" count={counts.negociacao} filterKey="quick" filterValue="negotiation" color="orange" />
-          <FilterBadge label="Perdidos" count={counts.perdidos} filterKey="quick" filterValue="lost" color="red" />
+        {/* ESTADOS */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            📈 Estados
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Negociação" count={counts.negociacao} filterKey="quick" filterValue="negotiation" color="orange" />
+            <FilterBadge label="Perdidos" count={counts.perdidos} filterKey="quick" filterValue="lost" color="red" />
+          </div>
         </div>
-      </div>
 
-      {/* QUALIFICAÇÃO */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          🎯 Qualificação
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Warm" count={counts.warm} filterKey="qualification" filterValue="warm" color="orange" emoji="🌡️" />
-          <FilterBadge label="Cold" count={counts.cold} filterKey="qualification" filterValue="cold" color="cyan" emoji="💧" />
-          <FilterBadge label="Não Qualificados" count={counts.naoQualificados} filterKey="qualification" filterValue="unqualified" color="slate" />
+        {/* QUALIFICAÇÃO */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            🎯 Qualificação
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Warm" count={counts.warm} filterKey="qualification" filterValue="warm" color="orange" emoji="🌡️" />
+            <FilterBadge label="Cold" count={counts.cold} filterKey="qualification" filterValue="cold" color="cyan" emoji="💧" />
+            <FilterBadge label="Não Qualificados" count={counts.naoQualificados} filterKey="qualification" filterValue="unqualified" color="slate" />
+          </div>
         </div>
-      </div>
 
-      {/* ORIGEM */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          🌐 Origem
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Website" count={counts.website} filterKey="source" filterValue="website" color="blue" icon={Globe} />
-          <FilterBadge label="Facebook Ads" count={counts.facebookAds} filterKey="source" filterValue="facebook_ads" color="indigo" icon={Facebook} />
-          <FilterBadge label="Portais" count={counts.portais} filterKey="source" filterValue="portals" color="purple" />
+        {/* ORIGEM */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            🌐 Origem
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Website" count={counts.website} filterKey="source" filterValue="website" color="blue" icon={Globe} />
+            <FilterBadge label="Facebook Ads" count={counts.facebookAds} filterKey="source" filterValue="facebook_ads" color="indigo" icon={Facebook} />
+            <FilterBadge label="Portais" count={counts.portais} filterKey="source" filterValue="portals" color="purple" />
+          </div>
         </div>
-      </div>
 
-      {/* TIPO DE LEAD */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          👥 Tipo de Lead
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Vendedores" count={counts.vendedores} filterKey="leadType" filterValue="seller" color="amber" />
-          <FilterBadge label="Parceiros" count={counts.parceiros} filterKey="contactType" filterValue="partner" color="purple" emoji="🤝" />
+        {/* TIPO DE LEAD */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            👥 Tipo de Lead
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Vendedores" count={counts.vendedores} filterKey="leadType" filterValue="seller" color="amber" />
+            <FilterBadge label="Parceiros" count={counts.parceiros} filterKey="contactType" filterValue="partner" color="purple" emoji="🤝" />
+          </div>
         </div>
-      </div>
 
-      {/* OUTROS */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
-          📌 Outros
-        </h4>
-        <div className="flex flex-wrap gap-2">
-          <FilterBadge label="Não Convertidos" count={counts.naoConvertidos} filterKey="quick" filterValue="not_converted" color="slate" />
+        {/* OUTROS */}
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+            📌 Outros
+          </h4>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterBadge label="Não Convertidos" count={counts.naoConvertidos} filterKey="quick" filterValue="not_converted" color="slate" />
+          </div>
         </div>
       </div>
 
