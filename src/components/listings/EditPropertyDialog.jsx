@@ -735,19 +735,20 @@ Retorna APENAS o título melhorado, nada mais.`,
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="house">Moradia</SelectItem>
-                      <SelectItem value="apartment">Apartamento</SelectItem>
-                      <SelectItem value="condo">Condomínio</SelectItem>
-                      <SelectItem value="townhouse">Casa Geminada</SelectItem>
-                      <SelectItem value="building">Prédio</SelectItem>
-                      <SelectItem value="land">Terreno</SelectItem>
-                      <SelectItem value="commercial">Comercial</SelectItem>
-                      <SelectItem value="warehouse">Armazém</SelectItem>
-                      <SelectItem value="office">Escritório</SelectItem>
-                      <SelectItem value="store">Loja</SelectItem>
-                      <SelectItem value="farm">Quinta</SelectItem>
-                      <SelectItem value="development">Empreendimento</SelectItem>
-                    </SelectContent>
+                       <SelectItem value="house">Moradia</SelectItem>
+                       <SelectItem value="apartment">Apartamento</SelectItem>
+                       <SelectItem value="condo">Condomínio</SelectItem>
+                       <SelectItem value="townhouse">Casa Geminada</SelectItem>
+                       <SelectItem value="building">Prédio</SelectItem>
+                       <SelectItem value="land">Terreno</SelectItem>
+                       <SelectItem value="commercial">Comercial</SelectItem>
+                       <SelectItem value="warehouse">Armazém</SelectItem>
+                       <SelectItem value="office">Escritório</SelectItem>
+                       <SelectItem value="store">Loja</SelectItem>
+                       <SelectItem value="farm">Quinta</SelectItem>
+                       <SelectItem value="hotel">Hotel</SelectItem>
+                       <SelectItem value="development">Empreendimento</SelectItem>
+                     </SelectContent>
                   </Select>
                 </div>
 
