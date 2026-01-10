@@ -194,8 +194,14 @@ Deno.serve(async (req) => {
               await base44.entities.ClientContact.update(contactId, { assigned_agent: assigned_to });
             }
           } else {
+            // Gerar ref_id para o contacto
+            const contactRefIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
+              entity_type: 'ClientContact' 
+            });
+            
             // Criar novo contacto
-            const newContact = await base44.entities.ClientContact.create({
+            const newContact = await base44.asServiceRole.entities.ClientContact.create({
+              ref_id: contactRefIdResponse.data.ref_id,
               full_name: leadData.full_name,
               email: leadData.email,
               phone: leadData.phone,
