@@ -30,6 +30,8 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
+import GDPRManagement from './pages/GDPRManagement';
+import DSARPortal from './pages/DSARPortal';
 import __Layout from './Layout.jsx';
 
 
@@ -66,6 +68,8 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
+    "GDPRManagement": GDPRManagement,
+    "DSARPortal": DSARPortal,
 }
 
 export const pagesConfig = {
