@@ -63,9 +63,9 @@ Deno.serve(async (req) => {
             const contactRefId = `CLI-${String(maxContactNumber + 1).padStart(5, '0')}`;
             console.log(`[CONVERT] Generated ClientContact ref_id: ${contactRefId}`);
             
-            // Criar novo contacto via bulkCreate (bypasses RLS)
-            console.log(`[CONVERT] Creating new ClientContact...`);
-            const [newContact] = await base44.asServiceRole.entities.ClientContact.bulkCreate([{
+            // Criar novo contacto usando create_entity_records tool
+            console.log(`[CONVERT] Creating new ClientContact using tool...`);
+            const newContacts = await base44.asServiceRole.tools.createEntityRecords('ClientContact', [{
               ref_id: contactRefId,
               full_name: lead.full_name,
               email: lead.email,
@@ -75,14 +75,14 @@ Deno.serve(async (req) => {
               source: "facebook_ads",
               notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
             }]);
-            contactId = newContact.id;
+            contactId = newContacts[0].id;
             console.log(`[CONVERT] Created ClientContact: ${contactId}`);
           }
         }
 
-        // Criar oportunidade via bulkCreate (bypasses RLS)
-        console.log(`[CONVERT] Creating Opportunity...`);
-        const [opportunity] = await base44.asServiceRole.entities.Opportunity.bulkCreate([{
+        // Criar oportunidade usando create_entity_records tool
+        console.log(`[CONVERT] Creating Opportunity using tool...`);
+        const opportunities = await base44.asServiceRole.tools.createEntityRecords('Opportunity', [{
           ref_id: oppRefId,
           lead_type: "comprador",
           contact_id: contactId || undefined,
@@ -98,6 +98,7 @@ Deno.serve(async (req) => {
           lead_source: "facebook_ads",
           source_detail: lead.campaign_name || lead.campaign_id
         }]);
+        const opportunity = opportunities[0];
         console.log(`[CONVERT] Created Opportunity: ${opportunity.id}`);
 
         // Atualizar FacebookLead
