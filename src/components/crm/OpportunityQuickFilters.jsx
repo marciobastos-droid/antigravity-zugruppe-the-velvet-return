@@ -15,35 +15,54 @@ export default function OpportunityQuickFilters({
 }) {
   const [expanded, setExpanded] = React.useState(false);
   
-  // Estado para ordem das badges
-  const [badgeGroups, setBadgeGroups] = React.useState([
-    { id: 'main', title: 'PRINCIPAIS', badges: ['new', 'contacted', 'visit_scheduled', 'proposal', 'won', 'hot', 'comprador', 'converted'] },
-    { id: 'estados', title: 'ESTADOS', badges: ['negotiation', 'lost'] },
-    { id: 'qualificacao', title: 'QUALIFICAÇÃO', badges: ['warm', 'cold', 'unqualified'] },
-    { id: 'tipo', title: 'TIPO DE LEAD', badges: ['vendedor', 'parceiro'] },
-    { id: 'origem', title: 'ORIGEM', badges: ['website', 'facebook', 'portals'] },
-    { id: 'outros', title: 'OUTROS', badges: ['unassigned', 'notConverted'] }
-  ]);
+  // Carregar ordem guardada ou usar ordem padrão
+  const getInitialBadgeGroups = () => {
+    const saved = localStorage.getItem('opportunity_filters_order');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [
+          { id: 'main', title: 'PRINCIPAIS', badges: ['new', 'contacted', 'visit_scheduled', 'proposal', 'won', 'hot', 'comprador', 'converted'] },
+          { id: 'estados', title: 'ESTADOS', badges: ['negotiation', 'lost'] },
+          { id: 'qualificacao', title: 'QUALIFICAÇÃO', badges: ['warm', 'cold', 'unqualified'] },
+          { id: 'tipo', title: 'TIPO DE LEAD', badges: ['vendedor', 'parceiro'] },
+          { id: 'origem', title: 'ORIGEM', badges: ['website', 'facebook', 'portals'] },
+          { id: 'outros', title: 'OUTROS', badges: ['unassigned', 'notConverted'] }
+        ];
+      }
+    }
+    return [
+      { id: 'main', title: 'PRINCIPAIS', badges: ['new', 'contacted', 'visit_scheduled', 'proposal', 'won', 'hot', 'comprador', 'converted'] },
+      { id: 'estados', title: 'ESTADOS', badges: ['negotiation', 'lost'] },
+      { id: 'qualificacao', title: 'QUALIFICAÇÃO', badges: ['warm', 'cold', 'unqualified'] },
+      { id: 'tipo', title: 'TIPO DE LEAD', badges: ['vendedor', 'parceiro'] },
+      { id: 'origem', title: 'ORIGEM', badges: ['website', 'facebook', 'portals'] },
+      { id: 'outros', title: 'OUTROS', badges: ['unassigned', 'notConverted'] }
+    ];
+  };
+  
+  const [badgeGroups, setBadgeGroups] = React.useState(getInitialBadgeGroups);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
     
     const { source, destination } = result;
+    let newGroups;
     
     // Mover dentro do mesmo grupo
     if (source.droppableId === destination.droppableId) {
       const groupIndex = badgeGroups.findIndex(g => g.id === source.droppableId);
-      const newGroups = [...badgeGroups];
+      newGroups = [...badgeGroups];
       const items = Array.from(newGroups[groupIndex].badges);
       const [removed] = items.splice(source.index, 1);
       items.splice(destination.index, 0, removed);
       newGroups[groupIndex] = { ...newGroups[groupIndex], badges: items };
-      setBadgeGroups(newGroups);
     } else {
       // Mover entre grupos
       const sourceGroupIndex = badgeGroups.findIndex(g => g.id === source.droppableId);
       const destGroupIndex = badgeGroups.findIndex(g => g.id === destination.droppableId);
-      const newGroups = [...badgeGroups];
+      newGroups = [...badgeGroups];
       
       const sourceItems = Array.from(newGroups[sourceGroupIndex].badges);
       const [removed] = sourceItems.splice(source.index, 1);
@@ -52,9 +71,11 @@ export default function OpportunityQuickFilters({
       const destItems = Array.from(newGroups[destGroupIndex].badges);
       destItems.splice(destination.index, 0, removed);
       newGroups[destGroupIndex] = { ...newGroups[destGroupIndex], badges: destItems };
-      
-      setBadgeGroups(newGroups);
     }
+    
+    // Atualizar estado e guardar no localStorage
+    setBadgeGroups(newGroups);
+    localStorage.setItem('opportunity_filters_order', JSON.stringify(newGroups));
   };
 
   const { data: users = [] } = useQuery({
