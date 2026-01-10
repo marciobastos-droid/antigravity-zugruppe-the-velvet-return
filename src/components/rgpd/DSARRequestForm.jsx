@@ -56,7 +56,7 @@ export default function DSARRequestForm({ onSuccess }) {
       });
 
       // Notificar administradores
-      await base44.integrations.Core.SendEmail({
+      await base44.functions.invoke('sendGmail', {
         to: "info@zuconnect.pt",
         subject: `Novo Pedido RGPD - ${getRequestTypeLabel(data.request_type)}`,
         body: `
