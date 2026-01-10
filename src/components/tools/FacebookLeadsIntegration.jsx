@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import FacebookSyncDashboard from "./FacebookSyncDashboard";
 import FacebookLeadsFilters from "./FacebookLeadsFilters";
 import FacebookSyncAlerts from "./FacebookSyncAlerts";
-import FacebookAutoSyncManager from "./FacebookAutoSyncManager";
 import { FB_PERMISSIONS, hasPermission, canEditConfig, canManageCampaigns, canDeleteLeads, canSyncHistorical } from "./FacebookPermissions";
 
 export default function FacebookLeadsIntegration() {
@@ -925,26 +924,15 @@ export default function FacebookLeadsIntegration() {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard">
-            <div className="space-y-6">
-              <FacebookAutoSyncManager 
-                fbSettings={fbSettings} 
-                onRefresh={() => {
-                  queryClient.invalidateQueries({ queryKey: ['facebook_leads'] });
-                  queryClient.invalidateQueries({ queryKey: ['fb_settings'] });
-                  queryClient.invalidateQueries({ queryKey: ['facebook_sync_logs'] });
-                }}
-              />
-              
-              <FacebookSyncDashboard
-                campaigns={fbSettings.campaigns || []}
-                lastSync={fbSettings.last_sync || {}}
-                syncLogs={syncLogs}
-                leadsByCampaign={leadsByCampaign}
-                onSync={handleSyncLeads}
-                syncing={syncing}
-                lastSyncTimestamp={syncLogs.length > 0 ? syncLogs[0]?.created_date : null}
-              />
-            </div>
+            <FacebookSyncDashboard
+              campaigns={fbSettings.campaigns || []}
+              lastSync={fbSettings.last_sync || {}}
+              syncLogs={syncLogs}
+              leadsByCampaign={leadsByCampaign}
+              onSync={handleSyncLeads}
+              syncing={syncing}
+              lastSyncTimestamp={syncLogs.length > 0 ? syncLogs[0]?.created_date : null}
+            />
           </TabsContent>
 
           {/* Campaigns Tab */}
