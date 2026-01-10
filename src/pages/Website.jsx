@@ -1515,21 +1515,18 @@ export default function Website() {
       {/* Contact Section */}
       <SmartContactSection
         title={activeTab === "residential" 
-          ? "Encontre o Seu Lar Ideal"
+          ? t('contact.residentialTitle') || "Encontre o Seu Lar Ideal"
           : activeTab === "commercial"
-          ? "O Espaço Perfeito para o Seu Negócio"
-          : "Como Podemos Ajudar?"}
+          ? t('contact.commercialTitle') || "O Espaço Perfeito para o Seu Negócio"
+          : t('contact.title') || "Como Podemos Ajudar?"}
         subtitle={activeTab === "residential"
-          ? "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos"
+          ? t('contact.residentialSubtitle') || "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos"
           : activeTab === "commercial"
-          ? "Soluções comerciais personalizadas para o seu sucesso"
-          : "Preencha o formulário e entraremos em contacto consigo"}
+          ? t('contact.commercialSubtitle') || "Soluções comerciais personalizadas para o seu sucesso"
+          : t('contact.subtitle') || "Preencha o formulário e entraremos em contacto consigo"}
         showContactInfo={true}
-        className={activeTab === "residential"
-          ? "bg-gradient-to-br from-red-50 to-pink-50"
-          : activeTab === "commercial"
-          ? "bg-gradient-to-br from-slate-50 to-gray-100"
-          : "bg-gradient-to-br from-blue-50 to-indigo-50"}
+        brandColor={activeTab === "residential" ? "#d22630" : "#75787b"}
+        className="bg-white"
       />
 
           {/* Footer Legal */}

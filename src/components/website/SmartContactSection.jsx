@@ -3,170 +3,144 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react";
 import DynamicContactForm from "../forms/DynamicContactForm";
 import { motion } from "framer-motion";
+import { useLocalization } from "../i18n/LocalizationContext";
 
 /**
  * Secção de contacto inteligente para o website
  * Usa DynamicContactForm com tracking integrado
  */
 export default function SmartContactSection({
-  title = "Fale Connosco",
-  subtitle = "Estamos disponíveis para esclarecer as suas dúvidas",
-  variant = "default", // "default", "minimal", "featured"
+  title,
+  subtitle,
+  variant = "default",
   showContactInfo = true,
-  className = ""
+  className = "",
+  brandColor = "#d22630" // red for residential, gray for commercial
 }) {
+  const { t } = useLocalization();
+  
+  // Determine if using residential (red) or commercial (gray) theme
+  const isResidential = brandColor === "#d22630";
+  
+  // Default titles based on localization
+  const defaultTitle = title || t('contact.title') || "Encontre o Seu Lar Ideal";
+  const defaultSubtitle = subtitle || t('contact.subtitle') || "A nossa equipa está pronta para o ajudar a encontrar a casa dos seus sonhos";
+  
   return (
-    <section className={`py-16 md:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 bg-clip-text text-transparent mb-6">
-            {title}
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            {subtitle}
-          </motion.p>
+    <section className={`py-12 md:py-16 ${className}`}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+            {defaultTitle}
+          </h2>
+          <p className="text-sm md:text-base text-slate-600 max-w-2xl mx-auto">
+            {defaultSubtitle}
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
           {/* Contact Info */}
-          {showContactInfo &&
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="space-y-8">
+          {showContactInfo && (
+            <div className="space-y-3">
+              <a 
+                href="mailto:info@zugruppe.com"
+                className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all hover:shadow-md ${
+                  isResidential 
+                    ? 'border-red-100 hover:border-red-300 bg-red-50/50'
+                    : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                  isResidential ? 'bg-red-600' : 'bg-slate-700'
+                }`}>
+                  <Mail className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500">{t('contact.email') || 'Email'}</p>
+                  <p className={`font-semibold ${isResidential ? 'text-red-700' : 'text-slate-900'}`}>
+                    info@zugruppe.com
+                  </p>
+                </div>
+              </a>
 
-              <div>
-                <h3 className="text-2xl font-bold text-white mb-8">
-                  Informações de Contacto
-                </h3>
-                
-                <div className="space-y-4">
-                  <motion.a 
-                    href="mailto:info@zugruppe.com"
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    className="flex items-start gap-5 p-6 rounded-2xl bg-gradient-to-br from-slate-800/90 via-slate-800/80 to-slate-900/90 backdrop-blur-sm border border-amber-500/20 hover:border-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all group cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
-                      <Mail className="w-7 h-7 text-slate-900" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-300 mb-1 text-sm">Email</p>
-                      <p className="text-amber-400 group-hover:text-amber-300 font-medium text-lg">
-                        info@zugruppe.com
-                      </p>
-                    </div>
-                  </motion.a>
+              <a 
+                href="tel:+351234026615"
+                className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all hover:shadow-md ${
+                  isResidential 
+                    ? 'border-red-100 hover:border-red-300 bg-red-50/50'
+                    : 'border-slate-200 hover:border-slate-300 bg-slate-50/50'
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                  isResidential ? 'bg-red-600' : 'bg-slate-700'
+                }`}>
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500">{t('contact.phone') || 'Telefone'}</p>
+                  <p className={`font-semibold ${isResidential ? 'text-red-700' : 'text-slate-900'}`}>
+                    +351 234 026 615
+                  </p>
+                </div>
+              </a>
 
-                  <motion.a 
-                    href="tel:+351234026615"
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    className="flex items-start gap-5 p-6 rounded-2xl bg-gradient-to-br from-slate-800/90 via-slate-800/80 to-slate-900/90 backdrop-blur-sm border border-emerald-500/20 hover:border-emerald-400/40 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all group cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/20">
-                      <Phone className="w-7 h-7 text-slate-900" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-300 mb-1 text-sm">Telefone</p>
-                      <p className="text-emerald-400 group-hover:text-emerald-300 font-medium text-lg">
-                        +351 234 026 615
-                      </p>
-                    </div>
-                  </motion.a>
+              <a 
+                href="https://wa.me/351910239889"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 transition-all hover:shadow-md border-2 border-emerald-600"
+              >
+                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-emerald-100">WhatsApp</p>
+                  <p className="font-semibold text-white">
+                    {t('contact.sendMessage') || 'Enviar mensagem'}
+                  </p>
+                </div>
+              </a>
 
-                  <motion.a 
-                    href="https://wa.me/351910239889"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    className="flex items-start gap-5 p-6 rounded-2xl bg-gradient-to-br from-emerald-900/40 via-emerald-900/30 to-green-900/40 backdrop-blur-sm border border-emerald-500/30 hover:border-emerald-400/50 hover:shadow-2xl hover:shadow-emerald-500/20 transition-all group cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-emerald-500/30">
-                      <MessageCircle className="w-7 h-7 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-300 mb-1 text-sm">WhatsApp</p>
-                      <p className="text-emerald-400 group-hover:text-emerald-300 font-medium text-lg">
-                        Enviar mensagem
-                      </p>
-                    </div>
-                  </motion.a>
-
-                  <motion.div 
-                    whileHover={{ scale: 1.02, x: 4 }}
-                    className="flex items-start gap-5 p-6 rounded-2xl bg-gradient-to-br from-slate-800/90 via-slate-800/80 to-slate-900/90 backdrop-blur-sm border border-amber-500/20 hover:border-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all group">
-                    <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
-                      <MapPin className="w-7 h-7 text-slate-900" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-slate-300 mb-1 text-sm">Morada</p>
-                      <p className="text-slate-200 text-base leading-relaxed">
-                        Praça Marquês de Pombal 2<br />
-                        3810-133 Aveiro, Portugal
-                      </p>
-                    </div>
-                  </motion.div>
+              <div className={`flex items-start gap-4 p-4 rounded-lg border-2 ${
+                isResidential 
+                  ? 'border-red-100 bg-red-50/50'
+                  : 'border-slate-200 bg-slate-50/50'
+              }`}>
+                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                  isResidential ? 'bg-red-600' : 'bg-slate-700'
+                }`}>
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-slate-500">{t('contact.address') || 'Morada'}</p>
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    Praça Marquês de Pombal 2<br />
+                    3810-133 Aveiro, Portugal
+                  </p>
                 </div>
               </div>
-
-              <Card className="bg-gradient-to-br from-amber-900/30 via-amber-800/20 to-amber-900/30 backdrop-blur-sm text-white border border-amber-500/30 shadow-2xl shadow-amber-500/10 overflow-hidden relative">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(251,191,36,0.1),transparent_50%)] pointer-events-none" />
-                <CardContent className="p-8 relative">
-                  <h4 className="font-bold text-xl mb-6 flex items-center gap-3 text-amber-400">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50" />
-                    Horário de Atendimento
-                  </h4>
-                  <div className="space-y-4 text-base">
-                    <div className="flex justify-between items-center pb-4 border-b border-amber-500/20">
-                      <span className="text-slate-300">Segunda a Sexta</span>
-                      <span className="font-bold text-amber-400">09:00 - 19:00</span>
-                    </div>
-                    <div className="flex justify-between items-center pb-4 border-b border-amber-500/20">
-                      <span className="text-slate-300">Sábado</span>
-                      <span className="font-bold text-amber-400">10:00 - 14:00</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Domingo</span>
-                      <span className="text-slate-500 italic">Encerrado</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          }
+            </div>
+          )}
 
           {/* Contact Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: showContactInfo ? 0.2 : 0 }}>
-
-            <Card className="shadow-2xl shadow-amber-500/20 border border-amber-500/20 bg-gradient-to-br from-white/95 via-white/90 to-white/95 backdrop-blur-xl overflow-hidden relative">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(251,191,36,0.08),transparent_50%)] pointer-events-none" />
-              <CardContent className="p-8 md:p-10 relative">
+          <div>
+            <Card className="shadow-lg border-2 border-slate-200">
+              <CardContent className="p-6 md:p-8">
                 <DynamicContactForm
                   context="general"
                   showInterestType={false}
                   variant={variant}
                   onSuccess={(data) => {
-                    // Guardar email do guest para tracking futuro
                     if (data.guest_email) {
                       localStorage.setItem('guest_email', data.guest_email);
                     }
-                  }} />
-
+                  }} 
+                />
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </section>);
-
+    </section>
+  );
 }
