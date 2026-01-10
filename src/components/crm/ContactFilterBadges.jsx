@@ -13,8 +13,18 @@ export default function ContactFilterBadges({
 
   // Calculate counts for each filter
   const counts = useMemo(() => {
+    if (!contacts || contacts.length === 0) {
+      return {
+        novos: 0, contactados: 0, visitaAgendada: 0, proposta: 0, fechados: 0, hot: 0, 
+        compradores: 0, convertidos: 0, negociacao: 0, perdidos: 0, warm: 0, cold: 0,
+        naoQualificados: 0, website: 0, facebookAds: 0, portais: 0, vendedores: 0,
+        parceiros: 0, naoConvertidos: 0, consultores: []
+      };
+    }
+
     // Helper to get opportunities for a contact
     const getContactOpps = (contactId) => {
+      if (!opportunities || opportunities.length === 0) return [];
       return opportunities.filter(o => 
         o.contact_id === contactId || 
         o.profile_id === contactId ||
