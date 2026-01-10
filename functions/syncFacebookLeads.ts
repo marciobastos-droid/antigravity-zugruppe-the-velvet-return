@@ -199,8 +199,8 @@ Deno.serve(async (req) => {
               entity_type: 'ClientContact' 
             });
             
-            // Criar novo contacto
-            const newContact = await base44.asServiceRole.entities.ClientContact.create({
+            // Criar novo contacto via bulkCreate (bypasses RLS)
+            const [newContact] = await base44.asServiceRole.entities.ClientContact.bulkCreate([{
               ref_id: contactRefIdResponse.data.ref_id,
               full_name: leadData.full_name,
               email: leadData.email,
@@ -210,13 +210,13 @@ Deno.serve(async (req) => {
               source: "facebook_ads",
               assigned_agent: assigned_to || undefined,
               notes: `Importado do Facebook Lead Ads\nCampanha: ${leadData.campaign_name || leadData.campaign_id}\n${leadData.message || ''}`
-            });
+            }]);
             contactId = newContact.id;
           }
         }
 
-        // Criar oportunidade com ref_id
-        const opportunity = await base44.entities.Opportunity.create({
+        // Criar oportunidade via bulkCreate (bypasses RLS)
+        const [opportunity] = await base44.asServiceRole.entities.Opportunity.bulkCreate([{
           ref_id: oppRefId,
           lead_type: "comprador",
           contact_id: contactId || undefined,
@@ -232,10 +232,10 @@ Deno.serve(async (req) => {
           priority: "high",
           lead_source: "facebook_ads",
           source_detail: leadData.campaign_name || leadData.campaign_id
-        });
+        }]);
 
         // Atualizar FacebookLead com ID da oportunidade criada
-        await base44.entities.FacebookLead.update(createdFbLead.id, {
+        await base44.asServiceRole.entities.FacebookLead.update(createdFbLead.id, {
           status: "converted",
           converted_to_opportunity_id: opportunity.id
         });

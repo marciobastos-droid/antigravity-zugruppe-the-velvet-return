@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
               entity_type: 'ClientContact' 
             });
             
-            // Criar novo contacto
-            const newContact = await base44.asServiceRole.entities.ClientContact.create({
+            // Criar novo contacto via bulkCreate (bypasses RLS)
+            const [newContact] = await base44.asServiceRole.entities.ClientContact.bulkCreate([{
               ref_id: contactRefIdResponse.data.ref_id,
               full_name: lead.full_name,
               email: lead.email,
@@ -62,13 +62,13 @@ Deno.serve(async (req) => {
               contact_type: "client",
               source: "facebook_ads",
               notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
-            });
+            }]);
             contactId = newContact.id;
           }
         }
 
-        // Criar oportunidade
-        const opportunity = await base44.asServiceRole.entities.Opportunity.create({
+        // Criar oportunidade via bulkCreate (bypasses RLS)
+        const [opportunity] = await base44.asServiceRole.entities.Opportunity.bulkCreate([{
           ref_id: oppRefId,
           lead_type: "comprador",
           contact_id: contactId || undefined,
@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
           priority: "high",
           lead_source: "facebook_ads",
           source_detail: lead.campaign_name || lead.campaign_id
-        });
+        }]);
 
         // Atualizar FacebookLead
         await base44.asServiceRole.entities.FacebookLead.update(lead.id, {
