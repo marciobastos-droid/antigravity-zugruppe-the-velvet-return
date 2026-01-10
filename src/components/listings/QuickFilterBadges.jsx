@@ -212,14 +212,38 @@ export default function QuickFilterBadges({
   };
 
   const renderBadge = (itemId, isDragging = false) => {
+    const propertyTypeLabels = {
+      apartment: "Apartamentos",
+      house: "Moradias",
+      land: "Terrenos",
+      store: "Lojas",
+      condo: "Condomínios",
+      townhouse: "Casas Geminadas",
+      building: "Prédios",
+      warehouse: "Armazéns",
+      office: "Escritórios",
+      farm: "Quintas",
+      commercial: "Comercial",
+      hotel: "Hotéis"
+    };
+
     const badgeMap = {
       active: { filterKey: "status", value: "active", label: "Ativo", count: stats.active, color: "green" },
       pending: { filterKey: "status", value: "pending", label: "Pendente", count: stats.pending, color: "yellow" },
       sale: { filterKey: "listing_type", value: "sale", label: "Venda", count: stats.sale, color: "blue" },
       rent: { filterKey: "listing_type", value: "rent", label: "Arrendamento", count: stats.rent, color: "purple" },
-      apartment: { filterKey: "property_type", value: "apartment", label: "Apartamentos", count: stats.apartment, color: "indigo", icon: Building2 },
-      house: { filterKey: "property_type", value: "house", label: "Moradias", count: stats.house, color: "emerald", icon: Home },
-      store: { filterKey: "property_type", value: "store", label: "Lojas", count: stats.store, color: "slate", icon: Store },
+      apartment: { filterKey: "property_type", value: "apartment", label: propertyTypeLabels.apartment, count: stats.apartment, color: "indigo", icon: Building2 },
+      house: { filterKey: "property_type", value: "house", label: propertyTypeLabels.house, count: stats.house, color: "emerald", icon: Home },
+      land: { filterKey: "property_type", value: "land", label: propertyTypeLabels.land, count: stats.land, color: "slate", icon: Building2 },
+      store: { filterKey: "property_type", value: "store", label: propertyTypeLabels.store, count: stats.store, color: "slate", icon: Store },
+      condo: { filterKey: "property_type", value: "condo", label: propertyTypeLabels.condo, count: stats.condo, color: "slate", icon: Building2 },
+      townhouse: { filterKey: "property_type", value: "townhouse", label: propertyTypeLabels.townhouse, count: stats.townhouse, color: "slate", icon: Home },
+      building: { filterKey: "property_type", value: "building", label: propertyTypeLabels.building, count: stats.building, color: "slate", icon: Building2 },
+      warehouse: { filterKey: "property_type", value: "warehouse", label: propertyTypeLabels.warehouse, count: stats.warehouse, color: "slate", icon: Building2 },
+      office: { filterKey: "property_type", value: "office", label: propertyTypeLabels.office, count: stats.office, color: "slate", icon: Building2 },
+      farm: { filterKey: "property_type", value: "farm", label: propertyTypeLabels.farm, count: stats.farm, color: "slate", icon: Home },
+      commercial: { filterKey: "property_type", value: "commercial", label: propertyTypeLabels.commercial, count: stats.commercial, color: "slate", icon: Store },
+      hotel: { filterKey: "property_type", value: "hotel", label: propertyTypeLabels.hotel, count: stats.hotel, color: "slate", icon: Building2 },
       featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
       lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
       withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
