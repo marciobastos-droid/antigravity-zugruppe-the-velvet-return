@@ -7,9 +7,11 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard';
 import CRMAdvanced from './pages/CRMAdvanced';
 import ClientPortal from './pages/ClientPortal';
 import CookiePolicy from './pages/CookiePolicy';
+import DSARPortal from './pages/DSARPortal';
 import Dashboard from './pages/Dashboard';
 import DenunciationChannel from './pages/DenunciationChannel';
 import Franchising from './pages/Franchising';
+import GDPRManagement from './pages/GDPRManagement';
 import Home from './pages/Home';
 import Institucional from './pages/Institucional';
 import ManageData from './pages/ManageData';
@@ -30,8 +32,6 @@ import Website from './pages/Website';
 import WorldWideProperties from './pages/WorldWideProperties';
 import ZuHandel from './pages/ZuHandel';
 import ZuHaus from './pages/ZuHaus';
-import GDPRManagement from './pages/GDPRManagement';
-import DSARPortal from './pages/DSARPortal';
 import __Layout from './Layout.jsx';
 
 
@@ -45,9 +45,11 @@ export const PAGES = {
     "CRMAdvanced": CRMAdvanced,
     "ClientPortal": ClientPortal,
     "CookiePolicy": CookiePolicy,
+    "DSARPortal": DSARPortal,
     "Dashboard": Dashboard,
     "DenunciationChannel": DenunciationChannel,
     "Franchising": Franchising,
+    "GDPRManagement": GDPRManagement,
     "Home": Home,
     "Institucional": Institucional,
     "ManageData": ManageData,
@@ -68,8 +70,6 @@ export const PAGES = {
     "WorldWideProperties": WorldWideProperties,
     "ZuHandel": ZuHandel,
     "ZuHaus": ZuHaus,
-    "GDPRManagement": GDPRManagement,
-    "DSARPortal": DSARPortal,
 }
 
 export const pagesConfig = {

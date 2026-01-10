@@ -23,9 +23,9 @@ export default function PremiumLuxury() {
     queryFn: async () => {
       const allProperties = await base44.entities.Property.list('-created_date');
 
-      // Filtrar apenas imóveis explicitamente publicados em 'premium_luxury'
+      // Filtrar apenas imóveis explicitamente publicados em 'luxury_collection'
       return allProperties.filter(p => 
-        p.published_pages?.includes('premium_luxury')
+        p.published_pages?.includes('luxury_collection')
       );
     }
   });
