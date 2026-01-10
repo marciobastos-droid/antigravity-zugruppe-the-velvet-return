@@ -69,11 +69,19 @@ export default function QuickFilterBadges({
       sale: properties.filter(p => p.listing_type === 'sale').length,
       rent: properties.filter(p => p.listing_type === 'rent').length,
       
-      // Tipos de imóvel
+      // Tipos de imóvel (dinâmicos)
       apartment: properties.filter(p => p.property_type === 'apartment').length,
       house: properties.filter(p => p.property_type === 'house').length,
       land: properties.filter(p => p.property_type === 'land').length,
       store: properties.filter(p => p.property_type === 'store').length,
+      condo: properties.filter(p => p.property_type === 'condo').length,
+      townhouse: properties.filter(p => p.property_type === 'townhouse').length,
+      building: properties.filter(p => p.property_type === 'building').length,
+      warehouse: properties.filter(p => p.property_type === 'warehouse').length,
+      office: properties.filter(p => p.property_type === 'office').length,
+      farm: properties.filter(p => p.property_type === 'farm').length,
+      commercial: properties.filter(p => p.property_type === 'commercial').length,
+      hotel: properties.filter(p => p.property_type === 'hotel').length,
       
       // Outras características
       featured: properties.filter(p => p.featured).length,
