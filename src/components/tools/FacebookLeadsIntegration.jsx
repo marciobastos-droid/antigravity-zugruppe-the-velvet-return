@@ -1376,11 +1376,14 @@ export default function FacebookLeadsIntegration() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3 flex-1">
                           {canBulkDelete && (
-                            <Checkbox
-                              checked={selectedLeads.includes(lead.id)}
-                              onCheckedChange={() => toggleSelectLead(lead.id)}
-                              className="mt-1"
-                            />
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedLeads.includes(lead.id)}
+                                onChange={() => toggleSelectLead(lead.id)}
+                                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                              />
+                            </div>
                           )}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
