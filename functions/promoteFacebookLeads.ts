@@ -33,12 +33,13 @@ Deno.serve(async (req) => {
       try {
         console.log(`[CONVERT] Starting conversion for: ${lead.full_name}`);
         
-        // Gerar ref_id para a oportunidade
-        console.log(`[CONVERT] Generating Opportunity ref_id...`);
-        const refIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
-          entity_type: 'Opportunity' 
-        });
-        const oppRefId = refIdResponse.data.ref_id;
+        // Gerar ref_id simples para a oportunidade
+        const allOpportunities = await base44.asServiceRole.entities.Opportunity.list();
+        const maxOppNumber = Math.max(0, ...allOpportunities.map(o => {
+          const match = o.ref_id?.match(/OPO-(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        }));
+        const oppRefId = `OPO-${String(maxOppNumber + 1).padStart(5, '0')}`;
         console.log(`[CONVERT] Generated Opportunity ref_id: ${oppRefId}`);
 
         // Verificar se já existe contacto com este email
@@ -53,12 +54,13 @@ Deno.serve(async (req) => {
             contactId = existingContacts[0].id;
             console.log(`[CONVERT] Found existing contact: ${contactId}`);
           } else {
-            // Gerar ref_id para o contacto
-            console.log(`[CONVERT] Generating ClientContact ref_id...`);
-            const contactRefIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
-              entity_type: 'ClientContact' 
-            });
-            const contactRefId = contactRefIdResponse.data.ref_id;
+            // Gerar ref_id simples para o contacto
+            const allContacts = await base44.asServiceRole.entities.ClientContact.list();
+            const maxContactNumber = Math.max(0, ...allContacts.map(c => {
+              const match = c.ref_id?.match(/CLI-(\d+)/);
+              return match ? parseInt(match[1]) : 0;
+            }));
+            const contactRefId = `CLI-${String(maxContactNumber + 1).padStart(5, '0')}`;
             console.log(`[CONVERT] Generated ClientContact ref_id: ${contactRefId}`);
             
             // Criar novo contacto via bulkCreate (bypasses RLS)
