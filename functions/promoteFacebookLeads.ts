@@ -31,30 +31,40 @@ Deno.serve(async (req) => {
 
     for (const lead of leadsToConvert) {
       try {
+        console.log(`[CONVERT] Starting conversion for: ${lead.full_name}`);
+        
         // Gerar ref_id para a oportunidade
+        console.log(`[CONVERT] Generating Opportunity ref_id...`);
         const refIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
           entity_type: 'Opportunity' 
         });
         const oppRefId = refIdResponse.data.ref_id;
+        console.log(`[CONVERT] Generated Opportunity ref_id: ${oppRefId}`);
 
         // Verificar se já existe contacto com este email
         let contactId = null;
         if (lead.email) {
+          console.log(`[CONVERT] Checking for existing contact with email: ${lead.email}`);
           const existingContacts = await base44.asServiceRole.entities.ClientContact.filter({ 
             email: lead.email 
           });
           
           if (existingContacts && existingContacts.length > 0) {
             contactId = existingContacts[0].id;
+            console.log(`[CONVERT] Found existing contact: ${contactId}`);
           } else {
             // Gerar ref_id para o contacto
+            console.log(`[CONVERT] Generating ClientContact ref_id...`);
             const contactRefIdResponse = await base44.asServiceRole.functions.invoke('generateRefId', { 
               entity_type: 'ClientContact' 
             });
+            const contactRefId = contactRefIdResponse.data.ref_id;
+            console.log(`[CONVERT] Generated ClientContact ref_id: ${contactRefId}`);
             
             // Criar novo contacto via bulkCreate (bypasses RLS)
+            console.log(`[CONVERT] Creating new ClientContact...`);
             const [newContact] = await base44.asServiceRole.entities.ClientContact.bulkCreate([{
-              ref_id: contactRefIdResponse.data.ref_id,
+              ref_id: contactRefId,
               full_name: lead.full_name,
               email: lead.email,
               phone: lead.phone,
@@ -64,10 +74,12 @@ Deno.serve(async (req) => {
               notes: `Importado do Facebook Lead Ads\nCampanha: ${lead.campaign_name || lead.campaign_id}\n${lead.message || ''}`
             }]);
             contactId = newContact.id;
+            console.log(`[CONVERT] Created ClientContact: ${contactId}`);
           }
         }
 
         // Criar oportunidade via bulkCreate (bypasses RLS)
+        console.log(`[CONVERT] Creating Opportunity...`);
         const [opportunity] = await base44.asServiceRole.entities.Opportunity.bulkCreate([{
           ref_id: oppRefId,
           lead_type: "comprador",
@@ -84,6 +96,7 @@ Deno.serve(async (req) => {
           lead_source: "facebook_ads",
           source_detail: lead.campaign_name || lead.campaign_id
         }]);
+        console.log(`[CONVERT] Created Opportunity: ${opportunity.id}`);
 
         // Atualizar FacebookLead
         await base44.asServiceRole.entities.FacebookLead.update(lead.id, {
