@@ -209,13 +209,7 @@ export default function FacebookAutoSyncManager({ fbSettings, onRefresh }) {
           </div>
         )}
 
-        <div className="bg-slate-100 border border-slate-300 rounded-lg p-3">
-          <p className="text-xs text-slate-700">
-            💡 <strong>Dica:</strong> Para sincronização totalmente automática, 
-            esta função deve ser executada periodicamente (ex: a cada hora) 
-            através de um serviço externo como Cron-Job.org ou similar.
-          </p>
-        </div>
+
       </CardContent>
     </Card>
   );
