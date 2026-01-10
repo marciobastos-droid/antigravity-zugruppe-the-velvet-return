@@ -348,7 +348,7 @@ export default function QuickFilterBadges({
                          // Renderizar badges de publicação especiais
                          if (['zuhaus', 'zuhandel', 'luxury_collection', 'international'].includes(itemId)) {
                           const config = getPublishedBadgeConfig(itemId);
-                          if (!config || config.count === 0) return null;
+                          if (!config || (itemId !== 'luxury_collection' && config.count === 0)) return null;
                           
                           return (
                             <Draggable key={itemId} draggableId={itemId} index={index}>
