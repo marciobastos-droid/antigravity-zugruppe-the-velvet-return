@@ -65,7 +65,7 @@ export default function GDPRConsentManager({ contact, onUpdate }) {
 
   const sendConsentRequestMutation = useMutation({
     mutationFn: async () => {
-      await base44.integrations.Core.SendEmail({
+      await base44.functions.invoke('sendGmail', {
         to: contact.email,
         subject: "Pedido de Consentimento RGPD - ZuGruppe",
         body: `

@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     };
 
     // Enviar dados por email
-    await base44.asServiceRole.integrations.Core.SendEmail({
+    await base44.asServiceRole.functions.invoke('sendGmail', {
       to: email,
       subject: "Os Seus Dados Pessoais - RGPD",
       body: `

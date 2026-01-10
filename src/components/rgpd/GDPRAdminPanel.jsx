@@ -77,7 +77,7 @@ export default function GDPRAdminPanel() {
         ? "foi aprovado e está a ser processado" 
         : "foi rejeitado";
       
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.functions.invoke('sendGmail', {
         to: request.requester_email,
         subject: `Pedido RGPD - ${getRequestTypeLabel(request.request_type)}`,
         body: `
@@ -197,7 +197,7 @@ Equipa ZuGruppe
       });
 
       // Notificar titular
-      await base44.integrations.Core.SendEmail({
+      await base44.asServiceRole.functions.invoke('sendGmail', {
         to: request.requester_email,
         subject: "Pedido de Eliminação de Dados RGPD - Concluído",
         body: `
