@@ -245,7 +245,7 @@ export default function QuickFilterBadges({
       office: { filterKey: "property_type", value: "office", label: propertyTypeLabels.office, count: stats.office, color: "slate", icon: Building2 },
       farm: { filterKey: "property_type", value: "farm", label: propertyTypeLabels.farm, count: stats.farm, color: "slate", icon: Home },
       commercial: { filterKey: "property_type", value: "commercial", label: propertyTypeLabels.commercial, count: stats.commercial, color: "slate", icon: Store },
-      hotel: { filterKey: "property_type", value: "hotel", label: propertyTypeLabels.hotel, count: stats.hotel, color: "slate", icon: Building2 },
+      hotel: { filterKey: "property_type", value: "hotel", label: propertyTypeLabels.hotel, count: stats.hotel, color: "red", icon: Building2 },
       featured: { filterKey: "featured", value: true, label: "Destaque", count: stats.featured, color: "amber", icon: Star },
       lastImport: { filterKey: "last_import", value: true, label: "Última Importação", count: stats.lastImport, color: "indigo", icon: Download },
       withImages: { filterKey: "has_images", value: true, label: "Com Imagens", count: stats.withImages, color: "blue", icon: Image }
