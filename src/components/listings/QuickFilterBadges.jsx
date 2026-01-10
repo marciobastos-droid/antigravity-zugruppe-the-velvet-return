@@ -252,7 +252,7 @@ export default function QuickFilterBadges({
     };
 
     const config = badgeMap[itemId];
-    if (!config) return null;
+    if (!config || config.count === 0) return null;
 
     const active = isActive(config.filterKey, config.value);
     const colorClasses = {
