@@ -27,7 +27,7 @@ export default function QuickFilterBadges({
     // Extrair tipos de imóvel únicos das propriedades + tipos conhecidos
     const knownPropertyTypes = ['apartment', 'house', 'land', 'store', 'condo', 'townhouse', 'building', 'warehouse', 'office', 'farm', 'commercial', 'hotel'];
     const propertyTypesInData = Array.from(new Set(properties.map(p => p.property_type).filter(Boolean)));
-    const propertyTypes = [...new Set([...knownPropertyTypes, ...propertyTypesInData])];
+    const propertyTypes = [...new Set([...knownPropertyTypes, ...propertyTypesInData])].sort();
     
     return [
       { id: 'estado', title: 'ESTADO', items: ['active', 'pending'] },
