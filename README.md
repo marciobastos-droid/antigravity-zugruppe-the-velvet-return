@@ -43,8 +43,22 @@ Go to **Settings → Secrets and variables → Actions** and add:
 |------------|-------------|---------|
 | `VITE_BASE44_APP_ID` | Your Base44 App ID | `abc123def456` |
 | `VITE_BASE44_BACKEND_URL` | Base44 API endpoint | `https://api.base44.com` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth Client ID | `123-abc.apps.googleusercontent.com` |
 
-After adding the secrets, trigger a new deployment by pushing to `main` or manually running the workflow.
+## 🔐 Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one.
+3. Navigate to **APIs & Services > Credentials**.
+4. Click **Create Credentials > OAuth client ID**.
+5. Select **Web application** as the application type.
+6. Add **Authorized JavaScript origins**:
+   - `http://localhost:5173` (Local development)
+   - `https://marciobastos-droid.github.io` (Production)
+7. Add **Authorized redirect URIs**:
+   - `http://localhost:5173`
+   - `https://marciobastos-droid.github.io/antigravity-zugruppe-the-velvet-return/` (or your root URL)
+8. Copy the **Client ID** and add it to your environment variables.
 
 ## 🏗️ Tech Stack
 

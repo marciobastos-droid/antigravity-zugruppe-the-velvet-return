@@ -37,6 +37,7 @@ jobs:
           VITE_BASE44_APP_ID: ${{ secrets.VITE_BASE44_APP_ID }}
           VITE_BASE44_BACKEND_URL: ${{ secrets.VITE_BASE44_BACKEND_URL }}
           BASE44_LEGACY_SDK_IMPORTS: ${{ secrets.BASE44_LEGACY_SDK_IMPORTS }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
